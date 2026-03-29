@@ -3,82 +3,7 @@
 
 @section('content')
 
-@php
-    $repeatCount = $violators->getCollection()->where('violations_count', '>=', 2)->count();
-@endphp
-
 <style>
-.mot-hero {
-    background: linear-gradient(160deg, #0f2167 0%, #1d4ed8 58%, #1e40af 100%);
-    border-radius: 22px;
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 10px 36px rgba(15,33,103,.42);
-}
-.mot-hero::before {
-    content: '';
-    position: absolute;
-    top: -72px;
-    right: -44px;
-    width: 180px;
-    height: 180px;
-    border-radius: 50%;
-    background: rgba(255,255,255,.07);
-}
-.mot-hero::after {
-    content: '';
-    position: absolute;
-    left: -24px;
-    bottom: -56px;
-    width: 138px;
-    height: 138px;
-    border-radius: 50%;
-    background: rgba(255,255,255,.045);
-}
-.mot-hero-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: .35rem;
-    background: rgba(255,255,255,.14);
-    border: 1px solid rgba(255,255,255,.16);
-    border-radius: 999px;
-    padding: .24rem .62rem;
-    color: rgba(255,255,255,.86);
-    font-size: .62rem;
-    font-weight: 800;
-    letter-spacing: .05em;
-    text-transform: uppercase;
-}
-.mot-hero-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: .55rem;
-    margin-top: 1rem;
-}
-.mot-hero-stat {
-    background: rgba(255,255,255,.11);
-    border: 1px solid rgba(255,255,255,.16);
-    border-radius: 14px;
-    padding: .72rem .45rem;
-    text-align: center;
-    backdrop-filter: blur(8px);
-}
-.mot-hero-stat-num {
-    font-size: 1.35rem;
-    line-height: 1;
-    font-weight: 800;
-    color: #fff;
-}
-.mot-hero-stat-lbl {
-    font-size: .55rem;
-    font-weight: 700;
-    color: rgba(255,255,255,.6);
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    margin-top: .2rem;
-}
 .mot-section-heading {
     font-size: .6rem;
     font-weight: 800;
@@ -330,41 +255,6 @@
     border: 1px solid #fca5a5;
 }
 </style>
-
-<div class="mot-hero">
-    <div class="d-flex justify-content-between align-items-start gap-3" style="position:relative;z-index:1;">
-        <div style="flex:1;min-width:0;">
-            <div class="mot-hero-chip mb-2">
-                <i class="ph-fill ph-shield-check"></i>
-                Officer Records
-            </div>
-            <div style="font-size:1.15rem;font-weight:800;color:#fff;line-height:1.15;">
-                Motorist Lookup
-            </div>
-            <div style="font-size:.75rem;color:rgba(255,255,255,.72);margin-top:.28rem;max-width:240px;">
-                Search motorists fast, check repeat offenders, and open profiles directly from the field.
-            </div>
-        </div>
-        <div style="width:50px;height:50px;border-radius:16px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <i class="ph-fill ph-identification-card" style="font-size:1.45rem;color:#fff;"></i>
-        </div>
-    </div>
-
-    <div class="mot-hero-stats" style="position:relative;z-index:1;">
-        <div class="mot-hero-stat">
-            <div class="mot-hero-stat-num">{{ number_format($violators->total()) }}</div>
-            <div class="mot-hero-stat-lbl">Records</div>
-        </div>
-        <div class="mot-hero-stat">
-            <div class="mot-hero-stat-num">{{ $violators->count() }}</div>
-            <div class="mot-hero-stat-lbl">Showing</div>
-        </div>
-        <div class="mot-hero-stat">
-            <div class="mot-hero-stat-num">{{ $repeatCount }}</div>
-            <div class="mot-hero-stat-lbl">Repeats</div>
-        </div>
-    </div>
-</div>
 
 <div class="mot-section-heading">Quick Search</div>
 

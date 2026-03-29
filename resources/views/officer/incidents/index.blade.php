@@ -1,84 +1,371 @@
-﻿@extends('layouts.mobile')
+@extends('layouts.mobile')
 @section('title', 'Incidents')
 
 @section('content')
 
-{{-- ── Search & Filter ── --}}
-<form method="GET" action="{{ route('officer.incidents.index') }}" class="mb-3">
-    <div class="input-group mb-2" style="border-radius:12px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.07);">
-        <span class="input-group-text" style="background:#fff;border-color:#e2e8f0;border-right:none;padding-left:.875rem;">
-            <i class="ph ph-magnifying-glass" style="color:#94a3b8;"></i>
-        </span>
-        <input type="text" name="search" value="{{ $search }}"
-               class="form-control mob-input"
-               style="border-left:none;border-color:#e2e8f0;"
-               placeholder="Incident # or location...">
-        <button class="btn" type="submit"
-                style="background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;padding:0 1rem;font-weight:700;font-size:.85rem;min-height:44px;">
-            Search
-        </button>
+@php
+    $openCount = $incidents->getCollection()->where('status', 'open')->count();
+    $reviewCount = $incidents->getCollection()->where('status', 'under_review')->count();
+    $closedCount = $incidents->getCollection()->where('status', 'closed')->count();
+@endphp
+
+<style>
+.inc-section-heading {
+    font-size: .6rem;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: .65rem;
+}
+.inc-section-heading::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+}
+.inc-search-shell {
+    background: #fff;
+    border: 1px solid rgba(15,23,42,.05);
+    border-radius: 18px;
+    padding: .75rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 6px 20px rgba(15,23,42,.06);
+}
+.inc-search-bar {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    background: #f8fafc;
+    border: 1px solid #dbe5f1;
+    border-radius: 16px;
+    padding: .2rem .22rem .2rem .8rem;
+}
+.inc-search-icon {
+    color: #64748b;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.inc-search-input {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    min-height: 44px;
+    font-size: .92rem;
+    padding: 0 !important;
+}
+.inc-search-input::placeholder {
+    color: #94a3b8;
+}
+.inc-search-submit {
+    border: none;
+    border-radius: 14px;
+    min-height: 44px;
+    padding: 0 1rem;
+    font-size: .84rem;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(135deg,#dc2626,#b91c1c);
+    box-shadow: 0 6px 16px rgba(220,38,38,.24);
+    flex-shrink: 0;
+}
+.inc-filter-row {
+    display: flex;
+    gap: .6rem;
+    margin-top: .75rem;
+}
+.inc-filter-btn {
+    min-height: 44px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #334155;
+    padding: 0 .9rem;
+    font-size: .84rem;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(15,23,42,.04);
+    flex-shrink: 0;
+}
+.inc-filter-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: .7rem;
+    margin-top: .75rem;
+    flex-wrap: wrap;
+}
+.inc-filter-pills {
+    display: flex;
+    gap: .4rem;
+    flex-wrap: wrap;
+}
+.inc-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .28rem;
+    border-radius: 999px;
+    padding: .22rem .62rem;
+    font-size: .68rem;
+    font-weight: 700;
+}
+.inc-pill--search {
+    background: #fff1f2;
+    color: #dc2626;
+    border: 1px solid #fecdd3;
+}
+.inc-pill--status {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+.inc-filter-meta {
+    font-size: .72rem;
+    color: #64748b;
+    font-weight: 600;
+}
+.inc-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .6rem;
+    margin-bottom: 1rem;
+}
+.inc-stat-card {
+    background: #fff;
+    border: 1px solid rgba(15,23,42,.05);
+    border-radius: 16px;
+    padding: .82rem .45rem;
+    text-align: center;
+    box-shadow: 0 3px 14px rgba(15,23,42,.04);
+}
+.inc-stat-num {
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1;
+}
+.inc-stat-num--open {
+    color: #dc2626;
+}
+.inc-stat-num--review {
+    color: #1d4ed8;
+}
+.inc-stat-num--closed {
+    color: #475569;
+}
+.inc-stat-lbl {
+    font-size: .55rem;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-top: .2rem;
+}
+.inc-list-card {
+    display: flex;
+    align-items: center;
+    gap: .9rem;
+    background: #fff;
+    border-radius: 18px;
+    padding: .95rem 1rem .95rem .95rem;
+    text-decoration: none;
+    color: inherit;
+    margin-bottom: .72rem;
+    border: 1px solid rgba(15,23,42,.045);
+    box-shadow: 0 3px 14px rgba(15,23,42,.06);
+    position: relative;
+    overflow: hidden;
+}
+.inc-list-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+}
+.inc-list-card--open::before {
+    background: linear-gradient(180deg,#dc2626,#b91c1c);
+}
+.inc-list-card--review::before {
+    background: linear-gradient(180deg,#2563eb,#1d4ed8);
+}
+.inc-list-card--closed::before {
+    background: linear-gradient(180deg,#64748b,#475569);
+}
+.inc-list-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 5px 14px rgba(15,23,42,.14);
+}
+.inc-list-icon--open {
+    background: linear-gradient(135deg,#dc2626,#b91c1c);
+}
+.inc-list-icon--review {
+    background: linear-gradient(135deg,#2563eb,#1d4ed8);
+}
+.inc-list-icon--closed {
+    background: linear-gradient(135deg,#64748b,#475569);
+}
+.inc-list-title {
+    font-size: .92rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.25;
+}
+.inc-list-meta {
+    font-size: .72rem;
+    color: #64748b;
+    margin-top: .12rem;
+    line-height: 1.45;
+}
+.inc-list-submeta {
+    font-size: .68rem;
+    color: #94a3b8;
+    margin-top: .18rem;
+}
+</style>
+
+<div class="inc-section-heading">Search &amp; Filter</div>
+
+<form method="GET" action="{{ route('officer.incidents.index') }}" class="inc-search-shell">
+    <div class="inc-search-bar">
+        <i class="ph ph-magnifying-glass inc-search-icon"></i>
+        <input
+            type="text"
+            name="search"
+            value="{{ $search }}"
+            class="form-control inc-search-input"
+            placeholder="Incident #, location, or motorist..."
+            autocomplete="off"
+        >
+        <button class="inc-search-submit" type="submit">Search</button>
     </div>
-    <div class="d-flex gap-2">
+
+    <div class="inc-filter-row">
         <select name="status" class="form-select mob-select" style="font-size:.85rem;">
             <option value="">All statuses</option>
-            <option value="open"         {{ $status === 'open'         ? 'selected' : '' }}>Open</option>
+            <option value="open" {{ $status === 'open' ? 'selected' : '' }}>Open</option>
             <option value="under_review" {{ $status === 'under_review' ? 'selected' : '' }}>Under Review</option>
-            <option value="closed"       {{ $status === 'closed'       ? 'selected' : '' }}>Closed</option>
+            <option value="closed" {{ $status === 'closed' ? 'selected' : '' }}>Closed</option>
         </select>
-        <button type="submit" class="btn flex-shrink-0"
-                style="background:#fff;color:#334155;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.85rem;font-weight:600;min-height:44px;padding:0 .9rem;box-shadow:0 1px 3px rgba(0,0,0,.04);">
-            <i class="ph ph-funnel-simple me-1"></i>Filter
+        <button type="submit" class="inc-filter-btn">
+            <i class="ph ph-funnel-simple me-1"></i> Apply
         </button>
+    </div>
+
+    <div class="inc-filter-summary">
+        <div class="inc-filter-pills">
+            @if($search)
+                <span class="inc-pill inc-pill--search">
+                    <i class="ph ph-magnifying-glass"></i>
+                    {{ $search }}
+                </span>
+            @endif
+
+            @if($status)
+                <span class="inc-pill inc-pill--status">
+                    <i class="ph ph-funnel-simple"></i>
+                    {{ ucfirst(str_replace('_', ' ', $status)) }}
+                </span>
+            @endif
+
+            @if($search || $status)
+                <a href="{{ route('officer.incidents.index') }}" class="inc-pill" style="text-decoration:none;background:#f8fafc;color:#475569;border:1px solid #e2e8f0;">
+                    <i class="ph ph-x-circle"></i>
+                    Clear
+                </a>
+            @endif
+        </div>
+
+        <div class="inc-filter-meta">
+            {{ $incidents->total() }} incident{{ $incidents->total() !== 1 ? 's' : '' }} found
+        </div>
     </div>
 </form>
 
-{{-- ── List ── --}}
+<div class="inc-stat-grid">
+    <div class="inc-stat-card">
+        <div class="inc-stat-num inc-stat-num--open">{{ $openCount }}</div>
+        <div class="inc-stat-lbl">Open</div>
+    </div>
+    <div class="inc-stat-card">
+        <div class="inc-stat-num inc-stat-num--review">{{ $reviewCount }}</div>
+        <div class="inc-stat-lbl">Review</div>
+    </div>
+    <div class="inc-stat-card">
+        <div class="inc-stat-num inc-stat-num--closed">{{ $closedCount }}</div>
+        <div class="inc-stat-lbl">Closed</div>
+    </div>
+</div>
+
+<div class="inc-section-heading">Incident Records</div>
+
 @if($incidents->isEmpty())
     <div class="mob-card">
         <div class="mob-empty">
             <i class="ph ph-flag mob-empty-icon"></i>
             <div class="mob-empty-text">No incidents found</div>
             @if($search || $status)
-            <div class="mob-empty-sub">
-                <a href="{{ route('officer.incidents.index') }}" style="color:#dc2626;font-weight:600;">Clear filters</a>
-            </div>
+                <div class="mob-empty-sub">
+                    <a href="{{ route('officer.incidents.index') }}" style="color:#dc2626;font-weight:700;text-decoration:none;">Clear filters</a>
+                </div>
             @endif
         </div>
     </div>
 @else
-    <div class="mob-card mb-3">
-        @foreach($incidents as $inc)
-        @php $sc = ['open'=>'mob-badge-open','under_review'=>'mob-badge-review','closed'=>'mob-badge-closed'][$inc->status] ?? 'mob-badge-closed' @endphp
-        <a href="{{ route('officer.incidents.show', $inc) }}" class="mob-list-item">
-            <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#dc2626,#b91c1c);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:.875rem;box-shadow:0 2px 8px rgba(220,38,38,.25);">
-                <i class="ph-fill ph-flag" style="color:#fff;font-size:.85rem;"></i>
+    @foreach($incidents as $inc)
+        @php
+            $variant = match($inc->status) {
+                'open' => 'open',
+                'under_review' => 'review',
+                default => 'closed',
+            };
+            $badgeClass = match($inc->status) {
+                'open' => 'mob-badge-open',
+                'under_review' => 'mob-badge-review',
+                default => 'mob-badge-closed',
+            };
+        @endphp
+        <a href="{{ route('officer.incidents.show', $inc) }}" class="inc-list-card inc-list-card--{{ $variant }}">
+            <div class="inc-list-icon inc-list-icon--{{ $variant }}">
+                <i class="ph-fill ph-flag" style="font-size:1rem;"></i>
             </div>
+
             <div style="flex:1;min-width:0;">
-                <div style="font-size:.875rem;font-weight:800;color:#0f172a;">{{ $inc->incident_number }}</div>
-                <div style="font-size:.72rem;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.05rem;">
+                <div class="inc-list-title">{{ $inc->incident_number }}</div>
+                <div class="inc-list-meta">
                     {{ $inc->date_of_incident ? \Carbon\Carbon::parse($inc->date_of_incident)->format('M d, Y') : '—' }}
-                    @if($inc->location) · {{ Str::limit($inc->location, 24) }} @endif
+                    @if($inc->location)
+                        · {{ Str::limit($inc->location, 34) }}
+                    @endif
                 </div>
-                <div style="font-size:.68rem;color:#c0cad8;margin-top:.05rem;">
+                <div class="inc-list-submeta">
                     {{ $inc->motorists_count }} motorist{{ $inc->motorists_count !== 1 ? 's' : '' }} involved
                 </div>
             </div>
+
             <div class="d-flex flex-column align-items-end gap-1 ms-2 flex-shrink-0">
-                <span class="mob-badge {{ $sc }}">{{ ucfirst(str_replace('_',' ',$inc->status)) }}</span>
-                <i class="ph ph-caret-right" style="color:#d6d3d1;font-size:.75rem;"></i>
+                <span class="mob-badge {{ $badgeClass }}">{{ ucfirst(str_replace('_', ' ', $inc->status)) }}</span>
+                <i class="ph ph-caret-right" style="color:#cbd5e1;font-size:.82rem;"></i>
             </div>
         </a>
-        @endforeach
-    </div>
+    @endforeach
 
     @if($incidents->hasPages())
-    <div class="d-flex justify-content-center mb-4">
-        {{ $incidents->links() }}
-    </div>
+        <div class="d-flex justify-content-center mb-4">
+            {{ $incidents->links() }}
+        </div>
     @endif
 @endif
 
-{{-- FAB --}}
 <a href="{{ route('officer.incidents.create') }}" class="mob-fab mob-fab--red" title="Record Incident">
     <i class="ph-bold ph-plus"></i>
 </a>
