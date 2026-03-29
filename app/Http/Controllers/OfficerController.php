@@ -6,6 +6,7 @@ use App\Models\Incident;
 use App\Models\IncidentChargeType;
 use App\Models\IncidentMedia;
 use App\Models\Vehicle;
+use App\Models\VehiclePhoto;
 use App\Models\Violation;
 use App\Models\ViolationVehiclePhoto;
 use App\Models\Violator;
@@ -109,7 +110,7 @@ class OfficerController extends Controller
 
     public function showMotorist(Violator $violator): View
     {
-        $violator->load(['violations.violationType', 'vehicles']);
+        $violator->load(['violations.violationType', 'vehicles.photos']);
 
         $incidents = Incident::whereHas('motorists', fn($q) => $q->where('violator_id', $violator->id))
                         ->orderByDesc('date_of_incident')
@@ -164,17 +165,30 @@ class OfficerController extends Controller
     public function storeVehicle(Request $request, Violator $violator): RedirectResponse
     {
         $data = $request->validate([
-            'plate_number' => ['required', 'string', 'max:30'],
-            'vehicle_type' => ['nullable', 'string', 'max:50'],
-            'make'         => ['nullable', 'string', 'max:100'],
-            'model'        => ['nullable', 'string', 'max:100'],
-            'color'        => ['nullable', 'string', 'max:50'],
-            'or_number'    => ['nullable', 'string', 'max:50'],
-            'cr_number'    => ['nullable', 'string', 'max:50'],
+            'plate_number'   => ['required', 'string', 'max:30'],
+            'vehicle_type'   => ['nullable', 'string', 'max:50'],
+            'make'           => ['nullable', 'string', 'max:100'],
+            'model'          => ['nullable', 'string', 'max:100'],
+            'color'          => ['nullable', 'string', 'max:50'],
+            'or_number'      => ['nullable', 'string', 'max:50'],
+            'cr_number'      => ['nullable', 'string', 'max:50'],
+            'chassis_number' => ['nullable', 'string', 'max:50'],
+            'owner_name'     => ['nullable', 'string', 'max:200'],
+            'photos'         => ['nullable', 'array', 'max:4'],
+            'photos.*'       => ['image', 'max:10240'],
         ]);
 
         $data['violator_id'] = $violator->id;
-        Vehicle::create($data);
+        unset($data['photos']);
+
+        $vehicle = Vehicle::create($data);
+
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $file) {
+                $path = $file->store('vehicle-photos', uploads_disk());
+                VehiclePhoto::create(['vehicle_id' => $vehicle->id, 'photo' => $path]);
+            }
+        }
 
         return redirect()->route('officer.motorists.show', $violator)
             ->with('success', 'Vehicle added successfully.');

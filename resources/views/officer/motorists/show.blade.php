@@ -315,6 +315,21 @@
                 <span style="color:#94a3b8;">Chassis:</span> <span style="font-family:ui-monospace,monospace;font-weight:600;">{{ $veh->chassis_number }}</span>
             </div>
             @endif
+            @if($veh->owner_name)
+            <div style="display:inline-flex;align-items:center;gap:.3rem;margin-top:.3rem;background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:.18rem .5rem;font-size:.68rem;font-weight:700;color:#92400e;">
+                <i class="ph ph-user-circle" style="font-size:.75rem;"></i>
+                Owner: {{ $veh->owner_name }}
+            </div>
+            @endif
+            @if($veh->photos->count() > 0)
+            <div style="display:flex;gap:.3rem;margin-top:.4rem;overflow-x:auto;padding-bottom:.1rem;">
+                @foreach($veh->photos->take(4) as $photo)
+                <img src="{{ uploaded_file_url($photo->photo) }}"
+                     class="mob-photo-thumb" data-full="{{ uploaded_file_url($photo->photo) }}"
+                     style="width:54px;height:40px;object-fit:cover;border-radius:6px;border:1.5px solid #e2e8f0;flex-shrink:0;cursor:zoom-in;">
+                @endforeach
+            </div>
+            @endif
         </div>
     </div>
     @empty

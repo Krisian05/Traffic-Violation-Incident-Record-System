@@ -21,6 +21,7 @@ class Vehicle extends Model
         'or_number',
         'cr_number',
         'chassis_number',
+        'owner_name',
     ];
 
     public function violator()
