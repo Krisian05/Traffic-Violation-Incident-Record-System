@@ -90,16 +90,14 @@
                 </div>
             </div>
 
+            {{-- ── Location (PSGC cascading selector) ── --}}
             <div class="mb-3">
-                <label class="mob-label">Location <span class="text-danger">*</span></label>
-                <input type="text" name="location" id="location" value="{{ old('location') }}" required
-                       class="form-control mob-input @error('location') is-invalid @enderror"
-                       placeholder="Street / Barangay / Municipality" autocomplete="off">
-                @error('location')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @else
-                    <span class="mob-hint" id="hint-location">Be specific: Street name, Barangay, Municipality.</span>
-                @enderror
+                @include('partials.location-selector', [
+                    'fieldName' => 'location',
+                    'required'  => true,
+                    'label'     => 'Location',
+                    'inputSize' => '',
+                ])
             </div>
 
             <div class="mb-3">
@@ -273,21 +271,6 @@
     function setNeutral(input, hint, msg) {
         input.classList.remove('field-ok', 'field-warn');
         if (hint) { hint.className = 'mob-hint'; hint.textContent = msg; }
-    }
-
-    /* ── Location: min length guidance ── */
-    var locationEl   = document.getElementById('location');
-    var locationHint = document.getElementById('hint-location');
-    if (locationEl) {
-        locationEl.addEventListener('input', function () {
-            var v = this.value.trim();
-            if (!v) { setNeutral(this, locationHint, 'Be specific: Street name, Barangay, Municipality.'); return; }
-            if (v.length < 10) {
-                setWarn(this, locationHint, 'Too short. Be more specific (e.g. "P. Gomez St., Brgy. 1, Balamban").');
-            } else {
-                setOk(this, locationHint, 'Looks good.');
-            }
-        });
     }
 
     /* ── Date: warn future date ── */

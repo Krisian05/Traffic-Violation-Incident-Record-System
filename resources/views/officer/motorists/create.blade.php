@@ -152,17 +152,14 @@
                 @enderror
             </div>
 
+            {{-- ── Address (PSGC cascading selector) ── --}}
             <div class="mb-3">
-                <label class="mob-label">Address</label>
-                <textarea name="address" rows="2"
-                          class="form-control mob-input @error('address') is-invalid @enderror"
-                          placeholder="Barangay / Municipality / Province"
-                          style="min-height:auto;resize:none;">{{ old('address') }}</textarea>
-                @error('address')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @else
-                    <span class="mob-hint">Format: Barangay, Municipality/City, Province.</span>
-                @enderror
+                @include('partials.location-selector', [
+                    'fieldName' => 'address',
+                    'required'  => false,
+                    'label'     => 'Address',
+                    'inputSize' => '',
+                ])
             </div>
 
             <button type="submit" class="mob-btn-primary mb-2" id="submitBtn">
