@@ -54,6 +54,15 @@
                     <span style="margin:0 .3rem;color:#dde1e7;">·</span>
                     {{ $v->violations_count }} violation{{ $v->violations_count !== 1 ? 's' : '' }}
                 </div>
+                @if($v->violations_count >= 3)
+                    <span style="display:inline-flex;align-items:center;gap:.2rem;background:#fef2f2;color:#b91c1c;border:1px solid #fca5a5;border-radius:20px;font-size:.6rem;font-weight:700;padding:.1rem .45rem;margin-top:.25rem;">
+                        <i class="ph-fill ph-fire" style="font-size:.65rem;"></i> Recidivist
+                    </span>
+                @elseif($v->violations_count == 2)
+                    <span style="display:inline-flex;align-items:center;gap:.2rem;background:#fffbeb;color:#92400e;border:1px solid #fcd34d;border-radius:20px;font-size:.6rem;font-weight:700;padding:.1rem .45rem;margin-top:.25rem;">
+                        <i class="ph-fill ph-shield-warning" style="font-size:.65rem;"></i> Repeat Offender
+                    </span>
+                @endif
             </div>
             <i class="ph ph-caret-right" style="color:#d6d3d1;font-size:.8rem;flex-shrink:0;margin-left:.5rem;"></i>
         </a>

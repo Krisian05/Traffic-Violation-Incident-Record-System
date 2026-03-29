@@ -1,8 +1,20 @@
-﻿@extends('layouts.mobile')
+@extends('layouts.mobile')
 @section('title', $violator->last_name . ', ' . $violator->first_name)
 @section('back_url', route('officer.motorists.index'))
 
 @section('content')
+
+@php
+    $vc = $violator->violations->count();
+    $restrCodes = $violator->license_restriction
+        ? array_filter(array_map('trim', explode(',', $violator->license_restriction)))
+        : [];
+    $restrDesc = [
+        'A'=>'Motorcycle','A1'=>'MC w/ Sidecar','B'=>'Light Vehicle',
+        'B1'=>'Light Vehicle (Prof.)','B2'=>'Light Vehicle w/ Trailer',
+        'C'=>'Medium/Heavy Truck','D'=>'Bus','BE'=>'Light + Heavy Trailer','CE'=>'Large Truck + Trailer'
+    ];
+@endphp
 
 {{-- ── Profile Header ── --}}
 <div class="mob-profile-header">
@@ -28,6 +40,26 @@
                 <span style="font-size:.7rem;font-weight:700;color:#fff;">{{ $violator->license_number }}</span>
             </div>
             @endif
+            {{-- Status badge --}}
+            <div style="margin-top:.4rem;">
+                @if($vc >= 3)
+                    <span style="display:inline-flex;align-items:center;gap:.25rem;background:rgba(239,68,68,.25);border:1px solid rgba(239,68,68,.4);border-radius:20px;padding:.15rem .55rem;font-size:.6rem;font-weight:800;color:#fca5a5;text-transform:uppercase;letter-spacing:.05em;">
+                        <i class="ph-fill ph-fire"></i> Recidivist
+                    </span>
+                @elseif($vc == 2)
+                    <span style="display:inline-flex;align-items:center;gap:.25rem;background:rgba(251,191,36,.2);border:1px solid rgba(251,191,36,.35);border-radius:20px;padding:.15rem .55rem;font-size:.6rem;font-weight:800;color:#fde68a;text-transform:uppercase;letter-spacing:.05em;">
+                        <i class="ph-fill ph-shield-warning"></i> Repeat Offender
+                    </span>
+                @elseif($vc == 1)
+                    <span style="display:inline-flex;align-items:center;gap:.25rem;background:rgba(147,197,253,.2);border:1px solid rgba(147,197,253,.35);border-radius:20px;padding:.15rem .55rem;font-size:.6rem;font-weight:800;color:#bfdbfe;text-transform:uppercase;letter-spacing:.05em;">
+                        <i class="ph-fill ph-record"></i> 1st Violation
+                    </span>
+                @else
+                    <span style="display:inline-flex;align-items:center;gap:.25rem;background:rgba(74,222,128,.18);border:1px solid rgba(74,222,128,.3);border-radius:20px;padding:.15rem .55rem;font-size:.6rem;font-weight:800;color:#86efac;text-transform:uppercase;letter-spacing:.05em;">
+                        <i class="ph-fill ph-shield-check"></i> Clean Record
+                    </span>
+                @endif
+            </div>
         </div>
     </div>
 
@@ -62,34 +94,125 @@
 </div>
 @endif
 
-{{-- ── Details ── --}}
-@if($violator->contact_number || $violator->license_type || $violator->license_expiry_date || $violator->temporary_address)
+{{-- ── Personal Information ── --}}
 <div class="mob-card">
-    <div class="mob-section-title">Motorist Details</div>
+    <div class="mob-section-title">Personal Information</div>
     <div class="mob-card-body pt-0">
         <div class="mob-info-grid">
+            @if($violator->date_of_birth)
+            <div>
+                <div class="mob-info-label">Date of Birth</div>
+                <div class="mob-info-value">{{ $violator->date_of_birth->format('M d, Y') }}</div>
+            </div>
+            @endif
+            @if($violator->gender)
+            <div>
+                <div class="mob-info-label">Sex</div>
+                <div class="mob-info-value">{{ $violator->gender }}</div>
+            </div>
+            @endif
+            @if($violator->civil_status)
+            <div>
+                <div class="mob-info-label">Civil Status</div>
+                <div class="mob-info-value">{{ $violator->civil_status }}</div>
+            </div>
+            @endif
+            @if($violator->blood_type)
+            <div>
+                <div class="mob-info-label">Blood Type</div>
+                <div class="mob-info-value">{{ $violator->blood_type }}</div>
+            </div>
+            @endif
+            @if($violator->height)
+            <div>
+                <div class="mob-info-label">Height</div>
+                <div class="mob-info-value">{{ $violator->height }}</div>
+            </div>
+            @endif
+            @if($violator->weight)
+            <div>
+                <div class="mob-info-label">Weight</div>
+                <div class="mob-info-value">{{ $violator->weight }}</div>
+            </div>
+            @endif
             @if($violator->contact_number)
             <div class="mob-info-grid-full">
                 <div class="mob-info-label"><i class="ph ph-phone me-1"></i>Contact</div>
                 <div class="mob-info-value">{{ $violator->contact_number }}</div>
             </div>
             @endif
-            @if($violator->license_type)
-            <div>
-                <div class="mob-info-label">License Type</div>
-                <div class="mob-info-value">{{ $violator->license_type }}</div>
+            @if($violator->email)
+            <div class="mob-info-grid-full">
+                <div class="mob-info-label"><i class="ph ph-envelope me-1"></i>Email</div>
+                <div class="mob-info-value" style="word-break:break-all;">{{ $violator->email }}</div>
             </div>
             @endif
-            @if($violator->license_expiry_date)
-            <div>
-                <div class="mob-info-label">Expiry Date</div>
-                <div class="mob-info-value">{{ $violator->license_expiry_date->format('M d, Y') }}</div>
+            @if($violator->valid_id)
+            <div class="mob-info-grid-full">
+                <div class="mob-info-label">Valid ID</div>
+                <div class="mob-info-value">{{ $violator->valid_id }}</div>
+            </div>
+            @endif
+            @if($violator->place_of_birth)
+            <div class="mob-info-grid-full">
+                <div class="mob-info-label">Place of Birth</div>
+                <div class="mob-info-value">{{ $violator->place_of_birth }}</div>
             </div>
             @endif
             @if($violator->temporary_address)
             <div class="mob-info-grid-full">
                 <div class="mob-info-label"><i class="ph ph-map-pin me-1"></i>Address</div>
                 <div class="mob-info-value">{{ $violator->temporary_address }}</div>
+            </div>
+            @endif
+            @if($violator->permanent_address)
+            <div class="mob-info-grid-full">
+                <div class="mob-info-label"><i class="ph ph-house me-1"></i>Permanent Address</div>
+                <div class="mob-info-value">{{ $violator->permanent_address }}</div>
+            </div>
+            @endif
+        </div>
+    </div>
+</div>
+
+{{-- ── License Information ── --}}
+@if($violator->license_number || $violator->license_type || $violator->license_expiry_date || $restrCodes)
+<div class="mob-card">
+    <div class="mob-section-title">License Information</div>
+    <div class="mob-card-body pt-0">
+        <div class="mob-info-grid">
+            @if($violator->license_number)
+            <div class="mob-info-grid-full">
+                <div class="mob-info-label">License No.</div>
+                <div class="mob-info-value" style="font-family:ui-monospace,monospace;">{{ $violator->license_number }}</div>
+            </div>
+            @endif
+            @if($violator->license_type)
+            <div>
+                <div class="mob-info-label">Type</div>
+                <div class="mob-info-value">{{ $violator->license_type }}</div>
+            </div>
+            @endif
+            @if($violator->license_expiry_date)
+            <div>
+                <div class="mob-info-label">Expiry</div>
+                <div class="mob-info-value {{ $violator->license_expiry_date->isPast() ? 'text-danger' : '' }}">
+                    {{ $violator->license_expiry_date->format('M d, Y') }}
+                    @if($violator->license_expiry_date->isPast())
+                        <span style="font-size:.63rem;background:#fee2e2;color:#dc2626;padding:.1rem .35rem;border-radius:6px;margin-left:.25rem;">Expired</span>
+                    @endif
+                </div>
+            </div>
+            @endif
+            @if($restrCodes)
+            <div class="mob-info-grid-full">
+                <div class="mob-info-label">Restrictions</div>
+                <div class="mob-info-value">
+                    @foreach($restrCodes as $code)
+                        <span title="{{ $restrDesc[$code] ?? '' }}"
+                              style="display:inline-block;background:#fef3c7;color:#92400e;border-radius:8px;padding:.1rem .4rem;font-size:.7rem;font-weight:700;margin:.1rem .15rem 0 0;">{{ $code }}</span>
+                    @endforeach
+                </div>
             </div>
             @endif
         </div>
@@ -162,19 +285,36 @@
     </div>
 
     @forelse($violator->vehicles as $veh)
-    <div class="mob-list-item" style="cursor:default;">
-        <div style="width:36px;height:36px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:.875rem;">
+    <div class="mob-list-item" style="cursor:default;align-items:flex-start;padding-top:.9rem;padding-bottom:.9rem;">
+        <div style="width:36px;height:36px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:.875rem;margin-top:.1rem;">
             <i class="ph-fill ph-truck" style="color:#64748b;font-size:.9rem;"></i>
         </div>
         <div style="flex:1;min-width:0;">
-            <div style="font-size:.875rem;font-weight:700;color:#0f172a;">{{ $veh->plate_number }}</div>
+            <div style="font-size:.875rem;font-weight:700;color:#0f172a;">
+                {{ $veh->plate_number }}
+                @if($veh->vehicle_type)
+                <span style="display:inline-block;background:#dbeafe;color:#1e40af;border-radius:4px;padding:0 .35rem;font-size:.63rem;font-weight:700;margin-left:.25rem;">{{ $veh->vehicle_type }}</span>
+                @endif
+            </div>
             <div style="font-size:.72rem;color:#94a3b8;margin-top:.05rem;">
                 {{ trim($veh->make . ' ' . $veh->model) ?: '—' }}
                 @if($veh->color) · {{ $veh->color }} @endif
-                @if($veh->vehicle_type)
-                <span style="display:inline-block;background:#f1f5f9;color:#64748b;border-radius:4px;padding:0 .3rem;font-size:.63rem;font-weight:700;margin-left:.2rem;">{{ $veh->vehicle_type }}</span>
+            </div>
+            @if($veh->or_number || $veh->cr_number)
+            <div style="display:flex;gap:.75rem;margin-top:.3rem;font-size:.7rem;color:#64748b;">
+                @if($veh->or_number)
+                <span><span style="color:#94a3b8;">OR:</span> <span style="font-family:ui-monospace,monospace;font-weight:600;">{{ $veh->or_number }}</span></span>
+                @endif
+                @if($veh->cr_number)
+                <span><span style="color:#94a3b8;">CR:</span> <span style="font-family:ui-monospace,monospace;font-weight:600;">{{ $veh->cr_number }}</span></span>
                 @endif
             </div>
+            @endif
+            @if($veh->chassis_number)
+            <div style="font-size:.7rem;color:#64748b;margin-top:.15rem;">
+                <span style="color:#94a3b8;">Chassis:</span> <span style="font-family:ui-monospace,monospace;font-weight:600;">{{ $veh->chassis_number }}</span>
+            </div>
+            @endif
         </div>
     </div>
     @empty
