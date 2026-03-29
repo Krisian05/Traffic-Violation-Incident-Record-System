@@ -99,6 +99,14 @@ class ViolatorController extends Controller
             'photo'               => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
         ]);
 
+        $duplicate = Violator::whereRaw('LOWER(first_name) = LOWER(?) AND LOWER(last_name) = LOWER(?)', [
+            $data['first_name'], $data['last_name'],
+        ])->exists();
+
+        if ($duplicate) {
+            return back()->withInput()->with('error', 'This Name is Already Exist.');
+        }
+
         $data['license_restriction'] = !empty($data['license_restriction'])
             ? implode(',', $data['license_restriction'])
             : null;

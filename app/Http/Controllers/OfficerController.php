@@ -77,6 +77,14 @@ class OfficerController extends Controller
             'photo'           => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
         ]);
 
+        $duplicate = Violator::whereRaw('LOWER(first_name) = LOWER(?) AND LOWER(last_name) = LOWER(?)', [
+            $data['first_name'], $data['last_name'],
+        ])->exists();
+
+        if ($duplicate) {
+            return back()->withInput()->with('error', 'This Name is Already Exist.');
+        }
+
         if ($request->hasFile('photo')) {
             $data['photo'] = $request->file('photo')->store('violators', uploads_disk());
         }
