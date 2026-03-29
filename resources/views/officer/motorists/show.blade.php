@@ -326,12 +326,13 @@
 </div>
 
 {{-- ── Incidents ── --}}
-@if($incidents->count() > 0)
 <div class="mob-card">
     <div class="mob-section-title">Incidents ({{ $incidents->count() }})</div>
-    @foreach($incidents as $inc)
+
+    @forelse($incidents as $inc)
+    @php $sc = ['open'=>'mob-badge-open','under_review'=>'mob-badge-review','closed'=>'mob-badge-closed'][$inc->status] ?? 'mob-badge-closed' @endphp
     <a href="{{ route('officer.incidents.show', $inc) }}" class="mob-list-item">
-        <div style="width:36px;height:36px;border-radius:10px;background:#fef2f2;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:.875rem;">
+        <div style="width:36px;height:36px;border-radius:10px;background:#fef2f2;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:.85rem;">
             <i class="ph-fill ph-flag" style="color:#dc2626;font-size:.8rem;"></i>
         </div>
         <div style="flex:1;min-width:0;">
@@ -341,14 +342,17 @@
                 @if($inc->location) · {{ Str::limit($inc->location, 28) }} @endif
             </div>
         </div>
-        @php $sc = ['open'=>'mob-badge-open','under_review'=>'mob-badge-review','closed'=>'mob-badge-closed'][$inc->status] ?? 'mob-badge-closed' @endphp
         <div class="d-flex flex-column align-items-end gap-1 ms-2 flex-shrink-0">
             <span class="mob-badge {{ $sc }}">{{ ucfirst(str_replace('_',' ',$inc->status)) }}</span>
             <i class="ph ph-caret-right" style="color:#d6d3d1;font-size:.75rem;"></i>
         </div>
     </a>
-    @endforeach
+    @empty
+    <div class="mob-empty">
+        <i class="ph ph-flag mob-empty-icon"></i>
+        <div class="mob-empty-text">No incidents recorded</div>
+    </div>
+    @endforelse
 </div>
-@endif
 
 @endsection
