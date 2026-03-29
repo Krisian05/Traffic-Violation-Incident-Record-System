@@ -1,12 +1,28 @@
-﻿@extends('layouts.mobile')
+@extends('layouts.mobile')
 @section('title', 'New Motorist')
 @section('back_url', route('officer.motorists.index'))
 
 @section('content')
 
+<style>
+.mob-hint {
+    display: block;
+    font-size: .68rem;
+    color: #94a3b8;
+    margin-top: .28rem;
+    line-height: 1.4;
+}
+.mob-hint.hint-ok   { color: #16a34a; }
+.mob-hint.hint-warn { color: #dc2626; }
+.mob-input.field-ok   { border-color: #16a34a !important; box-shadow: 0 0 0 3px rgba(22,163,74,.1) !important; }
+.mob-input.field-warn { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220,38,38,.1) !important; }
+.mob-select.field-ok  { border-color: #16a34a !important; box-shadow: 0 0 0 3px rgba(22,163,74,.1) !important; }
+.mob-select.field-warn{ border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220,38,38,.1) !important; }
+</style>
+
 <div class="mob-card">
     <div class="mob-card-body">
-        <form method="POST" action="{{ route('officer.motorists.store') }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('officer.motorists.store') }}" enctype="multipart/form-data" id="motoristForm">
             @csrf
 
             @if($errors->any())
@@ -16,7 +32,29 @@
             </div>
             @endif
 
-            {{-- Personal Info --}}
+            {{-- ── Photo ── --}}
+            <div class="mob-form-divider">
+                <span class="mob-form-divider-text">Profile Photo</span>
+                <span class="mob-form-divider-line"></span>
+            </div>
+
+            <div class="mb-4 text-center">
+                <div id="photoPreview"
+                     onclick="document.getElementById('photoInput').click()"
+                     style="width:96px;height:96px;border-radius:50%;background:#eff6ff;border:2.5px dashed #93c5fd;display:flex;align-items:center;justify-content:center;margin:0 auto .65rem;overflow:hidden;cursor:pointer;transition:border-color .15s;">
+                    <i class="ph-fill ph-user" style="font-size:2.4rem;color:#93c5fd;"></i>
+                </div>
+                <input type="file" name="photo" id="photoInput" accept="image/jpeg,image/png" capture="environment"
+                       class="d-none @error('photo') is-invalid @enderror">
+                <button type="button" onclick="document.getElementById('photoInput').click()"
+                        style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem 1rem;border-radius:8px;border:1.5px solid #93c5fd;background:#eff6ff;color:#1d4ed8;font-size:.8rem;font-weight:600;cursor:pointer;">
+                    <i class="ph ph-camera"></i> Take / Upload Photo
+                </button>
+                <span class="mob-hint d-block text-center mt-1">JPG or PNG, max 5 MB. Clear front-facing photo.</span>
+                @error('photo')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
+            </div>
+
+            {{-- ── Personal Info ── --}}
             <div class="mob-form-divider">
                 <span class="mob-form-divider-text">Personal Info</span>
                 <span class="mob-form-divider-line"></span>
@@ -24,29 +62,41 @@
 
             <div class="mb-3">
                 <label class="mob-label">First Name <span class="text-danger">*</span></label>
-                <input type="text" name="first_name" value="{{ old('first_name') }}" required
+                <input type="text" name="first_name" id="first_name" value="{{ old('first_name') }}" required
                        class="form-control mob-input @error('first_name') is-invalid @enderror"
-                       placeholder="e.g. Juan">
-                @error('first_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                       placeholder="e.g. Juan" autocomplete="off">
+                @error('first_name')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @else
+                    <span class="mob-hint" id="hint-first-name">Letters and spaces only. Will be auto-capitalized.</span>
+                @enderror
             </div>
 
             <div class="mb-3">
                 <label class="mob-label">Middle Name</label>
-                <input type="text" name="middle_name" value="{{ old('middle_name') }}"
+                <input type="text" name="middle_name" id="middle_name" value="{{ old('middle_name') }}"
                        class="form-control mob-input @error('middle_name') is-invalid @enderror"
-                       placeholder="Optional">
-                @error('middle_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                       placeholder="Optional" autocomplete="off">
+                @error('middle_name')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @else
+                    <span class="mob-hint" id="hint-middle-name">Optional. Leave blank if none.</span>
+                @enderror
             </div>
 
             <div class="mb-3">
                 <label class="mob-label">Last Name <span class="text-danger">*</span></label>
-                <input type="text" name="last_name" value="{{ old('last_name') }}" required
+                <input type="text" name="last_name" id="last_name" value="{{ old('last_name') }}" required
                        class="form-control mob-input @error('last_name') is-invalid @enderror"
-                       placeholder="e.g. dela Cruz">
-                @error('last_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                       placeholder="e.g. dela Cruz" autocomplete="off">
+                @error('last_name')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @else
+                    <span class="mob-hint" id="hint-last-name">Letters and spaces only. Will be auto-capitalized.</span>
+                @enderror
             </div>
 
-            {{-- License --}}
+            {{-- ── License ── --}}
             <div class="mob-form-divider">
                 <span class="mob-form-divider-text">License</span>
                 <span class="mob-form-divider-line"></span>
@@ -54,10 +104,14 @@
 
             <div class="mb-3">
                 <label class="mob-label">License Number</label>
-                <input type="text" name="license_number" value="{{ old('license_number') }}"
+                <input type="text" name="license_number" id="license_number" value="{{ old('license_number') }}"
                        class="form-control mob-input @error('license_number') is-invalid @enderror"
-                       placeholder="e.g. N01-01-123456">
-                @error('license_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                       placeholder="e.g. N01-01-123456" style="text-transform:uppercase;" autocomplete="off">
+                @error('license_number')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @else
+                    <span class="mob-hint" id="hint-license">LTO format: N01-23-456789. Auto-uppercased.</span>
+                @enderror
             </div>
 
             <div class="row g-2 mb-3">
@@ -72,13 +126,15 @@
                 </div>
                 <div class="col-5">
                     <label class="mob-label">Expiry Date</label>
-                    <input type="date" name="license_expiry_date" value="{{ old('license_expiry_date') }}"
+                    <input type="date" name="license_expiry_date" id="license_expiry_date"
+                           value="{{ old('license_expiry_date') }}"
                            class="form-control mob-input @error('license_expiry_date') is-invalid @enderror">
                     @error('license_expiry_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
+            <span class="mob-hint" id="hint-expiry" style="margin-top:-.5rem;margin-bottom:.75rem;display:block;">Expiration date printed on the license card.</span>
 
-            {{-- Contact --}}
+            {{-- ── Contact ── --}}
             <div class="mob-form-divider">
                 <span class="mob-form-divider-text">Contact</span>
                 <span class="mob-form-divider-line"></span>
@@ -86,10 +142,14 @@
 
             <div class="mb-3">
                 <label class="mob-label">Contact Number</label>
-                <input type="text" name="contact_number" value="{{ old('contact_number') }}"
+                <input type="text" name="contact_number" id="contact_number" value="{{ old('contact_number') }}"
                        class="form-control mob-input @error('contact_number') is-invalid @enderror"
-                       placeholder="e.g. 09XX-XXX-XXXX">
-                @error('contact_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                       placeholder="e.g. 09XX-XXX-XXXX" maxlength="13">
+                @error('contact_number')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @else
+                    <span class="mob-hint" id="hint-contact">PH mobile format: 09XX-XXX-XXXX (11 digits).</span>
+                @enderror
             </div>
 
             <div class="mb-3">
@@ -98,23 +158,14 @@
                           class="form-control mob-input @error('address') is-invalid @enderror"
                           placeholder="Barangay / Municipality / Province"
                           style="min-height:auto;resize:none;">{{ old('address') }}</textarea>
-                @error('address')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                @error('address')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @else
+                    <span class="mob-hint">Format: Barangay, Municipality/City, Province.</span>
+                @enderror
             </div>
 
-            {{-- Photo --}}
-            <div class="mob-form-divider">
-                <span class="mob-form-divider-text">Photo</span>
-                <span class="mob-form-divider-line"></span>
-            </div>
-
-            <div class="mb-4">
-                <input type="file" name="photo" accept="image/*" capture="environment"
-                       class="form-control mob-input @error('photo') is-invalid @enderror">
-                <div style="font-size:.72rem;color:#94a3b8;margin-top:.35rem;">Take a photo or upload from gallery</div>
-                @error('photo')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-
-            <button type="submit" class="mob-btn-primary mb-2">
+            <button type="submit" class="mob-btn-primary mb-2" id="submitBtn">
                 <i class="ph-bold ph-check"></i> Save Motorist
             </button>
             <a href="{{ route('officer.motorists.index') }}" class="mob-btn-outline">
@@ -125,3 +176,129 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+
+    /* ── Helpers ── */
+    function setOk(input, hint, msg) {
+        input.classList.remove('field-warn'); input.classList.add('field-ok');
+        if (hint) { hint.className = 'mob-hint hint-ok'; hint.textContent = '✓ ' + msg; }
+    }
+    function setWarn(input, hint, msg) {
+        input.classList.remove('field-ok'); input.classList.add('field-warn');
+        if (hint) { hint.className = 'mob-hint hint-warn'; hint.textContent = '✕ ' + msg; }
+    }
+    function setNeutral(input, hint, msg) {
+        input.classList.remove('field-ok', 'field-warn');
+        if (hint) { hint.className = 'mob-hint'; hint.textContent = msg; }
+    }
+
+    /* ── Name fields: letters/spaces/hyphens only, auto-capitalize ── */
+    [['first_name','hint-first-name','Letters and spaces only. Will be auto-capitalized.'],
+     ['middle_name','hint-middle-name','Optional. Leave blank if none.'],
+     ['last_name','hint-last-name','Letters and spaces only. Will be auto-capitalized.']
+    ].forEach(function(cfg) {
+        var el = document.getElementById(cfg[0]);
+        var hint = document.getElementById(cfg[1]);
+        if (!el) return;
+        el.addEventListener('input', function () {
+            var pos = this.selectionStart;
+            this.value = this.value.replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+            try { this.setSelectionRange(pos, pos); } catch(e) {}
+            var v = this.value.trim();
+            if (!v) { setNeutral(this, hint, cfg[2]); return; }
+            if (/[^a-zA-ZÀ-ÿ\s\-\.\']/.test(v)) {
+                this.value = this.value.replace(/[^a-zA-ZÀ-ÿ\s\-\.\']/g, '');
+                setWarn(this, hint, 'Numbers and special characters are not allowed.');
+            } else {
+                setOk(this, hint, 'Looks good.');
+            }
+        });
+    });
+
+    /* ── License number: auto-uppercase + format check ── */
+    var licenseEl   = document.getElementById('license_number');
+    var licenseHint = document.getElementById('hint-license');
+    if (licenseEl) {
+        licenseEl.addEventListener('input', function () {
+            var pos = this.selectionStart;
+            this.value = this.value.toUpperCase();
+            try { this.setSelectionRange(pos, pos); } catch(e) {}
+            var v = this.value.trim();
+            if (!v) { setNeutral(this, licenseHint, 'LTO format: N01-23-456789. Auto-uppercased.'); return; }
+            if (/^[A-Z]\d{2}-\d{2}-\d{6}$/.test(v)) {
+                setOk(this, licenseHint, 'Valid LTO license number format.');
+            } else {
+                setWarn(this, licenseHint, 'Expected format: N01-23-456789');
+            }
+        });
+    }
+
+    /* ── Expiry date: warn if expired ── */
+    var expiryEl   = document.getElementById('license_expiry_date');
+    var expiryHint = document.getElementById('hint-expiry');
+    if (expiryEl) {
+        expiryEl.addEventListener('change', function () {
+            var v = this.value;
+            if (!v) { setNeutral(this, expiryHint, 'Expiration date printed on the license card.'); return; }
+            var chosen = new Date(v), today = new Date(); today.setHours(0,0,0,0);
+            if (chosen < today) {
+                setWarn(this, expiryHint, 'This license is already EXPIRED.');
+            } else {
+                setOk(this, expiryHint, 'License is still valid.');
+            }
+        });
+    }
+
+    /* ── Contact number: auto-format 09XX-XXX-XXXX ── */
+    var contactEl   = document.getElementById('contact_number');
+    var contactHint = document.getElementById('hint-contact');
+    if (contactEl) {
+        contactEl.addEventListener('input', function () {
+            var digits = this.value.replace(/\D/g, '').slice(0, 11);
+            var fmt = digits;
+            if (digits.length > 7)      fmt = digits.slice(0,4) + '-' + digits.slice(4,7) + '-' + digits.slice(7);
+            else if (digits.length > 4) fmt = digits.slice(0,4) + '-' + digits.slice(4);
+            this.value = fmt;
+            if (!digits) { setNeutral(this, contactHint, 'PH mobile format: 09XX-XXX-XXXX (11 digits).'); return; }
+            if (digits.length === 11 && /^09\d{9}$/.test(digits)) {
+                setOk(this, contactHint, 'Valid PH mobile number.');
+            } else if (digits.length === 11) {
+                setWarn(this, contactHint, 'PH numbers must start with 09.');
+            } else {
+                setWarn(this, contactHint, digits.length + '/11 digits. Keep typing…');
+            }
+        });
+    }
+
+    /* ── Photo preview ── */
+    document.getElementById('photoInput').addEventListener('change', function () {
+        var preview = document.getElementById('photoPreview');
+        if (this.files && this.files[0]) {
+            if (this.files[0].size > 5 * 1024 * 1024) {
+                alert('Photo exceeds 5 MB. Please choose a smaller file.');
+                this.value = '';
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                preview.innerHTML = '<img src="' + e.target.result + '" style="width:96px;height:96px;object-fit:cover;border-radius:50%;">';
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    /* ── Double-submit protection ── */
+    document.getElementById('motoristForm').addEventListener('submit', function () {
+        var btn = document.getElementById('submitBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Saving…';
+        }
+    });
+
+})();
+</script>
+@endpush
