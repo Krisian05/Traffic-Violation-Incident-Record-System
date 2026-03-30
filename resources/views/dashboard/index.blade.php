@@ -580,8 +580,12 @@
                                 @endif
                             </td>
                             <td>
+                                @if($v->violationType)
                                 <a href="{{ route('violations.index', ['type' => $v->violationType->id]) }}"
                                    class="dash-vtype-pill text-decoration-none">{{ $v->violationType->name }}</a>
+                                @else
+                                <span class="dash-vtype-pill">—</span>
+                                @endif
                             </td>
                             <td class="dash-pend-date">{{ $v->date_of_violation->format('M d, Y') }}</td>
                             <td class="dash-pend-ticket">{{ $v->ticket_number ?? '—' }}</td>
@@ -658,8 +662,12 @@
                                 @endif
                             </td>
                             <td>
+                                @if($v->violationType)
                                 <a href="{{ route('violations.index', ['type' => $v->violationType->id]) }}"
                                    class="dash-vtype-pill text-decoration-none">{{ $v->violationType->name }}</a>
+                                @else
+                                <span class="dash-vtype-pill">—</span>
+                                @endif
                             </td>
                             <td class="dash-pend-date">{{ $v->date_of_violation->format('M d, Y') }}</td>
                             <td class="dash-pend-ticket">{{ $v->ticket_number ?? '—' }}</td>

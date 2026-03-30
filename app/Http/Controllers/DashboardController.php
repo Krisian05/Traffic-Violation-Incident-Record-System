@@ -99,7 +99,7 @@ class DashboardController extends Controller
             ->map(fn(\App\Models\Violation $v) => [
                 'type'  => 'violation',
                 'id'    => $v->id,
-                'label' => $v->violator->full_name . ' — ' . $v->violationType->name,
+                'label' => ($v->violator?->full_name ?? '(Unknown)') . ' — ' . ($v->violationType?->name ?? '(Unknown type)'),
                 'sub'   => collect([
                                 $v->ticket_number ? 'Ticket #' . $v->ticket_number : null,
                                 $v->vehicle_plate ?: null,
