@@ -1,0 +1,247 @@
+# Replace the SECRET placeholders before applying this spec.
+# This app spec is intended for DigitalOcean App Platform automation
+# using the existing managed MySQL cluster and Spaces bucket.
+
+name: tvirs
+region: sgp
+
+features:
+  - buildpack-stack=ubuntu-22
+
+services:
+  - name: tvirs
+    environment_slug: php
+    github:
+      repo: Krisian05/Traffic-Violation-Record-System
+      branch: main
+      deploy_on_push: true
+    http_port: 8080
+    source_dir: /
+    instance_count: 2
+    instance_size_slug: apps-s-1vcpu-1gb
+
+jobs:
+  - name: tvirs-predeploy
+    kind: PRE_DEPLOY
+    environment_slug: php
+    github:
+      repo: Krisian05/Traffic-Violation-Record-System
+      branch: main
+      deploy_on_push: true
+    source_dir: /
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    run_command: sh digitalocean/init-app.sh
+
+databases:
+  - name: tvrs-mysql-prod
+    engine: MYSQL
+    version: "8"
+    production: true
+    cluster_name: tvrs-mysql-prod
+    db_name: tvrs
+    db_user: tvrs_user
+
+ingress:
+  rules:
+    - match:
+        path:
+          prefix: /
+      component:
+        name: tvirs
+
+domains:
+  - domain: pnp.tvirs.com
+    type: PRIMARY
+    zone: tvirs.com
+    minimum_tls_version: "1.2"
+
+envs:
+  - key: APP_NAME
+    value: Traffic Violation Record System
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: APP_ENV
+    value: production
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: APP_KEY
+    value: REPLACE_WITH_REAL_APP_KEY
+    scope: RUN_TIME
+    type: SECRET
+
+  - key: APP_DEBUG
+    value: "false"
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: APP_URL
+    value: https://pnp.tvirs.com
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: APP_LOCALE
+    value: en
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: APP_FALLBACK_LOCALE
+    value: en
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: APP_FAKER_LOCALE
+    value: en_US
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: APP_MAINTENANCE_DRIVER
+    value: file
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: BCRYPT_ROUNDS
+    value: "12"
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: LOG_CHANNEL
+    value: stderr
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: LOG_STACK
+    value: single
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: LOG_DEPRECATIONS_CHANNEL
+    value: "null"
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: LOG_LEVEL
+    value: error
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: DB_CONNECTION
+    value: mysql
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: DB_URL
+    value: ${tvrs-mysql-prod.DATABASE_URL}
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: PRODUCTION_SESSION_DRIVER
+    value: cookie
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: SESSION_LIFETIME
+    value: "120"
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: SESSION_ENCRYPT
+    value: "false"
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: SESSION_PATH
+    value: /
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: SESSION_SECURE_COOKIE
+    value: "true"
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: BROADCAST_CONNECTION
+    value: log
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: FILESYSTEM_DISK
+    value: local
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: UPLOADS_DISK
+    value: s3
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: QUEUE_CONNECTION
+    value: sync
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: CACHE_STORE
+    value: file
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: MAIL_MAILER
+    value: log
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: MAIL_FROM_ADDRESS
+    value: no-reply@pnp.tvirs.com
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: MAIL_FROM_NAME
+    value: ${APP_NAME}
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: DEFAULT_ADMIN_PASSWORD
+    value: REPLACE_WITH_REAL_ADMIN_PASSWORD
+    scope: RUN_TIME
+    type: SECRET
+
+  - key: AWS_ACCESS_KEY_ID
+    value: REPLACE_WITH_SPACES_ACCESS_KEY
+    scope: RUN_TIME
+    type: SECRET
+
+  - key: AWS_SECRET_ACCESS_KEY
+    value: REPLACE_WITH_SPACES_SECRET_KEY
+    scope: RUN_TIME
+    type: SECRET
+
+  - key: AWS_DEFAULT_REGION
+    value: us-east-1
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: AWS_BUCKET
+    value: tvrs-uploads
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: AWS_ENDPOINT
+    value: https://sgp1.digitaloceanspaces.com
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: AWS_USE_PATH_STYLE_ENDPOINT
+    value: "false"
+    scope: RUN_TIME
+    type: GENERAL
+
+  - key: VITE_APP_NAME
+    value: ${APP_NAME}
+    scope: RUN_TIME
+    type: GENERAL
+
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
