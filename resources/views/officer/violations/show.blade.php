@@ -54,6 +54,16 @@
                 <div class="mob-info-value">{{ $violation->ticket_number }}</div>
             </div>
             @endif
+            @if($violation->incident)
+            <div>
+                <div class="mob-info-label">Incident</div>
+                <div class="mob-info-value">
+                    <a href="{{ route('officer.incidents.show', $violation->incident) }}" style="color:#1d4ed8;text-decoration:none;">
+                        {{ $violation->incident->incident_number }}
+                    </a>
+                </div>
+            </div>
+            @endif
             @if($violation->location)
             <div class="mob-info-grid-full">
                 <div class="mob-info-label"><i class="ph ph-map-pin me-1"></i>Location</div>
@@ -92,8 +102,12 @@
     $make  = $veh ? $veh->make  : $violation->vehicle_make;
     $model = $veh ? $veh->model : $violation->vehicle_model;
     $color = $veh ? $veh->color : $violation->vehicle_color;
+    $owner = $violation->vehicle_owner_name ?: ($veh?->owner_name ?: $veh?->violator?->full_name);
+    $orNo  = $veh ? $veh->or_number : $violation->vehicle_or_number;
+    $crNo  = $veh ? $veh->cr_number : $violation->vehicle_cr_number;
+    $chaNo = $veh ? $veh->chassis_number : $violation->vehicle_chassis;
 @endphp
-@if($plate || $make || $model)
+@if($plate || $make || $model || $owner)
 <div class="mob-card">
     <div class="mob-section-title">Vehicle Involved</div>
     <div class="mob-card-body pt-0">
@@ -116,16 +130,28 @@
                 <div class="mob-info-value">{{ trim($make . ' ' . $model) }}</div>
             </div>
             @endif
-            @if($veh && $veh->or_number)
-            <div>
-                <div class="mob-info-label">OR #</div>
-                <div class="mob-info-value">{{ $veh->or_number }}</div>
+            @if($owner)
+            <div class="mob-info-grid-full">
+                <div class="mob-info-label">Registered Owner</div>
+                <div class="mob-info-value">{{ $owner }}</div>
             </div>
             @endif
-            @if($veh && $veh->cr_number)
+            @if($orNo)
+            <div>
+                <div class="mob-info-label">OR #</div>
+                <div class="mob-info-value">{{ $orNo }}</div>
+            </div>
+            @endif
+            @if($crNo)
             <div>
                 <div class="mob-info-label">CR #</div>
-                <div class="mob-info-value">{{ $veh->cr_number }}</div>
+                <div class="mob-info-value">{{ $crNo }}</div>
+            </div>
+            @endif
+            @if($chaNo)
+            <div class="mob-info-grid-full">
+                <div class="mob-info-label">Chassis</div>
+                <div class="mob-info-value">{{ $chaNo }}</div>
             </div>
             @endif
         </div>
@@ -166,6 +192,46 @@
             </div>
             @endforeach
         </div>
+    </div>
+</div>
+@endif
+
+@if($violation->status === 'settled' || $violation->or_number || $violation->cashier_name || $violation->receipt_photo)
+<div class="mob-card">
+    <div class="mob-section-title">Settlement Details</div>
+    <div class="mob-card-body pt-0">
+        <div class="mob-info-grid">
+            @if($violation->settled_at)
+            <div>
+                <div class="mob-info-label">Settled At</div>
+                <div class="mob-info-value">{{ $violation->settled_at->format('M d, Y g:i A') }}</div>
+            </div>
+            @endif
+            @if($violation->or_number)
+            <div>
+                <div class="mob-info-label">OR Number</div>
+                <div class="mob-info-value">{{ $violation->or_number }}</div>
+            </div>
+            @endif
+            @if($violation->cashier_name)
+            <div class="mob-info-grid-full">
+                <div class="mob-info-label">Cashier</div>
+                <div class="mob-info-value">{{ $violation->cashier_name }}</div>
+            </div>
+            @endif
+        </div>
+
+        @if($violation->receipt_photo)
+        <div style="margin-top:.9rem;">
+            <div class="mob-info-label" style="margin-bottom:.45rem;">Receipt Photo</div>
+            <img src="{{ uploaded_file_url($violation->receipt_photo) }}"
+                 alt="Receipt Photo"
+                 class="mob-photo-thumb"
+                 data-full="{{ uploaded_file_url($violation->receipt_photo) }}"
+                 data-caption="Settlement Receipt"
+                 style="max-width:100%;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1);cursor:zoom-in;">
+        </div>
+        @endif
     </div>
 </div>
 @endif

@@ -88,25 +88,66 @@
                 @error('ticket_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
+            @if($relatedIncidents->isNotEmpty())
+            <div class="mb-3">
+                <label class="mob-label">Linked Incident</label>
+                <select name="incident_id" class="form-select mob-select @error('incident_id') is-invalid @enderror">
+                    <option value="">— None / not linked —</option>
+                    @foreach($relatedIncidents as $incident)
+                    <option value="{{ $incident->id }}" {{ old('incident_id') == $incident->id ? 'selected' : '' }}>
+                        {{ $incident->incident_number }} — {{ optional($incident->date_of_incident)->format('M d, Y') ?? 'No date' }}
+                    </option>
+                    @endforeach
+                </select>
+                @error('incident_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <span class="mob-hint">Link this violation to an existing incident involving this motorist.</span>
+            </div>
+            @endif
+
             {{-- Vehicle --}}
             <div class="mob-form-divider">
                 <span class="mob-form-divider-text">Vehicle Involved</span>
                 <span class="mob-form-divider-line"></span>
             </div>
 
-            @if($violatorVehicles->isNotEmpty())
+            @php
+                $ownVehicles = $allVehicles->where('violator_id', $violator->id);
+                $otherVehicles = $allVehicles->where('violator_id', '!=', $violator->id);
+            @endphp
+            @if($allVehicles->isNotEmpty())
             <div class="mb-2">
                 <label class="mob-label">Registered Vehicle</label>
                 <select name="vehicle_id" id="vehicle_id" class="form-select mob-select">
                     <option value="">— Manual entry below —</option>
-                    @foreach($violatorVehicles as $veh)
-                    <option value="{{ $veh->id }}" {{ old('vehicle_id') == $veh->id ? 'selected' : '' }}>
-                        {{ $veh->plate_number }}
-                        @if($veh->make || $veh->model) — {{ trim($veh->make . ' ' . $veh->model) }} @endif
-                        @if($veh->vehicle_type) ({{ $veh->vehicle_type }}) @endif
-                    </option>
-                    @endforeach
+                    @if($ownVehicles->isNotEmpty())
+                    <optgroup label="Driver's own vehicles">
+                        @foreach($ownVehicles as $veh)
+                        <option value="{{ $veh->id }}"
+                                data-owner="{{ $veh->owner_name ?: $violator->full_name }}"
+                                {{ old('vehicle_id') == $veh->id ? 'selected' : '' }}>
+                            {{ $veh->plate_number }}
+                            @if($veh->make || $veh->model) — {{ trim($veh->make . ' ' . $veh->model) }} @endif
+                            @if($veh->vehicle_type) ({{ $veh->vehicle_type }}) @endif
+                        </option>
+                        @endforeach
+                    </optgroup>
+                    @endif
+                    @if($otherVehicles->isNotEmpty())
+                    <optgroup label="Borrowed / other vehicles">
+                        @foreach($otherVehicles as $veh)
+                        <option value="{{ $veh->id }}"
+                                data-owner="{{ $veh->owner_name ?: ($veh->violator?->full_name ?? '') }}"
+                                {{ old('vehicle_id') == $veh->id ? 'selected' : '' }}>
+                            {{ $veh->plate_number }}
+                            @if($veh->make || $veh->model) — {{ trim($veh->make . ' ' . $veh->model) }} @endif
+                            @if($veh->vehicle_type) ({{ $veh->vehicle_type }}) @endif
+                            @if($veh->violator) — {{ $veh->violator->full_name }} @endif
+                        </option>
+                        @endforeach
+                    </optgroup>
+                    @endif
                 </select>
+                <span class="mob-hint">Pick from the system if the vehicle is already registered, even if it belongs to another owner.</span>
             </div>
             @else
             <input type="hidden" name="vehicle_id" value="">
@@ -134,7 +175,31 @@
                         <input type="text" name="vehicle_model" value="{{ old('vehicle_model') }}"
                                class="form-control mob-input" placeholder="e.g. Click 125">
                     </div>
+                    <div class="col-6">
+                        <label class="mob-label">OR Number</label>
+                        <input type="text" name="vehicle_or_number" value="{{ old('vehicle_or_number') }}"
+                               class="form-control mob-input" placeholder="Official Receipt #">
+                    </div>
+                    <div class="col-6">
+                        <label class="mob-label">CR Number</label>
+                        <input type="text" name="vehicle_cr_number" value="{{ old('vehicle_cr_number') }}"
+                               class="form-control mob-input" placeholder="Certificate of Reg. #">
+                    </div>
+                    <div class="col-12">
+                        <label class="mob-label">Chassis Number</label>
+                        <input type="text" name="vehicle_chassis" value="{{ old('vehicle_chassis') }}"
+                               class="form-control mob-input" placeholder="Frame / chassis number">
+                    </div>
                 </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="mob-label">Registered Owner Name</label>
+                <input type="text" name="vehicle_owner_name" id="vehicle_owner_name" value="{{ old('vehicle_owner_name') }}"
+                       class="form-control mob-input @error('vehicle_owner_name') is-invalid @enderror"
+                       placeholder="Leave blank if same as driver">
+                @error('vehicle_owner_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <span class="mob-hint">Useful for borrowed or company-owned vehicles so the operator side can show the owner correctly.</span>
             </div>
 
             {{-- Documentation --}}
@@ -195,10 +260,20 @@ document.getElementById('violation_type_id').dispatchEvent(new Event('change'));
 
 var vehicleSelect = document.getElementById('vehicle_id');
 var vehicleManual = document.getElementById('vehicle-manual');
+var vehicleOwner = document.getElementById('vehicle_owner_name');
 if (vehicleSelect && vehicleManual) {
     vehicleSelect.addEventListener('change', function() {
         vehicleManual.style.display = this.value ? 'none' : '';
+        if (vehicleOwner && this.value) {
+            var opt = this.options[this.selectedIndex];
+            if (opt && opt.dataset.owner && !vehicleOwner.value.trim()) {
+                vehicleOwner.value = opt.dataset.owner;
+            }
+        }
     });
+}
+if (vehicleSelect) {
+    vehicleSelect.dispatchEvent(new Event('change'));
 }
 
 // Double-submit protection

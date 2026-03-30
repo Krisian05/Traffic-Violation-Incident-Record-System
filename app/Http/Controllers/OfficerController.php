@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class OfficerController extends Controller
@@ -120,7 +121,7 @@ class OfficerController extends Controller
             'last_name'             => ['required', 'string', 'max:100'],
             'date_of_birth'         => ['nullable', 'date', 'before:today'],
             'place_of_birth'        => ['nullable', 'string', 'max:255'],
-            'gender'                => ['nullable', 'in:Male,Female'],
+            'gender'                => ['nullable', 'in:Male,Female,Other'],
             'civil_status'          => ['nullable', 'in:Single,Married,Widowed,Separated'],
             'blood_type'            => ['nullable', 'in:O+,O-,A+,A-,B+,B-,AB+,AB-'],
             'height'                => ['nullable', 'numeric', 'min:50', 'max:250'],
@@ -149,7 +150,7 @@ class OfficerController extends Controller
         }
 
         if ($request->hasFile('photo')) {
-            $data['photo'] = $request->file('photo')->store('violators', uploads_disk());
+            $data['photo'] = $request->file('photo')->store('violator-photos', uploads_disk());
         }
 
         if (!empty($data['license_restriction']) && is_array($data['license_restriction'])) {
@@ -170,11 +171,21 @@ class OfficerController extends Controller
 
     public function showMotorist(Violator $violator): View
     {
-        $violator->load(['violations.violationType', 'vehicles.photos']);
+        $violator->load([
+            'vehicles.photos',
+            'violations.violationType',
+            'violations.vehicle',
+            'violations.recorder',
+            'violations.incident',
+            'incidentMotorists.incident',
+            'incidentMotorists.vehicle',
+        ]);
 
-        $incidents = Incident::whereHas('motorists', fn($q) => $q->where('violator_id', $violator->id))
-                        ->orderByDesc('date_of_incident')
-                        ->get();
+        $incidents = Incident::with(['motorists.chargeType'])
+            ->whereHas('motorists', fn($q) => $q->where('violator_id', $violator->id))
+            ->orderByDesc('date_of_incident')
+            ->orderByDesc('created_at')
+            ->get();
 
         return view('officer.motorists.show', compact('violator', 'incidents'));
     }
@@ -192,7 +203,7 @@ class OfficerController extends Controller
             'last_name'             => ['required', 'string', 'max:100'],
             'date_of_birth'         => ['nullable', 'date', 'before:today'],
             'place_of_birth'        => ['nullable', 'string', 'max:255'],
-            'gender'                => ['nullable', 'in:Male,Female'],
+            'gender'                => ['nullable', 'in:Male,Female,Other'],
             'civil_status'          => ['nullable', 'in:Single,Married,Widowed,Separated'],
             'blood_type'            => ['nullable', 'in:O+,O-,A+,A-,B+,B-,AB+,AB-'],
             'height'                => ['nullable', 'numeric', 'min:50', 'max:250'],
@@ -213,7 +224,10 @@ class OfficerController extends Controller
         ]);
 
         if ($request->hasFile('photo')) {
-            $data['photo'] = $request->file('photo')->store('violators', uploads_disk());
+            if ($violator->photo) {
+                Storage::disk(uploads_disk())->delete($violator->photo);
+            }
+            $data['photo'] = $request->file('photo')->store('violator-photos', uploads_disk());
         }
 
         if (!empty($data['license_restriction']) && is_array($data['license_restriction'])) {
@@ -245,17 +259,18 @@ class OfficerController extends Controller
     public function storeVehicle(Request $request, Violator $violator): RedirectResponse
     {
         $data = $request->validate([
-            'plate_number'   => ['required', 'string', 'max:30'],
-            'vehicle_type'   => ['nullable', 'string', 'max:50'],
+            'plate_number'   => ['required', 'string', 'max:20', 'unique:vehicles,plate_number'],
+            'vehicle_type'   => ['required', 'in:MV,MC'],
             'make'           => ['nullable', 'string', 'max:100'],
             'model'          => ['nullable', 'string', 'max:100'],
             'color'          => ['nullable', 'string', 'max:50'],
+            'year'           => ['nullable', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
             'or_number'      => ['nullable', 'string', 'max:50'],
             'cr_number'      => ['nullable', 'string', 'max:50'],
             'chassis_number' => ['nullable', 'string', 'max:50'],
             'owner_name'     => ['nullable', 'string', 'max:200'],
             'photos'         => ['nullable', 'array', 'max:4'],
-            'photos.*'       => ['image', 'max:10240'],
+            'photos.*'       => ['image', 'max:20480'],
         ]);
 
         $data['violator_id'] = $violator->id;
@@ -280,19 +295,26 @@ class OfficerController extends Controller
 
     public function createViolation(Violator $violator): View
     {
-        $violationTypes  = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
-        $violatorVehicles = Vehicle::where('violator_id', $violator->id)
-            ->orderBy('plate_number')->get(['id', 'plate_number', 'vehicle_type', 'make', 'model']);
+        $violationTypes = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
+        $allVehicles = Vehicle::with('violator:id,first_name,middle_name,last_name')
+            ->orderBy('plate_number')
+            ->get(['id', 'violator_id', 'plate_number', 'make', 'model', 'color', 'vehicle_type', 'owner_name']);
+        $relatedIncidents = Incident::whereHas('motorists', fn($q) => $q->where('violator_id', $violator->id))
+            ->orderByDesc('date_of_incident')
+            ->orderByDesc('created_at')
+            ->get(['id', 'incident_number', 'date_of_incident', 'location']);
 
-        return view('officer.violations.create', compact('violator', 'violationTypes', 'violatorVehicles'));
+        return view('officer.violations.create', compact('violator', 'violationTypes', 'allVehicles', 'relatedIncidents'));
     }
 
     public function storeViolation(Request $request, Violator $violator): RedirectResponse
     {
         $data = $request->validate([
             'violation_type_id'     => ['required', 'exists:violation_types,id'],
+            'incident_id'           => ['nullable', 'exists:incidents,id'],
             'vehicle_id'            => ['nullable', 'exists:vehicles,id'],
             'vehicle_plate'         => ['nullable', 'string', 'max:30'],
+            'vehicle_owner_name'    => ['nullable', 'string', 'max:200'],
             'vehicle_make'          => ['nullable', 'string', 'max:100'],
             'vehicle_model'         => ['nullable', 'string', 'max:100'],
             'vehicle_color'         => ['nullable', 'string', 'max:50'],
@@ -310,6 +332,11 @@ class OfficerController extends Controller
         ]);
 
         if (!empty($data['vehicle_id'])) {
+            $selectedVehicle = Vehicle::with('violator:id,first_name,middle_name,last_name')->find($data['vehicle_id']);
+            if (empty($data['vehicle_owner_name']) && $selectedVehicle) {
+                $data['vehicle_owner_name'] = $selectedVehicle->owner_name ?: $selectedVehicle->violator?->full_name;
+            }
+
             foreach (['vehicle_plate', 'vehicle_make', 'vehicle_model', 'vehicle_color', 'vehicle_or_number', 'vehicle_cr_number', 'vehicle_chassis'] as $f) {
                 unset($data[$f]);
             }
@@ -321,6 +348,7 @@ class OfficerController extends Controller
                 $vehicle = Vehicle::create([
                     'violator_id'    => $violator->id,
                     'plate_number'   => $data['vehicle_plate'],
+                    'owner_name'     => !empty($data['vehicle_owner_name']) ? $data['vehicle_owner_name'] : $violator->full_name,
                     'make'           => $data['vehicle_make'] ?? null,
                     'model'          => $data['vehicle_model'] ?? null,
                     'color'          => $data['vehicle_color'] ?? null,
@@ -328,6 +356,20 @@ class OfficerController extends Controller
                     'cr_number'      => $data['vehicle_cr_number'] ?? null,
                     'chassis_number' => $data['vehicle_chassis'] ?? null,
                 ]);
+            } else {
+                $vehicle->fill([
+                    'owner_name'     => $vehicle->owner_name ?: (!empty($data['vehicle_owner_name']) ? $data['vehicle_owner_name'] : $violator->full_name),
+                    'make'           => $vehicle->make ?: ($data['vehicle_make'] ?? null),
+                    'model'          => $vehicle->model ?: ($data['vehicle_model'] ?? null),
+                    'color'          => $vehicle->color ?: ($data['vehicle_color'] ?? null),
+                    'or_number'      => $vehicle->or_number ?: ($data['vehicle_or_number'] ?? null),
+                    'cr_number'      => $vehicle->cr_number ?: ($data['vehicle_cr_number'] ?? null),
+                    'chassis_number' => $vehicle->chassis_number ?: ($data['vehicle_chassis'] ?? null),
+                ])->save();
+            }
+
+            if (empty($data['vehicle_owner_name'])) {
+                $data['vehicle_owner_name'] = $vehicle->owner_name ?: $violator->full_name;
             }
             $data['vehicle_id'] = $vehicle->id;
         }
@@ -356,7 +398,7 @@ class OfficerController extends Controller
 
     public function showViolation(Violation $violation): View
     {
-        $violation->load(['violationType', 'vehicle', 'vehiclePhotos', 'recorder', 'violator']);
+        $violation->load(['violationType', 'vehicle.violator', 'vehiclePhotos', 'recorder', 'violator', 'incident']);
 
         return view('officer.violations.show', compact('violation'));
     }
@@ -365,11 +407,16 @@ class OfficerController extends Controller
     {
         $this->authorize('update', $violation);
         $violation->load(['violator', 'vehiclePhotos']);
-        $violationTypes   = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
-        $violatorVehicles = Vehicle::where('violator_id', $violation->violator_id)
-            ->orderBy('plate_number')->get(['id', 'plate_number', 'vehicle_type', 'make', 'model']);
+        $violationTypes = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
+        $allVehicles = Vehicle::with('violator:id,first_name,middle_name,last_name')
+            ->orderBy('plate_number')
+            ->get(['id', 'violator_id', 'plate_number', 'make', 'model', 'color', 'vehicle_type', 'owner_name']);
+        $relatedIncidents = Incident::whereHas('motorists', fn($q) => $q->where('violator_id', $violation->violator_id))
+            ->orderByDesc('date_of_incident')
+            ->orderByDesc('created_at')
+            ->get(['id', 'incident_number', 'date_of_incident', 'location']);
 
-        return view('officer.violations.edit', compact('violation', 'violationTypes', 'violatorVehicles'));
+        return view('officer.violations.edit', compact('violation', 'violationTypes', 'allVehicles', 'relatedIncidents'));
     }
 
     public function updateViolation(Request $request, Violation $violation): RedirectResponse
@@ -378,26 +425,145 @@ class OfficerController extends Controller
 
         $data = $request->validate([
             'violation_type_id'     => ['required', 'exists:violation_types,id'],
+            'incident_id'           => ['nullable', 'exists:incidents,id'],
             'vehicle_id'            => ['nullable', 'exists:vehicles,id'],
             'vehicle_plate'         => ['nullable', 'string', 'max:30'],
+            'vehicle_owner_name'    => ['nullable', 'string', 'max:200'],
             'vehicle_make'          => ['nullable', 'string', 'max:100'],
             'vehicle_model'         => ['nullable', 'string', 'max:100'],
             'vehicle_color'         => ['nullable', 'string', 'max:50'],
+            'vehicle_or_number'     => ['nullable', 'string', 'max:50'],
+            'vehicle_cr_number'     => ['nullable', 'string', 'max:50'],
+            'vehicle_chassis'       => ['nullable', 'string', 'max:100'],
+            'photos'                => ['nullable', 'array'],
+            'photos.*'              => ['image', 'mimes:jpg,jpeg,png', 'max:51200'],
             'date_of_violation'     => ['required', 'date', 'before_or_equal:today'],
             'location'              => ['nullable', 'string', 'max:255'],
             'ticket_number'         => ['nullable', 'string', 'max:50'],
             'citation_ticket_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
+            'status'                => ['required', 'in:pending,settled'],
             'notes'                 => ['nullable', 'string', 'max:1000'],
+            'or_number'             => ['nullable', 'string', 'max:50'],
+            'cashier_name'          => ['nullable', 'string', 'max:150'],
+            'receipt_photo'         => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
         ]);
 
-        if ($request->hasFile('citation_ticket_photo')) {
+        if ($data['status'] === 'settled' && !$violation->settled_at) {
+            $data['settled_at'] = now();
+        }
+
+        if ($data['status'] !== 'settled') {
+            $data['settled_at'] = null;
+            $data['or_number'] = null;
+            $data['cashier_name'] = null;
+            if ($violation->receipt_photo) {
+                Storage::disk(uploads_disk())->delete($violation->receipt_photo);
+            }
+            $data['receipt_photo'] = null;
+        }
+
+        unset($data['photos']);
+
+        if ($request->boolean('remove_citation_photo') && !$request->hasFile('citation_ticket_photo')) {
             if ($violation->citation_ticket_photo) {
-                \Illuminate\Support\Facades\Storage::disk(uploads_disk())->delete($violation->citation_ticket_photo);
+                Storage::disk(uploads_disk())->delete($violation->citation_ticket_photo);
+            }
+            $data['citation_ticket_photo'] = null;
+        } elseif ($request->hasFile('citation_ticket_photo')) {
+            if ($violation->citation_ticket_photo) {
+                Storage::disk(uploads_disk())->delete($violation->citation_ticket_photo);
             }
             $data['citation_ticket_photo'] = $request->file('citation_ticket_photo')->store('citation-photos', uploads_disk());
+        } else {
+            unset($data['citation_ticket_photo']);
+        }
+
+        if ($data['status'] === 'settled') {
+            if ($request->boolean('remove_receipt_photo') && !$request->hasFile('receipt_photo')) {
+                if ($violation->receipt_photo) {
+                    Storage::disk(uploads_disk())->delete($violation->receipt_photo);
+                }
+                $data['receipt_photo'] = null;
+            } elseif ($request->hasFile('receipt_photo')) {
+                if ($violation->receipt_photo) {
+                    Storage::disk(uploads_disk())->delete($violation->receipt_photo);
+                }
+                $data['receipt_photo'] = $request->file('receipt_photo')->store('receipt-photos', uploads_disk());
+            } else {
+                unset($data['receipt_photo']);
+            }
+        }
+
+        if (!empty($data['vehicle_id'])) {
+            $selectedVehicle = Vehicle::with('violator:id,first_name,middle_name,last_name')->find($data['vehicle_id']);
+            if (empty($data['vehicle_owner_name']) && $selectedVehicle) {
+                $data['vehicle_owner_name'] = $selectedVehicle->owner_name ?: $selectedVehicle->violator?->full_name;
+            }
+
+            foreach ($violation->vehiclePhotos as $photo) {
+                Storage::disk(uploads_disk())->delete($photo->photo);
+            }
+            $violation->vehiclePhotos()->delete();
+
+            foreach (['vehicle_plate', 'vehicle_make', 'vehicle_model', 'vehicle_color', 'vehicle_or_number', 'vehicle_cr_number', 'vehicle_chassis'] as $field) {
+                $data[$field] = null;
+            }
+        } elseif (!empty($data['vehicle_plate'])) {
+            $existing = Vehicle::where('violator_id', $violation->violator_id)
+                ->where('plate_number', $data['vehicle_plate'])
+                ->first();
+
+            if (!$existing) {
+                $existing = Vehicle::create([
+                    'violator_id'    => $violation->violator_id,
+                    'plate_number'   => $data['vehicle_plate'],
+                    'owner_name'     => !empty($data['vehicle_owner_name']) ? $data['vehicle_owner_name'] : $violation->violator->full_name,
+                    'make'           => $data['vehicle_make'] ?? null,
+                    'model'          => $data['vehicle_model'] ?? null,
+                    'color'          => $data['vehicle_color'] ?? null,
+                    'or_number'      => $data['vehicle_or_number'] ?? null,
+                    'cr_number'      => $data['vehicle_cr_number'] ?? null,
+                    'chassis_number' => $data['vehicle_chassis'] ?? null,
+                ]);
+            } else {
+                $existing->fill([
+                    'owner_name'     => $existing->owner_name ?: (!empty($data['vehicle_owner_name']) ? $data['vehicle_owner_name'] : $violation->violator->full_name),
+                    'make'           => $existing->make ?: ($data['vehicle_make'] ?? null),
+                    'model'          => $existing->model ?: ($data['vehicle_model'] ?? null),
+                    'color'          => $existing->color ?: ($data['vehicle_color'] ?? null),
+                    'or_number'      => $existing->or_number ?: ($data['vehicle_or_number'] ?? null),
+                    'cr_number'      => $existing->cr_number ?: ($data['vehicle_cr_number'] ?? null),
+                    'chassis_number' => $existing->chassis_number ?: ($data['vehicle_chassis'] ?? null),
+                ])->save();
+            }
+
+            if (empty($data['vehicle_owner_name'])) {
+                $data['vehicle_owner_name'] = $existing->owner_name ?: $violation->violator->full_name;
+            }
+            $data['vehicle_id'] = $existing->id;
         }
 
         $violation->update($data);
+
+        if ($request->hasFile('photos') && empty($request->input('vehicle_id'))) {
+            $currentCount = $violation->vehiclePhotos()->count();
+            $allowed = 4 - $currentCount;
+
+            if ($allowed <= 0) {
+                return back()->withErrors(['photos' => 'Maximum 4 photos already reached. Delete an existing photo first.']);
+            }
+
+            $newFiles = $request->file('photos');
+            foreach (array_slice($newFiles, 0, $allowed) as $file) {
+                $path = $file->store('violation-vehicle-photos', uploads_disk());
+                ViolationVehiclePhoto::create(['violation_id' => $violation->id, 'photo' => $path]);
+            }
+
+            if (count($newFiles) > $allowed) {
+                return redirect()->route('officer.violations.show', $violation)
+                    ->with('success', 'Violation updated. Only ' . $allowed . ' photo(s) were saved (4-photo limit reached).');
+            }
+        }
 
         return redirect()->route('officer.violations.show', $violation)
             ->with('success', 'Violation updated successfully.');
@@ -440,9 +606,21 @@ class OfficerController extends Controller
     {
         $chargeTypes     = Cache::remember('incident_charge_types', 600, fn() => IncidentChargeType::orderBy('name')->get());
         $violators       = Violator::orderBy('last_name')->orderBy('first_name')
-                              ->get(['id', 'first_name', 'middle_name', 'last_name', 'license_number']);
+                              ->get([
+                                  'id',
+                                  'first_name',
+                                  'middle_name',
+                                  'last_name',
+                                  'license_number',
+                                  'license_type',
+                                  'license_restriction',
+                                  'license_expiry_date',
+                                  'contact_number',
+                                  'temporary_address',
+                                  'permanent_address',
+                              ]);
         $vehiclesByOwner = Vehicle::orderBy('plate_number')
-            ->get(['id', 'violator_id', 'plate_number', 'vehicle_type', 'make', 'model'])
+            ->get(['id', 'violator_id', 'plate_number', 'vehicle_type', 'make', 'model', 'color', 'owner_name', 'or_number', 'cr_number', 'chassis_number'])
             ->groupBy('violator_id');
 
         return view('officer.incidents.create', compact('chargeTypes', 'violators', 'vehiclesByOwner'));
@@ -461,6 +639,11 @@ class OfficerController extends Controller
             'motorists.*.violator_id'             => 'nullable|exists:violators,id',
             'motorists.*.motorist_name'           => 'nullable|string|max:200',
             'motorists.*.motorist_license'        => 'nullable|string|max:100',
+            'motorist_photos'                     => 'nullable|array',
+            'motorist_photos.*'                   => 'nullable|array|max:4',
+            'motorist_photos.*.*'                 => 'nullable|file|mimes:jpg,jpeg,png|max:20480',
+            'motorist_id_photos'                  => 'nullable|array',
+            'motorist_id_photos.*'                => 'nullable|file|mimes:jpg,jpeg,png|max:20480',
             'motorists.*.license_type'            => 'nullable|string|max:50',
             'motorists.*.license_restriction'     => 'nullable|array',
             'motorists.*.license_restriction.*'   => 'nullable|string|max:10',
@@ -478,6 +661,12 @@ class OfficerController extends Controller
             'motorists.*.vehicle_chassis'         => 'nullable|string|max:100',
             'motorists.*.incident_charge_type_id' => 'nullable|exists:incident_charge_types,id',
             'motorists.*.notes'                   => 'nullable|string|max:500',
+            'media'                               => 'nullable|array|max:20',
+            'media.*'                             => 'file|mimes:jpg,jpeg,png,pdf|max:20480',
+            'media_types'                         => 'nullable|array',
+            'media_types.*'                       => 'in:scene,ticket,document,other',
+            'captions'                            => 'nullable|array',
+            'captions.*'                          => 'nullable|string|max:200',
         ]);
 
         foreach ($request->input('motorists', []) as $i => $m) {
@@ -498,6 +687,9 @@ class OfficerController extends Controller
                 'recorded_by'      => Auth::id(),
             ]);
 
+            $vehiclePhotos = $request->file('motorist_photos', []);
+            $motoristIdPhotos = $request->file('motorist_id_photos', []);
+
             if ($request->hasFile('incident_photos')) {
                 foreach (array_slice($request->file('incident_photos'), 0, 6) as $file) {
                     $path = $file->store('incident-photos', uploads_disk());
@@ -509,7 +701,22 @@ class OfficerController extends Controller
                 }
             }
 
-            foreach ($request->input('motorists', []) as $m) {
+            foreach ($request->input('motorists', []) as $i => $m) {
+                $m = $this->normalizeOfficerIncidentMotorist($m);
+
+                $vehiclePathArr = [];
+                if (!empty($vehiclePhotos[$i]) && is_array($vehiclePhotos[$i])) {
+                    foreach (array_slice($vehiclePhotos[$i], 0, 4) as $photo) {
+                        if ($photo && $photo->isValid()) {
+                            $vehiclePathArr[] = $photo->store('motorist-photos', uploads_disk());
+                        }
+                    }
+                }
+
+                $idPhotoPath = !empty($motoristIdPhotos[$i])
+                    ? $motoristIdPhotos[$i]->store('motorist-id-photos', uploads_disk())
+                    : null;
+
                 // Auto-register manual motorist into Violators table
                 if (empty($m['violator_id']) && !empty($m['motorist_name'])) {
                     [$m['violator_id'], $m['vehicle_id']] = $this->autoRegisterOfficerMotorist($m);
@@ -519,6 +726,7 @@ class OfficerController extends Controller
                     'violator_id'             => $m['violator_id'] ?? null,
                     'motorist_name'           => $m['motorist_name'] ?? null,
                     'motorist_license'        => $m['motorist_license'] ?? null,
+                    'motorist_photo'          => $idPhotoPath,
                     'motorist_contact'        => $m['motorist_contact'] ?? null,
                     'motorist_address'        => $m['motorist_address'] ?? null,
                     'license_type'            => $m['license_type'] ?? null,
@@ -533,9 +741,24 @@ class OfficerController extends Controller
                     'vehicle_or_number'       => $m['vehicle_or_number'] ?? null,
                     'vehicle_cr_number'       => $m['vehicle_cr_number'] ?? null,
                     'vehicle_chassis'         => $m['vehicle_chassis'] ?? null,
+                    'vehicle_photo'           => !empty($vehiclePathArr) ? $vehiclePathArr : null,
                     'incident_charge_type_id' => $m['incident_charge_type_id'] ?? null,
                     'notes'                   => $m['notes'] ?? null,
                 ]);
+            }
+
+            if ($request->hasFile('media')) {
+                $mediaTypes = $request->input('media_types', []);
+                $captions = $request->input('captions', []);
+
+                foreach ($request->file('media') as $i => $file) {
+                    $path = $file->store('incident-media', uploads_disk());
+                    $incident->media()->create([
+                        'file_path'  => $path,
+                        'media_type' => $mediaTypes[$i] ?? 'scene',
+                        'caption'    => $captions[$i] ?? null,
+                    ]);
+                }
             }
 
             return $incident;
@@ -590,6 +813,7 @@ class OfficerController extends Controller
                 $vehicle = Vehicle::create([
                     'violator_id'    => $violator->id,
                     'plate_number'   => $m['vehicle_plate'],
+                    'owner_name'     => $violator->full_name,
                     'vehicle_type'   => $m['vehicle_type_manual'] ?? null,
                     'make'           => $m['vehicle_make'] ?? null,
                     'model'          => $m['vehicle_model'] ?? null,
@@ -598,6 +822,17 @@ class OfficerController extends Controller
                     'cr_number'      => $m['vehicle_cr_number'] ?? null,
                     'chassis_number' => $m['vehicle_chassis'] ?? null,
                 ]);
+            } else {
+                $vehicle->fill([
+                    'owner_name'     => $vehicle->owner_name ?: $violator->full_name,
+                    'vehicle_type'   => $vehicle->vehicle_type ?: ($m['vehicle_type_manual'] ?? null),
+                    'make'           => $vehicle->make ?: ($m['vehicle_make'] ?? null),
+                    'model'          => $vehicle->model ?: ($m['vehicle_model'] ?? null),
+                    'color'          => $vehicle->color ?: ($m['vehicle_color'] ?? null),
+                    'or_number'      => $vehicle->or_number ?: ($m['vehicle_or_number'] ?? null),
+                    'cr_number'      => $vehicle->cr_number ?: ($m['vehicle_cr_number'] ?? null),
+                    'chassis_number' => $vehicle->chassis_number ?: ($m['vehicle_chassis'] ?? null),
+                ])->save();
             }
             $vehicleId = $vehicle->id;
         }
@@ -605,9 +840,44 @@ class OfficerController extends Controller
         return [$violator->id, $vehicleId];
     }
 
+    private function normalizeOfficerIncidentMotorist(array $motorist): array
+    {
+        if (!empty($motorist['violator_id'])) {
+            $violator = Violator::find($motorist['violator_id']);
+            if ($violator) {
+                $motorist['motorist_name'] = !empty($motorist['motorist_name']) ? $motorist['motorist_name'] : $violator->full_name;
+                $motorist['motorist_license'] = !empty($motorist['motorist_license']) ? $motorist['motorist_license'] : $violator->license_number;
+                $motorist['license_type'] = !empty($motorist['license_type']) ? $motorist['license_type'] : $violator->license_type;
+                $motorist['license_expiry_date'] = !empty($motorist['license_expiry_date']) ? $motorist['license_expiry_date'] : optional($violator->license_expiry_date)->format('Y-m-d');
+                $motorist['motorist_contact'] = !empty($motorist['motorist_contact']) ? $motorist['motorist_contact'] : $violator->contact_number;
+                $motorist['motorist_address'] = !empty($motorist['motorist_address']) ? $motorist['motorist_address'] : ($violator->temporary_address ?: $violator->permanent_address);
+
+                if (empty($motorist['license_restriction']) && !empty($violator->license_restriction)) {
+                    $motorist['license_restriction'] = array_values(array_filter(array_map('trim', explode(',', $violator->license_restriction))));
+                }
+            }
+        }
+
+        if (!empty($motorist['vehicle_id'])) {
+            $vehicle = Vehicle::find($motorist['vehicle_id']);
+            if ($vehicle) {
+                $motorist['vehicle_plate'] = !empty($motorist['vehicle_plate']) ? $motorist['vehicle_plate'] : $vehicle->plate_number;
+                $motorist['vehicle_type_manual'] = !empty($motorist['vehicle_type_manual']) ? $motorist['vehicle_type_manual'] : $vehicle->vehicle_type;
+                $motorist['vehicle_make'] = !empty($motorist['vehicle_make']) ? $motorist['vehicle_make'] : $vehicle->make;
+                $motorist['vehicle_model'] = !empty($motorist['vehicle_model']) ? $motorist['vehicle_model'] : $vehicle->model;
+                $motorist['vehicle_color'] = !empty($motorist['vehicle_color']) ? $motorist['vehicle_color'] : $vehicle->color;
+                $motorist['vehicle_or_number'] = !empty($motorist['vehicle_or_number']) ? $motorist['vehicle_or_number'] : $vehicle->or_number;
+                $motorist['vehicle_cr_number'] = !empty($motorist['vehicle_cr_number']) ? $motorist['vehicle_cr_number'] : $vehicle->cr_number;
+                $motorist['vehicle_chassis'] = !empty($motorist['vehicle_chassis']) ? $motorist['vehicle_chassis'] : $vehicle->chassis_number;
+            }
+        }
+
+        return $motorist;
+    }
+
     public function showIncident(Incident $incident): View
     {
-        $incident->load(['motorists.violator', 'motorists.chargeType', 'recorder', 'media']);
+        $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'recorder', 'media']);
 
         return view('officer.incidents.show', compact('incident'));
     }
@@ -615,7 +885,7 @@ class OfficerController extends Controller
     public function editIncident(Incident $incident): View
     {
         $this->authorize('update', $incident);
-        $incident->load(['motorists', 'media']);
+        $incident->load(['motorists.vehicle', 'media']);
         $chargeTypes = Cache::remember('incident_charge_types', 600, fn() => IncidentChargeType::orderBy('name')->get());
 
         return view('officer.incidents.edit', compact('incident', 'chargeTypes'));

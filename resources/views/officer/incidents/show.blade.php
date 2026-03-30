@@ -139,9 +139,14 @@
             </div>
 
             {{-- Contact info for unregistered --}}
-            @if(!$m->violator && ($m->motorist_contact ?? null))
-            <div style="font-size:.72rem;color:#64748b;margin-bottom:.2rem;">
-                <i class="ph ph-phone me-1"></i>{{ $m->motorist_contact }}
+            @if(!$m->violator && (($m->motorist_contact ?? null) || ($m->motorist_address ?? null)))
+            <div style="font-size:.72rem;color:#64748b;margin-bottom:.2rem;display:flex;flex-wrap:wrap;gap:.6rem;">
+                @if($m->motorist_contact)
+                <span><i class="ph ph-phone me-1"></i>{{ $m->motorist_contact }}</span>
+                @endif
+                @if($m->motorist_address)
+                <span><i class="ph ph-map-pin me-1"></i>{{ $m->motorist_address }}</span>
+                @endif
             </div>
             @endif
 
@@ -216,6 +221,19 @@
                     <div style="margin-top:.1rem;color:#64748b;">Chassis: <span style="font-family:ui-monospace,monospace;">{{ $vCha }}</span></div>
                     @endif
                 </div>
+            </div>
+            @endif
+
+            @if($m->vehicle_photo && count($m->vehicle_photo))
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;margin:.45rem 0 .25rem;">
+                @foreach($m->vehicle_photo as $vp)
+                <img src="{{ uploaded_file_url($vp) }}"
+                     class="mob-photo-thumb"
+                     data-full="{{ uploaded_file_url($vp) }}"
+                     data-caption="Vehicle photo — {{ $m->violator?->full_name ?? ($m->motorist_name ?? 'Motorist') }}"
+                     style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);cursor:zoom-in;"
+                     alt="Vehicle photo">
+                @endforeach
             </div>
             @endif
 

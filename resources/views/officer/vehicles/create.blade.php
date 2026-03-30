@@ -104,30 +104,37 @@
             </div>
 
             <div class="mb-3">
-                <label class="mob-label">Vehicle Type</label>
+                <label class="mob-label">Vehicle Type <span class="text-danger">*</span></label>
                 <select name="vehicle_type" class="form-select mob-select @error('vehicle_type') is-invalid @enderror">
                     <option value="">— Select type —</option>
-                    @foreach(['Motorcycle','Tricycle','Car','SUV','Van','Truck','Bus','Other'] as $type)
-                    <option value="{{ $type }}" {{ old('vehicle_type') === $type ? 'selected' : '' }}>{{ $type }}</option>
-                    @endforeach
+                    <option value="MV" {{ old('vehicle_type') === 'MV' ? 'selected' : '' }}>MV — Motor Vehicle</option>
+                    <option value="MC" {{ old('vehicle_type') === 'MC' ? 'selected' : '' }}>MC — Motorcycle</option>
                 </select>
                 @error('vehicle_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <div class="row g-2 mb-3">
-                <div class="col-6">
+                <div class="col-4">
                     <label class="mob-label">Make</label>
                     <input type="text" name="make" value="{{ old('make') }}"
                            class="form-control mob-input @error('make') is-invalid @enderror"
                            placeholder="e.g. Honda">
                     @error('make')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-6">
+                <div class="col-4">
                     <label class="mob-label">Model</label>
                     <input type="text" name="model" value="{{ old('model') }}"
                            class="form-control mob-input @error('model') is-invalid @enderror"
                            placeholder="e.g. Click 125">
                     @error('model')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-4">
+                    <label class="mob-label">Year</label>
+                    <input type="number" name="year" value="{{ old('year') }}"
+                           min="1900" max="{{ date('Y') + 1 }}"
+                           class="form-control mob-input @error('year') is-invalid @enderror"
+                           placeholder="{{ date('Y') }}">
+                    @error('year')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
 
