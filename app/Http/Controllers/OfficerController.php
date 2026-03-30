@@ -115,17 +115,29 @@ class OfficerController extends Controller
     public function storeMotorist(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'first_name'      => ['required', 'string', 'max:100'],
-            'middle_name'     => ['nullable', 'string', 'max:100'],
-            'last_name'       => ['required', 'string', 'max:100'],
-            'contact_number'  => ['nullable', 'string', 'max:20'],
-            'license_number'  => ['nullable', 'string', 'max:50', 'unique:violators,license_number'],
-            'license_type'    => ['nullable', 'in:Non-Professional,Professional'],
+            'first_name'            => ['required', 'string', 'max:100'],
+            'middle_name'           => ['nullable', 'string', 'max:100'],
+            'last_name'             => ['required', 'string', 'max:100'],
+            'date_of_birth'         => ['nullable', 'date', 'before:today'],
+            'place_of_birth'        => ['nullable', 'string', 'max:255'],
+            'gender'                => ['nullable', 'in:Male,Female'],
+            'civil_status'          => ['nullable', 'in:Single,Married,Widowed,Separated'],
+            'blood_type'            => ['nullable', 'in:O+,O-,A+,A-,B+,B-,AB+,AB-'],
+            'height'                => ['nullable', 'numeric', 'min:50', 'max:250'],
+            'weight'                => ['nullable', 'numeric', 'min:10', 'max:300'],
+            'valid_id'              => ['nullable', 'string', 'max:255'],
+            'email'                 => ['nullable', 'email', 'max:255'],
+            'contact_number'        => ['nullable', 'string', 'max:20'],
+            'address'               => ['nullable', 'string', 'max:500'],
+            'permanent_address'     => ['nullable', 'string', 'max:500'],
+            'license_number'        => ['nullable', 'string', 'max:50', 'unique:violators,license_number'],
+            'license_type'          => ['nullable', 'in:Non-Professional,Professional'],
+            'license_issued_date'   => ['nullable', 'date'],
+            'license_expiry_date'   => ['nullable', 'date'],
             'license_restriction'   => ['nullable', 'array'],
             'license_restriction.*' => ['in:A,A1,B,B1,B2,C,D,BE,CE'],
-            'license_expiry_date'   => ['nullable', 'date'],
-            'address'         => ['nullable', 'string', 'max:500'],
-            'photo'           => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
+            'license_conditions'    => ['nullable', 'string', 'max:500'],
+            'photo'                 => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
         ]);
 
         $duplicate = Violator::whereRaw('LOWER(first_name) = LOWER(?) AND LOWER(last_name) = LOWER(?)', [
@@ -147,8 +159,8 @@ class OfficerController extends Controller
         // Map officer 'address' field to the canonical temporary_address column
         if (!empty($data['address'])) {
             $data['temporary_address'] = $data['address'];
-            unset($data['address']);
         }
+        unset($data['address']);
 
         $violator = Violator::create($data);
 
@@ -175,19 +187,39 @@ class OfficerController extends Controller
     public function updateMotorist(Request $request, Violator $violator): RedirectResponse
     {
         $data = $request->validate([
-            'first_name'          => ['required', 'string', 'max:100'],
-            'middle_name'         => ['nullable', 'string', 'max:100'],
-            'last_name'           => ['required', 'string', 'max:100'],
-            'contact_number'      => ['nullable', 'string', 'max:20'],
-            'license_number'      => ['nullable', 'string', 'max:50', 'unique:violators,license_number,' . $violator->id],
-            'license_type'        => ['nullable', 'in:Non-Professional,Professional'],
-            'license_expiry_date' => ['nullable', 'date'],
-            'address'             => ['nullable', 'string', 'max:500'],
-            'photo'               => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
+            'first_name'            => ['required', 'string', 'max:100'],
+            'middle_name'           => ['nullable', 'string', 'max:100'],
+            'last_name'             => ['required', 'string', 'max:100'],
+            'date_of_birth'         => ['nullable', 'date', 'before:today'],
+            'place_of_birth'        => ['nullable', 'string', 'max:255'],
+            'gender'                => ['nullable', 'in:Male,Female'],
+            'civil_status'          => ['nullable', 'in:Single,Married,Widowed,Separated'],
+            'blood_type'            => ['nullable', 'in:O+,O-,A+,A-,B+,B-,AB+,AB-'],
+            'height'                => ['nullable', 'numeric', 'min:50', 'max:250'],
+            'weight'                => ['nullable', 'numeric', 'min:10', 'max:300'],
+            'valid_id'              => ['nullable', 'string', 'max:255'],
+            'email'                 => ['nullable', 'email', 'max:255'],
+            'contact_number'        => ['nullable', 'string', 'max:20'],
+            'address'               => ['nullable', 'string', 'max:500'],
+            'permanent_address'     => ['nullable', 'string', 'max:500'],
+            'license_number'        => ['nullable', 'string', 'max:50', 'unique:violators,license_number,' . $violator->id],
+            'license_type'          => ['nullable', 'in:Non-Professional,Professional'],
+            'license_issued_date'   => ['nullable', 'date'],
+            'license_expiry_date'   => ['nullable', 'date'],
+            'license_restriction'   => ['nullable', 'array'],
+            'license_restriction.*' => ['in:A,A1,B,B1,B2,C,D,BE,CE'],
+            'license_conditions'    => ['nullable', 'string', 'max:500'],
+            'photo'                 => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
         ]);
 
         if ($request->hasFile('photo')) {
             $data['photo'] = $request->file('photo')->store('violators', uploads_disk());
+        }
+
+        if (!empty($data['license_restriction']) && is_array($data['license_restriction'])) {
+            $data['license_restriction'] = implode(',', $data['license_restriction']);
+        } elseif (array_key_exists('license_restriction', $data) && empty($data['license_restriction'])) {
+            $data['license_restriction'] = null;
         }
 
         if (!empty($data['address'])) {

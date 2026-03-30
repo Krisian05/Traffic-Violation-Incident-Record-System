@@ -186,6 +186,7 @@ class VehicleController extends Controller
         $data = $request->validate([
             'plate_number' => ['required', 'string', 'max:20', 'unique:vehicles,plate_number'],
             'vehicle_type' => ['required', 'in:MV,MC'],
+            'owner_name'   => ['nullable', 'string', 'max:255'],
             'make'         => ['nullable', 'string', 'max:100'],
             'model'        => ['nullable', 'string', 'max:100'],
             'color'        => ['nullable', 'string', 'max:50'],
@@ -224,6 +225,7 @@ class VehicleController extends Controller
         $data = $request->validate([
             'plate_number' => ['required', 'string', 'max:20', "unique:vehicles,plate_number,{$vehicle->id}"],
             'vehicle_type' => ['required', 'in:MV,MC'],
+            'owner_name'   => ['nullable', 'string', 'max:255'],
             'make'         => ['nullable', 'string', 'max:100'],
             'model'        => ['nullable', 'string', 'max:100'],
             'color'        => ['nullable', 'string', 'max:50'],

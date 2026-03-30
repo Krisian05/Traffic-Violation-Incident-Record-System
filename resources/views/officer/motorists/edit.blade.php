@@ -45,6 +45,91 @@
                 @error('last_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label class="mob-label">Date of Birth</label>
+                    <input type="date" name="date_of_birth"
+                           value="{{ old('date_of_birth', $violator->date_of_birth?->format('Y-m-d')) }}"
+                           class="form-control mob-input @error('date_of_birth') is-invalid @enderror">
+                    @error('date_of_birth')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-6">
+                    <label class="mob-label">Gender</label>
+                    <select name="gender" class="form-select mob-select @error('gender') is-invalid @enderror">
+                        <option value="">— Select —</option>
+                        <option value="Male"   {{ old('gender', $violator->gender) === 'Male'   ? 'selected' : '' }}>Male</option>
+                        <option value="Female" {{ old('gender', $violator->gender) === 'Female' ? 'selected' : '' }}>Female</option>
+                    </select>
+                    @error('gender')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+            </div>
+
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label class="mob-label">Civil Status</label>
+                    <select name="civil_status" class="form-select mob-select @error('civil_status') is-invalid @enderror">
+                        <option value="">— Select —</option>
+                        <option value="Single"    {{ old('civil_status', $violator->civil_status) === 'Single'    ? 'selected' : '' }}>Single</option>
+                        <option value="Married"   {{ old('civil_status', $violator->civil_status) === 'Married'   ? 'selected' : '' }}>Married</option>
+                        <option value="Widowed"   {{ old('civil_status', $violator->civil_status) === 'Widowed'   ? 'selected' : '' }}>Widowed</option>
+                        <option value="Separated" {{ old('civil_status', $violator->civil_status) === 'Separated' ? 'selected' : '' }}>Separated</option>
+                    </select>
+                    @error('civil_status')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-6">
+                    <label class="mob-label">Blood Type</label>
+                    <select name="blood_type" class="form-select mob-select @error('blood_type') is-invalid @enderror">
+                        <option value="">— Select —</option>
+                        @foreach(['O+','O-','A+','A-','B+','B-','AB+','AB-'] as $bt)
+                        <option value="{{ $bt }}" {{ old('blood_type', $violator->blood_type) === $bt ? 'selected' : '' }}>{{ $bt }}</option>
+                        @endforeach
+                    </select>
+                    @error('blood_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="mob-label">Place of Birth</label>
+                <input type="text" name="place_of_birth"
+                       value="{{ old('place_of_birth', $violator->place_of_birth) }}"
+                       class="form-control mob-input @error('place_of_birth') is-invalid @enderror"
+                       placeholder="City / Municipality of birth">
+                @error('place_of_birth')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label class="mob-label">Height (cm)</label>
+                    <input type="number" name="height" value="{{ old('height', $violator->height) }}" min="50" max="250" step="0.1"
+                           class="form-control mob-input @error('height') is-invalid @enderror"
+                           placeholder="e.g. 165">
+                    @error('height')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-6">
+                    <label class="mob-label">Weight (kg)</label>
+                    <input type="number" name="weight" value="{{ old('weight', $violator->weight) }}" min="10" max="300" step="0.1"
+                           class="form-control mob-input @error('weight') is-invalid @enderror"
+                           placeholder="e.g. 60">
+                    @error('weight')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="mob-label">Valid ID Presented</label>
+                <input type="text" name="valid_id" value="{{ old('valid_id', $violator->valid_id) }}"
+                       class="form-control mob-input @error('valid_id') is-invalid @enderror"
+                       placeholder="e.g. PhilSys ID, Passport, UMID">
+                @error('valid_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="mb-3">
+                <label class="mob-label">Email Address</label>
+                <input type="email" name="email" value="{{ old('email', $violator->email) }}"
+                       class="form-control mob-input @error('email') is-invalid @enderror"
+                       placeholder="e.g. juan@email.com">
+                @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+
             {{-- License --}}
             <div class="mob-form-divider">
                 <span class="mob-form-divider-text">License</span>
@@ -78,6 +163,39 @@
                 </div>
             </div>
 
+            <div class="mb-3">
+                <label class="mob-label">Date Issued</label>
+                <input type="date" name="license_issued_date"
+                       value="{{ old('license_issued_date', $violator->license_issued_date?->format('Y-m-d')) }}"
+                       class="form-control mob-input @error('license_issued_date') is-invalid @enderror">
+                @error('license_issued_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="mb-3">
+                <label class="mob-label d-block mb-2">Restriction Codes</label>
+                @php $currentRestrictions = array_filter(explode(',', $violator->license_restriction ?? '')); @endphp
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach(['A','A1','B','B1','B2','C','D','BE','CE'] as $rc)
+                    <label style="display:inline-flex;align-items:center;gap:.35rem;padding:.28rem .7rem;border-radius:8px;border:1.5px solid #cbd5e1;background:#f8fafc;font-size:.8rem;font-weight:600;cursor:pointer;">
+                        <input type="checkbox" name="license_restriction[]" value="{{ $rc }}"
+                               {{ (is_array(old('license_restriction')) ? in_array($rc, old('license_restriction')) : in_array($rc, $currentRestrictions)) ? 'checked' : '' }}
+                               style="accent-color:#2563eb;">
+                        {{ $rc }}
+                    </label>
+                    @endforeach
+                </div>
+                @error('license_restriction')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="mb-3">
+                <label class="mob-label">Conditions / Remarks</label>
+                <textarea name="license_conditions" rows="2"
+                          class="form-control mob-input @error('license_conditions') is-invalid @enderror"
+                          placeholder="e.g. Must wear corrective lenses"
+                          style="min-height:auto;resize:none;">{{ old('license_conditions', $violator->license_conditions) }}</textarea>
+                @error('license_conditions')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+
             {{-- Contact --}}
             <div class="mob-form-divider">
                 <span class="mob-form-divider-text">Contact</span>
@@ -93,12 +211,22 @@
             </div>
 
             <div class="mb-3">
-                <label class="mob-label">Address</label>
+                <label class="mob-label">Temporary / Current Address</label>
                 <textarea name="address" rows="2"
                           class="form-control mob-input @error('address') is-invalid @enderror"
                           placeholder="Barangay / Municipality / Province"
                           style="min-height:auto;resize:none;">{{ old('address', $violator->temporary_address) }}</textarea>
                 @error('address')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="mb-3">
+                <label class="mob-label">Permanent Address</label>
+                <textarea name="permanent_address" rows="2"
+                          class="form-control mob-input @error('permanent_address') is-invalid @enderror"
+                          placeholder="Street, Barangay, City / Municipality, Province"
+                          style="min-height:auto;resize:none;">{{ old('permanent_address', $violator->permanent_address) }}</textarea>
+                @error('permanent_address')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <span class="mob-hint">Leave blank if same as temporary address above.</span>
             </div>
 
             {{-- Photo --}}

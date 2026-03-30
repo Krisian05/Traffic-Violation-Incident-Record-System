@@ -62,6 +62,17 @@
                     @error('vehicle_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
+            <div class="col-12">
+                <label class="form-label">Registered Owner Name</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person-badge-fill" style="color:#1d4ed8;font-size:.8rem;"></i></span>
+                    <input type="text" name="owner_name"
+                        class="form-control @error('owner_name') is-invalid @enderror"
+                        value="{{ old('owner_name') }}" placeholder="Name as it appears on OR/CR">
+                    @error('owner_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-text" style="font-size:.72rem;">Leave blank if the same as the motorist above.</div>
+            </div>
         </div>
     </div>
 </div>
