@@ -1,10 +1,12 @@
 @extends('layouts.app')
 @section('title', 'Violation #' . $violation->id)
-@section('topbar-sub', 'Record for: ' . $violation->violator->full_name)
+@section('topbar-sub', 'Record for: ' . ($violation->violator?->full_name ?? '(Deleted Motorist)'))
 
 @section('breadcrumbs')
     <li class="breadcrumb-item"><a href="{{ route('violations.index') }}" style="color:#78716c;">Violations</a></li>
+    @if($violation->violator)
     <li class="breadcrumb-item"><a href="{{ route('violators.show', $violation->violator) }}" style="color:#78716c;">{{ $violation->violator->full_name }}</a></li>
+    @endif
     <li class="breadcrumb-item active" aria-current="page" style="color:#44403c;">Violation #{{ $violation->id }}</li>
 @endsection
 
@@ -43,7 +45,7 @@
         <div>
             <h5 class="mb-0 fw-700" style="color:#1c1917;">Violation Record #{{ $violation->id }}</h5>
             <div style="font-size:.8rem;color:#78716c;">
-                Filed on {{ $violation->created_at->format('F d, Y') }} · {{ $violation->violator->full_name }}
+                Filed on {{ $violation->created_at->format('F d, Y') }} · {{ $violation->violator?->full_name ?? '(Deleted Motorist)' }}
             </div>
         </div>
     </div>
@@ -68,14 +70,14 @@
                     {{-- Violation Type --}}
                     <div class="d-flex align-items-start gap-3 px-4 py-3" style="border-bottom:1px solid #f5f0e8;">
                         <div style="width:120px;flex-shrink:0;font-size:.8rem;color:#a8a29e;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">Type</div>
-                        <div class="fw-700" style="color:#1c1917;font-size:.95rem;">{{ $violation->violationType->name }}</div>
+                        <div class="fw-700" style="color:#1c1917;font-size:.95rem;">{{ $violation->violationType?->name ?? '—' }}</div>
                     </div>
 
                     {{-- Fine Amount --}}
                     <div class="d-flex align-items-start gap-3 px-4 py-3" style="border-bottom:1px solid #f5f0e8;">
                         <div style="width:120px;flex-shrink:0;font-size:.8rem;color:#a8a29e;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">Fine Amount</div>
                         <div>
-                            @if($violation->violationType->fine_amount)
+                            @if($violation->violationType?->fine_amount)
                                 <span class="fw-700" style="color:#1c1917;font-size:.95rem;">
                                     ₱{{ number_format($violation->violationType->fine_amount, 2) }}
                                 </span>
@@ -295,26 +297,28 @@
                     <i class="bi bi-person-fill" style="font-size:.85rem;color:#6d28d9;"></i>
                 </span>
                 <span class="fw-600" style="font-size:.925rem;color:#292524;">Violator</span>
+                @if($violation->violator)
                 <a href="{{ route('violators.show', $violation->violator) }}"
                    class="ms-auto" style="font-size:.75rem;color:#6d28d9;text-decoration:none;">
                     View profile <i class="bi bi-box-arrow-up-right" style="font-size:.65rem;"></i>
                 </a>
+                @endif
             </div>
             <div class="card-body p-3">
                 <div class="d-flex align-items-center gap-3 mb-3">
                     <div class="rounded-circle d-flex align-items-center justify-content-center fw-700 text-white"
                          style="width:48px;height:48px;flex-shrink:0;font-size:1.1rem;
                                 background:linear-gradient(135deg,#6d28d9,#4c1d95);">
-                        {{ strtoupper(substr($violation->violator->first_name, 0, 1)) }}{{ strtoupper(substr($violation->violator->last_name, 0, 1)) }}
+                        {{ strtoupper(substr($violation->violator?->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($violation->violator?->last_name ?? '', 0, 1)) }}
                     </div>
                     <div>
-                        <div class="fw-700" style="color:#1c1917;font-size:.9rem;">{{ $violation->violator->full_name }}</div>
-                        @if($violation->violator->license_number)
+                        <div class="fw-700" style="color:#1c1917;font-size:.9rem;">{{ $violation->violator?->full_name ?? '(Deleted Motorist)' }}</div>
+                        @if($violation->violator?->license_number)
                             <div class="font-monospace" style="font-size:.72rem;color:#a8a29e;">
                                 {{ $violation->violator->license_number }}
                             </div>
                         @endif
-                        @php $totalVc = $violation->violator->violations->count(); @endphp
+                        @php $totalVc = $violation->violator?->violations->count() ?? 0; @endphp
                         <div style="font-size:.75rem;margin-top:2px;">
                             @if($totalVc >= 3)
                                 <span style="color:#b91c1c;font-weight:700;"><i class="bi bi-fire me-1"></i>Recidivist</span>
@@ -328,7 +332,7 @@
                         </div>
                     </div>
                 </div>
-                @if($violation->violator->contact_number || $violation->violator->address)
+                @if($violation->violator?->contact_number || $violation->violator?->address)
                 <div class="border-top pt-2" style="border-color:#ede8df!important;">
                     <ul class="mb-0 list-unstyled" style="font-size:.78rem;color:#57534e;line-height:1.9;">
                         @if($violation->violator->contact_number)
@@ -431,7 +435,7 @@
                 @if($violation->status === 'pending')
                 <button type="button" class="btn btn-success w-100 fw-600 d-inline-flex align-items-center justify-content-center gap-2"
                     data-id="{{ $violation->id }}"
-                    data-type="{{ $violation->violationType->name }}"
+                    data-type="{{ $violation->violationType?->name ?? '' }}"
                     data-date="{{ $violation->date_of_violation->format('M d, Y') }}"
                     onclick="openSettleModal(this)">
                     <i class="bi bi-receipt" style="font-size:.85rem;"></i> Settle Violation
