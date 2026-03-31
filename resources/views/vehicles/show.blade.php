@@ -269,7 +269,7 @@
                             <div>
                                 <a href="{{ route('violations.show', $v) }}"
                                    class="fw-600 text-decoration-none" style="color:#1c1917;font-size:.88rem;">
-                                    {{ $v->violationType->name }}
+                                    {{ $v->violationType?->name ?? '—' }}
                                 </a>
                                 <div style="font-size:.75rem;color:#a8a29e;margin-top:1px;">
                                     <i class="bi bi-calendar-check me-1"></i>
