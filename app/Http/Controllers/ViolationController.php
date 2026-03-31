@@ -102,6 +102,11 @@ class ViolationController extends Controller
             'notes'                   => ['nullable', 'string', 'max:1000'],
         ]);
 
+        // Normalise: empty string from the "None" select option must be null for the FK column
+        if (($data['vehicle_id'] ?? '') === '') {
+            $data['vehicle_id'] = null;
+        }
+
         // If a registered vehicle is selected, clear manual fields
         if (!empty($data['vehicle_id'])) {
             foreach (['vehicle_plate', 'vehicle_make', 'vehicle_model', 'vehicle_color', 'vehicle_or_number', 'vehicle_cr_number', 'vehicle_chassis'] as $f) {
@@ -247,6 +252,11 @@ class ViolationController extends Controller
             } else {
                 unset($data['receipt_photo']);
             }
+        }
+
+        // Normalise: empty string from the "None" select option must be null for the FK column
+        if (($data['vehicle_id'] ?? '') === '') {
+            $data['vehicle_id'] = null;
         }
 
         // If switching to a registered vehicle, clear all manual vehicle fields and delete all photos
