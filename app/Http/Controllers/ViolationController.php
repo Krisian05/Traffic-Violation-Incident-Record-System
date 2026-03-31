@@ -351,7 +351,12 @@ class ViolationController extends Controller
         $violatorId = $violation->violator_id;
         $violation->delete();
 
-        return redirect()->route('violators.show', $violatorId)
+        if ($violatorId && Violator::find($violatorId)) {
+            return redirect()->route('violators.show', $violatorId)
+                ->with('success', 'Violation record deleted.');
+        }
+
+        return redirect()->route('violations.index')
             ->with('success', 'Violation record deleted.');
     }
 }
