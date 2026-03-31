@@ -181,7 +181,7 @@
                     <td class="text-center">
                         <span class="vtype-pill">
                             <i class="bi bi-exclamation-octagon-fill me-1" style="font-size:.65rem;"></i>
-                            {{ $v->violationType->name }}
+                            {{ $v->violationType?->name ?? '—' }}
                         </span>
                     </td>
 
@@ -237,13 +237,13 @@
                             <a href="{{ route('violations.edit', $v) }}"
                                class="act-btn act-edit"
                                title="Edit Record"
-                               aria-label="Edit violation for {{ $v->violator->full_name }}">
+                               aria-label="Edit violation for {{ $v->violator?->full_name ?? 'motorist' }}">
                                 <i class="bi bi-pencil-fill" aria-hidden="true"></i>
                             </a>
                             @if($v->status === 'pending')
                             <button type="button" class="act-btn act-settle" title="Settle Violation"
                                 data-id="{{ $v->id }}"
-                                data-type="{{ $v->violationType->name }}"
+                                data-type="{{ $v->violationType?->name ?? '' }}"
                                 data-date="{{ $v->date_of_violation->format('M d, Y') }}"
                                 onclick="openSettleModal(this)">
                                 <i class="bi bi-receipt"></i>
