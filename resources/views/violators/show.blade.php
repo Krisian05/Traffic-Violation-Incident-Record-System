@@ -24,8 +24,13 @@
                        data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Edit Profile">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
+                    @php
+                        $deleteConfirmMsg = $vc > 0
+                            ? "This motorist has {$vc} violation record(s). Deleting will permanently remove the motorist AND all their violation records. This cannot be undone."
+                            : "Delete this motorist? This cannot be undone.";
+                    @endphp
                     <form method="POST" action="{{ route('violators.destroy', $violator) }}"
-                          data-confirm="Delete this motorist and ALL their records? This cannot be undone." class="d-inline">
+                          data-confirm="{{ $deleteConfirmMsg }}" class="d-inline">
                         @csrf @method('DELETE')
                         <button type="submit" class="vlt-banner-btn vlt-banner-btn--del"
                                 data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Delete Motorist">
