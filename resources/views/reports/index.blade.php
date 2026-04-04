@@ -1515,7 +1515,7 @@
     /* ── Letterhead ── */
     .print-header {
         display: flex !important; align-items: center; gap: 10pt;
-        border-bottom: 2pt solid #b91c1c;
+        border-bottom: 3pt double #b91c1c;
         padding-bottom: 6pt; margin-bottom: 4pt;
         page-break-inside: avoid;
     }
@@ -1527,7 +1527,7 @@
     .print-ph-pro7       { font-size: 9pt; font-weight: 600; color: #111; }
     .print-ph-cebu       { font-size: 10.5pt; font-weight: 800; color: #111; text-transform: uppercase; letter-spacing: .03em; }
     .print-ph-station    { font-size: 12.5pt; font-weight: 900; color: #111; text-transform: uppercase; letter-spacing: .03em; }
-    .print-ph-address    { font-size: 8pt; color: #555; margin-top: 1pt; }
+    .print-ph-address    { font-size: 8pt; color: #111; margin-top: 1pt; }
     .print-report-title-block {
         display: block !important; text-align: center;
         padding: 3pt 0 5pt; border-bottom: 1.5pt solid #b91c1c; margin-bottom: 10pt;
