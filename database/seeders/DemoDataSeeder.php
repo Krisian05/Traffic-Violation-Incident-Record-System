@@ -217,9 +217,11 @@ class DemoDataSeeder extends Seeder
 
         $vehicles = [];
         foreach ($vehiclesData as $vd) {
+            $violatorIdx = $vd['violator'];
+            unset($vd['violator']);
             $vehicles[] = Vehicle::firstOrCreate(
                 ['plate_number' => $vd['plate_number']],
-                ['violator_id' => $violators[$vd['violator']]->id] + $vd
+                ['violator_id' => $violators[$violatorIdx]->id] + $vd
             );
         }
 
