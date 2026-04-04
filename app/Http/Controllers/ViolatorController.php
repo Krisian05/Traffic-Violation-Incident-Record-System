@@ -160,6 +160,8 @@ class ViolatorController extends Controller
             'violations.violationType',
             'violations.vehicle',
             'violations.recorder',
+            'incidentMotorists.incident',
+            'incidentMotorists.chargeType',
         ]);
 
         $violationsByType = $violator->violations

@@ -527,6 +527,56 @@
         @endif
     </div>
 
+    {{-- ── INCIDENT INVOLVEMENT ── --}}
+    @php $incidents = $violator->incidentMotorists->filter(fn($m) => $m->incident)->sortByDesc(fn($m) => $m->incident->date_of_incident); @endphp
+    <div class="section">
+        <div class="section-title">
+            Incident Involvement
+            <span style="font-size:9px;font-weight:700;background:#fef3c7;color:#92400e;border:1px solid #fde68a;border-radius:9999px;padding:1px 7px;margin-left:6px;">
+                {{ $incidents->count() }}
+            </span>
+        </div>
+        @if($incidents->isEmpty())
+            <p style="font-size:9.5px;color:#a8a29e;font-style:italic;margin:0;">No incident involvement recorded.</p>
+        @else
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Incident No.</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Charge</th>
+                        <th class="center">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($incidents as $im)
+                    <tr>
+                        <td style="font-family:'Courier New',monospace;font-weight:600;color:#1d4ed8;">{{ $im->incident->incident_number }}</td>
+                        <td style="white-space:nowrap;">{{ $im->incident->date_of_incident->format('M d, Y') }}</td>
+                        <td>{{ $im->incident->location ?? '—' }}</td>
+                        <td>{{ $im->chargeType->name ?? '—' }}</td>
+                        <td class="center">
+                            @php
+                                $label = match($im->incident->status) {
+                                    'open'         => 'Open',
+                                    'under_review' => 'Under Review',
+                                    'closed'       => 'Closed',
+                                    default        => ucfirst($im->incident->status),
+                                };
+                            @endphp
+                            <span class="status-dot">
+                                <span class="dot {{ $im->incident->status === 'closed' ? 'dot-settled' : ($im->incident->status === 'open' ? 'dot-pending' : 'dot-contested') }}"></span>
+                                {{ $label }}
+                            </span>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+    </div>
+
     {{-- Signatures --}}
     <div style="display: flex; justify-content: space-between; margin-top: 60pt; margin-bottom: 20pt;">
         <div>
