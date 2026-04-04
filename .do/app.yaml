@@ -13,18 +13,6 @@ services:
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-1gb-fixed
 
-jobs:
-  - name: tvirs-predeploy
-    kind: PRE_DEPLOY
-    github:
-      repo: Krisian05/Traffic-Violation-Incident-Record-System
-      branch: main
-    dockerfile_path: Dockerfile
-    source_dir: /
-    run_command: sh digitalocean/init-app.sh
-    instance_count: 1
-    instance_size_slug: apps-s-1vcpu-1gb-fixed
-
 databases:
   - name: tvrs-db
     engine: PG
