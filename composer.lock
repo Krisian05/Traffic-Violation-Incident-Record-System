@@ -4,8 +4,50 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "38f6d42159a0eeb2677525b2879637fd",
+    "content-hash": "ac2525a632a824cb1965a8b9f145b455",
     "packages": [
+        {
+            "name": "appwrite/appwrite",
+            "version": "22.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/appwrite/sdk-for-php.git",
+                "reference": "38546dd7193c6cc3af26193fdb3da3f8677eaef5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/appwrite/sdk-for-php/zipball/38546dd7193c6cc3af26193fdb3da3f8677eaef5",
+                "reference": "38546dd7193c6cc3af26193fdb3da3f8677eaef5",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "php": ">=8.2.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "1.6.12",
+                "phpunit/phpunit": "^10"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Appwrite\\": "src/Appwrite"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "Appwrite is an open-source self-hosted backend server that abstracts and simplifies complex and repetitive development tasks behind a very simple REST API",
+            "support": {
+                "email": "team@appwrite.io",
+                "issues": "https://github.com/appwrite/sdk-for-php/issues",
+                "source": "https://github.com/appwrite/sdk-for-php/tree/22.0.0",
+                "url": "https://appwrite.io/support"
+            },
+            "time": "2026-04-03T16:21:08+00:00"
+        },
         {
             "name": "aws/aws-crt-php",
             "version": "v1.2.7",
