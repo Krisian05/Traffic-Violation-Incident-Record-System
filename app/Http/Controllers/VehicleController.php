@@ -18,14 +18,23 @@ class VehicleController extends Controller
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
+                $nameSearch = fn($vq) => $vq->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('middle_name', 'like', "%{$search}%");
+
                 $q->where('plate_number', 'like', "%{$search}%")
                   ->orWhere('make', 'like', "%{$search}%")
                   ->orWhere('model', 'like', "%{$search}%")
                   ->orWhere('color', 'like', "%{$search}%")
-                  ->orWhereHas('violator', fn($vq) =>
-                      $vq->where('first_name', 'like', "%{$search}%")
-                         ->orWhere('last_name', 'like', "%{$search}%")
-                         ->orWhere('middle_name', 'like', "%{$search}%")
+                  // owner
+                  ->orWhereHas('violator', $nameSearch)
+                  // anyone who received a violation while using this vehicle
+                  ->orWhereHas('violations.violator', $nameSearch)
+                  // anyone listed as a motorist in an incident involving this vehicle
+                  ->orWhereHas('incidentMotorists', fn($vq) => $vq
+                      ->where('motorist_name', 'like', "%{$search}%")
+                      ->orWhere('motorist_license', 'like', "%{$search}%")
+                      ->orWhereHas('violator', $nameSearch)
                   );
             });
         }
