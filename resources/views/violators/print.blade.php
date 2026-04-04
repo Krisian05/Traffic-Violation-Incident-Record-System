@@ -557,15 +557,27 @@
         @endif
     </div>
 
+    {{-- Signatures --}}
+    <div style="display: flex; justify-content: space-between; margin-top: 60pt; margin-bottom: 20pt;">
+        <div>
+            <div>Prepared by:</div>
+            <div style="font-size: 9pt; font-weight: 600; margin-top: 2pt; text-align: center; width: 130pt; margin-left: 50pt;">{{ Auth::user()->name ?? 'N/A' }}</div>
+            <div style="border-bottom: 1pt solid #000; width: 130pt; margin-top: 1pt; margin-left: 50pt;"></div>
+            <div style="font-size: 8pt; font-style: italic; margin-top: 2pt; text-align: center; width: 130pt; margin-left: 50pt;">Operation PNCO</div>
+        </div>
+        <div>
+            <div>Noted by:</div>
+            <div style="font-size: 9pt; font-weight: 600; margin-top: 2pt; text-align: center; width: 130pt; margin-left: 50pt;">PLTCOL RUEL L BURLAT</div>
+            <div style="border-bottom: 1pt solid #000; width: 130pt; margin-top: 1pt; margin-left: 50pt;"></div>
+            <div style="font-size: 8pt; font-style: italic; margin-top: 2pt; text-align: center; width: 130pt; margin-left: 50pt;">Chief of Police</div>
+        </div>
+    </div>
+
     {{-- ── DOCUMENT FOOTER ── --}}
     <div class="doc-footer">
         <div class="doc-footer-left">
             <div>Record ID: #{{ $violator->id }} &nbsp;|&nbsp; Generated: {{ now()->format('Y-m-d H:i:s') }}</div>
             <div style="margin-top:2px;">This document is confidential and for official use only.</div>
-        </div>
-        <div class="doc-footer-sig">
-            <div class="sig-line"></div>
-            <div class="sig-label">Authorized Signature &amp; Date</div>
         </div>
     </div>
 
