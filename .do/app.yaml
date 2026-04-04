@@ -4,7 +4,7 @@ region: sgp
 services:
   - name: tvirs
     github:
-      repo: Krisian05/Traffic-Violation-Record-System
+      repo: Krisian05/Traffic-Violation-Incident-Record-System
       branch: main
       deploy_on_push: true
     dockerfile_path: Dockerfile
@@ -17,13 +17,22 @@ jobs:
   - name: tvirs-predeploy
     kind: PRE_DEPLOY
     github:
-      repo: Krisian05/Traffic-Violation-Record-System
+      repo: Krisian05/Traffic-Violation-Incident-Record-System
       branch: main
     dockerfile_path: Dockerfile
     source_dir: /
     run_command: sh digitalocean/init-app.sh
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-1gb-fixed
+
+databases:
+  - name: tvrs-db
+    engine: PG
+    version: "16"
+    production: true
+    cluster_name: tvrs-db
+    db_name: tvrs
+    db_user: tvrs_user
 
 ingress:
   rules:
@@ -110,34 +119,34 @@ envs:
     scope: RUN_TIME
     type: GENERAL
 
-  # --- Supabase PostgreSQL ---
+  # --- DO Managed PostgreSQL (auto-injected from linked database) ---
   - key: DB_CONNECTION
     value: pgsql
     scope: RUN_TIME
     type: GENERAL
 
   - key: DB_HOST
-    value: aws-0-ap-south-1.pooler.supabase.com
+    value: ${tvrs-db.HOSTNAME}
     scope: RUN_TIME
     type: GENERAL
 
   - key: DB_PORT
-    value: "6543"
+    value: ${tvrs-db.PORT}
     scope: RUN_TIME
     type: GENERAL
 
   - key: DB_DATABASE
-    value: postgres
+    value: ${tvrs-db.DATABASE}
     scope: RUN_TIME
     type: GENERAL
 
   - key: DB_USERNAME
-    value: postgres.apyidmdoahtebjgctdho
+    value: ${tvrs-db.USERNAME}
     scope: RUN_TIME
     type: GENERAL
 
   - key: DB_PASSWORD
-    value: REPLACE_WITH_DB_PASSWORD
+    value: ${tvrs-db.PASSWORD}
     scope: RUN_TIME
     type: SECRET
 
@@ -211,19 +220,19 @@ envs:
     scope: RUN_TIME
     type: SECRET
 
-  # --- Supabase Storage (S3-compatible) ---
+  # --- DO Spaces (S3-compatible) ---
   - key: AWS_ACCESS_KEY_ID
-    value: REPLACE_WITH_SUPABASE_STORAGE_KEY_ID
+    value: REPLACE_WITH_SPACES_KEY_ID
     scope: RUN_AND_BUILD_TIME
     type: SECRET
 
   - key: AWS_SECRET_ACCESS_KEY
-    value: REPLACE_WITH_SUPABASE_STORAGE_SECRET_KEY
+    value: REPLACE_WITH_SPACES_SECRET_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
 
   - key: AWS_DEFAULT_REGION
-    value: auto
+    value: sgp1
     scope: RUN_AND_BUILD_TIME
     type: GENERAL
 
@@ -233,17 +242,17 @@ envs:
     type: GENERAL
 
   - key: AWS_ENDPOINT
-    value: https://apyidmdoahtebjgctdho.supabase.co/storage/v1/s3
+    value: https://sgp1.digitaloceanspaces.com
     scope: RUN_AND_BUILD_TIME
     type: GENERAL
 
   - key: AWS_URL
-    value: https://apyidmdoahtebjgctdho.supabase.co/storage/v1/object/public/tvrs-uploads
+    value: https://tvrs-uploads.sgp1.digitaloceanspaces.com
     scope: RUN_AND_BUILD_TIME
     type: GENERAL
 
   - key: AWS_USE_PATH_STYLE_ENDPOINT
-    value: "true"
+    value: "false"
     scope: RUN_AND_BUILD_TIME
     type: GENERAL
 
