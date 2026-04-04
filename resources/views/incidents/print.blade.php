@@ -79,16 +79,6 @@ tbody tr:nth-child(even) { background: #f9fafb; }
 <body>
 <div class="page">
 
-    {{-- Print button (hidden when printing) --}}
-    <div class="no-print" style="text-align:right;margin-bottom:14px;">
-        <button onclick="window.print()" style="padding:6px 18px;background:#1d4ed8;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">
-            &#128438; Print
-        </button>
-        <a href="{{ route('incidents.show', $incident) }}"
-           style="margin-left:8px;padding:6px 14px;border:1.5px solid #d1d5db;border-radius:6px;font-size:12px;color:#374151;text-decoration:none;">
-            &larr; Back
-        </a>
-    </div>
 
     {{-- Report Header --}}
     <div class="rpt-header">

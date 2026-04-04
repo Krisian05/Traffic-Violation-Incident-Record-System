@@ -285,12 +285,6 @@
     </div>
     <div class="doc-form-title">Motorist Record</div>
 
-    {{-- ── TOOLBAR (screen only) ── --}}
-    <div class="no-print-toolbar">
-        <button class="btn-print" onclick="window.print()">
-            &#128438; Print / Save PDF
-        </button>
-    </div>
 
     {{-- ── PROFILE ROW ── --}}
     <div class="profile-row">

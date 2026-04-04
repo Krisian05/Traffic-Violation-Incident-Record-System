@@ -227,11 +227,6 @@
     </div>
     <div class="doc-form-title">Violation Record</div>
 
-    {{-- Print Toolbar (screen only) --}}
-    <div class="no-print-toolbar">
-        <a class="btn-back" href="{{ url()->previous() }}" onclick="if(document.referrer)return true;history.back();return false;">&#8592; Back</a>
-        <button class="btn-print" onclick="window.print()">&#128438; Print / Save PDF</button>
-    </div>
 
     {{-- Violation Header Strip --}}
     <div class="viol-header-strip">
