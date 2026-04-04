@@ -257,7 +257,10 @@ class DashboardController extends Controller
                 $values[] = (int) ($rawData[$day->toDateString()] ?? 0);
             }
         } elseif ($period === 'monthly') {
-            $rawData = Violation::selectRaw('DAY(date_of_violation) as d, COUNT(*) as cnt')
+            $dayExpr = \DB::getDriverName() === 'pgsql'
+                ? 'EXTRACT(DAY FROM date_of_violation)::int as d'
+                : 'DAY(date_of_violation) as d';
+            $rawData = Violation::selectRaw("$dayExpr, COUNT(*) as cnt")
                 ->whereBetween('date_of_violation', [$startDate, $endDate])
                 ->groupBy('d')
                 ->pluck('cnt', 'd')
@@ -269,7 +272,10 @@ class DashboardController extends Controller
                 $values[] = (int) ($rawData[$i] ?? 0);
             }
         } else { // yearly
-            $rawData = Violation::selectRaw('MONTH(date_of_violation) as m, COUNT(*) as cnt')
+            $monthExpr = \DB::getDriverName() === 'pgsql'
+                ? 'EXTRACT(MONTH FROM date_of_violation)::int as m'
+                : 'MONTH(date_of_violation) as m';
+            $rawData = Violation::selectRaw("$monthExpr, COUNT(*) as cnt")
                 ->whereYear('date_of_violation', now()->year)
                 ->groupBy('m')
                 ->pluck('cnt', 'm')
