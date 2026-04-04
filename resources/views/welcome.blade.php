@@ -354,8 +354,8 @@
         </div>
 
         <h1 class="hero-title">
-            Traffic Monitoring &amp;<br>
-            <span>Records Unit</span>
+            Traffic Violation Incident<br>
+            <span>Record System</span>
         </h1>
 
         <p class="hero-subtitle">
