@@ -42,7 +42,7 @@ class ReportController extends Controller
         $showAll    = ($month == 0);
 
         $repeatOffenders = Violator::withCount('violations')
-            ->having('violations_count', '>', 1)
+            ->has('violations', '>', 1)
             ->orderByDesc('violations_count')
             ->get();
 

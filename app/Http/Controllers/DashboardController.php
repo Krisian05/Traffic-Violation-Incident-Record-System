@@ -367,7 +367,7 @@ class DashboardController extends Controller
             ->get();
 
         $repeatOffenders = Violator::withCount('violations')
-            ->having('violations_count', '>=', 2)
+            ->has('violations', '>=', 2)
             ->orderByDesc('violations_count')
             ->limit(8)
             ->get();
