@@ -196,6 +196,10 @@ class DemoDataSeeder extends Seeder
             ],
         ];
 
+        $admin    = User::where('username', 'admin')->first();
+        $officer1 = User::where('username', 'officer1')->first();
+        $officer2 = User::where('username', 'officer2')->first();
+
         $violators = [];
         foreach ($violatorsData as $data) {
             $violators[] = Violator::firstOrCreate(
@@ -264,7 +268,7 @@ class DemoDataSeeder extends Seeder
                     'ticket_number'     => $vd['ticket'],
                     'status'            => $vd['status'],
                     'notes'             => $vd['notes'],
-                    'recorded_by'       => 'officer1',
+                    'recorded_by'       => $officer1->id,
                     'settled_at'        => $vd['settled_at'] ?? null,
                     'or_number'         => $vd['or_number'] ?? null,
                     'cashier_name'      => $vd['cashier_name'] ?? null,
@@ -375,7 +379,7 @@ class DemoDataSeeder extends Seeder
                 'location'          => $inc['location'],
                 'description'       => $inc['description'],
                 'status'            => $inc['status'],
-                'recorded_by'       => 'admin',
+                'recorded_by'       => $admin->id,
             ]);
 
             foreach ($inc['motorists'] as $m) {
