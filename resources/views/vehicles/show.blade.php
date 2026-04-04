@@ -385,7 +385,7 @@
                         @if(!empty($user['photo']))
                             <img src="{{ uploaded_file_url($user['photo']) }}" alt="{{ $user['name'] }}">
                         @else
-                            {{ strtoupper(substr($user['name'], 0, 1)) }}
+                            {{ strtoupper(substr($user['name'] ?: 'U', 0, 1)) }}
                         @endif
                     </div>
 
@@ -395,10 +395,10 @@
                                 @if($user['violator'])
                                 <a href="{{ route('violators.show', $user['violator']) }}"
                                    class="fw-700 text-decoration-none" style="color:#1c1917;font-size:.9rem;">
-                                    {{ $user['name'] }}
+                                    {{ $user['name'] ?: 'Unknown motorist' }}
                                 </a>
                                 @else
-                                <div class="fw-700" style="color:#1c1917;font-size:.9rem;">{{ $user['name'] }}</div>
+                                <div class="fw-700" style="color:#1c1917;font-size:.9rem;">{{ $user['name'] ?: 'Unknown motorist' }}</div>
                                 @endif
 
                                 @if($user['license_number'])

@@ -56,7 +56,7 @@ class VehicleController extends Controller
         $rememberUser = function (string $key, array $payload) use (&$vehicleUsers): void {
             $base = [
                 'key' => $key,
-                'name' => 'Unknown motorist',
+                'name' => '',
                 'license_number' => null,
                 'contact_number' => null,
                 'address' => null,

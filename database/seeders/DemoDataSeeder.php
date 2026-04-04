@@ -253,6 +253,12 @@ class DemoDataSeeder extends Seeder
             ['violator' => 3, 'vehicle' => null, 'type' => 'No Vehicle Registration', 'date' => now()->subHours(6), 'location' => 'Taft Ave., Manila', 'ticket' => 'TKT-2026-0013', 'status' => 'pending', 'notes' => 'No valid OR/CR presented.'],
             ['violator' => 5, 'vehicle' => null, 'type' => 'Illegal Parking',  'date' => now()->subHours(3),  'location' => 'Shaw Blvd., Mandaluyong',   'ticket' => 'TKT-2026-0014', 'status' => 'pending', 'notes' => 'Double parked blocking traffic.'],
             ['violator' => 1, 'vehicle' => 2,    'type' => 'Beating Red Light', 'date' => now()->subHours(2), 'location' => 'Katipunan Ave., QC',         'ticket' => 'TKT-2026-0015', 'status' => 'pending', 'notes' => 'Caught on CCTV running red light.'],
+
+            // Non-owner driving another person's vehicle
+            // Kristine (violator 3) driving Ricardo's Toyota Vios (vehicle 0 — owned by violator 0)
+            ['violator' => 3, 'vehicle' => 0,    'type' => 'Speeding',          'date' => now()->subDays(12), 'location' => 'Quezon Ave., Quezon City',    'ticket' => 'TKT-2026-0016', 'status' => 'settled',  'notes' => 'Borrowed vehicle. Driver is not the registered owner.', 'settled_at' => now()->subDays(10), 'or_number' => 'OR2026-0006', 'cashier_name' => 'Juan dela Cruz'],
+            // Josephine (violator 5) driving Emmanuel\'s Toyota Hiace (vehicle 4 — owned by violator 4)
+            ['violator' => 5, 'vehicle' => 4,    'type' => 'Loading / Unloading Violation', 'date' => now()->subDays(9), 'location' => 'Ayala Ave., Makati City', 'ticket' => 'TKT-2026-0017', 'status' => 'pending',  'notes' => 'Loading passengers at a prohibited zone. Driver is not the registered owner.'],
         ];
 
         foreach ($violationsData as $vd) {
