@@ -148,16 +148,6 @@ tbody tr:nth-child(even) { background: #f9fafb; }
         </div>
     </div>
 
-    @php
-        $licenseDistribution = $incident->motorists->groupBy(fn($m) => $m->license_type ?: 'Unknown')->map->count();
-    @endphp
-
-    <div class="section">
-        <div class="section-title">Motorist License Type Distribution</div>
-        <div style="padding: 10px; background: #fff; border: 1px solid #e5e7eb; border-radius: 5px;">
-            <canvas id="chartIncidentMotorists"></canvas>
-        </div>
-    </div>
 
     {{-- Involved Motorists --}}
     <div class="section">
@@ -252,35 +242,5 @@ tbody tr:nth-child(even) { background: #f9fafb; }
 
 </div>
 
-<script id="incident-chart-data" type="application/json">{!! json_encode(['licenseDistribution' => $licenseDistribution]) !!}</script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script>
-    (function() {
-        var ctx = document.getElementById('chartIncidentMotorists');
-        if (!ctx) return;
-
-        var dataBlock = document.getElementById('incident-chart-data');
-        var data = {};
-        if (dataBlock) {
-            try { data = JSON.parse(dataBlock.textContent || '{}').licenseDistribution || {}; } catch(e) { data = {}; }
-        }
-
-        new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: Object.keys(data),
-                datasets: [{
-                    data: Object.values(data),
-                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#a855f7'],
-                }]
-            },
-            options: {
-                plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } },
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
-    })();
-</script>
 </body>
 </html>

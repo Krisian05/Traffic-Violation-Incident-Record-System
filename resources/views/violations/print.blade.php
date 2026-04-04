@@ -229,16 +229,6 @@
         </div>
     </div>
 
-    @php
-        $violatorStatusDist = $violation->violator->violations->groupBy('status')->map->count();
-    @endphp
-
-    <div class="section">
-        <div class="section-title">Violator History: Status Distribution</div>
-        <div style="padding: 10px; background: #fff; border: 1px solid #e5e7eb; border-radius: 5px; margin-bottom: 12px;">
-            <canvas id="chartViolatorHistoryStatus"></canvas>
-        </div>
-    </div>
 
     <div class="two-col">
         {{-- LEFT COLUMN --}}
@@ -470,39 +460,7 @@
 
 </div>
 
-<script id="violator-chart-data" type="application/json">{!! json_encode(['statusDistribution' => $violatorStatusDist]) !!}</script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-(function(){
-    const ctx = document.getElementById('chartViolatorHistoryStatus');
-    if (ctx) {
-        var dataBlock = document.getElementById('violator-chart-data');
-        var data = {};
-        if (dataBlock) {
-            try { data = JSON.parse(dataBlock.textContent || '{}').statusDistribution || {}; } catch(e) { data = {}; }
-        }
-
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(data),
-                datasets: [{
-                    data: Object.values(data),
-                    backgroundColor: ['#f59e0b', '#22c55e', '#3b82f6', '#f43f5e'],
-                    borderColor: '#fff',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                plugins: {
-                    legend: { position: 'bottom' }
-                },
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
-    }
-})();
 
 window.addEventListener('load', function () {
     setTimeout(function () { window.print(); }, 600);
