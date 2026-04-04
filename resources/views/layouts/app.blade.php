@@ -770,7 +770,6 @@
         <img src="{{ asset('images/PNP.png') }}" alt="PNP Logo" class="sidebar-logo">
         <div>
             <h6>Traffic Violation Incident Record System</h6>
-            <span>Traffic Monitoring &amp; Records Unit</span>
         </div>
     </div>
 

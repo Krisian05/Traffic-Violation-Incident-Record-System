@@ -324,7 +324,6 @@
                  style="width:60px;height:60px;object-fit:contain;flex-shrink:0;margin:-8px 0;">
             <div class="nav-brand-text">
                 Traffic Violation Incident Record System
-                <span>Traffic Monitoring &amp; Records Unit</span>
             </div>
         </a>
         <div class="nav-actions">
@@ -428,7 +427,7 @@
 
     {{-- FOOTER --}}
     <footer class="site-footer">
-        &copy; {{ date('Y') }} Traffic Monitoring &amp; Records Unit — Traffic Violation Incident Record System. All rights reserved.
+        &copy; {{ date('Y') }} Traffic Violation Incident Record System. All rights reserved.
     </footer>
 
 </div>
@@ -445,7 +444,6 @@
                     <img src="{{ asset('images/Balamban.png') }}" alt="PNP Logo"
                          style="width:80px;height:80px;object-fit:contain;margin-bottom:.5rem;">
                     <h5 class="fw-bold mb-0" style="color:#1e293b;">Traffic Violation Incident Record System</h5>
-                    <p class="text-muted mb-0" style="font-size:.8rem;">Traffic Monitoring &amp; Records Unit</p>
                 </div>
                 <button type="button" class="btn-close position-absolute top-0 end-0 m-3"
                         data-bs-dismiss="modal" aria-label="Close"></button>
