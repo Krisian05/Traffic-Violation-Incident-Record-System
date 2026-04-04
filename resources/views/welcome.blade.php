@@ -92,7 +92,25 @@
         .nav-brand-text { font-weight: 700; font-size: .95rem; line-height: 1.2; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.6); }
         .nav-brand-text span { display: block; color: #bfdbfe; font-size: .72rem; font-weight: 500; }
 
-        .nav-actions { display: flex; gap: .75rem; }
+        .nav-actions { display: flex; gap: .75rem; align-items: center; }
+
+        .btn-nav-about {
+            padding: .4rem 1.1rem;
+            border: 1px solid rgba(255,255,255,0.30);
+            border-radius: .375rem;
+            color: rgba(255,255,255,0.85);
+            background: transparent;
+            font-size: .85rem;
+            font-weight: 500;
+            transition: all .2s;
+            cursor: pointer;
+        }
+
+        .btn-nav-about:hover {
+            background: rgba(255,255,255,0.10);
+            border-color: rgba(255,255,255,0.55);
+            color: #fff;
+        }
 
         .btn-nav-login {
             padding: .4rem 1.1rem;
@@ -327,6 +345,9 @@
             </div>
         </a>
         <div class="nav-actions">
+            <button class="btn-nav-about" data-bs-toggle="modal" data-bs-target="#aboutModal">
+                <i class="bi bi-info-circle me-1"></i> About
+            </button>
             @auth
                 <a href="{{ url('/dashboard') }}" class="btn-nav-dashboard">
                     <i class="bi bi-speedometer2 me-1"></i> Go to Dashboard
@@ -430,6 +451,97 @@
         &copy; {{ date('Y') }} Traffic Violation Incident Record System. All rights reserved.
     </footer>
 
+</div>
+
+{{-- ABOUT MODAL --}}
+<div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow" style="overflow:hidden;">
+            <div class="modal-header border-0 pb-0" style="background:#0a1628;">
+                <div class="w-100 text-center pt-3">
+                    <div class="d-flex align-items-center justify-content-center gap-3 mb-2">
+                        <img src="{{ asset('images/PNP.png') }}" alt="PNP" style="width:54px;height:54px;object-fit:contain;">
+                        <img src="{{ asset('images/Balamban.png') }}" alt="Balamban" style="width:54px;height:54px;object-fit:contain;">
+                    </div>
+                    <h5 class="fw-bold mb-0" style="color:#fff;font-size:1rem;">Traffic Violation Incident Record System</h5>
+                    <div style="font-size:.75rem;color:#93c5fd;margin-top:.2rem;">Balamban Municipal Police Station</div>
+                </div>
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" style="background:#fff;">
+
+                {{-- About the System --}}
+                <div class="px-4 pt-4 pb-3">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span style="width:28px;height:28px;border-radius:8px;background:#eff6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="bi bi-info-circle-fill" style="color:#1d4ed8;font-size:.85rem;"></i>
+                        </span>
+                        <h6 class="mb-0 fw-700" style="color:#1c1917;font-size:.9rem;">About the System</h6>
+                    </div>
+                    <p style="font-size:.85rem;color:#44403c;line-height:1.7;margin:0;">
+                        The <strong>Traffic Violation Incident Record System (TVIRS)</strong> is a secure, web-based records management
+                        platform developed for the <strong>Balamban Municipal Police Station</strong>, Cebu Police Provincial Office,
+                        Philippine National Police — Police Regional Office 7.
+                    </p>
+                    <p style="font-size:.85rem;color:#44403c;line-height:1.7;margin:.75rem 0 0;">
+                        The system enables authorized police personnel to digitally record, manage, and track traffic violations
+                        and road incidents — including violator profiling, vehicle records, incident documentation, and enforcement reports.
+                        It replaces manual logbooks with a centralized, searchable, and auditable digital system.
+                    </p>
+
+                    <div class="row g-2 mt-3">
+                        @foreach([
+                            ['bi-person-lines-fill','#3b82f6','Violator Profiling'],
+                            ['bi-exclamation-triangle-fill','#ef4444','Violation Tracking'],
+                            ['bi-flag-fill','#f59e0b','Incident Records'],
+                            ['bi-car-front-fill','#eab308','Vehicle Records'],
+                            ['bi-bar-chart-fill','#10b981','Reports & Analytics'],
+                            ['bi-shield-lock-fill','#8b5cf6','Role-Based Access'],
+                        ] as [$icon,$color,$label])
+                        <div class="col-6 col-md-4">
+                            <div style="display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:#57534e;background:#fafaf9;border:1px solid #e7e5e4;border-radius:8px;padding:.4rem .6rem;">
+                                <i class="bi {{ $icon }}" style="color:{{ $color }};font-size:.8rem;flex-shrink:0;"></i>
+                                {{ $label }}
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <hr class="mx-4 my-0" style="border-color:#f0ece8;">
+
+                {{-- About the Developer --}}
+                <div class="px-4 pt-3 pb-4">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span style="width:28px;height:28px;border-radius:8px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="bi bi-code-slash" style="color:#15803d;font-size:.85rem;"></i>
+                        </span>
+                        <h6 class="mb-0 fw-700" style="color:#1c1917;font-size:.9rem;">About the Developer</h6>
+                    </div>
+                    <div class="d-flex align-items-start gap-3">
+                        <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#0284c7,#0369a1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.3rem;color:#fff;font-weight:800;">
+                            K
+                        </div>
+                        <div>
+                            <div style="font-weight:700;color:#1c1917;font-size:.92rem;">Kristian</div>
+                            <div style="font-size:.78rem;color:#78716c;margin-top:1px;">System Developer</div>
+                            <p style="font-size:.8rem;color:#57534e;line-height:1.65;margin:.5rem 0 0;">
+                                Developed as part of a project for the Balamban Municipal Police Station to
+                                modernize and digitize traffic enforcement record-keeping.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background:#fafaf9;border-top:1px solid #f0ece8;padding:.75rem 1.5rem;text-align:center;">
+                    <span style="font-size:.73rem;color:#a8a29e;">
+                        <i class="bi bi-c-circle me-1"></i>{{ date('Y') }} Traffic Violation Incident Record System &mdash; For official use only.
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 {{-- LOGIN MODAL --}}
