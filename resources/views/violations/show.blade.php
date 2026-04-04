@@ -429,7 +429,7 @@
                 {{-- Print — visible to all roles --}}
                 <a href="{{ route('violations.print', $violation) }}" target="_blank"
                    class="btn btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2 fw-600">
-                    <i class="bi bi-printer-fill" style="font-size:.85rem;"></i> Print / Save PDF
+                    <i class="bi bi-printer-fill" style="font-size:.85rem;"></i> Print
                 </a>
                 @if(Auth::user()->isOperator())
                 @if($violation->status === 'pending')
