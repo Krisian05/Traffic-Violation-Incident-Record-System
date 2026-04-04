@@ -374,26 +374,13 @@
                     <i class="bi bi-people-fill" style="font-size:.85rem;color:#0284c7;"></i>
                 </span>
                 <span class="fw-600" style="font-size:.925rem;color:#292524;">People Using This Vehicle</span>
-                <span class="ms-auto badge" id="veh-users-count" style="background:#e0f2fe;color:#0369a1;font-size:.75rem;">
+                <span class="ms-auto badge" style="background:#e0f2fe;color:#0369a1;font-size:.75rem;">
                     {{ $vehicleUsers->count() }} {{ Str::plural('person', $vehicleUsers->count()) }}
                 </span>
             </div>
-            @if($vehicleUsers->count() > 1)
-            <div class="px-3 pt-3 pb-0">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text border-end-0" style="background:#f5f5f4;border-color:#e7e5e4;">
-                        <i class="bi bi-search" style="color:#a8a29e;font-size:.8rem;"></i>
-                    </span>
-                    <input type="text" id="veh-users-search" class="form-control border-start-0"
-                           placeholder="Search by name, license, contact…"
-                           style="background:#f5f5f4;border-color:#e7e5e4;font-size:.85rem;"
-                           autocomplete="off">
-                </div>
-            </div>
-            @endif
             <div class="card-body p-3">
                 @forelse($vehicleUsers as $user)
-                <div class="veh-user-card {{ !$loop->last ? 'mb-3' : '' }}" data-user-search="{{ strtolower(implode(' ', array_filter([$user['name'], $user['license_number'], $user['contact_number'], $user['address']]))) }}">
+                <div class="veh-user-card {{ !$loop->last ? 'mb-3' : '' }}">
                     <div class="veh-user-avatar">
                         @if(!empty($user['photo']))
                             <img src="{{ uploaded_file_url($user['photo']) }}" alt="{{ $user['name'] }}">
@@ -478,11 +465,6 @@
                     <p class="mb-0" style="font-size:.8rem;color:#a8a29e;">People will appear here once this vehicle is used in violations or incidents.</p>
                 </div>
                 @endforelse
-                <div id="veh-users-no-results" class="text-center py-4" style="display:none;">
-                    <i class="bi bi-person-x" style="font-size:1.6rem;color:#d1cdc7;"></i>
-                    <p class="fw-600 mb-0 mt-2" style="color:#57534e;font-size:.9rem;">No results found</p>
-                    <p class="mb-0" style="font-size:.8rem;color:#a8a29e;">Try a different name, license, or contact number.</p>
-                </div>
             </div>
         </div>
 
@@ -633,31 +615,5 @@ document.addEventListener('keydown', function (e) {
     if (e.key === 'ArrowLeft')  _lbShow(_lbIdx - 1);
 });
 
-// People Using This Vehicle — live search
-(function () {
-    const input = document.getElementById('veh-users-search');
-    if (!input) return;
-    const cards = Array.from(document.querySelectorAll('.veh-user-card'));
-    const noResults = document.getElementById('veh-users-no-results');
-    const countBadge = document.getElementById('veh-users-count');
-    const total = cards.length;
-
-    input.addEventListener('input', function () {
-        const q = this.value.trim().toLowerCase();
-        let visible = 0;
-
-        cards.forEach(function (card) {
-            const haystack = (card.dataset.userSearch || '');
-            const match = !q || haystack.includes(q);
-            card.style.display = match ? '' : 'none';
-            if (match) visible++;
-        });
-
-        noResults.style.display = visible === 0 ? '' : 'none';
-        countBadge.textContent = q
-            ? visible + ' of ' + total + (total === 1 ? ' person' : ' people')
-            : total + (total === 1 ? ' person' : ' people');
-    });
-})();
 </script>
 @endpush
