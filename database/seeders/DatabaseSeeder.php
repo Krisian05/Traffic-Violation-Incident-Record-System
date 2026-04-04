@@ -112,5 +112,7 @@ class DatabaseSeeder extends Seeder
                 $charge
             );
         }
+
+        $this->call(DemoDataSeeder::class);
     }
 }
