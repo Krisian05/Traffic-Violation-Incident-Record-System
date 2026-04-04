@@ -17,30 +17,6 @@
             padding: 20px;
         }
 
-        /* ─── PRINT TOOLBAR (screen only) ─── */
-        .no-print-toolbar {
-            display: flex; align-items: center; justify-content: flex-end; gap: 10px;
-            padding: 10px 0 14px;
-            border-bottom: 1px solid #e7e5e4;
-            margin-bottom: 16px;
-        }
-        .btn-print {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 8px 20px; border-radius: 8px;
-            background: #dc2626; color: #fff; border: none;
-            font-size: 13px; font-weight: 700; cursor: pointer;
-            box-shadow: 0 2px 8px rgba(220,38,38,.3);
-        }
-        .btn-print:hover { background: #b91c1c; }
-        .btn-back {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 8px 16px; border-radius: 8px;
-            background: #fff; color: #57534e;
-            border: 1.5px solid #d6d3d1;
-            font-size: 13px; font-weight: 600;
-            text-decoration: none; cursor: pointer;
-        }
-        .btn-back:hover { border-color: #a8a29e; color: #1c1917; }
 
         @page { size: A4 portrait; margin: 8mm 14mm 14mm; }
 
