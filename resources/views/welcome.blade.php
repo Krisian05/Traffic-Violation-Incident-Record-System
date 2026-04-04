@@ -371,7 +371,7 @@
 
         <div class="hero-tag">
             <i class="bi bi-shield-lock-fill"></i>
-            Official Police Records System
+            Balamban Municipal Police Station — Official Records System
         </div>
 
         <h1 class="hero-title">
@@ -380,8 +380,9 @@
         </h1>
 
         <p class="hero-subtitle">
-            A secure digital profiling system for recording and tracking traffic violations,
-            monitoring repeat offenders, and generating monthly enforcement reports.
+            A centralized digital platform for recording and managing traffic violations,
+            road incidents, and motorist profiles — empowering the Balamban Municipal Police Station
+            with accurate, searchable, and auditable enforcement records.
         </p>
 
         <div class="divider"></div>
@@ -410,37 +411,43 @@
                 <div class="feature-icon" style="background:rgba(59,130,246,0.15);">
                     <i class="bi bi-person-lines-fill" style="color:#60a5fa;"></i>
                 </div>
-                <h6>Violator Profiling</h6>
-                <p>Record complete personal information and track each individual's violation history.</p>
+                <h6>Motorist Profiling</h6>
+                <p>Maintain complete motorist records — personal details, license information, and full violation and incident history in one profile.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(239,68,68,0.15);">
                     <i class="bi bi-exclamation-triangle-fill" style="color:#f87171;"></i>
                 </div>
-                <h6>Violation Tracking</h6>
-                <p>Record and monitor traffic violations with status updates — pending, settled, or contested.</p>
+                <h6>Violation Management</h6>
+                <p>Record and track traffic citations with real-time status monitoring — pending, settled, contested, or overdue.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(251,146,60,0.15);">
+                    <i class="bi bi-flag-fill" style="color:#fb923c;"></i>
+                </div>
+                <h6>Incident Recording</h6>
+                <p>Document road incidents with involved motorists, vehicles, charges, and photo evidence — from open to closed.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(234,179,8,0.15);">
                     <i class="bi bi-car-front-fill" style="color:#fbbf24;"></i>
                 </div>
                 <h6>Vehicle Records</h6>
-                <p>Link MV/MC details to violator profiles and search by plate number instantly.</p>
+                <p>Register motor vehicles and motorcycles, link them to their owners, and track involvement across violations and incidents.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(16,185,129,0.15);">
                     <i class="bi bi-bar-chart-fill" style="color:#34d399;"></i>
                 </div>
                 <h6>Reports &amp; Analytics</h6>
-                <p>Generate monthly reports, identify repeat offenders, and view violation statistics.</p>
+                <p>Generate enforcement summaries, identify repeat offenders, and view statistics by violation type, period, and status.</p>
             </div>
         </div>
 
         @guest
         <div class="mt-4" style="font-size:.82rem; color:#bfdbfe; text-shadow:0 1px 5px rgba(0,0,0,.7); font-weight:500;">
             <i class="bi bi-lock-fill me-1"></i>
-            Access is restricted to authorized police personnel only.
-            Contact your administrator to request an account.
+            Restricted to authorized Balamban MPS personnel only. Contact your administrator to request access.
         </div>
         @endguest
 
