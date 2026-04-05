@@ -461,95 +461,268 @@
 </div>
 
 {{-- ABOUT MODAL --}}
-<div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 rounded-4 shadow" style="overflow:hidden;">
-            <div class="modal-header border-0 pb-0" style="background:#0a1628;">
-                <div class="w-100 text-center pt-3">
-                    <div class="d-flex align-items-center justify-content-center gap-3 mb-2">
-                        <img src="{{ asset('images/PNP.png') }}" alt="PNP" style="width:54px;height:54px;object-fit:contain;">
-                        <img src="{{ asset('images/Balamban.png') }}" alt="Balamban" style="width:54px;height:54px;object-fit:contain;">
-                    </div>
-                    <h5 class="fw-bold mb-0" style="color:#fff;font-size:1rem;">Traffic Violation Incident Record System</h5>
-                    <div style="font-size:.75rem;color:#93c5fd;margin-top:.2rem;">Balamban Municipal Police Station</div>
-                </div>
+<style>
+.about-modal .modal-content { border:0;border-radius:20px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.35); }
+
+/* Hero banner */
+.about-hero {
+    background: linear-gradient(135deg, #05122e 0%, #0c2461 60%, #1a3a8f 100%);
+    padding: 2.5rem 2rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.about-hero::before {
+    content:'';
+    position:absolute;inset:0;
+    background: radial-gradient(ellipse at 50% -20%, rgba(96,165,250,.25) 0%, transparent 70%);
+    pointer-events:none;
+}
+.about-hero-logos {
+    display:flex;align-items:center;justify-content:center;gap:1.25rem;
+    margin-bottom:1rem;
+}
+.about-hero-logos img { width:60px;height:60px;object-fit:contain;filter:drop-shadow(0 2px 12px rgba(0,0,0,.4)); }
+.about-hero-divider {
+    width:1px;height:50px;
+    background:linear-gradient(to bottom,transparent,rgba(255,255,255,.35),transparent);
+}
+.about-hero-title {
+    font-size:1.05rem;font-weight:800;color:#fff;
+    letter-spacing:.02em;line-height:1.3;margin-bottom:.3rem;
+}
+.about-hero-sub {
+    font-size:.72rem;font-weight:500;
+    color:#93c5fd;letter-spacing:.08em;text-transform:uppercase;
+}
+.about-hero-version {
+    display:inline-flex;align-items:center;gap:.35rem;
+    margin-top:.8rem;padding:.22rem .75rem;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+    border-radius:9999px;font-size:.68rem;color:#bfdbfe;
+}
+
+/* Body */
+.about-body { background:#fff; }
+
+/* Tabs */
+.about-tabs {
+    display:flex;
+    border-bottom:1.5px solid #f1ede8;
+    background:#fafaf9;
+}
+.about-tab {
+    flex:1;padding:.7rem 1rem;
+    font-size:.78rem;font-weight:600;color:#78716c;
+    border:0;background:transparent;cursor:pointer;
+    border-bottom:2.5px solid transparent;margin-bottom:-1.5px;
+    transition:all .18s;display:flex;align-items:center;justify-content:center;gap:.4rem;
+}
+.about-tab:hover { color:#1c1917; }
+.about-tab.active { color:#1d4ed8;border-bottom-color:#1d4ed8;background:#fff; }
+
+/* Tab panels */
+.about-panel { display:none;padding:1.75rem 1.75rem 1.5rem; }
+.about-panel.active { display:block; }
+
+/* System panel */
+.about-intro {
+    font-size:.84rem;color:#44403c;line-height:1.8;
+    padding:.9rem 1rem;
+    background:linear-gradient(135deg,#f8faff,#eff6ff);
+    border:1px solid #dbeafe;border-radius:12px;
+    margin-bottom:1.25rem;
+}
+.about-features-grid {
+    display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;
+}
+@media(max-width:576px){ .about-features-grid { grid-template-columns:repeat(2,1fr); } }
+.about-feature-chip {
+    display:flex;align-items:center;gap:.5rem;
+    padding:.55rem .75rem;
+    background:#fafaf9;border:1px solid #e7e5e4;border-radius:10px;
+    font-size:.75rem;font-weight:600;color:#44403c;
+    transition:border-color .15s,background .15s;
+}
+.about-feature-chip:hover { background:#f5f5f4;border-color:#d6d3d1; }
+.about-feature-chip i { font-size:.8rem;flex-shrink:0; }
+
+/* Info row */
+.about-info-row {
+    display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-top:1rem;
+}
+@media(max-width:576px){ .about-info-row { grid-template-columns:1fr 1fr; } }
+.about-info-cell {
+    padding:.65rem .8rem;border-radius:10px;
+    background:#f8fafc;border:1px solid #e2e8f0;text-align:center;
+}
+.about-info-cell-label { font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;font-weight:600;margin-bottom:.2rem; }
+.about-info-cell-value { font-size:.78rem;font-weight:700;color:#1e293b; }
+
+/* Developer panel */
+.dev-card {
+    display:flex;align-items:flex-start;gap:1.1rem;
+    padding:1.1rem 1.25rem;
+    background:linear-gradient(135deg,#f8faff,#eff6ff);
+    border:1px solid #dbeafe;border-radius:14px;
+    margin-bottom:1rem;
+}
+.dev-avatar {
+    width:58px;height:58px;flex-shrink:0;border-radius:14px;
+    background:linear-gradient(135deg,#1e4fb5,#2563eb);
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.5rem;font-weight:900;color:#fff;
+    box-shadow:0 4px 16px rgba(37,99,235,.35);
+    letter-spacing:-.02em;
+}
+.dev-name { font-size:1rem;font-weight:800;color:#1e293b;line-height:1.2; }
+.dev-role { font-size:.72rem;font-weight:600;color:#3b82f6;text-transform:uppercase;letter-spacing:.07em;margin-top:.15rem; }
+.dev-desc { font-size:.8rem;color:#57534e;line-height:1.7;margin-top:.55rem; }
+.dev-stack {
+    display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.85rem;
+}
+.dev-tag {
+    font-size:.68rem;font-weight:600;padding:.2rem .55rem;border-radius:6px;
+    background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;
+}
+
+/* Footer strip */
+.about-footer-strip {
+    background:#f8fafc;border-top:1px solid #f1f5f9;
+    padding:.65rem 1.75rem;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;
+}
+.about-footer-strip span { font-size:.7rem;color:#94a3b8; }
+.about-footer-badge {
+    display:inline-flex;align-items:center;gap:.3rem;
+    font-size:.68rem;font-weight:600;padding:.18rem .55rem;
+    background:#fef9c3;color:#854d0e;border:1px solid #fde68a;border-radius:6px;
+}
+</style>
+
+<div class="modal fade about-modal" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+
+            {{-- Hero Banner --}}
+            <div class="about-hero">
                 <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
                         data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="about-hero-logos">
+                    <img src="{{ asset('images/PNP.png') }}" alt="PNP Logo">
+                    <div class="about-hero-divider"></div>
+                    <img src="{{ asset('images/Balamban.png') }}" alt="Balamban Seal">
+                </div>
+                <div class="about-hero-title">Traffic Violation Incident Record System</div>
+                <div class="about-hero-sub">Balamban Municipal Police Station &nbsp;·&nbsp; Cebu Police Provincial Office &nbsp;·&nbsp; PRO-7</div>
+                <div class="about-hero-version">
+                    <i class="bi bi-patch-check-fill" style="color:#60a5fa;"></i>
+                    Official Police Records Platform &nbsp;·&nbsp; v2.0
+                </div>
             </div>
-            <div class="modal-body p-0" style="background:#fff;">
 
-                {{-- About the System --}}
-                <div class="px-4 pt-4 pb-3">
-                    <div class="d-flex align-items-center gap-2 mb-3">
-                        <span style="width:28px;height:28px;border-radius:8px;background:#eff6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <i class="bi bi-info-circle-fill" style="color:#1d4ed8;font-size:.85rem;"></i>
-                        </span>
-                        <h6 class="mb-0 fw-700" style="color:#1c1917;font-size:.9rem;">About the System</h6>
-                    </div>
-                    <p style="font-size:.85rem;color:#44403c;line-height:1.7;margin:0;">
+            {{-- Tabs --}}
+            <div class="about-body">
+                <div class="about-tabs" id="aboutTabs">
+                    <button class="about-tab active" data-panel="system">
+                        <i class="bi bi-info-circle-fill"></i> About the System
+                    </button>
+                    <button class="about-tab" data-panel="developer">
+                        <i class="bi bi-code-slash"></i> Developer
+                    </button>
+                </div>
+
+                {{-- System Panel --}}
+                <div class="about-panel active" id="about-panel-system">
+                    <div class="about-intro">
                         The <strong>Traffic Violation Incident Record System (TVIRS)</strong> is a secure, web-based records management
-                        platform developed for the <strong>Balamban Municipal Police Station</strong>, Cebu Police Provincial Office,
-                        Philippine National Police — Police Regional Office 7.
-                    </p>
-                    <p style="font-size:.85rem;color:#44403c;line-height:1.7;margin:.75rem 0 0;">
-                        The system enables authorized police personnel to digitally record, manage, and track traffic violations
-                        and road incidents — including violator profiling, vehicle records, incident documentation, and enforcement reports.
-                        It replaces manual logbooks with a centralized, searchable, and auditable digital system.
-                    </p>
+                        platform developed exclusively for the <strong>Balamban Municipal Police Station</strong>.
+                        It digitizes and centralizes the recording, tracking, and reporting of traffic violations and road incidents —
+                        replacing manual logbooks with a reliable, searchable, and auditable digital system.
+                    </div>
 
-                    <div class="row g-2 mt-3">
+                    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#94a3b8;margin-bottom:.6rem;">
+                        System Capabilities
+                    </div>
+                    <div class="about-features-grid">
                         @foreach([
-                            ['bi-person-lines-fill','#3b82f6','Violator Profiling'],
-                            ['bi-exclamation-triangle-fill','#ef4444','Violation Tracking'],
-                            ['bi-flag-fill','#f59e0b','Incident Records'],
+                            ['bi-person-lines-fill','#3b82f6','Motorist Profiling'],
+                            ['bi-exclamation-triangle-fill','#ef4444','Violation Management'],
+                            ['bi-flag-fill','#f59e0b','Incident Recording'],
                             ['bi-car-front-fill','#eab308','Vehicle Records'],
                             ['bi-bar-chart-fill','#10b981','Reports & Analytics'],
                             ['bi-shield-lock-fill','#8b5cf6','Role-Based Access'],
                         ] as [$icon,$color,$label])
-                        <div class="col-6 col-md-4">
-                            <div style="display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:#57534e;background:#fafaf9;border:1px solid #e7e5e4;border-radius:8px;padding:.4rem .6rem;">
-                                <i class="bi {{ $icon }}" style="color:{{ $color }};font-size:.8rem;flex-shrink:0;"></i>
-                                {{ $label }}
-                            </div>
+                        <div class="about-feature-chip">
+                            <i class="bi {{ $icon }}" style="color:{{ $color }};"></i>
+                            {{ $label }}
                         </div>
                         @endforeach
                     </div>
+
+                    <div class="about-info-row">
+                        <div class="about-info-cell">
+                            <div class="about-info-cell-label">Unit</div>
+                            <div class="about-info-cell-value">Balamban MPS</div>
+                        </div>
+                        <div class="about-info-cell">
+                            <div class="about-info-cell-label">Province</div>
+                            <div class="about-info-cell-value">Cebu CPO</div>
+                        </div>
+                        <div class="about-info-cell">
+                            <div class="about-info-cell-label">Region</div>
+                            <div class="about-info-cell-value">PRO-7</div>
+                        </div>
+                    </div>
                 </div>
 
-                <hr class="mx-4 my-0" style="border-color:#f0ece8;">
-
-                {{-- About the Developer --}}
-                <div class="px-4 pt-3 pb-4">
-                    <div class="d-flex align-items-center gap-2 mb-3">
-                        <span style="width:28px;height:28px;border-radius:8px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <i class="bi bi-code-slash" style="color:#15803d;font-size:.85rem;"></i>
-                        </span>
-                        <h6 class="mb-0 fw-700" style="color:#1c1917;font-size:.9rem;">About the Developer</h6>
-                    </div>
-                    <div class="d-flex align-items-start gap-3">
-                        <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#0284c7,#0369a1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.3rem;color:#fff;font-weight:800;">
-                            K
-                        </div>
-                        <div>
-                            <div style="font-weight:700;color:#1c1917;font-size:.92rem;">Kristian</div>
-                            <div style="font-size:.78rem;color:#78716c;margin-top:1px;">System Developer</div>
-                            <p style="font-size:.8rem;color:#57534e;line-height:1.65;margin:.5rem 0 0;">
-                                Developed as part of a project for the Balamban Municipal Police Station to
-                                modernize and digitize traffic enforcement record-keeping.
+                {{-- Developer Panel --}}
+                <div class="about-panel" id="about-panel-developer">
+                    <div class="dev-card">
+                        <div class="dev-avatar">K</div>
+                        <div style="flex:1;min-width:0;">
+                            <div class="dev-name">Kristian</div>
+                            <div class="dev-role">System Developer</div>
+                            <p class="dev-desc">
+                                Designed and developed TVIRS as a capstone project to modernize traffic enforcement
+                                record-keeping for the Balamban Municipal Police Station — transitioning from manual
+                                logbooks to a fully digital, centralized records platform.
                             </p>
+                            <div class="dev-stack">
+                                @foreach(['Laravel','PHP','MySQL','Bootstrap','JavaScript','DigitalOcean'] as $tech)
+                                <span class="dev-tag">{{ $tech }}</span>
+                                @endforeach
+                            </div>
                         </div>
+                    </div>
+
+                    <div style="font-size:.78rem;color:#78716c;line-height:1.75;padding:.6rem .1rem;">
+                        <i class="bi bi-quote" style="color:#cbd5e1;font-size:1rem;vertical-align:top;margin-right:.3rem;"></i>
+                        Built with a focus on accuracy, ease of use, and data integrity — ensuring that police personnel
+                        can record, retrieve, and report enforcement data efficiently and reliably.
                     </div>
                 </div>
 
-                <div style="background:#fafaf9;border-top:1px solid #f0ece8;padding:.75rem 1.5rem;text-align:center;">
-                    <span style="font-size:.73rem;color:#a8a29e;">
-                        <i class="bi bi-c-circle me-1"></i>{{ date('Y') }} Traffic Violation Incident Record System &mdash; For official use only.
-                    </span>
+                <div class="about-footer-strip">
+                    <span><i class="bi bi-c-circle me-1"></i>{{ date('Y') }} Traffic Violation Incident Record System</span>
+                    <span class="about-footer-badge"><i class="bi bi-lock-fill"></i> For Official Use Only</span>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
+
+<script>
+document.querySelectorAll('.about-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.about-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.about-panel').forEach(p => p.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById('about-panel-' + this.dataset.panel).classList.add('active');
+    });
+});
+</script>
 
 {{-- LOGIN MODAL --}}
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true"
