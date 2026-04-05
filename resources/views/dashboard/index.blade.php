@@ -1969,8 +1969,16 @@ a.settlement-pill:hover { filter: brightness(.93); transform: translateY(-1px); 
         left: 0;
         width: calc(100vw - 3rem);
     }
-    .dash-header-bar { gap: .7rem; }
+    .dash-header-bar { gap: .6rem; padding: .7rem 1rem; }
     .dash-header-right { width: 100%; justify-content: flex-end; }
+    /* Hide the long subtitle on very small screens */
+    .dash-greeting-sub { display: none; }
+    /* Compact greeting text */
+    .dash-greeting-text { font-size: .88rem; }
+    /* Compact action buttons */
+    .dash-header-right .btn { font-size: .78rem; padding: .3rem .65rem; }
+    /* Records panel grid: 1 column on very small screens */
+    .records-panel-grid { grid-template-columns: 1fr; }
 }
 </style>
 

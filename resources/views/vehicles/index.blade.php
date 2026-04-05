@@ -76,13 +76,13 @@
         <table class="table align-middle mb-0" id="vehicles-table">
             <thead>
                 <tr>
-                    <th style="padding-left:1.25rem;width:60px;"></th>
+                    <th class="d-none d-md-table-cell" style="padding-left:1.25rem;width:60px;"></th>
                     <th><span class="th-inner"><i class="bi bi-upc me-1"></i>Plate No.</span></th>
-                    <th class="text-center"><span class="th-inner"><i class="bi bi-car-front-fill me-1"></i>Type</span></th>
-                    <th><span class="th-inner"><i class="bi bi-tools me-1"></i>Make / Model</span></th>
-                    <th><span class="th-inner"><i class="bi bi-palette me-1"></i>Color / Year</span></th>
-                    <th><span class="th-inner"><i class="bi bi-person-fill me-1"></i>Owner</span></th>
-                    <th class="text-center"><span class="th-inner"><i class="bi bi-shield-exclamation me-1"></i>Violations</span></th>
+                    <th class="text-center d-none d-sm-table-cell"><span class="th-inner"><i class="bi bi-car-front-fill me-1"></i>Type</span></th>
+                    <th class="d-none d-md-table-cell"><span class="th-inner"><i class="bi bi-tools me-1"></i>Make / Model</span></th>
+                    <th class="d-none d-lg-table-cell"><span class="th-inner"><i class="bi bi-palette me-1"></i>Color / Year</span></th>
+                    <th class="d-none d-md-table-cell"><span class="th-inner"><i class="bi bi-person-fill me-1"></i>Owner</span></th>
+                    <th class="text-center d-none d-sm-table-cell"><span class="th-inner"><i class="bi bi-shield-exclamation me-1"></i>Violations</span></th>
                     <th class="text-center vio-act-cell no-print"><span class="th-inner"><i class="bi bi-lightning-charge-fill me-1"></i>Actions</span></th>
                 </tr>
             </thead>
@@ -91,7 +91,7 @@
                 <tr class="vio-row" data-href="{{ route('vehicles.show', $vh) }}">
 
                     {{-- Thumbnail --}}
-                    <td style="padding-left:1.25rem;">
+                    <td class="d-none d-md-table-cell" style="padding-left:1.25rem;">
                         @if($vh->photos->isNotEmpty())
                             <img src="{{ uploaded_file_url($vh->photos->first()->photo) }}"
                                  alt="Vehicle photo"
@@ -118,7 +118,7 @@
                     </td>
 
                     {{-- Type --}}
-                    <td class="text-center">
+                    <td class="text-center d-none d-sm-table-cell">
                         @if($vh->vehicle_type === 'MV')
                             <span class="status-badge" style="background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe;">
                                 <i class="bi bi-car-front-fill"></i> MV
@@ -131,7 +131,7 @@
                     </td>
 
                     {{-- Make / Model --}}
-                    <td>
+                    <td class="d-none d-md-table-cell">
                         @if($vh->make || $vh->model)
                             <span style="font-size:.86rem;color:#292524;">{{ trim(($vh->make ?? '') . ' ' . ($vh->model ?? '')) }}</span>
                         @else
@@ -140,7 +140,7 @@
                     </td>
 
                     {{-- Color / Year --}}
-                    <td>
+                    <td class="d-none d-lg-table-cell">
                         @if($vh->color || $vh->year)
                             <span style="font-size:.86rem;color:#44403c;">
                                 {{ collect([$vh->color, $vh->year])->filter()->implode(' · ') }}
@@ -151,7 +151,7 @@
                     </td>
 
                     {{-- Owner --}}
-                    <td>
+                    <td class="d-none d-md-table-cell">
                         @if($vh->violator)
                             <a href="{{ route('violators.show', $vh->violator) }}"
                                class="text-decoration-none fw-600"
@@ -164,7 +164,7 @@
                     </td>
 
                     {{-- Violations count --}}
-                    <td class="text-center">
+                    <td class="text-center d-none d-sm-table-cell">
                         @if($vh->violations_count > 0)
                             <span class="status-badge status-pending">
                                 <i class="bi bi-shield-exclamation"></i>

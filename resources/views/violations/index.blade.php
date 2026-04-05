@@ -144,10 +144,10 @@
                     <th class="text-center">
                         <span class="th-inner"><i class="bi bi-tag-fill me-1"></i>Violation Type</span>
                     </th>
-                    <th class="text-center">
+                    <th class="text-center d-none d-md-table-cell">
                         <span class="th-inner"><i class="bi bi-calendar-event-fill me-1"></i>Date</span>
                     </th>
-                    <th class="text-center">
+                    <th class="text-center d-none d-md-table-cell">
                         <span class="th-inner"><i class="bi bi-car-front-fill me-1"></i>Plate No.</span>
                     </th>
                     <th class="text-center">
@@ -186,7 +186,7 @@
                     </td>
 
                     {{-- Date --}}
-                    <td class="text-center">
+                    <td class="text-center d-none d-md-table-cell">
                         <span class="date-chip">
                             <i class="bi bi-calendar-check me-1" style="color:#a8a29e;"></i>
                             {{ $v->date_of_violation->format('M d, Y') }}
@@ -194,7 +194,7 @@
                     </td>
 
                     {{-- Plate --}}
-                    <td class="text-center">
+                    <td class="text-center d-none d-md-table-cell">
                         @if($v->vehicle?->plate_number)
                             <span class="plate-pill">
                                 <i class="bi bi-upc me-1" style="font-size:.7rem;color:#a8a29e;"></i>

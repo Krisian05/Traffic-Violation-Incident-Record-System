@@ -23,6 +23,13 @@
 .viol-status-pending   .viol-status-dot { background:#f59e0b; }
 .viol-status-settled   .viol-status-dot { background:#22c55e; }
 .viol-status-contested .viol-status-dot { background:#94a3b8; }
+
+/* ── Mobile: stack label above value ── */
+@media (max-width: 767px) {
+    dl .d-flex.align-items-start { flex-direction: column; gap: .2rem !important; padding: .65rem 1rem !important; }
+    dl .d-flex.align-items-start > div[style*="width:120px"] { width: auto !important; flex-shrink: unset !important; }
+    dl .d-flex.align-items-start img[style*="max-width:260px"] { max-width: 100% !important; width: 100%; }
+}
 </style>
 @endpush
 

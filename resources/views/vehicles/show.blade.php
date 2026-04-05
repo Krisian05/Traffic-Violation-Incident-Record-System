@@ -87,6 +87,11 @@
     border-radius:9999px;
     padding:.18rem .5rem;
 }
+/* ── Mobile: stack label above value ── */
+@media (max-width: 767px) {
+    dl .d-flex.align-items-start { flex-direction: column; gap: .2rem !important; padding: .65rem 1rem !important; }
+    dl .d-flex.align-items-start > div[style*="width:120px"] { width: auto !important; flex-shrink: unset !important; }
+}
 </style>
 @endpush
 

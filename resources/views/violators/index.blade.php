@@ -81,13 +81,13 @@
                     <th style="padding-left:1.75rem;text-align:left;">
                         <span class="vlt-th-inner"><i class="bi bi-person-fill me-1"></i>Violator</span>
                     </th>
-                    <th class="text-center">
+                    <th class="text-center d-none d-md-table-cell">
                         <span class="vlt-th-inner"><i class="bi bi-credit-card-fill me-1"></i>License No.</span>
                     </th>
-                    <th class="text-center">
+                    <th class="text-center d-none d-md-table-cell">
                         <span class="vlt-th-inner"><i class="bi bi-gender-ambiguous me-1"></i>Gender</span>
                     </th>
-                    <th class="text-center">
+                    <th class="text-center d-none d-md-table-cell">
                         <span class="vlt-th-inner"><i class="bi bi-telephone-fill me-1"></i>Contact</span>
                     </th>
                     <th class="text-center">
@@ -123,7 +123,7 @@
                     </td>
 
                     {{-- License No. --}}
-                    <td class="text-center">
+                    <td class="text-center d-none d-md-table-cell">
                         @if($v->license_number)
                             <span class="vlt-license-pill">
                                 <i class="bi bi-upc me-1" style="font-size:.65rem;color:#a8a29e;"></i>
@@ -135,7 +135,7 @@
                     </td>
 
                     {{-- Gender --}}
-                    <td class="text-center">
+                    <td class="text-center d-none d-md-table-cell">
                         @if($v->gender)
                             <span class="vlt-gender-tag vlt-gender-{{ strtolower($v->gender) }}">
                                 <i class="bi bi-{{ $v->gender === 'Male' ? 'gender-male' : ($v->gender === 'Female' ? 'gender-female' : 'gender-ambiguous') }} me-1"></i>
@@ -147,7 +147,7 @@
                     </td>
 
                     {{-- Contact --}}
-                    <td class="text-center">
+                    <td class="text-center d-none d-md-table-cell">
                         @if($v->contact_number)
                             <span class="vlt-contact-chip">
                                 <i class="bi bi-telephone-fill me-1" style="color:#a8a29e;font-size:.7rem;"></i>

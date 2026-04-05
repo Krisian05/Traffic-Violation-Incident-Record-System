@@ -809,14 +809,45 @@
                 width: 100%;
             }
 
-            /* Pagination: compact */
-            .pagination .page-link { padding: .3rem .55rem; font-size: .78rem; }
+            /* Pagination: compact and wrapping */
+            .pagination { flex-wrap: wrap; gap: .25rem; }
+            .pagination .page-link { padding: .35rem .6rem; font-size: .8rem; }
 
-            /* Table action buttons: icon-only on mobile */
+            /* Table action buttons: icon-only, larger touch target */
             .vlt-act-btn span { display: none; }
+            .vlt-act-btn {
+                min-width: 36px;
+                min-height: 36px;
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                padding: .45rem !important;
+            }
+
+            /* Generic index page action buttons (icon-only, larger tap) */
+            .act-btn, [class*="act-btn"], [class*="-act-btn"] {
+                min-width: 36px;
+                min-height: 36px;
+            }
+
+            /* Pagination footer wrappers: stack count + links */
+            .d-flex.justify-content-between.align-items-center {
+                flex-wrap: wrap;
+                gap: .5rem;
+            }
+
+            /* Profile dropdown: always fully visible above topbar */
+            .topbar-profile-dropdown {
+                right: 0;
+                left: auto;
+                min-width: 200px;
+            }
 
             /* Confirm modal: full width */
             #confirmModal .modal-dialog { margin: .5rem; max-width: 100%; }
+
+            /* Mobile-hide utility */
+            .d-mobile-none { display: none !important; }
         }
 
         @media (max-width: 400px) {

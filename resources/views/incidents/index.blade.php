@@ -149,10 +149,10 @@
                     <th class="text-center">
                         <span class="th-inner"><i class="bi bi-people-fill me-1"></i>Motorists</span>
                     </th>
-                    <th class="text-center">
+                    <th class="text-center d-none d-sm-table-cell">
                         <span class="th-inner"><i class="bi bi-images me-1"></i>Media</span>
                     </th>
-                    <th>
+                    <th class="d-none d-md-table-cell">
                         <span class="th-inner"><i class="bi bi-person-fill me-1"></i>Recorded By</span>
                     </th>
                     <th class="text-center inc-act-cell no-print">
@@ -203,14 +203,14 @@
                     </td>
 
                     {{-- Media count --}}
-                    <td class="text-center">
+                    <td class="text-center d-none d-sm-table-cell">
                         <span class="count-pill count-pill-purple">
                             <i class="bi bi-images me-1"></i>{{ $incident->media_count }}
                         </span>
                     </td>
 
                     {{-- Recorded By --}}
-                    <td>
+                    <td class="d-none d-md-table-cell">
                         <span class="date-chip">{{ $incident->recorder->name ?? '—' }}</span>
                     </td>
 
