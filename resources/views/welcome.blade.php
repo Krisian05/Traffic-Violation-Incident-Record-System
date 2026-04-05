@@ -482,7 +482,7 @@
     display:flex;align-items:center;justify-content:center;gap:1.25rem;
     margin-bottom:1rem;
 }
-.about-hero-logos img { width:60px;height:60px;object-fit:contain;filter:drop-shadow(0 2px 12px rgba(0,0,0,.4)); }
+.about-hero-logos img { width:68px;height:68px;object-fit:contain;filter:drop-shadow(0 2px 12px rgba(0,0,0,.4));flex-shrink:0; }
 .about-hero-divider {
     width:1px;height:50px;
     background:linear-gradient(to bottom,transparent,rgba(255,255,255,.35),transparent);
@@ -609,9 +609,13 @@
                 <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
                         data-bs-dismiss="modal" aria-label="Close"></button>
                 <div class="about-hero-logos">
-                    <img src="{{ asset('images/PNP.png') }}" alt="PNP Logo">
+                    <div style="width:68px;height:68px;display:flex;align-items:center;justify-content:center;">
+                        <img src="{{ asset('images/PNP.png') }}" alt="PNP Logo" style="width:68px;height:68px;object-fit:contain;filter:drop-shadow(0 2px 12px rgba(0,0,0,.4));">
+                    </div>
                     <div class="about-hero-divider"></div>
-                    <img src="{{ asset('images/Balamban.png') }}" alt="Balamban Seal">
+                    <div style="width:68px;height:68px;display:flex;align-items:center;justify-content:center;">
+                        <img src="{{ asset('images/Balamban.png') }}" alt="Balamban Seal" style="width:68px;height:68px;object-fit:contain;filter:drop-shadow(0 2px 12px rgba(0,0,0,.4));">
+                    </div>
                 </div>
                 <div class="about-hero-title">Traffic Violation Incident Record System</div>
                 <div class="about-hero-sub">Balamban Municipal Police Station &nbsp;·&nbsp; Cebu Police Provincial Office &nbsp;·&nbsp; PRO-7</div>
