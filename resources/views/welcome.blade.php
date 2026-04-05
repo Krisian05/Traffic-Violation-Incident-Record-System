@@ -484,10 +484,23 @@
     pointer-events:none;
 }
 .about-hero-logos {
-    display:flex;align-items:center;justify-content:center;gap:1.25rem;
-    margin-bottom:1rem;
+    display:flex;align-items:center;justify-content:center;gap:1.5rem;
+    margin-bottom:1.1rem;
 }
-.about-hero-logos img { width:68px;height:68px;object-fit:contain;filter:drop-shadow(0 2px 12px rgba(0,0,0,.4));flex-shrink:0; }
+.about-hero-logo-wrap {
+    width:72px;height:72px;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+}
+.about-hero-logo-wrap img {
+    width:72px;height:72px;
+    object-fit:contain;
+    filter:drop-shadow(0 2px 12px rgba(0,0,0,.4));
+}
+/* PNP image has extra transparent padding — scale it up to match */
+.about-hero-logo-wrap:first-child img {
+    transform: scale(1.35);
+}
 .about-hero-divider {
     width:1px;height:50px;
     background:linear-gradient(to bottom,transparent,rgba(255,255,255,.35),transparent);
@@ -614,12 +627,12 @@
                 <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
                         data-bs-dismiss="modal" aria-label="Close"></button>
                 <div class="about-hero-logos">
-                    <div style="width:68px;height:68px;display:flex;align-items:center;justify-content:center;">
-                        <img src="{{ asset('images/PNP.png') }}" alt="PNP Logo" style="width:92px;height:92px;object-fit:contain;filter:drop-shadow(0 2px 12px rgba(0,0,0,.4));">
+                    <div class="about-hero-logo-wrap">
+                        <img src="{{ asset('images/PNP.png') }}" alt="PNP Logo">
                     </div>
                     <div class="about-hero-divider"></div>
-                    <div style="width:68px;height:68px;display:flex;align-items:center;justify-content:center;">
-                        <img src="{{ asset('images/Balamban.png') }}" alt="Balamban Seal" style="width:68px;height:68px;object-fit:contain;filter:drop-shadow(0 2px 12px rgba(0,0,0,.4));">
+                    <div class="about-hero-logo-wrap">
+                        <img src="{{ asset('images/Balamban.png') }}" alt="Balamban Seal">
                     </div>
                 </div>
                 <div class="about-hero-title">Traffic Violation Incident Record System</div>
