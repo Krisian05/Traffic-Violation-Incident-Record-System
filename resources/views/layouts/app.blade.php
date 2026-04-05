@@ -759,6 +759,70 @@
             color: #292524 !important;
             font-weight: 600;
         }
+
+        /* ─── GLOBAL MOBILE ─── */
+        @media (max-width: 767px) {
+
+            /* Topbar */
+            .topbar { padding: .5rem .75rem; gap: .35rem; }
+            .topbar-title { font-size: .85rem; }
+            .topbar-date { display: none; }
+            .tvrs-breadcrumb-nav { display: none; } /* hide breadcrumb on mobile — too cramped */
+            .topbar > .d-flex:last-child { gap: .5rem !important; }
+
+            /* Content */
+            .content { padding: .75rem; }
+
+            /* Toasts: full width on mobile */
+            #toastContainer { left: .6rem; right: .6rem; top: .6rem; }
+            .app-toast { min-width: 0; width: 100%; }
+
+            /* Filter card headers: wrap action buttons below label */
+            .filter-card-header,
+            .vlt-filter-header {
+                flex-wrap: wrap;
+                gap: .5rem;
+            }
+            .filter-card-header .ms-auto,
+            .vlt-filter-header .ms-auto {
+                margin-left: 0 !important;
+                width: 100%;
+            }
+
+            /* Filter form rows: stack fields vertically */
+            .filter-card-body form > .d-flex,
+            .vlt-filter-body form > .d-flex {
+                flex-wrap: wrap !important;
+            }
+            .filter-card-body form > .d-flex > div,
+            .vlt-filter-body form > .d-flex > div {
+                flex: 1 1 100% !important;
+                min-width: 0 !important;
+            }
+
+            /* Reports filter: already flex-wrap, just ensure field widths */
+            .rpt-filter-body form > div[style] {
+                flex: 1 1 100% !important;
+                min-width: 0 !important;
+            }
+            .rpt-filter-body form > .d-flex.gap-2 {
+                width: 100%;
+            }
+
+            /* Pagination: compact */
+            .pagination .page-link { padding: .3rem .55rem; font-size: .78rem; }
+
+            /* Table action buttons: icon-only on mobile */
+            .vlt-act-btn span { display: none; }
+
+            /* Confirm modal: full width */
+            #confirmModal .modal-dialog { margin: .5rem; max-width: 100%; }
+        }
+
+        @media (max-width: 400px) {
+            .content { padding: .5rem; }
+            .topbar { padding: .45rem .6rem; }
+        }
     </style>
     @stack('styles')
 </head>

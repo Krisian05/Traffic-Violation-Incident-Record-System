@@ -38,7 +38,7 @@
     </div>
     <div class="vlt-filter-body">
         <form method="GET" action="{{ route('violators.index') }}">
-            <div class="d-flex flex-nowrap align-items-end gap-2">
+            <div class="d-flex flex-wrap align-items-end gap-2">
 
                 <div style="flex:2.5;min-width:0;">
                     <label class="vlt-filter-label"><i class="bi bi-person-bounding-box me-1"></i>Name / License No.</label>

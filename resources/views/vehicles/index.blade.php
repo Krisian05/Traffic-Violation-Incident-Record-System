@@ -38,7 +38,7 @@
     </div>
     <div class="filter-card-body">
         <form method="GET" action="{{ route('vehicles.index') }}" id="vh-filter-form">
-            <div class="d-flex flex-nowrap align-items-end gap-2">
+            <div class="d-flex flex-wrap align-items-end gap-2">
 
                 <div style="flex:3;min-width:0;">
                     <label class="filter-label"><i class="bi bi-search me-1"></i>Search</label>
