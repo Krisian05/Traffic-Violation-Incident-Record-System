@@ -657,10 +657,6 @@
         <i class="ph-fill ph-car-simple"></i>
         <span>Add Vehicle</span>
     </a>
-    <a href="{{ route('officer.motorists.edit', $violator) }}" class="motshow-action motshow-action--ghost">
-        <i class="ph ph-pencil-simple"></i>
-        <span>Edit Record</span>
-    </a>
 </div>
 
 @if($violator->photo)

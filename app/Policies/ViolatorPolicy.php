@@ -25,11 +25,10 @@ class ViolatorPolicy
         return true;
     }
 
-    // Both roles can update — operators cover all, officers can update any motorist
-    // (Violators are shared data, no single ownership)
+    // Only operators can edit motorist records
     public function update(User $user, Violator $violator): bool
     {
-        return true;
+        return $user->isOperator();
     }
 
     // Only operators can soft-delete motorists

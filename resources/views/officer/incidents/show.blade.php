@@ -70,14 +70,6 @@
             @endif
         </div>
 
-        @can('update', $incident)
-        <div class="mt-3">
-            <a href="{{ route('officer.incidents.edit', $incident) }}"
-               class="btn btn-outline-primary w-100" style="border-radius:12px;font-weight:700;">
-                <i class="ph ph-pencil-simple me-2"></i>Edit Incident
-            </a>
-        </div>
-        @endcan
     </div>
 </div>
 

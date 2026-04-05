@@ -140,8 +140,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/motorists/create', [OfficerController::class, 'createMotorist'])->name('motorists.create');
         Route::post('/motorists', [OfficerController::class, 'storeMotorist'])->name('motorists.store');
         Route::get('/motorists/{violator}', [OfficerController::class, 'showMotorist'])->name('motorists.show');
-        Route::get('/motorists/{violator}/edit', [OfficerController::class, 'editMotorist'])->name('motorists.edit');
-        Route::put('/motorists/{violator}', [OfficerController::class, 'updateMotorist'])->name('motorists.update');
 
         // Vehicles (from motorist context)
         Route::get('/motorists/{violator}/vehicles/create', [OfficerController::class, 'createVehicle'])->name('motorists.vehicles.create');
@@ -151,15 +149,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/motorists/{violator}/violations/create', [OfficerController::class, 'createViolation'])->name('violations.create');
         Route::post('/motorists/{violator}/violations', [OfficerController::class, 'storeViolation'])->name('violations.store');
         Route::get('/violations/{violation}', [OfficerController::class, 'showViolation'])->name('violations.show');
-        Route::get('/violations/{violation}/edit', [OfficerController::class, 'editViolation'])->name('violations.edit');
-        Route::put('/violations/{violation}', [OfficerController::class, 'updateViolation'])->name('violations.update');
 
         // Incidents
         Route::get('/incidents', [OfficerController::class, 'incidents'])->name('incidents.index');
         Route::get('/incidents/create', [OfficerController::class, 'createIncident'])->name('incidents.create');
         Route::post('/incidents', [OfficerController::class, 'storeIncident'])->name('incidents.store');
         Route::get('/incidents/{incident}', [OfficerController::class, 'showIncident'])->name('incidents.show');
-        Route::get('/incidents/{incident}/edit', [OfficerController::class, 'editIncident'])->name('incidents.edit');
-        Route::put('/incidents/{incident}', [OfficerController::class, 'updateIncident'])->name('incidents.update');
     });
 });

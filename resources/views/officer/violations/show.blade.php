@@ -84,14 +84,6 @@
             @endif
         </div>
 
-        @can('update', $violation)
-        <div class="mt-3">
-            <a href="{{ route('officer.violations.edit', $violation) }}"
-               class="btn btn-outline-primary w-100" style="border-radius:12px;font-weight:700;">
-                <i class="ph ph-pencil-simple me-2"></i>Edit Violation
-            </a>
-        </div>
-        @endcan
     </div>
 </div>
 
