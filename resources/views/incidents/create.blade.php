@@ -11,11 +11,15 @@
 <style>
 /* ── Chip widget ── */
 .restr-box {
-    display: flex; flex-wrap: nowrap; overflow-x: auto;
-    align-items: center; gap: .35rem; padding: 0 .5rem;
-    height: 38px; scrollbar-width: none;
+    display: flex; flex-wrap: wrap; overflow-x: auto;
+    align-items: center; gap: .35rem; padding: .4rem .5rem;
+    min-height: 38px; height: auto; scrollbar-width: none;
 }
 .restr-box::-webkit-scrollbar { display: none; }
+@media (max-width: 767px) {
+    .restr-box { gap: .3rem; padding: .35rem .4rem; }
+    .restr-chip span { font-size: .7rem; padding: .2rem .5rem; }
+}
 .restr-chip { cursor: pointer; display: inline-block; }
 .restr-chip input[type="checkbox"],
 .restr-chip input[type="radio"] { display: none; }

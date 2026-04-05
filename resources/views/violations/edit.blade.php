@@ -19,6 +19,16 @@
     .ts-dropdown .optgroup-header { color:#78716c; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; background:#fdf8f0; }
     .ts-wrapper .ts-control .item { color:#292524; }
     .ts-wrapper .clear-button { color:#78716c; }
+
+    /* Vehicle photo thumbnails: responsive on mobile */
+    @media (max-width: 767px) {
+        .d-flex.flex-wrap img[style*="height:100px"] {
+            width: calc(50% - .25rem) !important;
+            height: auto !important;
+            aspect-ratio: 4/3;
+            object-fit: cover;
+        }
+    }
 </style>
 @endpush
 
@@ -181,7 +191,7 @@
                     @php $initManual = old('vehicle_plate', $violation->vehicle_plate) ? true : false; @endphp
                     <div class="col-12">
                         <label class="form-label">Vehicle Involved</label>
-                        <div class="d-flex gap-2 mb-2" role="group">
+                        <div class="d-flex flex-wrap gap-2 mb-2" role="group">
                             <button type="button" id="btn-from-system"
                                     onclick="setVehicleMode('system')"
                                     class="btn btn-sm {{ $initManual ? 'btn-outline-secondary' : 'btn-primary' }}">

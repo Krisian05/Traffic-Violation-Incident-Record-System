@@ -456,6 +456,11 @@
 .form-control.field-ok, .form-select.field-ok   { border-color: #16a34a !important; box-shadow: 0 0 0 3px rgba(22,163,74,.1) !important; }
 .form-control.field-warn, .form-select.field-warn { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220,38,38,.1) !important; }
 .fw-600 { font-weight: 600; }
+
+@media (max-width: 767px) {
+    .col-12.d-flex.align-items-start.gap-4 { flex-direction: column; gap: .75rem !important; }
+    #photoPreview { width: 90px !important; height: 107px !important; }
+}
 </style>
 
 @endsection

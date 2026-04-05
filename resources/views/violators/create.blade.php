@@ -476,6 +476,12 @@
 }
 
 .fw-600 { font-weight: 600; }
+
+@media (max-width: 767px) {
+    /* Photo preview: stack above file input on mobile */
+    .col-12.d-flex.align-items-start.gap-4 { flex-direction: column; gap: .75rem !important; }
+    #photoPreview { width: 90px !important; height: 107px !important; }
+}
 </style>
 
 </form>

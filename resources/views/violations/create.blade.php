@@ -138,7 +138,7 @@
                     @php $initManual = old('vehicle_plate') ? true : false; @endphp
                     <div class="col-12">
                         <label class="form-label">Vehicle Involved</label>
-                        <div class="d-flex gap-2 mb-2" role="group">
+                        <div class="d-flex flex-wrap gap-2 mb-2" role="group">
                             <button type="button" id="btn-from-system"
                                     onclick="setVehicleMode('system')"
                                     class="btn btn-sm {{ $initManual ? 'btn-outline-secondary' : 'btn-primary' }}">
