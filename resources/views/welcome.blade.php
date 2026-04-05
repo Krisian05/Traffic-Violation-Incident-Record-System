@@ -263,12 +263,17 @@
         /* ─── FEATURE CARDS ─── */
         .features {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(6, 1fr);
             gap: 1rem;
             max-width: 860px;
             width: 100%;
             margin: 0 auto;
         }
+        /* Top row: 3 cards, each spans 2 of 6 columns */
+        .feature-card { grid-column: span 2; }
+        /* Bottom row: 2 cards centered — start at col 2 and col 4 */
+        .feature-card:nth-child(4) { grid-column: 2 / 4; }
+        .feature-card:nth-child(5) { grid-column: 4 / 6; }
 
         .feature-card {
             background: rgba(10, 25, 70, 0.55);
