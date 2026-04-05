@@ -615,7 +615,7 @@
                         data-bs-dismiss="modal" aria-label="Close"></button>
                 <div class="about-hero-logos">
                     <div style="width:68px;height:68px;display:flex;align-items:center;justify-content:center;">
-                        <img src="{{ asset('images/PNP.png') }}" alt="PNP Logo" style="width:68px;height:68px;object-fit:contain;filter:drop-shadow(0 2px 12px rgba(0,0,0,.4));">
+                        <img src="{{ asset('images/PNP.png') }}" alt="PNP Logo" style="width:92px;height:92px;object-fit:contain;filter:drop-shadow(0 2px 12px rgba(0,0,0,.4));">
                     </div>
                     <div class="about-hero-divider"></div>
                     <div style="width:68px;height:68px;display:flex;align-items:center;justify-content:center;">
