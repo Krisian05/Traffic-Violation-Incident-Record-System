@@ -331,6 +331,85 @@
             border-radius: 2px;
             margin: 0 auto 2rem;
         }
+
+        /* ─── MOBILE ─── */
+        @media (max-width: 767px) {
+            .top-nav {
+                padding: .75rem 1rem;
+            }
+
+            .nav-brand-text {
+                font-size: .8rem;
+            }
+
+            .btn-nav-about,
+            .btn-nav-login,
+            .btn-nav-dashboard {
+                padding: .35rem .7rem;
+                font-size: .78rem;
+            }
+
+            /* Hide "About" label on very small screens, keep icon */
+            @media (max-width: 400px) {
+                .btn-nav-about .bi { margin: 0; }
+                .btn-nav-about { padding: .35rem .55rem; }
+            }
+
+            .hero {
+                padding: 5.5rem 1rem 2.5rem;
+            }
+
+            .badge-shield {
+                width: 140px;
+                height: 140px;
+            }
+
+            .badge-shield img {
+                width: 168px !important;
+                height: 168px !important;
+                margin: -14px !important;
+            }
+
+            .hero-tag {
+                font-size: .7rem;
+                padding: .3rem .7rem;
+                text-align: center;
+            }
+
+            .hero-subtitle {
+                font-size: .9rem;
+                margin-bottom: 1.75rem;
+            }
+
+            .cta-group {
+                flex-direction: column;
+                align-items: center;
+                gap: .75rem;
+                margin-bottom: 2.5rem;
+            }
+
+            .btn-cta-primary,
+            .btn-cta-secondary {
+                width: 100%;
+                max-width: 280px;
+                justify-content: center;
+            }
+
+            /* Feature cards: 1 column on mobile */
+            .features {
+                grid-template-columns: 1fr 1fr;
+                max-width: 100%;
+                gap: .75rem;
+            }
+
+            .feature-card { grid-column: span 1 !important; }
+        }
+
+        @media (max-width: 400px) {
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -346,7 +425,8 @@
             <img src="{{ asset('images/Balamban.png') }}" alt="PNP Logo"
                  style="width:60px;height:60px;object-fit:contain;flex-shrink:0;margin:-8px 0;">
             <div class="nav-brand-text">
-                Traffic Violation Incident Record System
+                <span class="d-none d-sm-block">Traffic Violation Incident Record System</span>
+                <span class="d-sm-none">TVIRS</span>
             </div>
         </a>
         <div class="nav-actions">
@@ -667,19 +747,30 @@
                         System Capabilities
                     </div>
                     <div class="about-features-grid">
-                        @foreach([
-                            ['bi-person-lines-fill','#3b82f6','Motorist Profiling'],
-                            ['bi-exclamation-triangle-fill','#ef4444','Violation Management'],
-                            ['bi-flag-fill','#f59e0b','Incident Recording'],
-                            ['bi-car-front-fill','#eab308','Vehicle Records'],
-                            ['bi-bar-chart-fill','#10b981','Reports & Analytics'],
-                            ['bi-shield-lock-fill','#8b5cf6','Role-Based Access'],
-                        ] as [$icon,$color,$label])
                         <div class="about-feature-chip">
-                            <i class="bi {{ $icon }}" style="color:{{ $color }};"></i>
-                            {{ $label }}
+                            <i class="bi bi-person-lines-fill" style="color:#3b82f6"></i>
+                            Motorist Profiling
                         </div>
-                        @endforeach
+                        <div class="about-feature-chip">
+                            <i class="bi bi-exclamation-triangle-fill" style="color:#ef4444"></i>
+                            Violation Management
+                        </div>
+                        <div class="about-feature-chip">
+                            <i class="bi bi-flag-fill" style="color:#f59e0b"></i>
+                            Incident Recording
+                        </div>
+                        <div class="about-feature-chip">
+                            <i class="bi bi-car-front-fill" style="color:#eab308"></i>
+                            Vehicle Records
+                        </div>
+                        <div class="about-feature-chip">
+                            <i class="bi bi-bar-chart-fill" style="color:#10b981"></i>
+                            Reports &amp; Analytics
+                        </div>
+                        <div class="about-feature-chip">
+                            <i class="bi bi-shield-lock-fill" style="color:#8b5cf6"></i>
+                            Role-Based Access
+                        </div>
                     </div>
 
                     <div class="about-info-row">
