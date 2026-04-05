@@ -334,81 +334,101 @@
 
         /* ─── MOBILE ─── */
         @media (max-width: 767px) {
-            .top-nav {
-                padding: .75rem 1rem;
-            }
-
-            .nav-brand-text {
-                font-size: .8rem;
-            }
-
+            /* Nav */
+            .top-nav { padding: .6rem .9rem; }
+            .nav-brand img { width: 36px !important; height: 36px !important; margin: 0 !important; }
+            .nav-brand { gap: .5rem; }
+            .nav-brand-text { font-size: .82rem; }
             .btn-nav-about,
             .btn-nav-login,
-            .btn-nav-dashboard {
-                padding: .35rem .7rem;
-                font-size: .78rem;
-            }
+            .btn-nav-dashboard { padding: .3rem .65rem; font-size: .78rem; }
 
-            /* Hide "About" label on very small screens, keep icon */
-            @media (max-width: 400px) {
-                .btn-nav-about .bi { margin: 0; }
-                .btn-nav-about { padding: .35rem .55rem; }
-            }
-
+            /* Hero — tight, centered, no wasted space */
             .hero {
-                padding: 5.5rem 1rem 2.5rem;
+                padding: 4.5rem .9rem 1.5rem;
+                justify-content: flex-start;
             }
 
-            .badge-shield {
-                width: 140px;
-                height: 140px;
-            }
-
+            /* PNP logo — smaller */
+            .badge-shield { width: 100px; height: 100px; margin-bottom: 0; }
             .badge-shield img {
-                width: 168px !important;
-                height: 168px !important;
-                margin: -14px !important;
+                width: 120px !important;
+                height: 120px !important;
+                margin: -10px !important;
             }
 
+            /* Tag — shorten text via CSS, wrap neatly */
             .hero-tag {
-                font-size: .7rem;
-                padding: .3rem .7rem;
-                text-align: center;
+                font-size: .66rem;
+                padding: .28rem .65rem;
+                margin-bottom: .9rem;
+                letter-spacing: .04em;
             }
 
+            /* Title */
+            .hero-title {
+                font-size: clamp(1.55rem, 7vw, 2rem);
+                margin-bottom: .5rem;
+            }
+
+            /* Subtitle — tighten */
             .hero-subtitle {
-                font-size: .9rem;
-                margin-bottom: 1.75rem;
+                font-size: .82rem;
+                line-height: 1.55;
+                margin-bottom: 1.25rem;
+                max-width: 100%;
             }
 
+            /* Divider */
+            .divider { margin: 0 auto 1.1rem; }
+
+            /* CTA buttons — full width, stacked */
             .cta-group {
                 flex-direction: column;
-                align-items: center;
-                gap: .75rem;
-                margin-bottom: 2.5rem;
+                align-items: stretch;
+                gap: .6rem;
+                margin-bottom: 1.5rem;
+                width: 100%;
             }
-
             .btn-cta-primary,
             .btn-cta-secondary {
                 width: 100%;
-                max-width: 280px;
                 justify-content: center;
+                padding: .65rem 1rem;
+                font-size: .88rem;
             }
 
-            /* Feature cards: 1 column on mobile */
+            /* Feature cards — compact horizontal rows (icon + title, no description) */
             .features {
                 grid-template-columns: 1fr 1fr;
                 max-width: 100%;
-                gap: .75rem;
+                gap: .5rem;
             }
-
             .feature-card { grid-column: span 1 !important; }
+            .feature-card {
+                padding: .6rem .65rem;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                text-align: left;
+                gap: .55rem;
+            }
+            .feature-icon {
+                width: 34px; height: 34px;
+                font-size: 1rem;
+                margin: 0;
+                flex-shrink: 0;
+            }
+            .feature-card h6 { font-size: .75rem; margin: 0; }
+            .feature-card p { display: none; }
+
+            /* Footer */
+            .site-footer { padding: 1rem; font-size: .7rem; }
         }
 
         @media (max-width: 400px) {
-            .features {
-                grid-template-columns: 1fr;
-            }
+            .features { grid-template-columns: 1fr; }
+            .hero-tag { font-size: .62rem; }
         }
     </style>
 </head>
@@ -456,7 +476,8 @@
 
         <div class="hero-tag">
             <i class="bi bi-shield-lock-fill"></i>
-            Balamban Municipal Police Station — Official Records System
+            <span class="d-none d-sm-inline">Balamban Municipal Police Station — Official Records System</span>
+            <span class="d-sm-none">Balamban MPS · Official Records</span>
         </div>
 
         <h1 class="hero-title">
