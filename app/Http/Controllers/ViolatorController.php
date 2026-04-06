@@ -234,6 +234,9 @@ class ViolatorController extends Controller
             Storage::disk(uploads_disk())->delete($violator->photo);
         }
 
+        // Soft-delete all violations belonging to this violator
+        $violator->violations()->delete();
+
         $violator->delete();
 
         return redirect()->route('violators.index')
