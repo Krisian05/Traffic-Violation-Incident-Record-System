@@ -864,20 +864,20 @@
             /* Drag handle */
             .profile-sheet-handle {
                 display: block;
-                width: 36px; height: 4px;
-                background: rgba(255,255,255,.45);
+                width: 28px; height: 3px;
+                background: rgba(255,255,255,.4);
                 border-radius: 2px;
                 position: absolute;
-                top: 10px;
+                top: 7px;
                 left: 50%; transform: translateX(-50%);
                 z-index: 2;
             }
 
-            /* Gradient header band */
+            /* Gradient header band — slim */
             .profile-sheet-header {
                 display: block;
                 background: linear-gradient(135deg,#1d4ed8,#3b82f6);
-                height: 86px;
+                height: 52px;
                 position: relative;
             }
 
@@ -885,59 +885,51 @@
             .profile-sheet-avatar {
                 display: flex !important;
                 position: absolute;
-                bottom: -34px;
+                bottom: -22px;
                 left: 50%; transform: translateX(-50%);
-                width: 68px; height: 68px;
+                width: 44px; height: 44px;
                 border-radius: 50%;
                 background: #fff;
                 color: #1d4ed8;
                 font-weight: 800;
-                font-size: 1.5rem;
+                font-size: 1rem;
                 align-items: center;
                 justify-content: center;
-                border: 3px solid #fff;
-                box-shadow: 0 4px 18px rgba(29,78,216,.25);
+                border: 2.5px solid #fff;
+                box-shadow: 0 2px 10px rgba(29,78,216,.22);
                 z-index: 3;
-                letter-spacing: -.02em;
             }
 
-            /* Body — name, role, system label */
+            /* Body */
             .profile-sheet-body {
-                padding: 44px 1.5rem .75rem;
+                padding: 28px 1rem .5rem;
                 text-align: center;
                 border-bottom: none !important;
             }
             .profile-sheet-name {
-                font-size: 1.1rem;
+                font-size: .9rem;
                 font-weight: 700;
                 color: #1c1917;
-                margin-bottom: .35rem;
+                margin-bottom: .2rem;
                 line-height: 1.2;
             }
-            .profile-sheet-meta { margin-bottom: .5rem; }
+            .profile-sheet-meta { margin-bottom: .3rem; }
             .profile-sheet-role-badge {
                 display: inline-flex;
                 align-items: center;
-                gap: .25rem;
-                font-size: .72rem;
+                gap: .2rem;
+                font-size: .65rem;
                 font-weight: 600;
-                padding: .3rem .75rem;
+                padding: .18rem .55rem;
                 border-radius: 9999px;
             }
-            .profile-sheet-role-badge.role-operator {
-                background: #1d4ed8;
-                color: #fff;
-            }
-            .profile-sheet-role-badge.role-viewer {
-                background: #dbeafe;
-                color: #1e40af;
-            }
+            .profile-sheet-role-badge.role-operator { background: #1d4ed8; color: #fff; }
+            .profile-sheet-role-badge.role-viewer   { background: #dbeafe; color: #1e40af; }
             .profile-sheet-system {
                 display: block;
-                font-size: .68rem;
+                font-size: .62rem;
                 color: #a8a29e;
                 font-weight: 500;
-                line-height: 1.4;
             }
 
             /* Divider */
@@ -945,30 +937,29 @@
                 display: block;
                 height: 1px;
                 background: #f0ebe3;
-                margin: .75rem 1.25rem 0;
+                margin: .5rem 1rem 0;
             }
 
             /* Actions */
             .profile-sheet-actions {
-                padding: .875rem 1.25rem 1.6rem;
+                padding: .5rem 1rem 1rem;
             }
             .profile-sheet-logout-btn {
                 width: 100%;
-                min-height: 50px;
+                min-height: 40px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: .5rem;
+                gap: .4rem;
                 background: linear-gradient(135deg,#dc2626,#b91c1c);
                 color: #fff;
                 border: none;
-                border-radius: 12px;
-                font-size: .95rem;
+                border-radius: 8px;
+                font-size: .82rem;
                 font-weight: 700;
                 cursor: pointer;
-                letter-spacing: .01em;
                 transition: opacity .15s, transform .1s;
-                box-shadow: 0 4px 14px rgba(220,38,38,.3);
+                box-shadow: 0 2px 8px rgba(220,38,38,.25);
             }
             .profile-sheet-logout-btn:active {
                 opacity: .88;
