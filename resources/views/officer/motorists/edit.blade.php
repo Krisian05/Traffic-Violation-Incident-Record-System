@@ -535,10 +535,6 @@
             <i class="ph-bold ph-floppy-disk" style="font-size:1.05rem;"></i>
             Save Changes
         </button>
-        <a href="{{ route('officer.motorists.show', $violator) }}" class="mob-btn-outline">
-            <i class="ph ph-arrow-u-up-left" style="font-size:1rem;"></i>
-            Discard & Go Back
-        </a>
     </div>
 
 </form>
