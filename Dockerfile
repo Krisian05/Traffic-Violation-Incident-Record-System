@@ -21,6 +21,13 @@ RUN { \
     echo 'opcache.revalidate_freq=0'; \
 } > /usr/local/etc/php/conf.d/opcache.ini
 
+# Allow large file uploads (camera photos can be 5-20 MB)
+RUN { \
+    echo 'upload_max_filesize=25M'; \
+    echo 'post_max_size=30M'; \
+    echo 'max_execution_time=60'; \
+} > /usr/local/etc/php/conf.d/uploads.ini
+
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
