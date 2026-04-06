@@ -404,7 +404,7 @@
                 max-width: 100%;
                 gap: .5rem;
             }
-            .feature-card { grid-column: span 1 !important; }
+            .feature-card { grid-column: span 1 !important; cursor: pointer; }
             .feature-card {
                 padding: .6rem .65rem;
                 display: flex;
@@ -513,35 +513,35 @@
 
         {{-- FEATURE CARDS --}}
         <div class="features" id="features">
-            <div class="feature-card">
+            <div class="feature-card" data-feature="motorist" role="button" tabindex="0">
                 <div class="feature-icon" style="background:rgba(59,130,246,0.15);">
                     <i class="bi bi-person-lines-fill" style="color:#60a5fa;"></i>
                 </div>
                 <h6>Motorist Profiling</h6>
                 <p>Maintain complete motorist records — personal details, license information, and full violation and incident history in one profile.</p>
             </div>
-            <div class="feature-card">
+            <div class="feature-card" data-feature="violation" role="button" tabindex="0">
                 <div class="feature-icon" style="background:rgba(239,68,68,0.15);">
                     <i class="bi bi-exclamation-triangle-fill" style="color:#f87171;"></i>
                 </div>
                 <h6>Violation Management</h6>
                 <p>Record and track traffic citations with real-time status monitoring — pending, settled, contested, or overdue.</p>
             </div>
-            <div class="feature-card">
+            <div class="feature-card" data-feature="incident" role="button" tabindex="0">
                 <div class="feature-icon" style="background:rgba(251,146,60,0.15);">
                     <i class="bi bi-flag-fill" style="color:#fb923c;"></i>
                 </div>
                 <h6>Incident Recording</h6>
                 <p>Document road incidents with involved motorists, vehicles, charges, and photo evidence — from open to closed.</p>
             </div>
-            <div class="feature-card">
+            <div class="feature-card" data-feature="vehicle" role="button" tabindex="0">
                 <div class="feature-icon" style="background:rgba(234,179,8,0.15);">
                     <i class="bi bi-car-front-fill" style="color:#fbbf24;"></i>
                 </div>
                 <h6>Vehicle Records</h6>
                 <p>Register motor vehicles and motorcycles, link them to their owners, and track involvement across violations and incidents.</p>
             </div>
-            <div class="feature-card">
+            <div class="feature-card" data-feature="reports" role="button" tabindex="0">
                 <div class="feature-icon" style="background:rgba(16,185,129,0.15);">
                     <i class="bi bi-bar-chart-fill" style="color:#34d399;"></i>
                 </div>
@@ -980,6 +980,146 @@ document.querySelectorAll('.about-tab').forEach(function(tab) {
             nav.classList.remove('scrolled');
         }
     });
+
+    // Feature card modals
+    const featureData = {
+        motorist: {
+            icon: 'bi-person-lines-fill',
+            color: '#60a5fa',
+            bg: 'rgba(59,130,246,0.12)',
+            title: 'Motorist Profiling',
+            desc: 'Maintain a complete digital profile for every motorist — personal details, driver\'s license information, vehicle links, and a full history of violations and incidents all in one place.',
+            bullets: [
+                'Personal & license information',
+                'Profile photo & valid ID capture',
+                'Linked violation & incident history',
+                'Printable motorist record',
+            ]
+        },
+        violation: {
+            icon: 'bi-exclamation-triangle-fill',
+            color: '#f87171',
+            bg: 'rgba(239,68,68,0.12)',
+            title: 'Violation Management',
+            desc: 'Record and track every traffic citation issued by officers. Monitor payment status in real time — pending, settled, contested, or overdue — and attach citation ticket photos as evidence.',
+            bullets: [
+                'Issue citations with ticket numbers',
+                'Attach citation & receipt photos',
+                'Track status: pending, settled, contested',
+                'Auto-flag overdue violations after 72 hrs',
+            ]
+        },
+        incident: {
+            icon: 'bi-flag-fill',
+            color: '#fb923c',
+            bg: 'rgba(251,146,60,0.12)',
+            title: 'Incident Recording',
+            desc: 'Document road incidents with full detail — all involved motorists and vehicles, applicable charges, photo and media evidence, and case status from open through to closed.',
+            bullets: [
+                'Multi-motorist incident documentation',
+                'Charge type selection (RPC Art. 365)',
+                'Photo & media evidence upload',
+                'Open / under investigation / closed status',
+            ]
+        },
+        vehicle: {
+            icon: 'bi-car-front-fill',
+            color: '#fbbf24',
+            bg: 'rgba(234,179,8,0.12)',
+            title: 'Vehicle Records',
+            desc: 'Register and manage motor vehicles and motorcycles, link them to registered owners, and track their involvement across all recorded violations and incidents.',
+            bullets: [
+                'OR/CR & chassis number tracking',
+                'Vehicle photo gallery',
+                'Linked to owner motorist profile',
+                'Violation & incident cross-reference',
+            ]
+        },
+        reports: {
+            icon: 'bi-bar-chart-fill',
+            color: '#34d399',
+            bg: 'rgba(16,185,129,0.12)',
+            title: 'Reports & Analytics',
+            desc: 'Generate enforcement summaries and statistical reports. Identify repeat offenders, analyze violation trends by type and period, and export data for command-level review.',
+            bullets: [
+                'Violation summary by type & date',
+                'Repeat offender identification',
+                'Settlement & collection tracking',
+                'Exportable enforcement reports',
+            ]
+        }
+    };
+
+    document.querySelectorAll('.feature-card[data-feature]').forEach(function(card) {
+        card.addEventListener('click', function() {
+            const key = this.dataset.feature;
+            const f = featureData[key];
+            if (!f) return;
+
+            document.getElementById('fm-icon').className = 'bi ' + f.icon;
+            document.getElementById('fm-icon').style.color = f.color;
+            document.getElementById('fm-icon-wrap').style.background = f.bg;
+            document.getElementById('fm-title').textContent = f.title;
+            document.getElementById('fm-desc').textContent = f.desc;
+
+            const ul = document.getElementById('fm-bullets');
+            ul.innerHTML = '';
+            f.bullets.forEach(function(b) {
+                const li = document.createElement('li');
+                li.textContent = b;
+                ul.appendChild(li);
+            });
+
+            new bootstrap.Modal(document.getElementById('featureModal')).show();
+        });
+
+        card.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.click(); }
+        });
+    });
 </script>
+
+{{-- FEATURE DETAIL MODAL --}}
+<div class="modal fade" id="featureModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:360px;margin:1rem auto;">
+        <div class="modal-content border-0 rounded-4 shadow" style="overflow:hidden;">
+            <div style="padding:1.5rem 1.5rem 1rem;display:flex;align-items:flex-start;gap:1rem;">
+                <div id="fm-icon-wrap" style="width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i id="fm-icon" style="font-size:1.35rem;"></i>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <h5 id="fm-title" style="font-size:1rem;font-weight:800;color:#0f172a;margin:0 0 .15rem;"></h5>
+                    <span style="font-size:.68rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.07em;">System Feature</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-top:-.15rem;"></button>
+            </div>
+            <div style="padding:0 1.5rem 1.5rem;">
+                <p id="fm-desc" style="font-size:.84rem;color:#475569;line-height:1.7;margin-bottom:1rem;"></p>
+                <ul id="fm-bullets" style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.45rem;"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+#fm-bullets li {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    font-size: .81rem;
+    font-weight: 600;
+    color: #334155;
+    padding: .4rem .65rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+#fm-bullets li::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #3b82f6;
+    flex-shrink: 0;
+}
+</style>
 </body>
 </html>
