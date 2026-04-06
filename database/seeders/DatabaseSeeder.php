@@ -12,8 +12,9 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Bootstrap operator account
-        User::updateOrCreate(
+        // Bootstrap operator account — only create if it doesn't exist yet,
+        // so subsequent deploys never overwrite a changed password.
+        User::firstOrCreate(
             ['username' => 'admin'],
             [
                 'name'     => 'Administrator',
