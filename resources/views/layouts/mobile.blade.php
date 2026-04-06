@@ -839,7 +839,14 @@
                 </div>
             </div>
             <div class="mob-user-menu-body">
-                <button type="button" class="mob-user-menu-action" id="mobLogoutAction">
+                <button type="button" class="mob-user-menu-action" id="mobChangePasswordAction">
+                    <div class="mob-user-menu-action-icon">
+                        <i class="ph-fill ph-lock-key" style="font-size:1rem;color:#1d4ed8;"></i>
+                    </div>
+                    <span style="flex:1;">Change Password</span>
+                    <i class="ph ph-caret-right" style="opacity:.4;font-size:.82rem;"></i>
+                </button>
+                <button type="button" class="mob-user-menu-action" id="mobLogoutAction" style="border-top:1px solid #f1f5f9;">
                     <div class="mob-user-menu-action-icon">
                         <i class="ph-fill ph-sign-out" style="font-size:1rem;color:#dc2626;"></i>
                     </div>
@@ -920,8 +927,21 @@ mobUserMenu?.addEventListener('click', function (event) {
 });
 
 mobLogoutAction?.addEventListener('click', function () {
+    closeMobUserMenu();
     document.getElementById('logout-form').submit();
 });
+
+document.getElementById('mobChangePasswordAction')?.addEventListener('click', function () {
+    closeMobUserMenu();
+    new bootstrap.Modal(document.getElementById('changePasswordModal')).show();
+});
+
+// Re-open change password modal if there were validation errors
+@if($errors->hasAny(['current_password','password']))
+document.addEventListener('DOMContentLoaded', function () {
+    new bootstrap.Modal(document.getElementById('changePasswordModal')).show();
+});
+@endif
 
 document.addEventListener('click', function (e) {
     if (!e.target.closest('.mob-user-menu-wrap')) {
@@ -947,6 +967,51 @@ document.addEventListener('keydown', function (e) {
     }
 });
 </script>
+{{-- ── Change Password Modal ── --}}
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:360px;margin:1rem auto;">
+        <div class="modal-content border-0 rounded-4 shadow" style="overflow:hidden;">
+            <div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);padding:1.25rem 1.5rem .9rem;display:flex;align-items:center;gap:.75rem;">
+                <div style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="ph-fill ph-lock-key" style="font-size:1.15rem;color:#fff;"></i>
+                </div>
+                <div style="flex:1;">
+                    <div style="font-size:.95rem;font-weight:800;color:#fff;">Change Password</div>
+                    <div style="font-size:.7rem;color:#bfdbfe;">{{ Auth::user()->name }}</div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="opacity:.7;"></button>
+            </div>
+            <div style="padding:1.25rem 1.5rem 1.5rem;background:#fff;">
+                <form method="POST" action="{{ route('officer.password.update') }}" id="changePasswordForm">
+                    @csrf
+                    @method('PUT')
+                    @if($errors->hasAny(['current_password','password']))
+                    <div class="mob-alert mob-alert-danger mb-3" style="margin:0 0 .75rem;">
+                        <i class="ph-fill ph-warning-circle flex-shrink-0"></i>
+                        <div>{{ $errors->first('current_password') ?: $errors->first('password') }}</div>
+                    </div>
+                    @endif
+                    <div class="mb-3">
+                        <label class="mob-label">Current Password</label>
+                        <input type="password" name="current_password" class="form-control mob-input" required autocomplete="current-password" placeholder="Enter current password">
+                    </div>
+                    <div class="mb-3">
+                        <label class="mob-label">New Password</label>
+                        <input type="password" name="password" class="form-control mob-input" required autocomplete="new-password" placeholder="At least 8 characters">
+                    </div>
+                    <div class="mb-4">
+                        <label class="mob-label">Confirm New Password</label>
+                        <input type="password" name="password_confirmation" class="form-control mob-input" required autocomplete="new-password" placeholder="Repeat new password">
+                    </div>
+                    <button type="submit" class="mob-btn-primary mb-2">
+                        <i class="ph-bold ph-check"></i> Update Password
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @stack('scripts')
 
 {{-- ── Global Photo Picker Helper ── --}}

@@ -133,6 +133,7 @@ Route::middleware('auth')->group(function () {
     // ── TRAFFIC OFFICER MOBILE ────────────────────────────────────────────────
     Route::middleware('role:traffic_officer')->prefix('officer')->name('officer.')->group(function () {
         Route::get('/dashboard', [OfficerController::class, 'dashboard'])->name('dashboard');
+        Route::put('/password', [OfficerController::class, 'updatePassword'])->name('password.update');
 
         // Motorists
         Route::get('/motorists', [OfficerController::class, 'motorists'])->name('motorists.index');
