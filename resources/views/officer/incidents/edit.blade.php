@@ -74,7 +74,7 @@
             </div>
             <div style="background:#f8fafc;border-radius:12px;padding:.75rem;margin-bottom:1rem;">
                 @foreach($incident->motorists as $m)
-                <div style="display:flex;align-items:center;gap:.6rem;padding:.35rem 0;{{ !$loop->last ? 'border-bottom:1px solid #e2e8f0;' : '' }}">
+                <div style="display:flex;align-items:center;gap:.6rem;padding:.35rem 0;" @if(!$loop->last) class="border-bottom" @endif>
                     <i class="ph ph-user-circle" style="font-size:1.1rem;color:#64748b;flex-shrink:0;"></i>
                     <div>
                         <div style="font-size:.82rem;font-weight:700;color:#0f172a;">{{ $m->violator?->full_name ?? $m->motorist_name ?? 'Unknown' }}</div>
