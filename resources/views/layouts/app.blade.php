@@ -346,6 +346,10 @@
         }
 
         /* ── PROFILE DROPDOWN ── */
+        .profile-sheet-handle { display: none; } /* desktop: hidden */
+        .profile-sheet-avatar  { display: none; } /* desktop: hidden */
+        .profile-sheet-backdrop { display: none; } /* desktop: hidden */
+
         .topbar-profile-menu {
             position: relative;
         }
@@ -836,35 +840,94 @@
                 gap: .5rem;
             }
 
-            /* Profile dropdown: compact on mobile */
+            /* ── Profile dropdown → bottom sheet on mobile ── */
             .topbar-profile-dropdown {
-                right: 0;
-                left: auto;
-                min-width: 170px;
-                max-width: calc(100vw - 1.25rem);
+                /* Override the absolute-positioned dropdown with a fixed bottom sheet */
+                position: fixed !important;
+                top: auto !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+                border-radius: 18px 18px 0 0 !important;
+                border: none !important;
+                border-top: 1px solid #ddd0be !important;
+                box-shadow: 0 -6px 32px rgba(0,0,0,.18) !important;
+                z-index: 1051 !important;
+                /* Always rendered but off-screen — slide up/down via transform */
+                display: block !important;
+                transform: translateY(110%) !important;
+                transition: transform .32s cubic-bezier(.4,0,.2,1) !important;
+                opacity: 1 !important;
+                background: #fffdf9 !important;
             }
+            .topbar-profile-dropdown.show {
+                transform: translateY(0) !important;
+                display: block !important;
+            }
+
+            /* Drag handle */
+            .profile-sheet-handle {
+                width: 38px; height: 4px;
+                background: #ddd0be;
+                border-radius: 2px;
+                margin: 10px auto 6px;
+            }
+
+            /* Avatar circle in sheet */
+            .profile-sheet-avatar {
+                width: 52px; height: 52px;
+                border-radius: 50%;
+                background: linear-gradient(135deg,#1d4ed8,#2563eb);
+                color: #fff;
+                font-weight: 700;
+                font-size: 1.15rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto .6rem;
+                flex-shrink: 0;
+            }
+
+            /* Sheet user section — centered */
             .topbar-profile-dropdown-user {
-                padding: .5rem .75rem;
+                text-align: center !important;
+                padding: .5rem 1.25rem .9rem !important;
+                border-bottom: 1px solid #f0ebe3 !important;
             }
             .topbar-profile-dropdown-user-label {
                 font-size: .65rem;
-                margin-bottom: .15rem;
+                margin-bottom: .2rem;
             }
             .topbar-profile-dropdown-user-name {
-                font-size: .82rem;
-                margin-bottom: .25rem;
+                font-size: .95rem;
+                margin-bottom: .35rem;
             }
             .topbar-profile-badge {
-                font-size: .6rem;
-                padding: .18rem .4rem;
+                font-size: .65rem;
+                padding: .22rem .55rem;
             }
+
+            /* Sheet logout section */
             .topbar-profile-dropdown-logout {
-                padding: .5rem .75rem;
+                padding: .75rem 1.25rem 1.25rem !important;
             }
             .topbar-profile-logout-btn {
-                font-size: .76rem;
-                padding: .4rem .6rem;
+                min-height: 48px !important;
+                font-size: .9rem !important;
+                border-radius: 10px !important;
             }
+
+            /* Backdrop */
+            .profile-sheet-backdrop {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,.45);
+                z-index: 1050;
+            }
+            .profile-sheet-backdrop.show { display: block; }
 
             /* Confirm modal: full width */
             #confirmModal .modal-dialog { margin: .5rem; max-width: 100%; }
@@ -883,6 +946,7 @@
 <body>
 
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+<div class="profile-sheet-backdrop" id="profileSheetBackdrop"></div>
 <div class="sidebar" id="appSidebar">
     <div class="sidebar-brand">
         <img src="{{ asset('images/PNP.png') }}" alt="PNP Logo" class="sidebar-logo">
@@ -971,13 +1035,19 @@
         <div class="d-flex align-items-center gap-3">
             <span class="topbar-date">{{ now()->format('F d, Y') }}</span>
             
-            <!-- Profile Dropdown -->
+            <!-- Profile Dropdown / Mobile Bottom Sheet -->
             <div class="topbar-profile-menu">
                 <button class="topbar-profile-btn" id="profileMenuToggle" title="Profile & Logout">
                     <i class="bi bi-person-circle"></i>
                 </button>
                 <div class="topbar-profile-dropdown" id="profileMenuDropdown">
+                    {{-- Mobile drag handle --}}
+                    <div class="profile-sheet-handle"></div>
                     <div class="topbar-profile-dropdown-user">
+                        {{-- Avatar circle (visible on mobile sheet, hidden on desktop via CSS) --}}
+                        <div class="profile-sheet-avatar">
+                            {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                        </div>
                         <div class="topbar-profile-dropdown-user-label">Logged in as</div>
                         <div class="topbar-profile-dropdown-user-name">{{ Auth::user()->name }}</div>
                         <span class="topbar-profile-badge {{ Auth::user()->isOperator() ? 'topbar-profile-badge-operator' : 'topbar-profile-badge-viewer' }}">
@@ -1186,29 +1256,44 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 })();
 
-// Profile Dropdown Toggle
+// Profile Dropdown / Mobile Bottom Sheet
 (function () {
-    var profileBtn = document.getElementById('profileMenuToggle');
+    var profileBtn      = document.getElementById('profileMenuToggle');
     var profileDropdown = document.getElementById('profileMenuDropdown');
+    var sheetBackdrop   = document.getElementById('profileSheetBackdrop');
     if (!profileBtn || !profileDropdown) return;
+
+    function isMobile() { return window.innerWidth <= 767; }
+
+    function openProfile() {
+        profileDropdown.classList.add('show');
+        if (isMobile() && sheetBackdrop) sheetBackdrop.classList.add('show');
+    }
+
+    function closeProfile() {
+        profileDropdown.classList.remove('show');
+        if (sheetBackdrop) sheetBackdrop.classList.remove('show');
+    }
 
     profileBtn.addEventListener('click', function (e) {
         e.stopPropagation();
-        profileDropdown.classList.toggle('show');
+        profileDropdown.classList.contains('show') ? closeProfile() : openProfile();
     });
 
-    // Close dropdown when clicking outside
+    // Backdrop tap → close
+    if (sheetBackdrop) {
+        sheetBackdrop.addEventListener('click', closeProfile);
+    }
+
+    // Click outside (desktop)
     document.addEventListener('click', function (e) {
         if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
-            profileDropdown.classList.remove('show');
+            closeProfile();
         }
     });
 
-    // Close dropdown when clicking outside on escape key
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-            profileDropdown.classList.remove('show');
-        }
+        if (e.key === 'Escape') closeProfile();
     });
 })();
 </script>
