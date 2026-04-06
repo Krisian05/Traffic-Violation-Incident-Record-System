@@ -659,18 +659,6 @@
     </a>
 </div>
 
-@if($violator->photo)
-<div class="motshow-section">Motorist Photo</div>
-<div class="motshow-card">
-    <div class="motshow-card-body pt-3 text-center">
-        <img src="{{ uploaded_file_url($violator->photo) }}"
-             alt="Motorist photo"
-             class="mob-photo-single motshow-photo-main"
-             data-full="{{ uploaded_file_url($violator->photo) }}"
-             data-caption="{{ $fullName }}">
-    </div>
-</div>
-@endif
 
 <div class="motshow-section">Record Overview</div>
 <div class="motshow-card">
