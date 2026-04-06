@@ -346,20 +346,21 @@
         }
 
         /* ── PROFILE DROPDOWN ── */
-        .profile-sheet-handle { display: none; } /* desktop: hidden */
-        .profile-sheet-avatar  { display: none; } /* desktop: hidden */
-        .profile-sheet-backdrop { display: none; } /* desktop: hidden */
+        /* Elements only shown on mobile sheet — hidden on desktop */
+        .profile-sheet-handle  { display: none; }
+        .profile-sheet-header  { display: none; }
+        .profile-sheet-avatar  { display: none; }
+        .profile-sheet-system  { display: none; }
+        .profile-sheet-divider { display: none; }
+        .profile-sheet-backdrop { display: none; }
 
-        .topbar-profile-menu {
-            position: relative;
-        }
+        .topbar-profile-menu { position: relative; }
 
         .topbar-profile-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
+            width: 36px; height: 36px;
             border-radius: 50%;
             border: 1.5px solid #ddd0be;
             background: #fdf8f0;
@@ -368,12 +369,12 @@
             cursor: pointer;
             transition: background 0.15s, border-color 0.15s;
         }
-
         .topbar-profile-btn:hover {
             background: #f5f0e8;
             border-color: #1d4ed8;
         }
 
+        /* Desktop dropdown */
         .topbar-profile-dropdown {
             position: absolute;
             top: calc(100% + 0.5rem);
@@ -388,57 +389,41 @@
             opacity: 0;
             transform: translateY(-6px);
             transition: opacity 0.15s, transform 0.15s;
+            overflow: hidden;
         }
-
         .topbar-profile-dropdown.show {
             display: block;
             opacity: 1;
             transform: translateY(0);
         }
 
-        .topbar-profile-dropdown-user {
+        /* Desktop: user info section */
+        .profile-sheet-body {
             padding: 0.75rem 1rem;
             border-bottom: 1px solid #f0ebe3;
         }
-
-        .topbar-profile-dropdown-user-label {
-            font-size: 0.7rem;
-            color: #a8a29e;
-            text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 0.3rem;
-        }
-
-        .topbar-profile-dropdown-user-name {
+        .profile-sheet-name {
             font-size: 0.9rem;
             color: #292524;
             font-weight: 700;
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.3rem;
         }
-
-        .topbar-profile-badge {
-            display: inline-block;
+        .profile-sheet-meta { margin-bottom: 0; }
+        .profile-sheet-role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .2rem;
             font-size: 0.65rem;
             font-weight: 600;
-            padding: 0.25rem 0.5rem;
+            padding: 0.22rem 0.5rem;
             border-radius: 0.25rem;
         }
+        .profile-sheet-role-badge.role-operator { background: #1d4ed8; color: #fff; }
+        .profile-sheet-role-badge.role-viewer   { background: #dbeafe; color: #1e40af; }
 
-        .topbar-profile-badge-operator {
-            background: #1d4ed8;
-            color: #fff;
-        }
-
-        .topbar-profile-badge-viewer {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .topbar-profile-dropdown-logout {
-            padding: 0.75rem 1rem;
-        }
-
-        .topbar-profile-logout-btn {
+        /* Desktop: logout section */
+        .profile-sheet-actions { padding: 0.75rem 1rem; }
+        .profile-sheet-logout-btn {
             width: 100%;
             padding: 0.5rem 0.75rem;
             border: 1px solid #fee2e2;
@@ -454,8 +439,7 @@
             justify-content: center;
             gap: 0.4rem;
         }
-
-        .topbar-profile-logout-btn:hover {
+        .profile-sheet-logout-btn:hover {
             background: #fee2e2;
             border-color: #fca5a5;
         }
@@ -840,9 +824,21 @@
                 gap: .5rem;
             }
 
-            /* ── Profile dropdown → bottom sheet on mobile ── */
+            /* ── Profile → bottom sheet on mobile ── */
+
+            /* Backdrop */
+            .profile-sheet-backdrop {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,.5);
+                backdrop-filter: blur(2px);
+                z-index: 1050;
+            }
+            .profile-sheet-backdrop.show { display: block; }
+
+            /* Sheet container */
             .topbar-profile-dropdown {
-                /* Override the absolute-positioned dropdown with a fixed bottom sheet */
                 position: fixed !important;
                 top: auto !important;
                 bottom: 0 !important;
@@ -850,84 +846,134 @@
                 right: 0 !important;
                 min-width: 0 !important;
                 max-width: 100% !important;
-                border-radius: 18px 18px 0 0 !important;
+                border-radius: 22px 22px 0 0 !important;
                 border: none !important;
-                border-top: 1px solid #ddd0be !important;
-                box-shadow: 0 -6px 32px rgba(0,0,0,.18) !important;
+                box-shadow: 0 -4px 48px rgba(0,0,0,.22) !important;
                 z-index: 1051 !important;
-                /* Always rendered but off-screen — slide up/down via transform */
                 display: block !important;
                 transform: translateY(110%) !important;
                 transition: transform .32s cubic-bezier(.4,0,.2,1) !important;
                 opacity: 1 !important;
-                background: #fffdf9 !important;
+                background: #fff !important;
+                overflow: hidden !important;
             }
             .topbar-profile-dropdown.show {
                 transform: translateY(0) !important;
-                display: block !important;
             }
 
             /* Drag handle */
             .profile-sheet-handle {
-                width: 38px; height: 4px;
-                background: #ddd0be;
+                display: block;
+                width: 36px; height: 4px;
+                background: rgba(255,255,255,.45);
                 border-radius: 2px;
-                margin: 10px auto 6px;
+                position: absolute;
+                top: 10px;
+                left: 50%; transform: translateX(-50%);
+                z-index: 2;
             }
 
-            /* Avatar circle in sheet */
+            /* Gradient header band */
+            .profile-sheet-header {
+                display: block;
+                background: linear-gradient(135deg,#1d4ed8,#3b82f6);
+                height: 86px;
+                position: relative;
+            }
+
+            /* Avatar — straddles header/body boundary */
             .profile-sheet-avatar {
-                width: 52px; height: 52px;
+                display: flex !important;
+                position: absolute;
+                bottom: -34px;
+                left: 50%; transform: translateX(-50%);
+                width: 68px; height: 68px;
                 border-radius: 50%;
-                background: linear-gradient(135deg,#1d4ed8,#2563eb);
-                color: #fff;
+                background: #fff;
+                color: #1d4ed8;
+                font-weight: 800;
+                font-size: 1.5rem;
+                align-items: center;
+                justify-content: center;
+                border: 3px solid #fff;
+                box-shadow: 0 4px 18px rgba(29,78,216,.25);
+                z-index: 3;
+                letter-spacing: -.02em;
+            }
+
+            /* Body — name, role, system label */
+            .profile-sheet-body {
+                padding: 44px 1.5rem .75rem;
+                text-align: center;
+                border-bottom: none !important;
+            }
+            .profile-sheet-name {
+                font-size: 1.1rem;
                 font-weight: 700;
-                font-size: 1.15rem;
+                color: #1c1917;
+                margin-bottom: .35rem;
+                line-height: 1.2;
+            }
+            .profile-sheet-meta { margin-bottom: .5rem; }
+            .profile-sheet-role-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: .25rem;
+                font-size: .72rem;
+                font-weight: 600;
+                padding: .3rem .75rem;
+                border-radius: 9999px;
+            }
+            .profile-sheet-role-badge.role-operator {
+                background: #1d4ed8;
+                color: #fff;
+            }
+            .profile-sheet-role-badge.role-viewer {
+                background: #dbeafe;
+                color: #1e40af;
+            }
+            .profile-sheet-system {
+                display: block;
+                font-size: .68rem;
+                color: #a8a29e;
+                font-weight: 500;
+                line-height: 1.4;
+            }
+
+            /* Divider */
+            .profile-sheet-divider {
+                display: block;
+                height: 1px;
+                background: #f0ebe3;
+                margin: .75rem 1.25rem 0;
+            }
+
+            /* Actions */
+            .profile-sheet-actions {
+                padding: .875rem 1.25rem 1.6rem;
+            }
+            .profile-sheet-logout-btn {
+                width: 100%;
+                min-height: 50px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                margin: 0 auto .6rem;
-                flex-shrink: 0;
-            }
-
-            /* Sheet user section — centered */
-            .topbar-profile-dropdown-user {
-                text-align: center !important;
-                padding: .5rem 1.25rem .9rem !important;
-                border-bottom: 1px solid #f0ebe3 !important;
-            }
-            .topbar-profile-dropdown-user-label {
-                font-size: .65rem;
-                margin-bottom: .2rem;
-            }
-            .topbar-profile-dropdown-user-name {
+                gap: .5rem;
+                background: linear-gradient(135deg,#dc2626,#b91c1c);
+                color: #fff;
+                border: none;
+                border-radius: 12px;
                 font-size: .95rem;
-                margin-bottom: .35rem;
+                font-weight: 700;
+                cursor: pointer;
+                letter-spacing: .01em;
+                transition: opacity .15s, transform .1s;
+                box-shadow: 0 4px 14px rgba(220,38,38,.3);
             }
-            .topbar-profile-badge {
-                font-size: .65rem;
-                padding: .22rem .55rem;
+            .profile-sheet-logout-btn:active {
+                opacity: .88;
+                transform: scale(.98);
             }
-
-            /* Sheet logout section */
-            .topbar-profile-dropdown-logout {
-                padding: .75rem 1.25rem 1.25rem !important;
-            }
-            .topbar-profile-logout-btn {
-                min-height: 48px !important;
-                font-size: .9rem !important;
-                border-radius: 10px !important;
-            }
-
-            /* Backdrop */
-            .profile-sheet-backdrop {
-                display: none;
-                position: fixed;
-                inset: 0;
-                background: rgba(0,0,0,.45);
-                z-index: 1050;
-            }
-            .profile-sheet-backdrop.show { display: block; }
 
             /* Confirm modal: full width */
             #confirmModal .modal-dialog { margin: .5rem; max-width: 100%; }
@@ -1041,27 +1087,40 @@
                     <i class="bi bi-person-circle"></i>
                 </button>
                 <div class="topbar-profile-dropdown" id="profileMenuDropdown">
-                    {{-- Mobile drag handle --}}
-                    <div class="profile-sheet-handle"></div>
-                    <div class="topbar-profile-dropdown-user">
-                        {{-- Avatar circle (visible on mobile sheet, hidden on desktop via CSS) --}}
+
+                    {{-- Mobile-only: gradient header with drag handle + avatar --}}
+                    <div class="profile-sheet-header">
+                        <div class="profile-sheet-handle"></div>
                         <div class="profile-sheet-avatar">
                             {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                         </div>
-                        <div class="topbar-profile-dropdown-user-label">Logged in as</div>
-                        <div class="topbar-profile-dropdown-user-name">{{ Auth::user()->name }}</div>
-                        <span class="topbar-profile-badge {{ Auth::user()->isOperator() ? 'topbar-profile-badge-operator' : 'topbar-profile-badge-viewer' }}">
-                            {{ ucfirst(Auth::user()->role) }}
-                        </span>
                     </div>
-                    <div class="topbar-profile-dropdown-logout">
-                        <form method="POST" action="{{ route('logout') }}" class="d-inline w-100">
+
+                    {{-- User info (desktop: plain text block / mobile: centered below avatar) --}}
+                    <div class="profile-sheet-body">
+                        <div class="profile-sheet-name">{{ Auth::user()->name }}</div>
+                        <div class="profile-sheet-meta">
+                            <span class="profile-sheet-role-badge {{ Auth::user()->isOperator() ? 'role-operator' : 'role-viewer' }}">
+                                <i class="bi bi-shield-fill" style="font-size:.6rem;"></i>
+                                {{ ucfirst(Auth::user()->role) }}
+                            </span>
+                        </div>
+                        <div class="profile-sheet-system">Traffic Violation Incident Record System</div>
+                    </div>
+
+                    {{-- Mobile-only divider --}}
+                    <div class="profile-sheet-divider"></div>
+
+                    {{-- Logout --}}
+                    <div class="profile-sheet-actions">
+                        <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="topbar-profile-logout-btn">
+                            <button type="submit" class="profile-sheet-logout-btn">
                                 <i class="bi bi-box-arrow-right"></i> Log out
                             </button>
                         </form>
                     </div>
+
                 </div>
             </div>
         </div>
