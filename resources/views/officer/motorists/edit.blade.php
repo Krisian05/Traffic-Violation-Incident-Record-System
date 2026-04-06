@@ -2,7 +2,7 @@
 @section('title', 'Edit Motorist')
 @section('back_url', route('officer.motorists.show', $violator))
 
-@push('head')
+@push('styles')
 <style>
     /* ── Edit-page overrides ── */
     .edit-section {
