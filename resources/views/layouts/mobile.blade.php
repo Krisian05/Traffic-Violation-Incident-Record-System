@@ -635,87 +635,72 @@
             font-size: .68rem; font-weight: 900; color: #fff; flex-shrink: 0;
         }
 
-        /* ── Dropdown panel ── */
+        /* ── Dropdown panel — minimal ── */
         .mob-user-menu {
-            position: absolute; top: calc(100% + .6rem); right: 0;
-            width: min(300px, calc(100vw - 1.5rem));
-            background: #fff; border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(15,23,42,.22), 0 4px 16px rgba(15,23,42,.1);
+            position: absolute; top: calc(100% + .45rem); right: 0;
+            width: min(190px, calc(100vw - 1rem));
+            background: #fff; border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 18px rgba(15,23,42,.13);
             overflow: hidden; opacity: 0;
-            transform: translateY(-10px) scale(.97);
+            transform: translateY(-6px) scale(.97);
             pointer-events: none;
-            transition: opacity .18s cubic-bezier(.4,0,.2,1), transform .18s cubic-bezier(.4,0,.2,1);
+            transition: opacity .15s, transform .15s;
             z-index: 200;
         }
         .mob-user-menu.open {
             opacity: 1; transform: translateY(0) scale(1); pointer-events: auto;
         }
 
-        /* Header */
+        /* Header — compact flat */
         .mob-user-menu-head {
-            padding: 1.1rem 1.1rem .85rem;
-            background: linear-gradient(135deg,#0f1f5c 0%,#1d4ed8 100%);
-            display: flex; align-items: center; gap: .8rem; position: relative; overflow: hidden;
-        }
-        .mob-user-menu-head::before {
-            content:''; position:absolute; top:-20px; right:-20px;
-            width:100px; height:100px; border-radius:50%;
-            background: rgba(255,255,255,.06); pointer-events:none;
-        }
-        .mob-user-menu-head::after {
-            content:''; position:absolute; bottom:-30px; left:30px;
-            width:80px; height:80px; border-radius:50%;
-            background: rgba(255,255,255,.04); pointer-events:none;
+            padding: .6rem .75rem;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex; align-items: center; gap: .5rem;
         }
 
         .mob-user-menu-avatar {
-            width: 48px; height: 48px; border-radius: 50%;
-            background: linear-gradient(135deg,#60a5fa,#2563eb);
-            border: 2.5px solid rgba(255,255,255,.35);
+            width: 28px; height: 28px; border-radius: 50%;
+            background: linear-gradient(135deg,#1d4ed8,#2563eb);
             color: #fff; display: flex; align-items: center; justify-content: center;
-            font-size: 1.15rem; font-weight: 900; flex-shrink: 0; position: relative; z-index:1;
+            font-size: .68rem; font-weight: 800; flex-shrink: 0;
         }
 
         .mob-user-menu-name {
-            font-size: .92rem; font-weight: 800; color: #fff;
-            line-height: 1.2; white-space: nowrap;
-            overflow: hidden; text-overflow: ellipsis; position: relative; z-index:1;
+            font-size: .78rem; font-weight: 700; color: #0f172a;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            line-height: 1.2;
         }
 
         .mob-user-menu-role {
-            display: inline-flex; align-items: center; gap: .3rem;
-            margin-top: .22rem; font-size: .62rem; font-weight: 700;
-            color: #bfdbfe; text-transform: uppercase; letter-spacing: .07em;
-            position: relative; z-index:1;
+            font-size: .58rem; font-weight: 600;
+            color: #64748b; text-transform: uppercase; letter-spacing: .04em;
+            display: flex; align-items: center; gap: .2rem;
+            margin-top: .1rem;
         }
 
         /* Body */
-        .mob-user-menu-body { padding: .65rem; display: flex; flex-direction: column; gap: .4rem; }
+        .mob-user-menu-body { padding: .3rem; display: flex; flex-direction: column; gap: .15rem; }
 
         .mob-user-menu-action {
-            display: flex; align-items: center; gap: .7rem;
-            width: 100%; min-height: 52px; border-radius: 14px;
-            border: 1.5px solid transparent;
-            font-weight: 700; font-size: .85rem; cursor: pointer;
-            padding: 0 .85rem; transition: background .15s, border-color .15s;
-            text-align: left; background: #f8fafc;
+            display: flex; align-items: center; gap: .5rem;
+            width: 100%; height: 36px; border-radius: 8px;
+            border: none; background: transparent;
+            font-weight: 600; font-size: .78rem; cursor: pointer;
+            padding: 0 .6rem; transition: background .1s;
+            text-align: left;
         }
-        .mob-user-menu-action.action-blue {
-            background: #eff6ff; border-color: #dbeafe; color: #1d4ed8;
-        }
-        .mob-user-menu-action.action-blue:active { background: #dbeafe; }
-
-        .mob-user-menu-action.action-red {
-            background: #fff1f2; border-color: #fecdd3; color: #dc2626;
-        }
-        .mob-user-menu-action.action-red:active { background: #ffe4e6; }
+        .mob-user-menu-action.action-blue { color: #1d4ed8; }
+        .mob-user-menu-action.action-blue:active { background: #eff6ff; }
+        .mob-user-menu-action.action-red { color: #dc2626; }
+        .mob-user-menu-action.action-red:active { background: #fff1f2; }
 
         .mob-user-menu-action-icon {
-            width: 36px; height: 36px; border-radius: 10px;
+            width: 18px; height: 18px;
             display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            background: none;
         }
-        .action-blue .mob-user-menu-action-icon { background: #dbeafe; }
-        .action-red  .mob-user-menu-action-icon { background: #fef2f2; }
 
         .mob-lightbox img {
             max-width: 100%;
@@ -805,17 +790,15 @@
             <div class="mob-user-menu-body">
                 <button type="button" class="mob-user-menu-action action-blue" id="mobChangePasswordAction">
                     <div class="mob-user-menu-action-icon">
-                        <i class="ph-fill ph-lock-key" style="font-size:1.05rem;color:#1d4ed8;"></i>
+                        <i class="ph-fill ph-lock-key" style="font-size:.85rem;"></i>
                     </div>
-                    <span style="flex:1;">Change Password</span>
-                    <i class="ph ph-caret-right" style="opacity:.35;font-size:.8rem;"></i>
+                    <span>Change Password</span>
                 </button>
                 <button type="button" class="mob-user-menu-action action-red" id="mobLogoutAction">
                     <div class="mob-user-menu-action-icon">
-                        <i class="ph-fill ph-sign-out" style="font-size:1.05rem;color:#dc2626;"></i>
+                        <i class="ph-fill ph-sign-out" style="font-size:.85rem;"></i>
                     </div>
-                    <span style="flex:1;">Log Out</span>
-                    <i class="ph ph-caret-right" style="opacity:.35;font-size:.8rem;"></i>
+                    <span>Log Out</span>
                 </button>
             </div>
 
