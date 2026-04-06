@@ -442,7 +442,7 @@
                                 </td>
                                 <td class="text-center">
                                     @php
-                                        $isOverdue = $viol->status === 'pending' && $viol->created_at->lte(now()->subHours(72));
+                                        $isOverdue = $viol->status === 'pending' && $viol->created_at <= now()->subHours(72);
                                         $displayStatus = $isOverdue ? 'overdue' : $viol->status;
                                         $sc = match($displayStatus) {
                                             'overdue'   => ['cls'=>'vlt-status-overdue',  'icon'=>'bi-exclamation-triangle-fill'],

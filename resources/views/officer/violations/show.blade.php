@@ -6,7 +6,7 @@
 
 {{-- ── Status Header ── --}}
 @php
-    $isOverdue = $violation->status === 'pending' && $violation->date_of_violation->lte(now()->subHours(72));
+    $isOverdue = $violation->status === 'pending' && $violation->date_of_violation <= now()->subHours(72);
     $badgeClass = match($violation->status) {
         'settled'   => 'mob-badge-settled',
         'contested' => 'mob-badge-contested',

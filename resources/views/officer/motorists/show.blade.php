@@ -826,7 +826,7 @@
 <div class="motshow-list">
     @forelse($violator->violations as $viol)
         @php
-            $isOverdue = $viol->status === 'pending' && $viol->created_at->lte(now()->subHours(72));
+            $isOverdue = $viol->status === 'pending' && $viol->created_at <= now()->subHours(72);
             $badgeClass = match($viol->status) {
                 'settled' => 'mob-badge-settled',
                 'contested' => 'mob-badge-contested',
