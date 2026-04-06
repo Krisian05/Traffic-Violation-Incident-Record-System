@@ -843,7 +843,7 @@
                 <i class="ph-fill ph-warning-circle"></i>
             </div>
             <div style="flex:1;min-width:0;">
-                <div class="motshow-item-title">{{ $viol->violationType->name ?? '-' }}</div>
+                <div class="motshow-item-title">{{ $viol->violationType?->name ?? '-' }}</div>
                 <div class="motshow-item-meta">
                     {{ $viol->date_of_violation ? $viol->date_of_violation->format('M d, Y') : '-' }}
                     @if($viol->location)

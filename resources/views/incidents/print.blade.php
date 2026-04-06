@@ -195,7 +195,7 @@ tbody tr:nth-child(even) { background: #f9fafb; }
                     </td>
                     <td style="font-family:monospace;">{{ $m->display_plate }}</td>
                     <td>{{ $m->display_vehicle_type }}</td>
-                    <td>{{ $m->chargeType->name ?? '—' }}</td>
+                    <td>{{ $m->chargeType?->name ?? '—' }}</td>
                     <td>{{ $m->notes ?: '—' }}</td>
                 </tr>
                 @endforeach

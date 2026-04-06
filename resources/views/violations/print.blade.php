@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     <link rel="icon" type="image/png" href="{{ asset('images/Balamban.png') }}">
-    <title>Violation Record #{{ $violation->id }} — {{ $violation->violator->full_name }}</title>
+    <title>Violation Record #{{ $violation->id }} — {{ $violation->violator?->full_name ?? '(Deleted Motorist)' }}</title>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { font-size: 12px; }
@@ -240,7 +240,7 @@
                 <div class="info-grid cols-2">
                     <div class="info-cell">
                         <span class="info-lbl">Violation Type</span>
-                        <span class="info-val">{{ $violation->violationType->name }}</span>
+                        <span class="info-val">{{ $violation->violationType?->name ?? '—' }}</span>
                     </div>
                     <div class="info-cell">
                         <span class="info-lbl">Date of Violation</span>
@@ -352,12 +352,12 @@
                 <div class="info-grid cols-1">
                     <div class="info-cell">
                         <span class="info-lbl">Full Name</span>
-                        <span class="info-val" style="font-size:12px;font-weight:900;">{{ $violation->violator->full_name }}</span>
+                        <span class="info-val" style="font-size:12px;font-weight:900;">{{ $violation->violator?->full_name ?? '(Deleted Motorist)' }}</span>
                     </div>
                     <div class="info-cell">
                         <span class="info-lbl">License No.</span>
-                        <span class="info-val mono @if(!$violation->violator->license_number) empty @endif">
-                            {{ $violation->violator->license_number ?: 'Not on file' }}
+                        <span class="info-val mono @if(!$violation->violator?->license_number) empty @endif">
+                            {{ $violation->violator?->license_number ?: 'Not on file' }}
                         </span>
                     </div>
                     <div class="info-cell">

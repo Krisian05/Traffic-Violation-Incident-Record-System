@@ -430,7 +430,7 @@
                                 <td>
                                     <span class="vlt-vtype-pill">
                                         <i class="bi bi-exclamation-octagon-fill me-1" style="font-size:.6rem;"></i>
-                                        {{ $viol->violationType->name }}
+                                        {{ $viol->violationType?->name ?? '—' }}
                                     </span>
                                 </td>
                                 <td style="font-size:.84rem;color:#57534e;">
@@ -469,7 +469,7 @@
                                         @if($viol->status === 'pending')
                                         <button type="button" class="vlt-act-btn vlt-act-settle"
                                             data-id="{{ $viol->id }}"
-                                            data-type="{{ $viol->violationType->name }}"
+                                            data-type="{{ $viol->violationType?->name ?? '' }}"
                                             data-date="{{ $viol->date_of_violation->format('M d, Y') }}"
                                             onclick="openSettleModal(this)">
                                             <i class="bi bi-receipt"></i> Settle

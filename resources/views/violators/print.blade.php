@@ -479,7 +479,7 @@
                     <td>{{ $i + 1 }}</td>
                     <td style="white-space:nowrap;">{{ $viol->date_of_violation->format('M d, Y') }}</td>
                     <td style="font-family:'Courier New',monospace;font-size:10px;">{{ $viol->ticket_number ?? '—' }}</td>
-                    <td style="font-weight:600;">{{ $viol->violationType->name ?? '—' }}</td>
+                    <td style="font-weight:600;">{{ $viol->violationType?->name ?? '—' }}</td>
                     <td>{{ $viol->location ?? '—' }}</td>
                     <td style="font-family:'Courier New',monospace;">
                         @if($viol->vehicle)

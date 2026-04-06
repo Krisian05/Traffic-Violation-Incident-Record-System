@@ -13,11 +13,11 @@
 <div class="mob-card" style="border-left:4px solid #dc2626;">
     <div class="mob-card-body d-flex align-items-center gap-3">
         <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#1d4ed8,#1e40af);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.95rem;font-weight:800;color:#fff;">
-            {{ strtoupper(substr($violation->violator->first_name, 0, 1)) }}
+            {{ strtoupper(substr($violation->violator?->first_name ?? '?', 0, 1)) }}
         </div>
         <div>
             <div style="font-size:.62rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Editing violation for</div>
-            <div style="font-size:.95rem;font-weight:800;color:#0f172a;">{{ $violation->violator->last_name }}, {{ $violation->violator->first_name }}</div>
+            <div style="font-size:.95rem;font-weight:800;color:#0f172a;">{{ $violation->violator?->last_name ?? '(Deleted)' }}, {{ $violation->violator?->first_name ?? '' }}</div>
         </div>
     </div>
 </div>
@@ -99,7 +99,7 @@
                     <option value="">— None / not linked —</option>
                     @foreach($relatedIncidents as $incident)
                     <option value="{{ $incident->id }}" @selected(old('incident_id', $violation->incident_id) == $incident->id)>
-                        {{ $incident->incident_number }} — {{ optional($incident->date_of_incident)->format('M d, Y') ?? 'No date' }}
+                        {{ $incident->incident_number }} — {{ $incident->date_of_incident?->format('M d, Y') ?? 'No date' }}
                     </option>
                     @endforeach
                 </select>
@@ -136,7 +136,7 @@
                     <optgroup label="Driver's own vehicles">
                         @foreach($ownVehicles as $veh)
                         <option value="{{ $veh->id }}"
-                                data-owner="{{ $veh->owner_name ?: $violation->violator->full_name }}"
+                                data-owner="{{ $veh->owner_name ?: ($violation->violator?->full_name ?? '') }}"
                                 @selected(old('vehicle_id', $violation->vehicle_id) == $veh->id)>
                             {{ $veh->plate_number }}
                             @if($veh->make || $veh->model) — {{ trim($veh->make . ' ' . $veh->model) }} @endif

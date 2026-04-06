@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Edit Violation #' . $violation->id)
-@section('topbar-sub', 'Editing record for: ' . $violation->violator->full_name)
+@section('topbar-sub', 'Editing record for: ' . ($violation->violator?->full_name ?? '(Deleted Motorist)'))
 
 @section('breadcrumbs')
     <li class="breadcrumb-item"><a href="{{ route('violations.index') }}" style="color:#78716c;">Violations</a></li>
@@ -79,7 +79,7 @@
     </div>
     <div>
         <h5 class="mb-0 fw-700" style="color:#1c1917;">Edit Violation #{{ $violation->id }}</h5>
-        <div style="font-size:.8rem;color:#78716c;">Modifying violation record for <strong>{{ $violation->violator->full_name }}</strong></div>
+        <div style="font-size:.8rem;color:#78716c;">Modifying violation record for <strong>{{ $violation->violator?->full_name ?? '(Deleted Motorist)' }}</strong></div>
     </div>
 </div>
 
@@ -217,7 +217,7 @@
                                 <optgroup label="Driver's own vehicles">
                                     @foreach($driverVehicles as $vehicle)
                                         <option value="{{ $vehicle->id }}"
-                                                data-owner="{{ $violation->violator->full_name }}"
+                                                data-owner="{{ $violation->violator?->full_name ?? '' }}"
                                                 {{ old('vehicle_id', $violation->vehicle_id) == $vehicle->id ? 'selected' : '' }}>
                                             {{ $vehicle->plate_number }}{{ $vehicle->vehicle_type ? ' ('.$vehicle->vehicle_type.')' : '' }}
                                         </option>
@@ -530,11 +530,11 @@
                     <div class="rounded-circle d-flex align-items-center justify-content-center fw-700 text-white"
                          style="width:46px;height:46px;flex-shrink:0;font-size:1.1rem;
                                 background:linear-gradient(135deg,#6d28d9,#4c1d95);">
-                        {{ strtoupper(substr($violation->violator->first_name, 0, 1)) }}{{ strtoupper(substr($violation->violator->last_name, 0, 1)) }}
+                        {{ strtoupper(substr($violation->violator?->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($violation->violator?->last_name ?? '', 0, 1)) }}
                     </div>
                     <div>
-                        <div class="fw-600" style="color:#1c1917;font-size:.9rem;">{{ $violation->violator->full_name }}</div>
-                        @if($violation->violator->license_number)
+                        <div class="fw-600" style="color:#1c1917;font-size:.9rem;">{{ $violation->violator?->full_name ?? '(Deleted Motorist)' }}</div>
+                        @if($violation->violator?->license_number)
                             <div style="font-size:.75rem;color:#78716c;">
                                 <i class="bi bi-card-text me-1"></i>{{ $violation->violator->license_number }}
                             </div>

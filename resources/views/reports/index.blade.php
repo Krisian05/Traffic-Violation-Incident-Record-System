@@ -745,7 +745,7 @@
                     <td>
                         @foreach($row['violations'] as $viol)
                             <span class="rpt-vtype-pill {{ $row['count'] > 1 ? 'rpt-vtype-red' : 'rpt-vtype-slate' }} me-1 mb-1">
-                                {{ $viol->violationType->name }}
+                                {{ $viol->violationType?->name ?? '—' }}
                                 <span class="rpt-vtype-count">{{ $viol->date_of_violation->format('M d') }}</span>
                             </span>
                         @endforeach
@@ -818,15 +818,19 @@
                 <tr class="rpt-drow">
                     <td style="padding-left:1.4rem;color:#a8a29e;font-size:.75rem;font-weight:600;">{{ $i + 1 }}</td>
                     <td>
+                        @if($ov->violator)
                         <a href="{{ route('violators.show', $ov->violator) }}" class="rpt-violator-link">
                             {{ $ov->violator->full_name }}
                         </a>
+                        @else
+                        <span class="rpt-violator-link" style="color:#a8a29e;">(Deleted Motorist)</span>
+                        @endif
                     </td>
                     <td>
-                        <span class="rpt-license">{{ $ov->violator->license_number ?? '—' }}</span>
+                        <span class="rpt-license">{{ $ov->violator?->license_number ?? '—' }}</span>
                     </td>
                     <td>
-                        <span class="rpt-type-name">{{ $ov->violationType->name ?? '—' }}</span>
+                        <span class="rpt-type-name">{{ $ov->violationType?->name ?? '—' }}</span>
                     </td>
                     <td>
                         <span class="rpt-license">

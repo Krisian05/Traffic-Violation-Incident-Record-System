@@ -25,7 +25,7 @@
             <div style="flex:1;min-width:0;padding-right:.75rem;">
                 <div style="font-size:.62rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.07em;">Violation Type</div>
                 <div style="font-size:1rem;font-weight:800;color:#0f172a;line-height:1.25;margin-top:.15rem;">
-                    {{ $violation->violationType->name ?? '—' }}
+                    {{ $violation->violationType?->name ?? '—' }}
                 </div>
                 @if($violation->violationType && $violation->violationType->fine_amount > 0)
                 <div style="display:inline-flex;align-items:center;gap:.3rem;background:#fef2f2;border:1px solid #fca5a5;border-radius:20px;padding:.2rem .65rem;margin-top:.5rem;">
