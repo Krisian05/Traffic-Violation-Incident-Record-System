@@ -17,8 +17,7 @@ class ClearDemoData extends Command
             return 0;
         }
 
-        DB::statement('SET session_replication_role = replica'); // disable FK checks on PG
-
+        // Delete in FK-safe order (children before parents)
         DB::table('incident_motorists')->delete();
         DB::table('incident_media')->delete();
         DB::table('incidents')->delete();
@@ -28,8 +27,6 @@ class ClearDemoData extends Command
         DB::table('vehicles')->delete();
         DB::table('violators')->delete();
         DB::table('users')->where('username', '!=', 'admin')->delete();
-
-        DB::statement('SET session_replication_role = DEFAULT');
 
         $this->info('Done. Demo data cleared. Admin, violation types, and charge types are intact.');
         return 0;
