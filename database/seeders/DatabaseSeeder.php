@@ -69,7 +69,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($violationTypes as $type) {
-            ViolationType::updateOrCreate(
+            ViolationType::firstOrCreate(
                 ['name' => $type['name']],
                 $type
             );
@@ -108,7 +108,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($chargeTypes as $charge) {
-            IncidentChargeType::updateOrCreate(
+            IncidentChargeType::firstOrCreate(
                 ['name' => $charge['name']],
                 $charge
             );
