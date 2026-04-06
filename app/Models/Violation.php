@@ -99,6 +99,6 @@ class Violation extends Model
     /** True if this violation instance is overdue */
     public function isOverdue(): bool
     {
-        return $this->status === 'pending' && $this->date_of_violation->lte(now()->subHours(72));
+        return $this->status === 'pending' && $this->date_of_violation <= now()->subHours(72);
     }
 }
