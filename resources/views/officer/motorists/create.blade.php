@@ -40,16 +40,10 @@
 
             <div class="mb-4 text-center">
                 <div id="photoPreview"
-                     onclick="document.getElementById('photoInput').click()"
-                     style="width:96px;height:96px;border-radius:50%;background:#eff6ff;border:2.5px dashed #93c5fd;display:flex;align-items:center;justify-content:center;margin:0 auto .65rem;overflow:hidden;cursor:pointer;transition:border-color .15s;">
+                     style="width:96px;height:96px;border-radius:50%;background:#eff6ff;border:2.5px dashed #93c5fd;display:flex;align-items:center;justify-content:center;margin:0 auto .65rem;overflow:hidden;transition:border-color .15s;">
                     <i class="ph-fill ph-user" style="font-size:2.4rem;color:#93c5fd;"></i>
                 </div>
-                <input type="file" name="photo" id="photoInput" accept="image/*"
-                       class="d-none @error('photo') is-invalid @enderror">
-                <button type="button" onclick="document.getElementById('photoInput').click()"
-                        style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem 1rem;border-radius:8px;border:1.5px solid #93c5fd;background:#eff6ff;color:#1d4ed8;font-size:.8rem;font-weight:600;cursor:pointer;">
-                    <i class="ph ph-camera"></i> Take / Upload Photo
-                </button>
+                <div id="picker-photo" class="justify-content-center"></div>
                 <span class="mob-hint d-block text-center mt-1">JPG or PNG, max 5 MB. Clear front-facing photo.</span>
                 @error('photo')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
             </div>
@@ -302,6 +296,10 @@
 
 @push('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+    initPhotoPicker('picker-photo', 'photo', { multiple: false });
+});
+
 (function () {
 
     /* ── Helpers ── */
@@ -396,20 +394,21 @@
         });
     }
 
-    /* ── Photo preview ── */
-    document.getElementById('photoInput').addEventListener('change', function () {
+    /* ── Photo preview — wire to both picker inputs after init ── */
+    document.addEventListener('change', function (e) {
+        if (!e.target.matches('.photo-picker-input[name="photo"]')) return;
         var preview = document.getElementById('photoPreview');
-        if (this.files && this.files[0]) {
-            if (this.files[0].size > 5 * 1024 * 1024) {
+        if (e.target.files && e.target.files[0]) {
+            if (e.target.files[0].size > 5 * 1024 * 1024) {
                 alert('Photo exceeds 5 MB. Please choose a smaller file.');
-                this.value = '';
+                e.target.value = '';
                 return;
             }
             var reader = new FileReader();
-            reader.onload = function (e) {
-                preview.innerHTML = '<img src="' + e.target.result + '" style="width:96px;height:96px;object-fit:cover;border-radius:50%;">';
+            reader.onload = function (ev) {
+                preview.innerHTML = '<img src="' + ev.target.result + '" style="width:96px;height:96px;object-fit:cover;border-radius:50%;">';
             };
-            reader.readAsDataURL(this.files[0]);
+            reader.readAsDataURL(e.target.files[0]);
         }
     });
 

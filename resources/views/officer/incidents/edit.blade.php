@@ -109,9 +109,8 @@
 
             <div class="mb-4">
                 <label class="mob-label">Upload Scene Photos</label>
-                <input type="file" name="incident_photos[]" accept="image/*" multiple
-                       class="form-control mob-input @error('incident_photos') is-invalid @enderror">
-                @error('incident_photos')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div id="picker-incident-photos"></div>
+                @error('incident_photos')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
             </div>
 
             <button type="submit" class="btn btn-primary w-100" style="border-radius:12px;font-weight:700;padding:.75rem;">
@@ -120,5 +119,13 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    initPhotoPicker('picker-incident-photos', 'incident_photos[]', { multiple: true });
+});
+</script>
+@endpush
 
 @endsection

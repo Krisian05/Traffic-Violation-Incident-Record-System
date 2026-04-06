@@ -242,7 +242,7 @@
                 '<span>Add Photo</span>' +
                 '<span style="font-size:.6rem;color:#c0cad8;">' + files.length + ' / ' + MAX + '</span>' +
                 '</div>';
-            add.addEventListener('click', function () { fileInput.click(); });
+            add.addEventListener('click', function () { showVehPhotoPicker(); });
             grid.appendChild(add);
         }
 
@@ -276,6 +276,52 @@
         files.splice(idx, 1);
         renderGrid();
     });
+
+    // Camera / Gallery picker for vehicle photos
+    const camInput = document.createElement('input');
+    camInput.type = 'file'; camInput.accept = 'image/*'; camInput.capture = 'environment'; camInput.multiple = true; camInput.className = 'd-none';
+    document.body.appendChild(camInput);
+
+    const galInput = document.createElement('input');
+    galInput.type = 'file'; galInput.accept = 'image/*'; galInput.multiple = true; galInput.className = 'd-none';
+    document.body.appendChild(galInput);
+
+    function showVehPhotoPicker() {
+        // Show a small bottom sheet
+        var existing = document.getElementById('veh-picker-sheet');
+        if (existing) { existing.remove(); return; }
+        var sheet = document.createElement('div');
+        sheet.id = 'veh-picker-sheet';
+        sheet.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#fff;border-radius:18px 18px 0 0;padding:1.25rem;box-shadow:0 -4px 24px rgba(0,0,0,.15);display:flex;gap:.75rem;';
+        sheet.innerHTML =
+            '<button type="button" id="veh-cam-btn" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border-radius:12px;border:1.5px solid #93c5fd;background:#eff6ff;color:#1d4ed8;font-size:.8rem;font-weight:700;cursor:pointer;">' +
+            '<i class="ph ph-camera" style="font-size:1.5rem;"></i>Camera</button>' +
+            '<button type="button" id="veh-gal-btn" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border-radius:12px;border:1.5px solid #86efac;background:#f0fdf4;color:#15803d;font-size:.8rem;font-weight:700;cursor:pointer;">' +
+            '<i class="ph ph-images" style="font-size:1.5rem;"></i>Gallery</button>';
+        document.body.appendChild(sheet);
+        document.getElementById('veh-cam-btn').addEventListener('click', function () { sheet.remove(); camInput.click(); });
+        document.getElementById('veh-gal-btn').addEventListener('click', function () { sheet.remove(); galInput.click(); });
+        // Dismiss on outside tap
+        setTimeout(function () {
+            document.addEventListener('click', function dismiss(e) {
+                if (!sheet.contains(e.target)) { sheet.remove(); document.removeEventListener('click', dismiss); }
+            });
+        }, 100);
+    }
+
+    function handleVehFiles(input) {
+        var newFiles = Array.from(input.files);
+        newFiles.forEach(function (f) {
+            if (files.length >= MAX) return;
+            if (f.size > 10 * 1024 * 1024) { alert(f.name + ' exceeds 10 MB and was skipped.'); return; }
+            files.push(f);
+        });
+        input.value = '';
+        renderGrid();
+    }
+
+    camInput.addEventListener('change', function () { handleVehFiles(this); });
+    galInput.addEventListener('change', function () { handleVehFiles(this); });
 
     // File picker change
     fileInput.addEventListener('change', function () {

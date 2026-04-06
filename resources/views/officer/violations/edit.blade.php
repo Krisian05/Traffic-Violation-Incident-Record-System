@@ -203,8 +203,8 @@
                     </div>
                     <div class="col-12">
                         <label class="mob-label">Add Vehicle Photos</label>
-                        <input type="file" name="photos[]" accept="image/*" multiple class="form-control mob-input @error('photos') is-invalid @enderror">
-                        @error('photos')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div id="picker-veh-photos"></div>
+                        @error('photos')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
                         <span class="mob-hint">You can add more photos until the 4-photo limit is reached.</span>
                     </div>
                 </div>
@@ -238,9 +238,8 @@
 
             <div class="mb-3">
                 <label class="mob-label">{{ $violation->citation_ticket_photo ? 'Replace' : 'Upload' }} Citation Ticket Photo</label>
-                <input type="file" name="citation_ticket_photo" accept="image/*"
-                       class="form-control mob-input @error('citation_ticket_photo') is-invalid @enderror">
-                @error('citation_ticket_photo')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div id="picker-citation"></div>
+                @error('citation_ticket_photo')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
             </div>
 
             <div id="settlement-fields" @if(old('status', $violation->status) !== 'settled') style="display:none;" @endif>
@@ -278,9 +277,8 @@
 
                 <div class="mb-3">
                     <label class="mob-label">{{ $violation->receipt_photo ? 'Replace' : 'Upload' }} Receipt Photo</label>
-                    <input type="file" name="receipt_photo" accept="image/*"
-                           class="form-control mob-input @error('receipt_photo') is-invalid @enderror">
-                    @error('receipt_photo')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div id="picker-receipt"></div>
+                    @error('receipt_photo')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
                 </div>
             </div>
 
@@ -306,6 +304,12 @@
 
 @push('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+    initPhotoPicker('picker-veh-photos', 'photos',                { multiple: true  });
+    initPhotoPicker('picker-citation',   'citation_ticket_photo', { multiple: false });
+    initPhotoPicker('picker-receipt',    'receipt_photo',         { multiple: false });
+});
+
 (function () {
     const vehicleSelect = document.getElementById('vehicle_id');
     const vehicleManual = document.getElementById('vehicle-manual');

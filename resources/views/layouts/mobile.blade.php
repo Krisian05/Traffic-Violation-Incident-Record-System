@@ -948,5 +948,93 @@ document.addEventListener('keydown', function (e) {
 });
 </script>
 @stack('scripts')
+
+{{-- ── Global Photo Picker Helper ── --}}
+<style>
+.mob-photo-picker { display:flex; gap:.5rem; }
+.mob-photo-picker-btn {
+    flex:1; display:flex; align-items:center; justify-content:center; gap:.4rem;
+    padding:.55rem .5rem; border-radius:10px; font-size:.78rem; font-weight:700;
+    cursor:pointer; border:1.5px solid; transition:background .15s;
+}
+.mob-photo-picker-btn.camera {
+    background:#eff6ff; border-color:#93c5fd; color:#1d4ed8;
+}
+.mob-photo-picker-btn.gallery {
+    background:#f0fdf4; border-color:#86efac; color:#15803d;
+}
+.mob-photo-picker-btn i { font-size:1rem; }
+.mob-photo-picker-name {
+    font-size:.68rem; color:#64748b; margin-top:.3rem;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+</style>
+<script>
+/**
+ * initPhotoPicker(wrapperId, inputName, options)
+ * Renders Camera / Gallery buttons for a hidden file input.
+ *
+ * options: { multiple: bool, accept: string, label: string }
+ */
+function initPhotoPicker(wrapperId, inputName, options = {}) {
+    const wrapper = document.getElementById(wrapperId);
+    if (!wrapper) return;
+
+    const accept   = options.accept   || 'image/*';
+    const multiple = options.multiple || false;
+
+    // Hidden inputs (two: one for camera, one for gallery)
+    const camInput = document.createElement('input');
+    camInput.type    = 'file';
+    camInput.name    = inputName + (multiple ? '[]' : '');
+    camInput.accept  = accept;
+    camInput.capture = 'environment';
+    if (multiple) camInput.multiple = true;
+    camInput.className = 'd-none photo-picker-input';
+
+    const galInput = document.createElement('input');
+    galInput.type    = 'file';
+    galInput.name    = inputName + (multiple ? '[]' : '');
+    galInput.accept  = accept;
+    if (multiple) galInput.multiple = true;
+    galInput.className = 'd-none photo-picker-input';
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'mob-photo-picker-name';
+
+    const updateName = (input) => {
+        if (!input.files || !input.files.length) return;
+        nameEl.textContent = input.files.length > 1
+            ? input.files.length + ' files selected'
+            : input.files[0].name;
+    };
+
+    camInput.addEventListener('change', () => updateName(camInput));
+    galInput.addEventListener('change', () => updateName(galInput));
+
+    const picker = document.createElement('div');
+    picker.className = 'mob-photo-picker';
+
+    const camBtn = document.createElement('button');
+    camBtn.type      = 'button';
+    camBtn.className = 'mob-photo-picker-btn camera';
+    camBtn.innerHTML = '<i class="ph ph-camera"></i> Camera';
+    camBtn.addEventListener('click', () => camInput.click());
+
+    const galBtn = document.createElement('button');
+    galBtn.type      = 'button';
+    galBtn.className = 'mob-photo-picker-btn gallery';
+    galBtn.innerHTML = '<i class="ph ph-images"></i> Gallery';
+    galBtn.addEventListener('click', () => galInput.click());
+
+    picker.appendChild(camBtn);
+    picker.appendChild(galBtn);
+
+    wrapper.appendChild(camInput);
+    wrapper.appendChild(galInput);
+    wrapper.appendChild(picker);
+    wrapper.appendChild(nameEl);
+}
+</script>
 </body>
 </html>

@@ -210,16 +210,14 @@
 
             <div class="mb-3">
                 <label class="mob-label">Citation Ticket Photo</label>
-                <input type="file" name="citation_ticket_photo" accept="image/*"
-                       class="form-control mob-input @error('citation_ticket_photo') is-invalid @enderror">
-                @error('citation_ticket_photo')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div id="picker-citation"></div>
+                @error('citation_ticket_photo')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
             </div>
 
             <div class="mb-3">
                 <label class="mob-label">Vehicle Photos <span style="font-size:.68rem;color:#94a3b8;">(up to 4)</span></label>
-                <input type="file" name="photos[]" accept="image/*" multiple
-                       class="form-control mob-input @error('photos') is-invalid @enderror">
-                @error('photos')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div id="picker-veh-photos"></div>
+                @error('photos')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
             </div>
 
             <div class="mb-4">
@@ -245,6 +243,11 @@
 
 @push('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+    initPhotoPicker('picker-citation',   'citation_ticket_photo', { multiple: false });
+    initPhotoPicker('picker-veh-photos', 'photos',                { multiple: true  });
+});
+
 document.getElementById('violation_type_id').addEventListener('change', function () {
     var opt = this.options[this.selectedIndex];
     var fine = opt.dataset.fine;

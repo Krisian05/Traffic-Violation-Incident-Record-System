@@ -122,8 +122,8 @@
 
             <div class="mb-3">
                 <label class="mob-label">Incident Photos <span style="font-size:.68rem;color:#94a3b8;">(up to 6)</span></label>
-                <input type="file" name="incident_photos[]" id="incidentPhotos" accept="image/*" multiple class="form-control mob-input @error('incident_photos') is-invalid @enderror">
-                @error('incident_photos')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div id="picker-incident-photos"></div>
+                @error('incident_photos')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
             </div>
 
             <div class="mob-form-divider">
@@ -158,6 +158,10 @@
 
 @push('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+    initPhotoPicker('picker-incident-photos', 'incident_photos[]', { multiple: true });
+});
+
 (function () {
     const pageData = document.getElementById('incident-page-data');
     const oldMotorists = JSON.parse(pageData.dataset.oldMotorists || '[]');
@@ -270,8 +274,14 @@
                 </div>
 
                 <div class="row g-2 mb-3">
-                    <div class="col-6"><label class="mob-label">ID / License Photo</label><input type="file" name="motorist_id_photos[${index}]" accept="image/*" class="form-control mob-input"></div>
-                    <div class="col-6"><label class="mob-label">Vehicle Photos</label><input type="file" name="motorist_photos[${index}][]" accept="image/*" multiple class="form-control mob-input"></div>
+                    <div class="col-6">
+                        <label class="mob-label">ID / License Photo</label>
+                        <div id="picker-id-${index}" class="picker-placeholder" data-name="motorist_id_photos[${index}]" data-multiple="false"></div>
+                    </div>
+                    <div class="col-6">
+                        <label class="mob-label">Vehicle Photos</label>
+                        <div id="picker-vp-${index}" class="picker-placeholder" data-name="motorist_photos[${index}][]" data-multiple="true"></div>
+                    </div>
                 </div>
 
                 <div class="row g-2">
@@ -343,11 +353,15 @@
 
     function addRow(values = {}) {
         const wrapper = document.createElement('div');
-        wrapper.innerHTML = buildMotoristRow(motoristIndex++, values);
+        const idx = motoristIndex++;
+        wrapper.innerHTML = buildMotoristRow(idx, values);
         const row = wrapper.firstElementChild;
         container.appendChild(row);
         attachRow(row);
         renumberRows();
+        // Init photo pickers for this row
+        initPhotoPicker('picker-id-' + idx, 'motorist_id_photos[' + idx + ']',   { multiple: false });
+        initPhotoPicker('picker-vp-' + idx, 'motorist_photos[' + idx + '][]',     { multiple: true  });
     }
 
     oldMotorists.forEach((motorist) => addRow(motorist));

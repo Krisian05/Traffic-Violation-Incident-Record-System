@@ -247,9 +247,8 @@
             @endif
 
             <div class="mb-4">
-                <input type="file" name="photo" accept="image/*"
-                       class="form-control mob-input @error('photo') is-invalid @enderror">
-                @error('photo')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div id="picker-photo"></div>
+                @error('photo')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
             </div>
 
             <button type="submit" class="mob-btn-primary mb-2">
@@ -261,5 +260,13 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    initPhotoPicker('picker-photo', 'photo', { multiple: false });
+});
+</script>
+@endpush
 
 @endsection
