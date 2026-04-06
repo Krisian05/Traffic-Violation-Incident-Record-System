@@ -169,26 +169,26 @@
 
             {{-- Height / Weight / Valid ID --}}
             <div class="col-md-3">
-                <label class="form-label">Height (cm)</label>
+                <label class="form-label">Height</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-arrow-up-short" style="color:#57534e;font-size:1rem;"></i></span>
-                    <input type="number" name="height" id="height" min="50" max="250" step="0.1"
+                    <input type="text" name="height" id="height"
                         class="form-control @error('height') is-invalid @enderror"
-                        value="{{ old('height') }}" placeholder="e.g. 165">
+                        value="{{ old('height') }}" placeholder='e.g. 5&apos;8"'>
                     @error('height')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <small class="vlt-hint"><i class="bi bi-info-circle"></i> Enter in centimeters</small>
+                <small class="vlt-hint"><i class="bi bi-info-circle"></i> e.g. 5'8" or 172 cm</small>
             </div>
             <div class="col-md-3">
-                <label class="form-label">Weight (kg)</label>
+                <label class="form-label">Weight</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-speedometer2" style="color:#0d9488;font-size:.8rem;"></i></span>
-                    <input type="number" name="weight" id="weight" min="10" max="300" step="0.1"
+                    <input type="text" name="weight" id="weight"
                         class="form-control @error('weight') is-invalid @enderror"
-                        value="{{ old('weight') }}" placeholder="e.g. 60">
+                        value="{{ old('weight') }}" placeholder="e.g. 65 kg">
                     @error('weight')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <small class="vlt-hint"><i class="bi bi-info-circle"></i> Enter in kilograms</small>
+                <small class="vlt-hint"><i class="bi bi-info-circle"></i> e.g. 65 kg or 143 lbs</small>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Valid ID</label>

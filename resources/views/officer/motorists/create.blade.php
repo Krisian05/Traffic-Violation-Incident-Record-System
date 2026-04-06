@@ -149,17 +149,17 @@
 
             <div class="row g-2 mb-3">
                 <div class="col-6">
-                    <label class="mob-label">Height (cm)</label>
-                    <input type="number" name="height" value="{{ old('height') }}" min="50" max="250" step="0.1"
+                    <label class="mob-label">Height</label>
+                    <input type="text" name="height" value="{{ old('height') }}"
                            class="form-control mob-input @error('height') is-invalid @enderror"
-                           placeholder="e.g. 165">
+                           placeholder='e.g. 5&apos;8"'>
                     @error('height')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-6">
-                    <label class="mob-label">Weight (kg)</label>
-                    <input type="number" name="weight" value="{{ old('weight') }}" min="10" max="300" step="0.1"
+                    <label class="mob-label">Weight</label>
+                    <input type="text" name="weight" value="{{ old('weight') }}"
                            class="form-control mob-input @error('weight') is-invalid @enderror"
-                           placeholder="e.g. 60">
+                           placeholder="e.g. 65 kg">
                     @error('weight')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
