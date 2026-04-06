@@ -614,148 +614,108 @@
             pointer-events: all;
         }
 
-        .mob-user-menu-wrap {
-            position: relative;
-            flex-shrink: 0;
-        }
+        /* ── User button (topbar) ── */
+        .mob-user-menu-wrap { position: relative; flex-shrink: 0; }
 
         .mob-user-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: .4rem;
-            height: 36px;
-            border-radius: 10px;
-            border: none;
-            background: rgba(255,255,255,.15);
-            color: #fff;
-            font-size: .78rem;
-            font-weight: 700;
-            padding: 0 .65rem;
-            cursor: pointer;
-            transition: background .15s;
-            flex-shrink: 0;
-            max-width: 150px;
+            display: inline-flex; align-items: center; gap: .4rem;
+            height: 36px; border-radius: 999px; border: 1.5px solid rgba(255,255,255,.3);
+            background: rgba(255,255,255,.12); color: #fff;
+            font-size: .78rem; font-weight: 700; padding: 0 .7rem 0 .35rem;
+            cursor: pointer; transition: background .15s, border-color .15s;
+            flex-shrink: 0; max-width: 150px; backdrop-filter: blur(4px);
         }
-
-        .mob-user-btn:hover {
-            background: rgba(255,255,255,.25);
-        }
+        .mob-user-btn:active { background: rgba(255,255,255,.22); }
 
         .mob-user-avatar {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: rgba(255,255,255,.25);
-            border: 1.5px solid rgba(255,255,255,.35);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: .68rem;
-            font-weight: 800;
-            flex-shrink: 0;
+            width: 26px; height: 26px; border-radius: 50%;
+            background: linear-gradient(135deg,#60a5fa,#1d4ed8);
+            border: 2px solid rgba(255,255,255,.5);
+            display: flex; align-items: center; justify-content: center;
+            font-size: .68rem; font-weight: 900; color: #fff; flex-shrink: 0;
         }
 
+        /* ── Dropdown panel ── */
         .mob-user-menu {
-            position: absolute;
-            top: calc(100% + .55rem);
-            right: 0;
-            width: min(280px, calc(100vw - 1.75rem));
-            background: #fff;
-            border: 1px solid rgba(15,23,42,.08);
-            border-radius: 18px;
-            box-shadow: 0 16px 40px rgba(15,23,42,.2);
-            overflow: hidden;
-            opacity: 0;
-            transform: translateY(-8px) scale(.98);
+            position: absolute; top: calc(100% + .6rem); right: 0;
+            width: min(300px, calc(100vw - 1.5rem));
+            background: #fff; border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(15,23,42,.22), 0 4px 16px rgba(15,23,42,.1);
+            overflow: hidden; opacity: 0;
+            transform: translateY(-10px) scale(.97);
             pointer-events: none;
-            transition: opacity .16s ease, transform .16s ease;
+            transition: opacity .18s cubic-bezier(.4,0,.2,1), transform .18s cubic-bezier(.4,0,.2,1);
             z-index: 200;
         }
-
         .mob-user-menu.open {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            pointer-events: auto;
+            opacity: 1; transform: translateY(0) scale(1); pointer-events: auto;
         }
 
+        /* Header */
         .mob-user-menu-head {
-            background: linear-gradient(160deg,#0f2167 0%,#1d4ed8 60%,#1e40af 100%);
-            padding: .95rem 1rem;
-            display: flex;
-            align-items: center;
-            gap: .75rem;
+            padding: 1.1rem 1.1rem .85rem;
+            background: linear-gradient(135deg,#0f1f5c 0%,#1d4ed8 100%);
+            display: flex; align-items: center; gap: .8rem; position: relative; overflow: hidden;
+        }
+        .mob-user-menu-head::before {
+            content:''; position:absolute; top:-20px; right:-20px;
+            width:100px; height:100px; border-radius:50%;
+            background: rgba(255,255,255,.06); pointer-events:none;
+        }
+        .mob-user-menu-head::after {
+            content:''; position:absolute; bottom:-30px; left:30px;
+            width:80px; height:80px; border-radius:50%;
+            background: rgba(255,255,255,.04); pointer-events:none;
         }
 
         .mob-user-menu-avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background: rgba(255,255,255,.18);
-            border: 2px solid rgba(255,255,255,.28);
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            font-weight: 800;
-            flex-shrink: 0;
+            width: 48px; height: 48px; border-radius: 50%;
+            background: linear-gradient(135deg,#60a5fa,#2563eb);
+            border: 2.5px solid rgba(255,255,255,.35);
+            color: #fff; display: flex; align-items: center; justify-content: center;
+            font-size: 1.15rem; font-weight: 900; flex-shrink: 0; position: relative; z-index:1;
         }
 
         .mob-user-menu-name {
-            font-size: .9rem;
-            font-weight: 800;
-            color: #fff;
-            line-height: 1.2;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: .92rem; font-weight: 800; color: #fff;
+            line-height: 1.2; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; position: relative; z-index:1;
         }
 
         .mob-user-menu-role {
-            font-size: .62rem;
-            color: rgba(255,255,255,.72);
-            text-transform: uppercase;
-            letter-spacing: .08em;
-            font-weight: 700;
-            margin-top: .12rem;
+            display: inline-flex; align-items: center; gap: .3rem;
+            margin-top: .22rem; font-size: .62rem; font-weight: 700;
+            color: #bfdbfe; text-transform: uppercase; letter-spacing: .07em;
+            position: relative; z-index:1;
         }
 
-        .mob-user-menu-body {
-            padding: .75rem;
-        }
+        /* Body */
+        .mob-user-menu-body { padding: .65rem; display: flex; flex-direction: column; gap: .4rem; }
 
         .mob-user-menu-action {
-            display: flex;
-            align-items: center;
-            gap: .75rem;
-            width: 100%;
-            min-height: 50px;
-            border-radius: 14px;
-            background: #fff1f2;
-            border: 1.5px solid #fecdd3;
-            color: #dc2626;
-            font-weight: 700;
-            font-size: .9rem;
-            cursor: pointer;
-            padding: 0 .9rem;
-            transition: background .15s;
-            text-align: left;
+            display: flex; align-items: center; gap: .7rem;
+            width: 100%; min-height: 52px; border-radius: 14px;
+            border: 1.5px solid transparent;
+            font-weight: 700; font-size: .85rem; cursor: pointer;
+            padding: 0 .85rem; transition: background .15s, border-color .15s;
+            text-align: left; background: #f8fafc;
         }
+        .mob-user-menu-action.action-blue {
+            background: #eff6ff; border-color: #dbeafe; color: #1d4ed8;
+        }
+        .mob-user-menu-action.action-blue:active { background: #dbeafe; }
 
-        .mob-user-menu-action:hover {
-            background: #ffe4e6;
+        .mob-user-menu-action.action-red {
+            background: #fff1f2; border-color: #fecdd3; color: #dc2626;
         }
+        .mob-user-menu-action.action-red:active { background: #ffe4e6; }
 
         .mob-user-menu-action-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
-            background: #fef2f2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
+            width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
+        .action-blue .mob-user-menu-action-icon { background: #dbeafe; }
+        .action-red  .mob-user-menu-action-icon { background: #fef2f2; }
 
         .mob-lightbox img {
             max-width: 100%;
@@ -822,11 +782,13 @@
     <div class="mob-user-menu-wrap">
         <button type="button" class="mob-user-btn" id="mobUserMenuToggle" aria-expanded="false" aria-controls="mob-user-menu">
             <span class="mob-user-avatar">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
-            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ explode(' ', Auth::user()->name)[0] }}</span>
-            <i class="ph ph-caret-down" style="font-size:.65rem;opacity:.75;flex-shrink:0;"></i>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px;">{{ explode(' ', Auth::user()->name)[0] }}</span>
+            <i class="ph ph-caret-down" style="font-size:.6rem;opacity:.8;flex-shrink:0;"></i>
         </button>
 
         <div id="mob-user-menu" class="mob-user-menu" role="menu" aria-labelledby="mobUserMenuToggle">
+
+            {{-- Header --}}
             <div class="mob-user-menu-head">
                 <div class="mob-user-menu-avatar">
                     {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
@@ -834,26 +796,29 @@
                 <div style="flex:1;min-width:0;">
                     <div class="mob-user-menu-name">{{ Auth::user()->name }}</div>
                     <div class="mob-user-menu-role">
-                        <i class="ph-fill ph-shield-check" style="font-size:.72rem;margin-right:.16rem;"></i>Traffic Officer
+                        <i class="ph-fill ph-shield-check"></i> Traffic Officer
                     </div>
                 </div>
             </div>
+
+            {{-- Actions --}}
             <div class="mob-user-menu-body">
-                <button type="button" class="mob-user-menu-action" id="mobChangePasswordAction">
+                <button type="button" class="mob-user-menu-action action-blue" id="mobChangePasswordAction">
                     <div class="mob-user-menu-action-icon">
-                        <i class="ph-fill ph-lock-key" style="font-size:1rem;color:#1d4ed8;"></i>
+                        <i class="ph-fill ph-lock-key" style="font-size:1.05rem;color:#1d4ed8;"></i>
                     </div>
                     <span style="flex:1;">Change Password</span>
-                    <i class="ph ph-caret-right" style="opacity:.4;font-size:.82rem;"></i>
+                    <i class="ph ph-caret-right" style="opacity:.35;font-size:.8rem;"></i>
                 </button>
-                <button type="button" class="mob-user-menu-action" id="mobLogoutAction" style="border-top:1px solid #f1f5f9;">
+                <button type="button" class="mob-user-menu-action action-red" id="mobLogoutAction">
                     <div class="mob-user-menu-action-icon">
-                        <i class="ph-fill ph-sign-out" style="font-size:1rem;color:#dc2626;"></i>
+                        <i class="ph-fill ph-sign-out" style="font-size:1.05rem;color:#dc2626;"></i>
                     </div>
                     <span style="flex:1;">Log Out</span>
-                    <i class="ph ph-caret-right" style="opacity:.4;font-size:.82rem;"></i>
+                    <i class="ph ph-caret-right" style="opacity:.35;font-size:.8rem;"></i>
                 </button>
             </div>
+
         </div>
     </div>
 </header>
