@@ -385,7 +385,7 @@
                 <div class="info-grid cols-1">
                     <div class="info-cell">
                         <span class="info-lbl">Recorded By</span>
-                        <span class="info-val">{{ $violation->recorder->name }}</span>
+                        <span class="info-val">{{ $violation->recorder?->name ?? '(Deleted User)' }}</span>
                     </div>
                     <div class="info-cell">
                         <span class="info-lbl">Recorded On</span>

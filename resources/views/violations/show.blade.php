@@ -409,7 +409,7 @@
                     </li>
                     <li class="border-top pt-2 mt-1" style="border-color:#ede8df!important;">
                         <span style="color:#a8a29e;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">Recorded By</span>
-                        <span>{{ $violation->recorder->name }}</span>
+                        <span>{{ $violation->recorder?->name ?? '(Deleted User)' }}</span>
                     </li>
                     <li class="border-top pt-2 mt-1" style="border-color:#ede8df!important;">
                         <span style="color:#a8a29e;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">Recorded On</span>
