@@ -937,11 +937,11 @@ document.getElementById('mobChangePasswordAction')?.addEventListener('click', fu
 });
 
 // Re-open change password modal if there were validation errors
-@if($errors->hasAny(['current_password','password']))
-document.addEventListener('DOMContentLoaded', function () {
-    new bootstrap.Modal(document.getElementById('changePasswordModal')).show();
-});
-@endif
+if (document.getElementById('changePasswordModal')?.dataset.hasErrors === '1') {
+    document.addEventListener('DOMContentLoaded', function () {
+        new bootstrap.Modal(document.getElementById('changePasswordModal')).show();
+    });
+}
 
 document.addEventListener('click', function (e) {
     if (!e.target.closest('.mob-user-menu-wrap')) {
@@ -968,7 +968,7 @@ document.addEventListener('keydown', function (e) {
 });
 </script>
 {{-- ── Change Password Modal ── --}}
-<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true" data-has-errors="{{ $errors->hasAny(['current_password','password']) ? '1' : '0' }}">
     <div class="modal-dialog modal-dialog-centered" style="max-width:360px;margin:1rem auto;">
         <div class="modal-content border-0 rounded-4 shadow" style="overflow:hidden;">
             <div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);padding:1.25rem 1.5rem .9rem;display:flex;align-items:center;gap:.75rem;">
