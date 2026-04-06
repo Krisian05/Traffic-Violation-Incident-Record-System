@@ -140,6 +140,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/motorists/create', [OfficerController::class, 'createMotorist'])->name('motorists.create');
         Route::post('/motorists', [OfficerController::class, 'storeMotorist'])->name('motorists.store');
         Route::get('/motorists/{violator}', [OfficerController::class, 'showMotorist'])->name('motorists.show');
+        Route::get('/motorists/{violator}/edit', [OfficerController::class, 'editMotorist'])->name('motorists.edit');
+        Route::put('/motorists/{violator}', [OfficerController::class, 'updateMotorist'])->name('motorists.update');
 
         // Vehicles (from motorist context)
         Route::get('/motorists/{violator}/vehicles/create', [OfficerController::class, 'createVehicle'])->name('motorists.vehicles.create');

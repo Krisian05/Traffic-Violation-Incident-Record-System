@@ -975,4 +975,14 @@
     @endforelse
 </div>
 
+{{-- Edit FAB --}}
+<a href="{{ route('officer.motorists.edit', $violator) }}"
+   style="position:fixed;bottom:1.5rem;right:1.25rem;z-index:999;
+          width:52px;height:52px;border-radius:50%;
+          background:linear-gradient(135deg,#1d4ed8,#1e40af);
+          color:#fff;display:flex;align-items:center;justify-content:center;
+          box-shadow:0 4px 14px rgba(29,78,216,.45);text-decoration:none;">
+    <i class="ph ph-pencil-simple" style="font-size:1.3rem;"></i>
+</a>
+
 @endsection

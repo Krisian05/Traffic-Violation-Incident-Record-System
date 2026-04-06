@@ -25,10 +25,10 @@ class ViolatorPolicy
         return true;
     }
 
-    // Only operators can edit motorist records
+    // Both operators and traffic officers can edit motorist records
     public function update(User $user, Violator $violator): bool
     {
-        return $user->isOperator();
+        return true;
     }
 
     // Only operators can soft-delete motorists
