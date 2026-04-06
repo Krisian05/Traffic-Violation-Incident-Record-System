@@ -114,6 +114,6 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        $this->call(DemoDataSeeder::class);
+        // DemoDataSeeder intentionally removed — production data only
     }
 }
