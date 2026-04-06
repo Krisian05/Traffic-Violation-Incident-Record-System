@@ -356,7 +356,7 @@
     <div class="edit-section">
         <div class="edit-section-header">
             <div class="edit-section-icon edit-section-icon--green">
-                <i class="ph-bold ph-card"></i>
+                <i class="ph-bold ph-identification-card"></i>
             </div>
             <span class="edit-section-title">Driver's License</span>
         </div>
