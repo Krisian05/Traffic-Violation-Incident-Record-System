@@ -122,7 +122,7 @@
 
             <div class="mb-3">
                 <label class="mob-label">Incident Photos <span style="font-size:.68rem;color:#94a3b8;">(up to 6)</span></label>
-                <input type="file" name="incident_photos[]" id="incidentPhotos" accept="image/*" capture="environment" multiple class="form-control mob-input @error('incident_photos') is-invalid @enderror">
+                <input type="file" name="incident_photos[]" id="incidentPhotos" accept="image/*" multiple class="form-control mob-input @error('incident_photos') is-invalid @enderror">
                 @error('incident_photos')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
@@ -270,8 +270,8 @@
                 </div>
 
                 <div class="row g-2 mb-3">
-                    <div class="col-6"><label class="mob-label">ID / License Photo</label><input type="file" name="motorist_id_photos[${index}]" accept="image/*" capture="environment" class="form-control mob-input"></div>
-                    <div class="col-6"><label class="mob-label">Vehicle Photos</label><input type="file" name="motorist_photos[${index}][]" accept="image/*" capture="environment" multiple class="form-control mob-input"></div>
+                    <div class="col-6"><label class="mob-label">ID / License Photo</label><input type="file" name="motorist_id_photos[${index}]" accept="image/*" class="form-control mob-input"></div>
+                    <div class="col-6"><label class="mob-label">Vehicle Photos</label><input type="file" name="motorist_photos[${index}][]" accept="image/*" multiple class="form-control mob-input"></div>
                 </div>
 
                 <div class="row g-2">

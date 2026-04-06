@@ -109,7 +109,7 @@
 
             <div class="mb-4">
                 <label class="mob-label">Upload Scene Photos</label>
-                <input type="file" name="incident_photos[]" accept="image/*" capture="environment" multiple
+                <input type="file" name="incident_photos[]" accept="image/*" multiple
                        class="form-control mob-input @error('incident_photos') is-invalid @enderror">
                 @error('incident_photos')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>

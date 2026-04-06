@@ -44,7 +44,7 @@
                      style="width:96px;height:96px;border-radius:50%;background:#eff6ff;border:2.5px dashed #93c5fd;display:flex;align-items:center;justify-content:center;margin:0 auto .65rem;overflow:hidden;cursor:pointer;transition:border-color .15s;">
                     <i class="ph-fill ph-user" style="font-size:2.4rem;color:#93c5fd;"></i>
                 </div>
-                <input type="file" name="photo" id="photoInput" accept="image/jpeg,image/png" capture="environment"
+                <input type="file" name="photo" id="photoInput" accept="image/*"
                        class="d-none @error('photo') is-invalid @enderror">
                 <button type="button" onclick="document.getElementById('photoInput').click()"
                         style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem 1rem;border-radius:8px;border:1.5px solid #93c5fd;background:#eff6ff;color:#1d4ed8;font-size:.8rem;font-weight:600;cursor:pointer;">

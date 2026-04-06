@@ -238,7 +238,7 @@
 
             <div class="mb-3">
                 <label class="mob-label">{{ $violation->citation_ticket_photo ? 'Replace' : 'Upload' }} Citation Ticket Photo</label>
-                <input type="file" name="citation_ticket_photo" accept="image/*" capture="environment"
+                <input type="file" name="citation_ticket_photo" accept="image/*"
                        class="form-control mob-input @error('citation_ticket_photo') is-invalid @enderror">
                 @error('citation_ticket_photo')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
@@ -278,7 +278,7 @@
 
                 <div class="mb-3">
                     <label class="mob-label">{{ $violation->receipt_photo ? 'Replace' : 'Upload' }} Receipt Photo</label>
-                    <input type="file" name="receipt_photo" accept="image/*" capture="environment"
+                    <input type="file" name="receipt_photo" accept="image/*"
                            class="form-control mob-input @error('receipt_photo') is-invalid @enderror">
                     @error('receipt_photo')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>

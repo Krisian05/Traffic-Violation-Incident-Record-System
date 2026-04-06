@@ -82,8 +82,8 @@
             <div class="veh-photo-grid mb-4" id="photoGrid">
                 {{-- slots filled by JS --}}
             </div>
-            <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp"
-                   capture="environment" class="d-none" multiple>
+            <input type="file" id="photoInput" accept="image/*"
+                   class="d-none" multiple>
             <span class="mob-hint d-block text-center mb-3" style="margin-top:-.5rem;">
                 JPG / PNG · max 10 MB each · up to 4 photos
             </span>

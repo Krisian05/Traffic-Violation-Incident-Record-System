@@ -247,7 +247,7 @@
             @endif
 
             <div class="mb-4">
-                <input type="file" name="photo" accept="image/*" capture="environment"
+                <input type="file" name="photo" accept="image/*"
                        class="form-control mob-input @error('photo') is-invalid @enderror">
                 @error('photo')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
