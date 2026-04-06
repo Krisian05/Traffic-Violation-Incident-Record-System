@@ -957,73 +957,84 @@ document.addEventListener('keydown', function (e) {
     padding:.55rem .5rem; border-radius:10px; font-size:.78rem; font-weight:700;
     cursor:pointer; border:1.5px solid; transition:background .15s;
 }
-.mob-photo-picker-btn.camera {
-    background:#eff6ff; border-color:#93c5fd; color:#1d4ed8;
-}
-.mob-photo-picker-btn.gallery {
-    background:#f0fdf4; border-color:#86efac; color:#15803d;
-}
+.mob-photo-picker-btn.camera  { background:#eff6ff; border-color:#93c5fd; color:#1d4ed8; }
+.mob-photo-picker-btn.gallery { background:#f0fdf4; border-color:#86efac; color:#15803d; }
 .mob-photo-picker-btn i { font-size:1rem; }
-.mob-photo-picker-name {
-    font-size:.68rem; color:#64748b; margin-top:.3rem;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+
+/* Preview area */
+.mob-picker-preview-single {
+    width:100%; border-radius:12px; overflow:hidden;
+    position:relative; margin-bottom:.5rem;
+    background:#f1f5f9; border:1.5px solid #e2e8f0;
+}
+.mob-picker-preview-single img {
+    width:100%; max-height:200px; object-fit:cover; display:block;
+}
+.mob-picker-preview-single .mob-picker-remove {
+    position:absolute; top:.35rem; right:.35rem;
+    width:26px; height:26px; border-radius:50%;
+    background:rgba(0,0,0,.55); border:none; color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:.8rem;
+}
+.mob-picker-preview-grid {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:.4rem; margin-bottom:.5rem;
+}
+.mob-picker-preview-grid-item {
+    position:relative; aspect-ratio:1; border-radius:8px; overflow:hidden;
+    background:#f1f5f9; border:1px solid #e2e8f0;
+}
+.mob-picker-preview-grid-item img { width:100%; height:100%; object-fit:cover; display:block; }
+.mob-picker-preview-grid-item .mob-picker-remove {
+    position:absolute; top:.2rem; right:.2rem;
+    width:22px; height:22px; border-radius:50%;
+    background:rgba(0,0,0,.55); border:none; color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:.7rem;
 }
 </style>
 <script>
 /**
  * initPhotoPicker(wrapperId, inputName, options)
- * Renders Camera / Gallery buttons for a hidden file input.
- *
- * options: { multiple: bool, accept: string, label: string }
+ * Camera / Gallery buttons + live photo preview before submit.
+ * options: { multiple: bool, accept: string }
  */
-function initPhotoPicker(wrapperId, inputName, options = {}) {
-    const wrapper = document.getElementById(wrapperId);
+function initPhotoPicker(wrapperId, inputName, options) {
+    options = options || {};
+    const wrapper  = document.getElementById(wrapperId);
     if (!wrapper) return;
 
     const accept   = options.accept   || 'image/*';
-    const multiple = options.multiple || false;
+    const multiple = !!options.multiple;
+    const baseName = multiple ? inputName.replace(/\[\]$/, '') : inputName;
 
-    // Hidden inputs (two: one for camera, one for gallery)
+    let files = []; // array of File objects
+
+    // ── Hidden inputs (camera + gallery) ──
     const camInput = document.createElement('input');
-    camInput.type    = 'file';
-    camInput.name    = inputName + (multiple ? '[]' : '');
-    camInput.accept  = accept;
-    camInput.capture = 'environment';
+    camInput.type = 'file'; camInput.accept = accept; camInput.capture = 'environment';
     if (multiple) camInput.multiple = true;
     camInput.className = 'd-none photo-picker-input';
 
     const galInput = document.createElement('input');
-    galInput.type    = 'file';
-    galInput.name    = inputName + (multiple ? '[]' : '');
-    galInput.accept  = accept;
+    galInput.type = 'file'; galInput.accept = accept;
     if (multiple) galInput.multiple = true;
     galInput.className = 'd-none photo-picker-input';
 
-    const nameEl = document.createElement('div');
-    nameEl.className = 'mob-photo-picker-name';
+    // ── Preview container ──
+    const previewEl = document.createElement('div');
 
-    const updateName = (input) => {
-        if (!input.files || !input.files.length) return;
-        nameEl.textContent = input.files.length > 1
-            ? input.files.length + ' files selected'
-            : input.files[0].name;
-    };
-
-    camInput.addEventListener('change', () => updateName(camInput));
-    galInput.addEventListener('change', () => updateName(galInput));
-
+    // ── Buttons ──
     const picker = document.createElement('div');
     picker.className = 'mob-photo-picker';
 
     const camBtn = document.createElement('button');
-    camBtn.type      = 'button';
-    camBtn.className = 'mob-photo-picker-btn camera';
+    camBtn.type = 'button'; camBtn.className = 'mob-photo-picker-btn camera';
     camBtn.innerHTML = '<i class="ph ph-camera"></i> Camera';
     camBtn.addEventListener('click', () => camInput.click());
 
     const galBtn = document.createElement('button');
-    galBtn.type      = 'button';
-    galBtn.className = 'mob-photo-picker-btn gallery';
+    galBtn.type = 'button'; galBtn.className = 'mob-photo-picker-btn gallery';
     galBtn.innerHTML = '<i class="ph ph-images"></i> Gallery';
     galBtn.addEventListener('click', () => galInput.click());
 
@@ -1032,8 +1043,75 @@ function initPhotoPicker(wrapperId, inputName, options = {}) {
 
     wrapper.appendChild(camInput);
     wrapper.appendChild(galInput);
+    wrapper.appendChild(previewEl);
     wrapper.appendChild(picker);
-    wrapper.appendChild(nameEl);
+
+    // ── Sync hidden file inputs to form ──
+    function syncInputs() {
+        wrapper.querySelectorAll('.picker-sync-input').forEach(el => el.remove());
+        if (!files.length) return;
+        const dt = new DataTransfer();
+        files.forEach(f => dt.items.add(f));
+        const inp = document.createElement('input');
+        inp.type = 'file';
+        inp.name = multiple ? baseName + '[]' : baseName;
+        if (multiple) inp.multiple = true;
+        inp.className = 'picker-sync-input d-none';
+        inp.files = dt.files;
+        wrapper.appendChild(inp);
+    }
+
+    // ── Render previews ──
+    function renderPreviews() {
+        previewEl.innerHTML = '';
+        if (!files.length) return;
+
+        if (!multiple) {
+            // Single image — tall preview
+            const wrap = document.createElement('div');
+            wrap.className = 'mob-picker-preview-single';
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(files[0]);
+            const rm = document.createElement('button');
+            rm.type = 'button'; rm.className = 'mob-picker-remove';
+            rm.innerHTML = '<i class="ph-bold ph-x"></i>';
+            rm.addEventListener('click', () => { files = []; renderPreviews(); syncInputs(); });
+            wrap.appendChild(img);
+            wrap.appendChild(rm);
+            previewEl.appendChild(wrap);
+        } else {
+            // Multiple — grid
+            const grid = document.createElement('div');
+            grid.className = 'mob-picker-preview-grid';
+            files.forEach((f, i) => {
+                const item = document.createElement('div');
+                item.className = 'mob-picker-preview-grid-item';
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(f);
+                const rm = document.createElement('button');
+                rm.type = 'button'; rm.className = 'mob-picker-remove';
+                rm.innerHTML = '<i class="ph-bold ph-x"></i>';
+                rm.addEventListener('click', () => { files.splice(i, 1); renderPreviews(); syncInputs(); });
+                item.appendChild(img); item.appendChild(rm);
+                grid.appendChild(item);
+            });
+            previewEl.appendChild(grid);
+        }
+    }
+
+    function handleFiles(input) {
+        const newFiles = Array.from(input.files);
+        newFiles.forEach(f => {
+            if (!multiple) { files = [f]; return; }
+            files.push(f);
+        });
+        input.value = '';
+        renderPreviews();
+        syncInputs();
+    }
+
+    camInput.addEventListener('change', () => handleFiles(camInput));
+    galInput.addEventListener('change', () => handleFiles(galInput));
 }
 </script>
 </body>

@@ -394,23 +394,24 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    /* ── Photo preview — wire to both picker inputs after init ── */
-    document.addEventListener('change', function (e) {
-        if (!e.target.matches('.photo-picker-input[name="photo"]')) return;
-        var preview = document.getElementById('photoPreview');
-        if (e.target.files && e.target.files[0]) {
-            if (e.target.files[0].size > 5 * 1024 * 1024) {
-                alert('Photo exceeds 5 MB. Please choose a smaller file.');
-                e.target.value = '';
-                return;
+    /* ── Profile photo preview — observe the sync input written by initPhotoPicker ── */
+    var photoPreviewCircle = document.getElementById('photoPreview');
+    var pickerDiv = document.getElementById('picker-photo');
+    if (pickerDiv && photoPreviewCircle) {
+        var observer = new MutationObserver(function () {
+            var syncInp = pickerDiv.querySelector('.picker-sync-input');
+            if (syncInp && syncInp.files && syncInp.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (ev) {
+                    photoPreviewCircle.innerHTML = '<img src="' + ev.target.result + '" style="width:96px;height:96px;object-fit:cover;border-radius:50%;">';
+                };
+                reader.readAsDataURL(syncInp.files[0]);
+            } else {
+                photoPreviewCircle.innerHTML = '<i class="ph-fill ph-user" style="font-size:2.4rem;color:#93c5fd;"></i>';
             }
-            var reader = new FileReader();
-            reader.onload = function (ev) {
-                preview.innerHTML = '<img src="' + ev.target.result + '" style="width:96px;height:96px;object-fit:cover;border-radius:50%;">';
-            };
-            reader.readAsDataURL(e.target.files[0]);
-        }
-    });
+        });
+        observer.observe(pickerDiv, { childList: true, subtree: true });
+    }
 
     /* ── Double-submit protection ── */
     document.getElementById('motoristForm').addEventListener('submit', function () {
