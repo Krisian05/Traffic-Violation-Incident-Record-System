@@ -24,11 +24,102 @@
 .viol-status-settled   .viol-status-dot { background:#22c55e; }
 .viol-status-contested .viol-status-dot { background:#94a3b8; }
 
-/* ── Mobile: stack label above value ── */
+/* ── Mobile ── */
 @media (max-width: 767px) {
-    dl .d-flex.align-items-start { flex-direction: column; gap: .2rem !important; padding: .65rem 1rem !important; }
-    dl .d-flex.align-items-start > div[style*="width:120px"] { width: auto !important; flex-shrink: unset !important; }
-    dl .d-flex.align-items-start img[style*="max-width:260px"] { max-width: 100% !important; width: 100%; }
+
+    /* Page header */
+    .viol-page-header { margin-bottom: .75rem !important; gap: .5rem !important; }
+    .viol-page-header h5 { font-size: .875rem !important; }
+    .viol-page-header .topbar-sub-text { font-size: .72rem !important; }
+    .viol-page-header .viol-icon-circle {
+        width: 34px !important; height: 34px !important;
+    }
+    .viol-page-header .viol-icon-circle i { font-size: .8rem !important; }
+
+    /* Row gutter — tighter on mobile */
+    .row.g-4 {
+        --bs-gutter-x: .5rem;
+        --bs-gutter-y: .5rem;
+    }
+
+    /* Card header — compact */
+    .card-header { padding: .5rem .75rem !important; }
+    .card-header span[style*="width:28px"] {
+        width: 24px !important; height: 24px !important;
+    }
+
+    /* DL rows: stack label above value, tighter padding */
+    dl .d-flex.align-items-start {
+        flex-direction: column !important;
+        gap: .15rem !important;
+        padding: .55rem .75rem !important;
+    }
+    dl .d-flex.align-items-start > div[style*="width:120px"] {
+        width: auto !important;
+        flex-shrink: unset !important;
+    }
+    dl .d-flex.align-items-start img[style*="max-width:260px"] {
+        max-width: 100% !important;
+        width: 100%;
+        border-radius: 6px !important;
+    }
+
+    /* Vehicle photo grid — 2-up on mobile */
+    .veh-photo-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: .4rem;
+    }
+    .veh-photo-grid img {
+        width: 100% !important;
+        height: 90px !important;
+        object-fit: cover;
+    }
+
+    /* Actions card — touch-friendly buttons */
+    .card-body .btn {
+        min-height: 44px;
+        font-size: .875rem !important;
+    }
+
+    /* Violator card — compact avatar */
+    .viol-avatar-circle {
+        width: 40px !important; height: 40px !important;
+        font-size: .95rem !important;
+    }
+
+    /* Settle modal — full-width on mobile */
+    #settleModal .modal-dialog {
+        margin: .4rem;
+        max-width: calc(100vw - .8rem);
+    }
+    #settleModal .modal-header { padding: .75rem 1rem !important; }
+    #settleModal .modal-body { padding: .875rem 1rem !important; }
+    #settleModal .modal-footer { padding: .6rem 1rem !important; }
+    #settleModal .mb-3 { margin-bottom: .75rem !important; }
+    #settleModal .form-label { font-size: .8rem !important; }
+    #settleModal .form-control, #settleModal .input-group-text {
+        font-size: .875rem !important;
+    }
+    #settleModal .modal-footer .btn {
+        flex: 1;
+        min-height: 42px;
+    }
+
+    /* Lightbox — trim horizontal padding on small screens */
+    #lightboxImg { padding: .5rem .75rem !important; }
+    #lbPrev { left: 6px !important; width: 32px !important; height: 32px !important; }
+    #lbNext { right: 6px !important; width: 32px !important; height: 32px !important; }
+
+    /* Settlement & Record info cards — compact list */
+    .card-body ul[style*="line-height:2.2"] {
+        line-height: 1.9 !important;
+    }
+}
+
+@media (max-width: 400px) {
+    dl .d-flex.align-items-start { padding: .45rem .6rem !important; }
+    .card-header { padding: .4rem .6rem !important; }
 }
 </style>
 @endpush
@@ -43,15 +134,15 @@
 @endphp
 
 {{-- ── PAGE HEADER ── --}}
-<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3 viol-page-header">
     <div class="d-flex align-items-center gap-3">
-        <div class="rounded-circle d-flex align-items-center justify-content-center"
+        <div class="rounded-circle d-flex align-items-center justify-content-center viol-icon-circle"
              style="width:42px;height:42px;background:linear-gradient(135deg,#dc2626,#b91c1c);flex-shrink:0;">
             <i class="bi bi-exclamation-triangle-fill text-white" style="font-size:1rem;"></i>
         </div>
         <div>
             <h5 class="mb-0 fw-700" style="color:#1c1917;">Violation Record #{{ $violation->id }}</h5>
-            <div style="font-size:.8rem;color:#78716c;">
+            <div class="topbar-sub-text" style="font-size:.8rem;color:#78716c;">
                 Filed on {{ $violation->created_at->format('F d, Y') }} · {{ $violation->violator?->full_name ?? '(Deleted Motorist)' }}
             </div>
         </div>
@@ -259,7 +350,7 @@
                         <div class="d-flex align-items-start gap-3 px-4 py-3">
                             <div style="width:120px;flex-shrink:0;font-size:.8rem;color:#a8a29e;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">Photos</div>
                             <div>
-                                <div class="d-flex flex-wrap gap-2">
+                                <div class="d-flex flex-wrap gap-2 veh-photo-grid">
                                     @foreach($violation->vehiclePhotos as $photo)
                                     <img src="{{ uploaded_file_url($photo->photo) }}"
                                          alt="Vehicle photo"
@@ -313,7 +404,7 @@
             </div>
             <div class="card-body p-3">
                 <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-700 text-white"
+                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-700 text-white viol-avatar-circle"
                          style="width:48px;height:48px;flex-shrink:0;font-size:1.1rem;
                                 background:linear-gradient(135deg,#6d28d9,#4c1d95);">
                         {{ strtoupper(substr($violation->violator?->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($violation->violator?->last_name ?? '', 0, 1)) }}
@@ -553,9 +644,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0" style="padding:.75rem 1.25rem;">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="font-size:.82rem;">Cancel</button>
-                    <button type="submit" class="btn" style="background:linear-gradient(135deg,#15803d,#166534);color:#fff;font-size:.82rem;font-weight:700;padding:.45rem 1.2rem;border-radius:8px;">
+                <div class="modal-footer border-0 gap-2" style="padding:.75rem 1.25rem;">
+                    <button type="button" class="btn btn-light fw-600" data-bs-dismiss="modal" style="font-size:.82rem;">Cancel</button>
+                    <button type="submit" class="btn fw-700" style="background:linear-gradient(135deg,#15803d,#166534);color:#fff;font-size:.82rem;padding:.45rem 1.2rem;border-radius:8px;">
                         <i class="bi bi-check2-circle me-1"></i> Mark as Settled
                     </button>
                 </div>

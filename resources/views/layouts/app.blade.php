@@ -836,11 +836,34 @@
                 gap: .5rem;
             }
 
-            /* Profile dropdown: always fully visible above topbar */
+            /* Profile dropdown: compact on mobile */
             .topbar-profile-dropdown {
                 right: 0;
                 left: auto;
-                min-width: 200px;
+                min-width: 170px;
+                max-width: calc(100vw - 1.25rem);
+            }
+            .topbar-profile-dropdown-user {
+                padding: .5rem .75rem;
+            }
+            .topbar-profile-dropdown-user-label {
+                font-size: .65rem;
+                margin-bottom: .15rem;
+            }
+            .topbar-profile-dropdown-user-name {
+                font-size: .82rem;
+                margin-bottom: .25rem;
+            }
+            .topbar-profile-badge {
+                font-size: .6rem;
+                padding: .18rem .4rem;
+            }
+            .topbar-profile-dropdown-logout {
+                padding: .5rem .75rem;
+            }
+            .topbar-profile-logout-btn {
+                font-size: .76rem;
+                padding: .4rem .6rem;
             }
 
             /* Confirm modal: full width */
