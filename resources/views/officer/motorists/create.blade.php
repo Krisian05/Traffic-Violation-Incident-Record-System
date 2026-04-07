@@ -246,6 +246,13 @@
         padding: 1rem 0 .25rem;
     }
 
+    .photo-avatar-outer {
+        position: relative;
+        width: 88px;
+        height: 88px;
+        cursor: pointer;
+    }
+
     .photo-avatar {
         width: 88px;
         height: 88px;
@@ -257,25 +264,24 @@
         justify-content: center;
         overflow: hidden;
         transition: border-color .2s;
-        cursor: pointer;
-        position: relative;
     }
 
-    .photo-avatar:hover { border-color: #2563eb; }
+    .photo-avatar-outer:hover .photo-avatar { border-color: #2563eb; }
 
     .photo-avatar-edit {
         position: absolute;
         bottom: 2px;
         right: 2px;
-        width: 22px;
-        height: 22px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
         background: linear-gradient(135deg,#2563eb,#1d4ed8);
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 2px 6px rgba(37,99,235,.4);
+        box-shadow: 0 2px 8px rgba(37,99,235,.45);
         border: 2px solid #fff;
+        z-index: 2;
     }
 
     /* ── Submit strip ── */
@@ -322,10 +328,12 @@
         </div>
         <div class="edit-section-body">
             <div class="photo-avatar-wrap">
-                <div class="photo-avatar" id="photoPreview">
-                    <i class="ph-fill ph-user" style="font-size:2.4rem;color:#93c5fd;" id="photoPlaceholderIcon"></i>
+                <div class="photo-avatar-outer" id="photoPreviewOuter">
+                    <div class="photo-avatar" id="photoPreview">
+                        <i class="ph-fill ph-user" style="font-size:2.4rem;color:#93c5fd;"></i>
+                    </div>
                     <span class="photo-avatar-edit">
-                        <i class="ph-bold ph-pencil-simple" style="font-size:.6rem;color:#fff;"></i>
+                        <i class="ph-bold ph-pencil-simple" style="font-size:.65rem;color:#fff;"></i>
                     </span>
                 </div>
                 <span style="font-size:.7rem;color:#94a3b8;">Tap photo or use buttons below</span>
@@ -676,9 +684,9 @@ document.addEventListener('DOMContentLoaded', function () {
     initPhotoPicker('picker-photo', 'photo', { multiple: false });
 
     // Make avatar clickable → open gallery
-    const avatar = document.getElementById('photoPreview');
-    if (avatar) {
-        avatar.addEventListener('click', function () {
+    const avatarOuter = document.getElementById('photoPreviewOuter');
+    if (avatarOuter) {
+        avatarOuter.addEventListener('click', function () {
             const galBtn = document.querySelector('#picker-photo .mob-photo-picker-btn:not(.camera)');
             if (galBtn) galBtn.click();
         });
@@ -795,7 +803,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /* ── Photo avatar preview ── */
-    var avatarEl = document.getElementById('photoPreview');
+    var avatarEl  = document.getElementById('photoPreview');
     var pickerDiv = document.getElementById('picker-photo');
     if (pickerDiv && avatarEl) {
         var observer = new MutationObserver(function () {
@@ -803,13 +811,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (syncInp && syncInp.files && syncInp.files[0]) {
                 var reader = new FileReader();
                 reader.onload = function (ev) {
-                    avatarEl.innerHTML = '<img src="' + ev.target.result + '" style="width:88px;height:88px;object-fit:cover;border-radius:50%;">'
-                        + '<span class="photo-avatar-edit"><i class="ph-bold ph-pencil-simple" style="font-size:.6rem;color:#fff;"></i></span>';
+                    avatarEl.innerHTML = '<img src="' + ev.target.result + '" style="width:88px;height:88px;object-fit:cover;border-radius:50%;">';
                 };
                 reader.readAsDataURL(syncInp.files[0]);
             } else {
-                avatarEl.innerHTML = '<i class="ph-fill ph-user" style="font-size:2.4rem;color:#93c5fd;"></i>'
-                    + '<span class="photo-avatar-edit"><i class="ph-bold ph-pencil-simple" style="font-size:.6rem;color:#fff;"></i></span>';
+                avatarEl.innerHTML = '<i class="ph-fill ph-user" style="font-size:2.4rem;color:#93c5fd;"></i>';
             }
         });
         observer.observe(pickerDiv, { childList: true, subtree: true });
