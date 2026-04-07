@@ -13,6 +13,7 @@
 <style>
     .ts-wrapper .ts-control { background:#fffdf9; border-color:#c8b99a; color:#44403c; font-size:.9rem; }
     .ts-wrapper.focus .ts-control { border-color:#d97706; box-shadow:0 0 0 .2rem rgba(217,119,6,.15); }
+    .vt-select-empty { color: #9ca3af; }
     .ts-dropdown { border-color:#c8b99a; background:#fffdf9; }
     .ts-dropdown .option { color:#44403c; font-size:.88rem; }
     .ts-dropdown .option:hover, .ts-dropdown .option.active { background:#fef3c7; color:#292524; }
@@ -258,9 +259,8 @@
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label" style="font-size:.8rem;">Type</label>
-                                    <select name="vehicle_type" class="form-select @error('vehicle_type') is-invalid @enderror"
-                                            style="{{ old('vehicle_type', $violation->vehicle?->vehicle_type) ? '' : 'color:#9ca3af;' }}"
-                                            onchange="this.style.color=this.value?'':'#9ca3af'">
+                                    <select name="vehicle_type" class="form-select @error('vehicle_type') is-invalid @enderror {{ old('vehicle_type', $violation->vehicle?->vehicle_type) ? '' : 'vt-select-empty' }}"
+                                            onchange="this.classList.toggle('vt-select-empty',!this.value)">
                                         <option value="">MV / MC</option>
                                         <option value="MV" {{ old('vehicle_type', $violation->vehicle?->vehicle_type) === 'MV' ? 'selected' : '' }}>MV</option>
                                         <option value="MC" {{ old('vehicle_type', $violation->vehicle?->vehicle_type) === 'MC' ? 'selected' : '' }}>MC</option>

@@ -2,6 +2,10 @@
 @section('title', 'Record Violation')
 @section('back_url', route('officer.motorists.show', $violator))
 
+@push('styles')
+<style>.vt-select-empty { color: #9ca3af; }</style>
+@endpush
+
 @section('content')
 
 {{-- Motorist context --}}
@@ -162,9 +166,8 @@
                     </div>
                     <div class="col-6">
                         <label class="mob-label">Type</label>
-                        <select name="vehicle_type" class="form-select mob-select"
-                                style="{{ old('vehicle_type') ? '' : 'color:#9ca3af;' }}"
-                                onchange="this.style.color=this.value?'':'#9ca3af'">
+                        <select name="vehicle_type" class="form-select mob-select {{ old('vehicle_type') ? '' : 'vt-select-empty' }}"
+                                onchange="this.classList.toggle('vt-select-empty',!this.value)">
                             <option value="">MV / MC</option>
                             <option value="MV" {{ old('vehicle_type') === 'MV' ? 'selected' : '' }}>MV</option>
                             <option value="MC" {{ old('vehicle_type') === 'MC' ? 'selected' : '' }}>MC</option>
