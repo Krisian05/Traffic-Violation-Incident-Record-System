@@ -191,7 +191,7 @@
                         {{-- Manual panel --}}
                         <div id="panel-manual" {{ $initManual ? '' : 'style=display:none' }}>
                             <div class="row g-2">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="form-label" style="font-size:.8rem;">Plate Number</label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-card-text" style="color:#b45309;"></i></span>
@@ -202,6 +202,15 @@
                                                style="text-transform:uppercase;">
                                         @error('vehicle_plate')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                     </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label" style="font-size:.8rem;">Type</label>
+                                    <select name="vehicle_type" class="form-select @error('vehicle_type') is-invalid @enderror">
+                                        <option value="">—</option>
+                                        <option value="MV" {{ old('vehicle_type') === 'MV' ? 'selected' : '' }}>MV</option>
+                                        <option value="MC" {{ old('vehicle_type') === 'MC' ? 'selected' : '' }}>MC</option>
+                                    </select>
+                                    @error('vehicle_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label" style="font-size:.8rem;">Brand / Make</label>

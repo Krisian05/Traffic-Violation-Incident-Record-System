@@ -315,6 +315,7 @@ class OfficerController extends Controller
             'incident_id'           => ['nullable', 'exists:incidents,id'],
             'vehicle_id'            => ['nullable', 'exists:vehicles,id'],
             'vehicle_plate'         => ['nullable', 'string', 'max:30'],
+            'vehicle_type'          => ['nullable', 'in:MV,MC'],
             'vehicle_owner_name'    => ['nullable', 'string', 'max:200'],
             'vehicle_make'          => ['nullable', 'string', 'max:100'],
             'vehicle_model'         => ['nullable', 'string', 'max:100'],
@@ -349,6 +350,7 @@ class OfficerController extends Controller
                 $vehicle = Vehicle::create([
                     'violator_id'    => $violator->id,
                     'plate_number'   => $data['vehicle_plate'],
+                    'vehicle_type'   => $data['vehicle_type'] ?? null,
                     'owner_name'     => !empty($data['vehicle_owner_name']) ? $data['vehicle_owner_name'] : $violator->full_name,
                     'make'           => $data['vehicle_make'] ?? null,
                     'model'          => $data['vehicle_model'] ?? null,
@@ -359,6 +361,7 @@ class OfficerController extends Controller
                 ]);
             } else {
                 $vehicle->fill([
+                    'vehicle_type'   => $vehicle->vehicle_type ?: ($data['vehicle_type'] ?? null),
                     'owner_name'     => $vehicle->owner_name ?: (!empty($data['vehicle_owner_name']) ? $data['vehicle_owner_name'] : $violator->full_name),
                     'make'           => $vehicle->make ?: ($data['vehicle_make'] ?? null),
                     'model'          => $vehicle->model ?: ($data['vehicle_model'] ?? null),
@@ -429,6 +432,7 @@ class OfficerController extends Controller
             'incident_id'           => ['nullable', 'exists:incidents,id'],
             'vehicle_id'            => ['nullable', 'exists:vehicles,id'],
             'vehicle_plate'         => ['nullable', 'string', 'max:30'],
+            'vehicle_type'          => ['nullable', 'in:MV,MC'],
             'vehicle_owner_name'    => ['nullable', 'string', 'max:200'],
             'vehicle_make'          => ['nullable', 'string', 'max:100'],
             'vehicle_model'         => ['nullable', 'string', 'max:100'],
@@ -518,7 +522,8 @@ class OfficerController extends Controller
                 $existing = Vehicle::create([
                     'violator_id'    => $violation->violator_id,
                     'plate_number'   => $data['vehicle_plate'],
-                    'owner_name'     => !empty($data['vehicle_owner_name']) ? $data['vehicle_owner_name'] : $violation->violator->full_name,
+                    'vehicle_type'   => $data['vehicle_type'] ?? null,
+                    'owner_name'     => !empty($data['vehicle_owner_name']) ? $data['vehicle_owner_name'] : $violation->violator?->full_name,
                     'make'           => $data['vehicle_make'] ?? null,
                     'model'          => $data['vehicle_model'] ?? null,
                     'color'          => $data['vehicle_color'] ?? null,
@@ -528,7 +533,8 @@ class OfficerController extends Controller
                 ]);
             } else {
                 $existing->fill([
-                    'owner_name'     => $existing->owner_name ?: (!empty($data['vehicle_owner_name']) ? $data['vehicle_owner_name'] : $violation->violator->full_name),
+                    'vehicle_type'   => $existing->vehicle_type ?: ($data['vehicle_type'] ?? null),
+                    'owner_name'     => $existing->owner_name ?: (!empty($data['vehicle_owner_name']) ? $data['vehicle_owner_name'] : $violation->violator?->full_name),
                     'make'           => $existing->make ?: ($data['vehicle_make'] ?? null),
                     'model'          => $existing->model ?: ($data['vehicle_model'] ?? null),
                     'color'          => $existing->color ?: ($data['vehicle_color'] ?? null),
@@ -539,7 +545,7 @@ class OfficerController extends Controller
             }
 
             if (empty($data['vehicle_owner_name'])) {
-                $data['vehicle_owner_name'] = $existing->owner_name ?: $violation->violator->full_name;
+                $data['vehicle_owner_name'] = $existing->owner_name ?: $violation->violator?->full_name;
             }
             $data['vehicle_id'] = $existing->id;
         }

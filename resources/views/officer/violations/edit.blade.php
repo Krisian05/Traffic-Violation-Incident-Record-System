@@ -172,6 +172,14 @@
                                class="form-control mob-input" placeholder="e.g. ABC 1234">
                     </div>
                     <div class="col-6">
+                        <label class="mob-label">Type</label>
+                        <select name="vehicle_type" class="form-select mob-select">
+                            <option value="">— Select —</option>
+                            <option value="MV" {{ old('vehicle_type', $violation->vehicle?->vehicle_type) === 'MV' ? 'selected' : '' }}>MV</option>
+                            <option value="MC" {{ old('vehicle_type', $violation->vehicle?->vehicle_type) === 'MC' ? 'selected' : '' }}>MC</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
                         <label class="mob-label">Color</label>
                         <input type="text" name="vehicle_color" value="{{ old('vehicle_color', $violation->vehicle_color) }}"
                                class="form-control mob-input" placeholder="e.g. Red">

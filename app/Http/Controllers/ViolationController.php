@@ -85,6 +85,7 @@ class ViolationController extends Controller
             'incident_id'        => ['nullable', 'exists:incidents,id'],
             'vehicle_id'         => ['nullable', 'exists:vehicles,id'],
             'vehicle_plate'      => ['nullable', 'string', 'max:30'],
+            'vehicle_type'       => ['nullable', 'in:MV,MC'],
             'vehicle_owner_name' => ['nullable', 'string', 'max:200'],
             'vehicle_make'       => ['nullable', 'string', 'max:100'],
             'vehicle_model'      => ['nullable', 'string', 'max:100'],
@@ -121,6 +122,7 @@ class ViolationController extends Controller
                 $existing = Vehicle::create([
                     'violator_id'    => $violator->id,
                     'plate_number'   => $data['vehicle_plate'],
+                    'vehicle_type'   => $data['vehicle_type'] ?? null,
                     'make'           => $data['vehicle_make'] ?? null,
                     'model'          => $data['vehicle_model'] ?? null,
                     'color'          => $data['vehicle_color'] ?? null,
@@ -185,6 +187,7 @@ class ViolationController extends Controller
             'violation_type_id'  => ['required', 'exists:violation_types,id'],
             'vehicle_id'         => ['nullable', 'exists:vehicles,id'],
             'vehicle_plate'      => ['nullable', 'string', 'max:30'],
+            'vehicle_type'       => ['nullable', 'in:MV,MC'],
             'vehicle_owner_name' => ['nullable', 'string', 'max:200'],
             'vehicle_make'       => ['nullable', 'string', 'max:100'],
             'vehicle_model'      => ['nullable', 'string', 'max:100'],
@@ -278,6 +281,7 @@ class ViolationController extends Controller
                 $existing = Vehicle::create([
                     'violator_id'    => $violation->violator_id,
                     'plate_number'   => $data['vehicle_plate'],
+                    'vehicle_type'   => $data['vehicle_type'] ?? null,
                     'make'           => $data['vehicle_make'] ?? null,
                     'model'          => $data['vehicle_model'] ?? null,
                     'color'          => $data['vehicle_color'] ?? null,
