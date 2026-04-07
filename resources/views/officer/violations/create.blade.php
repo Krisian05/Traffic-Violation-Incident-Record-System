@@ -163,7 +163,7 @@
                     <div class="col-6">
                         <label class="mob-label">Type</label>
                         <select name="vehicle_type" class="form-select mob-select">
-                            <option value="">— Select —</option>
+                            <option value="">MV / MC</option>
                             <option value="MV" {{ old('vehicle_type') === 'MV' ? 'selected' : '' }}>MV</option>
                             <option value="MC" {{ old('vehicle_type') === 'MC' ? 'selected' : '' }}>MC</option>
                         </select>
