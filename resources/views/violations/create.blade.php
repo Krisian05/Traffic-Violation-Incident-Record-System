@@ -205,7 +205,9 @@
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label" style="font-size:.8rem;">Type</label>
-                                    <select name="vehicle_type" class="form-select @error('vehicle_type') is-invalid @enderror">
+                                    <select name="vehicle_type" class="form-select @error('vehicle_type') is-invalid @enderror"
+                                            style="{{ old('vehicle_type') ? '' : 'color:#9ca3af;' }}"
+                                            onchange="this.style.color=this.value?'':'#9ca3af'">
                                         <option value="">MV / MC</option>
                                         <option value="MV" {{ old('vehicle_type') === 'MV' ? 'selected' : '' }}>MV</option>
                                         <option value="MC" {{ old('vehicle_type') === 'MC' ? 'selected' : '' }}>MC</option>

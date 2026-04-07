@@ -173,7 +173,9 @@
                     </div>
                     <div class="col-6">
                         <label class="mob-label">Type</label>
-                        <select name="vehicle_type" class="form-select mob-select">
+                        <select name="vehicle_type" class="form-select mob-select"
+                                style="{{ old('vehicle_type', $violation->vehicle?->vehicle_type) ? '' : 'color:#9ca3af;' }}"
+                                onchange="this.style.color=this.value?'':'#9ca3af'">
                             <option value="">MV / MC</option>
                             <option value="MV" {{ old('vehicle_type', $violation->vehicle?->vehicle_type) === 'MV' ? 'selected' : '' }}>MV</option>
                             <option value="MC" {{ old('vehicle_type', $violation->vehicle?->vehicle_type) === 'MC' ? 'selected' : '' }}>MC</option>
