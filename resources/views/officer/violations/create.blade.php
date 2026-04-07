@@ -168,7 +168,7 @@
                         <label class="mob-label">Type</label>
                         <select name="vehicle_type" class="form-select mob-select {{ old('vehicle_type') ? '' : 'vt-select-empty' }}"
                                 onchange="this.classList.toggle('vt-select-empty',!this.value)">
-                            <option value="">— Type —</option>
+                            <option value="">— Select —</option>
                             <option value="MV" {{ old('vehicle_type') === 'MV' ? 'selected' : '' }}>MV</option>
                             <option value="MC" {{ old('vehicle_type') === 'MC' ? 'selected' : '' }}>MC</option>
                         </select>
