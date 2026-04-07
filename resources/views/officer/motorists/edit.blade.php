@@ -614,13 +614,18 @@
         <div class="edit-section-body">
 
             @if($violator->photo)
-            <div class="photo-preview-card">
-                <img src="{{ uploaded_file_url($violator->photo) }}" alt="Current photo" class="photo-preview-img">
+            <div class="photo-preview-card" id="photo-preview-card" style="cursor:pointer;" title="Tap to replace photo">
+                <div style="position:relative;flex-shrink:0;">
+                    <img src="{{ uploaded_file_url($violator->photo) }}" alt="Current photo" class="photo-preview-img">
+                    <span style="position:absolute;bottom:-4px;right:-4px;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(37,99,235,.4);border:2px solid #fff;">
+                        <i class="ph-bold ph-pencil-simple" style="font-size:.6rem;color:#fff;"></i>
+                    </span>
+                </div>
                 <div>
                     <div class="photo-preview-badge">
                         <i class="ph-fill ph-check-circle"></i> Current Photo on File
                     </div>
-                    <div style="font-size:.72rem;color:#334155;margin-top:.25rem;">Upload a new image below to replace it.</div>
+                    <div style="font-size:.72rem;color:#334155;margin-top:.25rem;">Tap photo or use buttons below to replace.</div>
                 </div>
             </div>
             @else
@@ -651,6 +656,15 @@
 document.addEventListener('DOMContentLoaded', function () {
     // Photo picker
     initPhotoPicker('picker-photo', 'photo', { multiple: false });
+
+    // Make current photo preview clickable → trigger gallery picker
+    const previewCard = document.getElementById('photo-preview-card');
+    if (previewCard) {
+        previewCard.addEventListener('click', function () {
+            const galBtn = document.querySelector('#picker-photo .mob-photo-picker-btn:not(.camera)');
+            if (galBtn) galBtn.click();
+        });
+    }
 
     // Interactive restriction chips
     document.querySelectorAll('.rc-chip').forEach(function (chip) {
