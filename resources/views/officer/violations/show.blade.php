@@ -71,7 +71,7 @@
                     @if($violation->location)
                     <span class="motshow-meta-chip">
                         <i class="ph ph-map-pin"></i>
-                        {{ Str::limit($violation->location, 22) }}
+                        {{ \Illuminate\Support\Str::limit($violation->location, 22) }}
                     </span>
                     @endif
                 </div>
