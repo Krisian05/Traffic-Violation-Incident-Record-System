@@ -52,12 +52,22 @@
     }
 
     /* ── Field group ── */
-    .field-group {
-        margin-bottom: .875rem;
-    }
+    .field-group { margin-bottom: 1rem; }
     .field-group:last-child { margin-bottom: 0; }
 
-    /* ── Input group with icon panel ── */
+    .mob-label {
+        font-size: .65rem !important;
+        font-weight: 700 !important;
+        color: #475569 !important;
+        text-transform: uppercase !important;
+        letter-spacing: .06em !important;
+        margin-bottom: .4rem !important;
+        display: flex !important;
+        align-items: center;
+        gap: .3rem;
+    }
+
+    /* ── Input group ── */
     .field-wrap {
         display: flex;
         align-items: stretch;
@@ -65,78 +75,88 @@
         border-radius: 12px;
         overflow: hidden;
         background: #fff;
-        transition: border-color .18s, box-shadow .18s;
+        transition: border-color .2s, box-shadow .2s;
     }
 
     .field-wrap:focus-within {
-        border-color: #1d4ed8;
-        box-shadow: 0 0 0 3px rgba(29,78,216,.1);
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3.5px rgba(37,99,235,.13);
     }
 
     .field-wrap.is-invalid-wrap {
-        border-color: #dc2626;
-        box-shadow: 0 0 0 3px rgba(220,38,38,.1);
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3.5px rgba(239,68,68,.12);
     }
 
+    /* Icon adorn panel */
     .field-adorn {
-        width: 42px;
-        min-height: 44px;
+        width: 44px;
+        min-height: 46px;
         display: flex;
         align-items: center;
         justify-content: center;
         background: #f8fafc;
         border-right: 1.5px solid #e2e8f0;
         color: #94a3b8;
-        font-size: 1.05rem;
+        font-size: 1.1rem;
         flex-shrink: 0;
-        transition: color .18s, background .18s;
+        transition: background .2s, color .2s, border-color .2s;
     }
 
     .field-wrap:focus-within .field-adorn {
         background: #eff6ff;
-        color: #1d4ed8;
+        color: #2563eb;
         border-right-color: #bfdbfe;
     }
 
     .field-wrap.is-invalid-wrap .field-adorn {
         background: #fff1f2;
-        color: #dc2626;
-        border-right-color: #fca5a5;
+        color: #ef4444;
+        border-right-color: #fecaca;
     }
 
+    .field-adorn--top {
+        align-items: flex-start;
+        padding-top: .8rem;
+    }
+
+    /* Inputs inside wrap */
     .field-wrap .mob-input,
     .field-wrap .mob-select {
         border: none !important;
         border-radius: 0 !important;
         box-shadow: none !important;
+        outline: none !important;
         flex: 1;
         min-width: 0;
-        background: transparent;
-        padding-left: .75rem !important;
+        background: #fff;
+        padding-left: .8rem !important;
+        font-size: .9rem !important;
+        color: #0f172a !important;
+        min-height: 46px;
     }
+
+    .field-wrap .mob-input::placeholder { color: #cbd5e1; }
 
     .field-wrap .mob-input:focus,
     .field-wrap .mob-select:focus {
         box-shadow: none !important;
         border: none !important;
-        outline: none;
+        outline: none !important;
+        background: #fafcff;
     }
 
-    /* textarea adorn aligned to top */
-    .field-adorn--top {
-        align-items: flex-start;
-        padding-top: .72rem;
-    }
-
-    /* invalid feedback below wrap */
+    /* Error message */
     .field-error {
-        font-size: .72rem;
-        color: #dc2626;
+        font-size: .71rem;
+        color: #ef4444;
         margin-top: .3rem;
         display: flex;
         align-items: center;
-        gap: .3rem;
+        gap: .28rem;
+        font-weight: 500;
     }
+    .field-error i { font-size: .8rem; }
 
     /* Restriction chip checkboxes */
     .restriction-chip {
