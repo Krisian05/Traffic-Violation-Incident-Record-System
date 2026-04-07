@@ -158,31 +158,71 @@
     }
     .field-error i { font-size: .8rem; }
 
-    /* Restriction chip checkboxes */
-    .restriction-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: .3rem;
-        padding: .32rem .72rem;
-        border-radius: 8px;
-        border: 1.5px solid #cbd5e1;
-        background: #f8fafc;
-        font-size: .78rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all .15s;
-        user-select: none;
+    /* ── Restriction code chips ── */
+    .rc-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: .5rem;
     }
 
-    .restriction-chip input[type=checkbox] { display: none; }
+    .rc-chip {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: .18rem;
+        padding: .55rem .4rem;
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
+        background: #f8fafc;
+        cursor: pointer;
+        user-select: none;
+        transition: all .18s;
+        -webkit-tap-highlight-color: transparent;
+    }
 
-    .restriction-chip.checked {
-        border-color: #1d4ed8;
+    .rc-chip input[type=checkbox] { display: none; }
+
+    .rc-chip-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .85rem;
+        color: #94a3b8;
+        transition: all .18s;
+        flex-shrink: 0;
+    }
+
+    .rc-chip-label {
+        font-size: .72rem;
+        font-weight: 800;
+        color: #64748b;
+        letter-spacing: .03em;
+        transition: color .18s;
+    }
+
+    /* checked state */
+    .rc-chip.checked {
+        border-color: #2563eb;
         background: #eff6ff;
+    }
+
+    .rc-chip.checked .rc-chip-icon {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: #fff;
+        box-shadow: 0 2px 6px rgba(37,99,235,.35);
+    }
+
+    .rc-chip.checked .rc-chip-label {
         color: #1d4ed8;
     }
 
-    .restriction-chip i { font-size: .85rem; }
+    /* press effect */
+    .rc-chip:active { transform: scale(.94); }
 
     /* Photo preview */
     .photo-preview-card {
@@ -482,13 +522,15 @@
             <div class="field-group">
                 <label class="mob-label" style="margin-bottom:.55rem;">Restriction Codes</label>
                 @php $currentRestrictions = array_filter(explode(',', $violator->license_restriction ?? '')); @endphp
-                <div class="d-flex flex-wrap gap-2" id="restriction-wrap">
+                <div class="rc-grid" id="restriction-wrap">
                     @foreach(['A','A1','B','B1','B2','C','D','BE','CE'] as $rc)
                     @php $isChecked = is_array(old('license_restriction')) ? in_array($rc, old('license_restriction')) : in_array($rc, $currentRestrictions); @endphp
-                    <label class="restriction-chip {{ $isChecked ? 'checked' : '' }}">
+                    <label class="rc-chip {{ $isChecked ? 'checked' : '' }}">
                         <input type="checkbox" name="license_restriction[]" value="{{ $rc }}" {{ $isChecked ? 'checked' : '' }}>
-                        <i class="ph {{ $isChecked ? 'ph-fill ph-check-circle' : 'ph ph-circle' }}"></i>
-                        {{ $rc }}
+                        <span class="rc-chip-icon">
+                            <i class="ph {{ $isChecked ? 'ph-fill ph-check' : 'ph ph-car' }}"></i>
+                        </span>
+                        <span class="rc-chip-label">{{ $rc }}</span>
                     </label>
                     @endforeach
                 </div>
@@ -611,17 +653,13 @@ document.addEventListener('DOMContentLoaded', function () {
     initPhotoPicker('picker-photo', 'photo', { multiple: false });
 
     // Interactive restriction chips
-    document.querySelectorAll('.restriction-chip').forEach(function (chip) {
+    document.querySelectorAll('.rc-chip').forEach(function (chip) {
         chip.addEventListener('click', function () {
             const cb  = chip.querySelector('input[type=checkbox]');
-            const ico = chip.querySelector('i');
+            const ico = chip.querySelector('.rc-chip-icon i');
             const on  = cb.checked;
             chip.classList.toggle('checked', on);
-            if (on) {
-                ico.className = 'ph-fill ph-check-circle';
-            } else {
-                ico.className = 'ph ph-circle';
-            }
+            ico.className = on ? 'ph ph-fill ph-check' : 'ph ph-car';
         });
     });
 });
