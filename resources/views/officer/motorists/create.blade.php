@@ -2,268 +2,635 @@
 @section('title', 'New Motorist')
 @section('back_url', route('officer.motorists.index'))
 
+@push('styles')
+<style>
+    /* ── Edit-page overrides (shared with edit) ── */
+    .edit-section {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.04);
+        border: 1px solid rgba(0,0,0,.04);
+        overflow: hidden;
+        margin-bottom: .875rem;
+    }
+
+    .edit-section-header {
+        display: flex;
+        align-items: center;
+        gap: .65rem;
+        padding: .8rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        background: #f8fafc;
+    }
+
+    .edit-section-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .edit-section-icon--blue   { background: linear-gradient(135deg,#1d4ed8,#1e40af); color:#fff; box-shadow:0 2px 8px rgba(29,78,216,.28); }
+    .edit-section-icon--green  { background: linear-gradient(135deg,#059669,#047857); color:#fff; box-shadow:0 2px 8px rgba(5,150,105,.28); }
+    .edit-section-icon--amber  { background: linear-gradient(135deg,#d97706,#b45309); color:#fff; box-shadow:0 2px 8px rgba(217,119,6,.28); }
+    .edit-section-icon--violet { background: linear-gradient(135deg,#7c3aed,#6d28d9); color:#fff; box-shadow:0 2px 8px rgba(124,58,237,.28); }
+
+    .edit-section-title {
+        font-size: .72rem;
+        font-weight: 800;
+        color: var(--text-dark);
+        text-transform: uppercase;
+        letter-spacing: .07em;
+    }
+
+    .edit-section-body { padding: 1rem; }
+
+    /* ── Field group ── */
+    .field-group { margin-bottom: 1rem; }
+    .field-group:last-child { margin-bottom: 0; }
+
+    .mob-label {
+        font-size: .65rem !important;
+        font-weight: 700 !important;
+        color: #475569 !important;
+        text-transform: uppercase !important;
+        letter-spacing: .06em !important;
+        margin-bottom: .4rem !important;
+        display: flex !important;
+        align-items: center;
+        gap: .3rem;
+    }
+
+    /* ── Input group ── */
+    .field-wrap {
+        display: flex;
+        align-items: stretch;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .field-wrap:focus-within {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3.5px rgba(37,99,235,.13);
+    }
+
+    .field-wrap.is-invalid-wrap {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3.5px rgba(239,68,68,.12);
+    }
+
+    .field-wrap.field-ok-wrap {
+        border-color: #16a34a;
+        box-shadow: 0 0 0 3.5px rgba(22,163,74,.1);
+    }
+
+    .field-adorn {
+        width: 44px;
+        min-height: 46px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8fafc;
+        border-right: 1.5px solid #e2e8f0;
+        color: #94a3b8;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        transition: background .2s, color .2s, border-color .2s;
+    }
+
+    .field-wrap:focus-within .field-adorn {
+        background: #eff6ff;
+        color: #2563eb;
+        border-right-color: #bfdbfe;
+    }
+
+    .field-wrap.is-invalid-wrap .field-adorn {
+        background: #fff1f2;
+        color: #ef4444;
+        border-right-color: #fecaca;
+    }
+
+    .field-wrap.field-ok-wrap .field-adorn {
+        background: #f0fdf4;
+        color: #16a34a;
+        border-right-color: #bbf7d0;
+    }
+
+    .field-adorn--top {
+        align-items: flex-start;
+        padding-top: .8rem;
+    }
+
+    .field-wrap .mob-input,
+    .field-wrap .mob-select {
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        outline: none !important;
+        flex: 1;
+        min-width: 0;
+        background: #fff;
+        padding-left: .8rem !important;
+        font-size: .9rem !important;
+        color: #0f172a !important;
+        min-height: 46px;
+    }
+
+    .field-wrap .mob-input::placeholder { color: #cbd5e1; }
+
+    .field-wrap .mob-input:focus,
+    .field-wrap .mob-select:focus {
+        box-shadow: none !important;
+        border: none !important;
+        outline: none !important;
+        background: #fafcff;
+    }
+
+    /* hint below field */
+    .field-hint {
+        font-size: .68rem;
+        color: #94a3b8;
+        margin-top: .28rem;
+        display: flex;
+        align-items: center;
+        gap: .28rem;
+        line-height: 1.4;
+    }
+    .field-hint.hint-ok   { color: #16a34a; }
+    .field-hint.hint-warn { color: #ef4444; }
+
+    .field-error {
+        font-size: .71rem;
+        color: #ef4444;
+        margin-top: .3rem;
+        display: flex;
+        align-items: center;
+        gap: .28rem;
+        font-weight: 500;
+    }
+    .field-error i { font-size: .8rem; }
+
+    /* ── Restriction code chips ── */
+    .rc-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: .5rem;
+    }
+
+    .rc-chip {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: .18rem;
+        padding: .55rem .4rem;
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
+        background: #f8fafc;
+        cursor: pointer;
+        user-select: none;
+        transition: all .18s;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .rc-chip input[type=checkbox] { display: none; }
+
+    .rc-chip-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .85rem;
+        color: #94a3b8;
+        transition: all .18s;
+    }
+
+    .rc-chip-label {
+        font-size: .72rem;
+        font-weight: 800;
+        color: #64748b;
+        letter-spacing: .03em;
+        transition: color .18s;
+    }
+
+    .rc-chip.checked {
+        border-color: #2563eb;
+        background: #eff6ff;
+    }
+
+    .rc-chip.checked .rc-chip-icon {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: #fff;
+        box-shadow: 0 2px 6px rgba(37,99,235,.35);
+    }
+
+    .rc-chip.checked .rc-chip-label { color: #1d4ed8; }
+    .rc-chip:active { transform: scale(.94); }
+
+    /* ── Photo avatar ── */
+    .photo-avatar-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: .65rem;
+        padding: 1rem 0 .25rem;
+    }
+
+    .photo-avatar {
+        width: 88px;
+        height: 88px;
+        border-radius: 50%;
+        background: #eff6ff;
+        border: 2.5px dashed #93c5fd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        transition: border-color .2s;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .photo-avatar:hover { border-color: #2563eb; }
+
+    .photo-avatar-edit {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: linear-gradient(135deg,#2563eb,#1d4ed8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(37,99,235,.4);
+        border: 2px solid #fff;
+    }
+
+    /* ── Submit strip ── */
+    .submit-strip {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.04);
+        border: 1px solid rgba(0,0,0,.04);
+        padding: 1rem;
+    }
+</style>
+@endpush
+
 @section('content')
 
-<style>
-.mob-hint {
-    display: block;
-    font-size: .68rem;
-    color: #94a3b8;
-    margin-top: .28rem;
-    line-height: 1.4;
-}
-.mob-hint.hint-ok   { color: #16a34a; }
-.mob-hint.hint-warn { color: #dc2626; }
-.mob-input.field-ok   { border-color: #16a34a !important; box-shadow: 0 0 0 3px rgba(22,163,74,.1) !important; }
-.mob-input.field-warn { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220,38,38,.1) !important; }
-.mob-select.field-ok  { border-color: #16a34a !important; box-shadow: 0 0 0 3px rgba(22,163,74,.1) !important; }
-.mob-select.field-warn{ border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220,38,38,.1) !important; }
-</style>
+{{-- Header strip --}}
+<div style="display:flex;align-items:center;gap:.75rem;padding:.9rem 1rem;background:linear-gradient(135deg,#059669,#047857);border-radius:16px;margin-bottom:.875rem;box-shadow:0 6px 24px rgba(5,150,105,.32);">
+    <div style="width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#fff;flex-shrink:0;">
+        <i class="ph-fill ph-user-plus"></i>
+    </div>
+    <div>
+        <div style="font-size:.62rem;font-weight:700;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.07em;">New Record</div>
+        <div style="font-size:.97rem;font-weight:800;color:#fff;">Add Motorist</div>
+    </div>
+</div>
 
-<div class="mob-card">
-    <div class="mob-card-body">
-        <form method="POST" action="{{ route('officer.motorists.store') }}" enctype="multipart/form-data" id="motoristForm">
-            @csrf
+<form method="POST" action="{{ route('officer.motorists.store') }}" enctype="multipart/form-data" id="motoristForm">
+    @csrf
 
-            @if($errors->any())
-            <div class="mob-alert mob-alert-danger">
-                <i class="ph-fill ph-warning-circle flex-shrink-0"></i>
-                <div>{{ $errors->first() }}</div>
+    @if($errors->any())
+    <div class="mob-alert mob-alert-danger mb-3">
+        <i class="ph-fill ph-warning-circle" style="font-size:1.15rem;flex-shrink:0;"></i>
+        <div>{{ $errors->first() }}</div>
+    </div>
+    @endif
+
+    {{-- ── PHOTO ── --}}
+    <div class="edit-section">
+        <div class="edit-section-header">
+            <div class="edit-section-icon edit-section-icon--violet">
+                <i class="ph-bold ph-camera"></i>
             </div>
-            @endif
-
-            {{-- ── Photo ── --}}
-            <div class="mob-form-divider">
-                <span class="mob-form-divider-text">Profile Photo</span>
-                <span class="mob-form-divider-line"></span>
-            </div>
-
-            <div class="mb-4 text-center">
-                <div id="photoPreview"
-                     style="width:96px;height:96px;border-radius:50%;background:#eff6ff;border:2.5px dashed #93c5fd;display:flex;align-items:center;justify-content:center;margin:0 auto .65rem;overflow:hidden;transition:border-color .15s;">
-                    <i class="ph-fill ph-user" style="font-size:2.4rem;color:#93c5fd;"></i>
+            <span class="edit-section-title">Motorist Photo</span>
+        </div>
+        <div class="edit-section-body">
+            <div class="photo-avatar-wrap">
+                <div class="photo-avatar" id="photoPreview">
+                    <i class="ph-fill ph-user" style="font-size:2.4rem;color:#93c5fd;" id="photoPlaceholderIcon"></i>
+                    <span class="photo-avatar-edit">
+                        <i class="ph-bold ph-pencil-simple" style="font-size:.6rem;color:#fff;"></i>
+                    </span>
                 </div>
-                <div id="picker-photo" class="justify-content-center"></div>
-                <span class="mob-hint d-block text-center mt-1">JPG or PNG, max 5 MB. Clear front-facing photo.</span>
-                @error('photo')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
+                <span style="font-size:.7rem;color:#94a3b8;">Tap photo or use buttons below</span>
             </div>
+            <div id="picker-photo"></div>
+            @error('photo')<div class="field-error mt-2"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
+        </div>
+    </div>
 
-            {{-- ── Personal Info ── --}}
-            <div class="mob-form-divider">
-                <span class="mob-form-divider-text">Personal Info</span>
-                <span class="mob-form-divider-line"></span>
+    {{-- ── PERSONAL INFO ── --}}
+    <div class="edit-section">
+        <div class="edit-section-header">
+            <div class="edit-section-icon edit-section-icon--blue">
+                <i class="ph-bold ph-user"></i>
             </div>
+            <span class="edit-section-title">Personal Information</span>
+        </div>
+        <div class="edit-section-body">
 
-            <div class="mb-3">
+            <div class="field-group">
                 <label class="mob-label">First Name <span class="text-danger">*</span></label>
-                <input type="text" name="first_name" id="first_name" value="{{ old('first_name') }}" required
-                       class="form-control mob-input @error('first_name') is-invalid @enderror"
-                       placeholder="e.g. Juan" autocomplete="off">
+                <div class="field-wrap @error('first_name') is-invalid-wrap @enderror" id="wrap-first-name">
+                    <span class="field-adorn"><i class="ph ph-user"></i></span>
+                    <input type="text" name="first_name" id="first_name" value="{{ old('first_name') }}" required
+                           class="form-control mob-input" placeholder="e.g. Juan" autocomplete="off">
+                </div>
                 @error('first_name')
-                    <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>
                 @else
-                    <span class="mob-hint" id="hint-first-name">Letters and spaces only. Will be auto-capitalized.</span>
+                    <div class="field-hint" id="hint-first-name">Letters and spaces only. Will be auto-capitalized.</div>
                 @enderror
             </div>
 
-            <div class="mb-3">
-                <label class="mob-label">Middle Name</label>
-                <input type="text" name="middle_name" id="middle_name" value="{{ old('middle_name') }}"
-                       class="form-control mob-input @error('middle_name') is-invalid @enderror"
-                       placeholder="Optional" autocomplete="off">
+            <div class="field-group">
+                <label class="mob-label">Middle Name <span style="font-weight:400;color:var(--text-muted);text-transform:none;letter-spacing:0;">(optional)</span></label>
+                <div class="field-wrap @error('middle_name') is-invalid-wrap @enderror" id="wrap-middle-name">
+                    <span class="field-adorn"><i class="ph ph-user"></i></span>
+                    <input type="text" name="middle_name" id="middle_name" value="{{ old('middle_name') }}"
+                           class="form-control mob-input" placeholder="e.g. Dela" autocomplete="off">
+                </div>
                 @error('middle_name')
-                    <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>
                 @else
-                    <span class="mob-hint" id="hint-middle-name">Optional. Leave blank if none.</span>
+                    <div class="field-hint" id="hint-middle-name">Optional. Leave blank if none.</div>
                 @enderror
             </div>
 
-            <div class="mb-3">
+            <div class="field-group">
                 <label class="mob-label">Last Name <span class="text-danger">*</span></label>
-                <input type="text" name="last_name" id="last_name" value="{{ old('last_name') }}" required
-                       class="form-control mob-input @error('last_name') is-invalid @enderror"
-                       placeholder="e.g. dela Cruz" autocomplete="off">
+                <div class="field-wrap @error('last_name') is-invalid-wrap @enderror" id="wrap-last-name">
+                    <span class="field-adorn"><i class="ph ph-user"></i></span>
+                    <input type="text" name="last_name" id="last_name" value="{{ old('last_name') }}" required
+                           class="form-control mob-input" placeholder="e.g. dela Cruz" autocomplete="off">
+                </div>
                 @error('last_name')
-                    <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>
                 @else
-                    <span class="mob-hint" id="hint-last-name">Letters and spaces only. Will be auto-capitalized.</span>
+                    <div class="field-hint" id="hint-last-name">Letters and spaces only. Will be auto-capitalized.</div>
                 @enderror
             </div>
 
-            <div class="row g-2 mb-3">
+            <div class="row g-2 mb-0">
                 <div class="col-6">
-                    <label class="mob-label">Date of Birth</label>
-                    <input type="date" name="date_of_birth" value="{{ old('date_of_birth') }}"
-                           class="form-control mob-input @error('date_of_birth') is-invalid @enderror">
-                    @error('date_of_birth')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="field-group">
+                        <label class="mob-label">Date of Birth</label>
+                        <div class="field-wrap @error('date_of_birth') is-invalid-wrap @enderror">
+                            <span class="field-adorn"><i class="ph ph-calendar-blank"></i></span>
+                            <input type="date" name="date_of_birth" value="{{ old('date_of_birth') }}"
+                                   class="form-control mob-input">
+                        </div>
+                        @error('date_of_birth')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
+                    </div>
                 </div>
                 <div class="col-6">
-                    <label class="mob-label">Gender</label>
-                    <select name="gender" class="form-select mob-select @error('gender') is-invalid @enderror">
-                        <option value="">— Select —</option>
-                        <option value="Male"   {{ old('gender') === 'Male'   ? 'selected' : '' }}>Male</option>
-                        <option value="Female" {{ old('gender') === 'Female' ? 'selected' : '' }}>Female</option>
-                        <option value="Other"  {{ old('gender') === 'Other'  ? 'selected' : '' }}>Other</option>
-                    </select>
-                    @error('gender')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-            </div>
-
-            <div class="row g-2 mb-3">
-                <div class="col-6">
-                    <label class="mob-label">Civil Status</label>
-                    <select name="civil_status" class="form-select mob-select @error('civil_status') is-invalid @enderror">
-                        <option value="">— Select —</option>
-                        <option value="Single"    {{ old('civil_status') === 'Single'    ? 'selected' : '' }}>Single</option>
-                        <option value="Married"   {{ old('civil_status') === 'Married'   ? 'selected' : '' }}>Married</option>
-                        <option value="Widowed"   {{ old('civil_status') === 'Widowed'   ? 'selected' : '' }}>Widowed</option>
-                        <option value="Separated" {{ old('civil_status') === 'Separated' ? 'selected' : '' }}>Separated</option>
-                    </select>
-                    @error('civil_status')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-6">
-                    <label class="mob-label">Blood Type</label>
-                    <select name="blood_type" class="form-select mob-select @error('blood_type') is-invalid @enderror">
-                        <option value="">— Select —</option>
-                        @foreach(['O+','O-','A+','A-','B+','B-','AB+','AB-'] as $bt)
-                        <option value="{{ $bt }}" {{ old('blood_type') === $bt ? 'selected' : '' }}>{{ $bt }}</option>
-                        @endforeach
-                    </select>
-                    @error('blood_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="field-group">
+                        <label class="mob-label">Gender</label>
+                        <div class="field-wrap @error('gender') is-invalid-wrap @enderror">
+                            <span class="field-adorn"><i class="ph ph-gender-intersex"></i></span>
+                            <select name="gender" class="form-select mob-select">
+                                <option value="">Select</option>
+                                <option value="Male"   {{ old('gender') === 'Male'   ? 'selected' : '' }}>Male</option>
+                                <option value="Female" {{ old('gender') === 'Female' ? 'selected' : '' }}>Female</option>
+                                <option value="Other"  {{ old('gender') === 'Other'  ? 'selected' : '' }}>Other</option>
+                            </select>
+                        </div>
+                        @error('gender')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
+                    </div>
                 </div>
             </div>
 
-            <div class="mb-3">
+            <div class="row g-2 mb-0">
+                <div class="col-6">
+                    <div class="field-group">
+                        <label class="mob-label">Civil Status</label>
+                        <div class="field-wrap @error('civil_status') is-invalid-wrap @enderror">
+                            <span class="field-adorn"><i class="ph ph-heart"></i></span>
+                            <select name="civil_status" class="form-select mob-select">
+                                <option value="">Select</option>
+                                <option value="Single"    {{ old('civil_status') === 'Single'    ? 'selected' : '' }}>Single</option>
+                                <option value="Married"   {{ old('civil_status') === 'Married'   ? 'selected' : '' }}>Married</option>
+                                <option value="Widowed"   {{ old('civil_status') === 'Widowed'   ? 'selected' : '' }}>Widowed</option>
+                                <option value="Separated" {{ old('civil_status') === 'Separated' ? 'selected' : '' }}>Separated</option>
+                            </select>
+                        </div>
+                        @error('civil_status')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="field-group">
+                        <label class="mob-label">Blood Type</label>
+                        <div class="field-wrap @error('blood_type') is-invalid-wrap @enderror">
+                            <span class="field-adorn"><i class="ph ph-drop"></i></span>
+                            <select name="blood_type" class="form-select mob-select">
+                                <option value="">Select</option>
+                                @foreach(['O+','O-','A+','A-','B+','B-','AB+','AB-'] as $bt)
+                                <option value="{{ $bt }}" {{ old('blood_type') === $bt ? 'selected' : '' }}>{{ $bt }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @error('blood_type')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
+                    </div>
+                </div>
+            </div>
+
+            <div class="field-group">
                 <label class="mob-label">Place of Birth</label>
-                <input type="text" name="place_of_birth" value="{{ old('place_of_birth') }}"
-                       class="form-control mob-input @error('place_of_birth') is-invalid @enderror"
-                       placeholder="City / Municipality of birth">
-                @error('place_of_birth')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div class="field-wrap @error('place_of_birth') is-invalid-wrap @enderror">
+                    <span class="field-adorn"><i class="ph ph-map-pin"></i></span>
+                    <input type="text" name="place_of_birth" value="{{ old('place_of_birth') }}"
+                           class="form-control mob-input" placeholder="City / Municipality">
+                </div>
+                @error('place_of_birth')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
             </div>
 
-            <div class="row g-2 mb-3">
+            <div class="row g-2 mb-0">
                 <div class="col-6">
-                    <label class="mob-label">Height</label>
-                    <input type="text" name="height" value="{{ old('height') }}"
-                           class="form-control mob-input @error('height') is-invalid @enderror"
-                           placeholder='e.g. 5&apos;8"'>
-                    @error('height')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="field-group">
+                        <label class="mob-label">Height (cm)</label>
+                        <div class="field-wrap @error('height') is-invalid-wrap @enderror">
+                            <span class="field-adorn"><i class="ph ph-ruler"></i></span>
+                            <input type="number" name="height" value="{{ old('height') }}" min="50" max="250" step="0.1"
+                                   class="form-control mob-input" placeholder="165">
+                        </div>
+                        @error('height')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
+                    </div>
                 </div>
                 <div class="col-6">
-                    <label class="mob-label">Weight</label>
-                    <input type="text" name="weight" value="{{ old('weight') }}"
-                           class="form-control mob-input @error('weight') is-invalid @enderror"
-                           placeholder="e.g. 65 kg">
-                    @error('weight')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="field-group">
+                        <label class="mob-label">Weight (kg)</label>
+                        <div class="field-wrap @error('weight') is-invalid-wrap @enderror">
+                            <span class="field-adorn"><i class="ph ph-scales"></i></span>
+                            <input type="number" name="weight" value="{{ old('weight') }}" min="10" max="300" step="0.1"
+                                   class="form-control mob-input" placeholder="60">
+                        </div>
+                        @error('weight')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
+                    </div>
                 </div>
             </div>
 
-            <div class="mb-3">
+            <div class="field-group">
                 <label class="mob-label">Valid ID Presented</label>
-                <input type="text" name="valid_id" value="{{ old('valid_id') }}"
-                       class="form-control mob-input @error('valid_id') is-invalid @enderror"
-                       placeholder="e.g. PhilSys ID, Passport, UMID">
-                @error('valid_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div class="field-wrap @error('valid_id') is-invalid-wrap @enderror">
+                    <span class="field-adorn"><i class="ph ph-identification-card"></i></span>
+                    <input type="text" name="valid_id" value="{{ old('valid_id') }}"
+                           class="form-control mob-input" placeholder="PhilSys ID / Passport / UMID">
+                </div>
+                @error('valid_id')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
             </div>
 
-            <div class="mb-3">
+            <div class="field-group">
                 <label class="mob-label">Email Address</label>
-                <input type="email" name="email" value="{{ old('email') }}"
-                       class="form-control mob-input @error('email') is-invalid @enderror"
-                       placeholder="e.g. juan@email.com">
-                @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div class="field-wrap @error('email') is-invalid-wrap @enderror">
+                    <span class="field-adorn"><i class="ph ph-envelope"></i></span>
+                    <input type="email" name="email" value="{{ old('email') }}"
+                           class="form-control mob-input" placeholder="juan@email.com">
+                </div>
+                @error('email')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
             </div>
 
-            {{-- ── License ── --}}
-            <div class="mob-form-divider">
-                <span class="mob-form-divider-text">License</span>
-                <span class="mob-form-divider-line"></span>
-            </div>
+        </div>
+    </div>
 
-            <div class="mb-3">
+    {{-- ── LICENSE ── --}}
+    <div class="edit-section">
+        <div class="edit-section-header">
+            <div class="edit-section-icon edit-section-icon--green">
+                <i class="ph-bold ph-identification-card"></i>
+            </div>
+            <span class="edit-section-title">Driver's License</span>
+        </div>
+        <div class="edit-section-body">
+
+            <div class="field-group">
                 <label class="mob-label">License Number</label>
-                <input type="text" name="license_number" id="license_number" value="{{ old('license_number') }}"
-                       class="form-control mob-input @error('license_number') is-invalid @enderror"
-                       placeholder="e.g. N01-01-123456" style="text-transform:uppercase;" autocomplete="off">
+                <div class="field-wrap @error('license_number') is-invalid-wrap @enderror" id="wrap-license-number">
+                    <span class="field-adorn"><i class="ph ph-hash"></i></span>
+                    <input type="text" name="license_number" id="license_number" value="{{ old('license_number') }}"
+                           class="form-control mob-input" placeholder="N01-01-123456"
+                           style="text-transform:uppercase;" autocomplete="off">
+                </div>
                 @error('license_number')
-                    <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>
                 @else
-                    <span class="mob-hint" id="hint-license">LTO format: N01-23-456789. Auto-uppercased.</span>
+                    <div class="field-hint" id="hint-license">LTO format: N01-23-456789. Auto-uppercased.</div>
                 @enderror
             </div>
 
-            <div class="row g-2 mb-3">
+            <div class="row g-2 mb-0">
                 <div class="col-7">
-                    <label class="mob-label">License Type</label>
-                    <select name="license_type" class="form-select mob-select @error('license_type') is-invalid @enderror">
-                        <option value="">— Select —</option>
-                        <option value="Non-Professional" {{ old('license_type') === 'Non-Professional' ? 'selected' : '' }}>Non-Professional</option>
-                        <option value="Professional"     {{ old('license_type') === 'Professional'     ? 'selected' : '' }}>Professional</option>
-                    </select>
-                    @error('license_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="field-group">
+                        <label class="mob-label">License Type</label>
+                        <div class="field-wrap @error('license_type') is-invalid-wrap @enderror">
+                            <span class="field-adorn"><i class="ph ph-certificate"></i></span>
+                            <select name="license_type" class="form-select mob-select">
+                                <option value="">Select</option>
+                                <option value="Non-Professional" {{ old('license_type') === 'Non-Professional' ? 'selected' : '' }}>Non-Professional</option>
+                                <option value="Professional"     {{ old('license_type') === 'Professional'     ? 'selected' : '' }}>Professional</option>
+                            </select>
+                        </div>
+                        @error('license_type')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
+                    </div>
                 </div>
                 <div class="col-5">
-                    <label class="mob-label">Expiry Date</label>
-                    <input type="date" name="license_expiry_date" id="license_expiry_date"
-                           value="{{ old('license_expiry_date') }}"
-                           class="form-control mob-input @error('license_expiry_date') is-invalid @enderror">
-                    @error('license_expiry_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="field-group">
+                        <label class="mob-label">Expiry Date</label>
+                        <div class="field-wrap @error('license_expiry_date') is-invalid-wrap @enderror" id="wrap-expiry">
+                            <span class="field-adorn"><i class="ph ph-calendar-x"></i></span>
+                            <input type="date" name="license_expiry_date" id="license_expiry_date"
+                                   value="{{ old('license_expiry_date') }}"
+                                   class="form-control mob-input">
+                        </div>
+                        @error('license_expiry_date')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
+                    </div>
                 </div>
             </div>
-            <span class="mob-hint" id="hint-expiry" style="margin-top:-.5rem;margin-bottom:.75rem;display:block;">Expiration date printed on the license card.</span>
+            <div class="field-hint mb-2" id="hint-expiry" style="margin-top:-.25rem;">Expiration date printed on the license card.</div>
 
-            <div class="mb-3">
+            <div class="field-group">
                 <label class="mob-label">Date Issued</label>
-                <input type="date" name="license_issued_date" value="{{ old('license_issued_date') }}"
-                       class="form-control mob-input @error('license_issued_date') is-invalid @enderror">
-                @error('license_issued_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div class="field-wrap @error('license_issued_date') is-invalid-wrap @enderror">
+                    <span class="field-adorn"><i class="ph ph-calendar-check"></i></span>
+                    <input type="date" name="license_issued_date" value="{{ old('license_issued_date') }}"
+                           class="form-control mob-input">
+                </div>
+                @error('license_issued_date')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
             </div>
 
-            <div class="mb-3">
-                <label class="mob-label d-block mb-2">Restriction Codes</label>
-                <div class="d-flex flex-wrap gap-2">
+            <div class="field-group">
+                <label class="mob-label" style="margin-bottom:.55rem;">Restriction Codes</label>
+                <div class="rc-grid" id="restriction-wrap">
                     @foreach(['A','A1','B','B1','B2','C','D','BE','CE'] as $rc)
-                    <label style="display:inline-flex;align-items:center;gap:.35rem;padding:.28rem .7rem;border-radius:8px;border:1.5px solid #cbd5e1;background:#f8fafc;font-size:.8rem;font-weight:600;cursor:pointer;">
-                        <input type="checkbox" name="license_restriction[]" value="{{ $rc }}"
-                               {{ is_array(old('license_restriction')) && in_array($rc, old('license_restriction')) ? 'checked' : '' }}
-                               style="accent-color:#2563eb;">
-                        {{ $rc }}
+                    @php $isChecked = is_array(old('license_restriction')) && in_array($rc, old('license_restriction')); @endphp
+                    <label class="rc-chip {{ $isChecked ? 'checked' : '' }}">
+                        <input type="checkbox" name="license_restriction[]" value="{{ $rc }}" {{ $isChecked ? 'checked' : '' }}>
+                        <span class="rc-chip-icon">
+                            <i class="ph {{ $isChecked ? 'ph-fill ph-check' : 'ph ph-car' }}"></i>
+                        </span>
+                        <span class="rc-chip-label">{{ $rc }}</span>
                     </label>
                     @endforeach
                 </div>
-                @error('license_restriction')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
-                <span class="mob-hint">Select all applicable restriction codes from the license card.</span>
+                @error('license_restriction')<div class="field-error mt-2"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
+                <div class="field-hint mt-2">Select all applicable restriction codes from the license card.</div>
             </div>
 
-            <div class="mb-3">
+            <div class="field-group">
                 <label class="mob-label">Conditions / Remarks</label>
-                <textarea name="license_conditions" rows="2"
-                          class="form-control mob-input @error('license_conditions') is-invalid @enderror"
-                          placeholder="e.g. Must wear corrective lenses"
-                          style="min-height:auto;resize:none;">{{ old('license_conditions') }}</textarea>
-                @error('license_conditions')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div class="field-wrap @error('license_conditions') is-invalid-wrap @enderror" style="align-items:flex-start;">
+                    <span class="field-adorn field-adorn--top"><i class="ph ph-note-pencil"></i></span>
+                    <textarea name="license_conditions" rows="2"
+                              class="form-control mob-input"
+                              placeholder="e.g. Must wear corrective lenses"
+                              style="min-height:auto;resize:none;">{{ old('license_conditions') }}</textarea>
+                </div>
+                @error('license_conditions')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
             </div>
 
-            {{-- ── Contact ── --}}
-            <div class="mob-form-divider">
-                <span class="mob-form-divider-text">Contact</span>
-                <span class="mob-form-divider-line"></span>
-            </div>
+        </div>
+    </div>
 
-            <div class="mb-3">
+    {{-- ── CONTACT ── --}}
+    <div class="edit-section">
+        <div class="edit-section-header">
+            <div class="edit-section-icon edit-section-icon--amber">
+                <i class="ph-bold ph-phone"></i>
+            </div>
+            <span class="edit-section-title">Contact Details</span>
+        </div>
+        <div class="edit-section-body">
+
+            <div class="field-group">
                 <label class="mob-label">Contact Number</label>
-                <input type="text" name="contact_number" id="contact_number" value="{{ old('contact_number') }}"
-                       class="form-control mob-input @error('contact_number') is-invalid @enderror"
-                       placeholder="e.g. 09XX-XXX-XXXX" maxlength="13">
+                <div class="field-wrap @error('contact_number') is-invalid-wrap @enderror" id="wrap-contact">
+                    <span class="field-adorn"><i class="ph ph-device-mobile"></i></span>
+                    <input type="text" name="contact_number" id="contact_number" value="{{ old('contact_number') }}"
+                           class="form-control mob-input" placeholder="09XX-XXX-XXXX" maxlength="13">
+                </div>
                 @error('contact_number')
-                    <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>
                 @else
-                    <span class="mob-hint" id="hint-contact">PH mobile format: 09XX-XXX-XXXX (11 digits).</span>
+                    <div class="field-hint" id="hint-contact">PH mobile format: 09XX-XXX-XXXX (11 digits).</div>
                 @enderror
             </div>
 
-            {{-- ── Address (PSGC cascading selector) ── --}}
-            <div class="mb-3">
+            <div class="field-group">
                 @include('partials.location-selector', [
                     'fieldName' => 'address',
                     'required'  => false,
@@ -272,25 +639,34 @@
                 ])
             </div>
 
-            <div class="mb-3">
+            <div class="field-group">
                 <label class="mob-label">Permanent Address</label>
-                <textarea name="permanent_address" rows="2"
-                          class="form-control mob-input @error('permanent_address') is-invalid @enderror"
-                          placeholder="Street, Barangay, City / Municipality, Province"
-                          style="min-height:auto;resize:none;">{{ old('permanent_address') }}</textarea>
-                @error('permanent_address')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                <span class="mob-hint">Leave blank if same as temporary address above.</span>
+                <div class="field-wrap @error('permanent_address') is-invalid-wrap @enderror" style="align-items:flex-start;">
+                    <span class="field-adorn field-adorn--top"><i class="ph ph-map-trifold"></i></span>
+                    <textarea name="permanent_address" rows="2"
+                              class="form-control mob-input"
+                              placeholder="Street, Barangay, City / Province"
+                              style="min-height:auto;resize:none;">{{ old('permanent_address') }}</textarea>
+                </div>
+                @error('permanent_address')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
+                <div style="display:flex;align-items:center;gap:.35rem;margin-top:.35rem;">
+                    <i class="ph ph-info" style="font-size:.8rem;color:var(--text-muted);"></i>
+                    <span style="font-size:.68rem;color:var(--text-muted);">Leave blank if same as temporary address.</span>
+                </div>
             </div>
 
-            <button type="submit" class="mob-btn-primary mb-2" id="submitBtn">
-                <i class="ph-bold ph-check"></i> Save Motorist
-            </button>
-            <a href="{{ route('officer.motorists.index') }}" class="mob-btn-outline">
-                <i class="ph ph-x-circle"></i> Cancel
-            </a>
-        </form>
+        </div>
     </div>
-</div>
+
+    {{-- ── SUBMIT ── --}}
+    <div class="submit-strip">
+        <button type="submit" class="mob-btn-primary" id="submitBtn">
+            <i class="ph-bold ph-floppy-disk" style="font-size:1.05rem;"></i>
+            Save Motorist
+        </button>
+    </div>
+
+</form>
 
 @endsection
 
@@ -298,49 +674,71 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     initPhotoPicker('picker-photo', 'photo', { multiple: false });
+
+    // Make avatar clickable → open gallery
+    const avatar = document.getElementById('photoPreview');
+    if (avatar) {
+        avatar.addEventListener('click', function () {
+            const galBtn = document.querySelector('#picker-photo .mob-photo-picker-btn:not(.camera)');
+            if (galBtn) galBtn.click();
+        });
+    }
+
+    // Restriction chips
+    document.querySelectorAll('.rc-chip').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            const cb  = chip.querySelector('input[type=checkbox]');
+            const ico = chip.querySelector('.rc-chip-icon i');
+            const on  = cb.checked;
+            chip.classList.toggle('checked', on);
+            ico.className = on ? 'ph ph-fill ph-check' : 'ph ph-car';
+        });
+    });
 });
 
 (function () {
 
     /* ── Helpers ── */
-    function setOk(input, hint, msg) {
-        input.classList.remove('field-warn'); input.classList.add('field-ok');
-        if (hint) { hint.className = 'mob-hint hint-ok'; hint.textContent = '✓ ' + msg; }
+    function setOk(wrap, hint, msg) {
+        if (wrap) { wrap.classList.remove('is-invalid-wrap'); wrap.classList.add('field-ok-wrap'); }
+        if (hint) { hint.className = 'field-hint hint-ok'; hint.innerHTML = '<i class="ph ph-check-circle"></i>' + msg; }
     }
-    function setWarn(input, hint, msg) {
-        input.classList.remove('field-ok'); input.classList.add('field-warn');
-        if (hint) { hint.className = 'mob-hint hint-warn'; hint.textContent = '✕ ' + msg; }
+    function setWarn(wrap, hint, msg) {
+        if (wrap) { wrap.classList.remove('field-ok-wrap'); wrap.classList.add('is-invalid-wrap'); }
+        if (hint) { hint.className = 'field-hint hint-warn'; hint.innerHTML = '<i class="ph ph-warning-circle"></i>' + msg; }
     }
-    function setNeutral(input, hint, msg) {
-        input.classList.remove('field-ok', 'field-warn');
-        if (hint) { hint.className = 'mob-hint'; hint.textContent = msg; }
+    function setNeutral(wrap, hint, msg) {
+        if (wrap) { wrap.classList.remove('field-ok-wrap', 'is-invalid-wrap'); }
+        if (hint) { hint.className = 'field-hint'; hint.textContent = msg; }
     }
 
-    /* ── Name fields: letters/spaces/hyphens only, auto-capitalize ── */
-    [['first_name','hint-first-name','Letters and spaces only. Will be auto-capitalized.'],
-     ['middle_name','hint-middle-name','Optional. Leave blank if none.'],
-     ['last_name','hint-last-name','Letters and spaces only. Will be auto-capitalized.']
+    /* ── Name fields ── */
+    [['first_name','wrap-first-name','hint-first-name','Letters and spaces only. Will be auto-capitalized.'],
+     ['middle_name','wrap-middle-name','hint-middle-name','Optional. Leave blank if none.'],
+     ['last_name','wrap-last-name','hint-last-name','Letters and spaces only. Will be auto-capitalized.']
     ].forEach(function(cfg) {
-        var el = document.getElementById(cfg[0]);
-        var hint = document.getElementById(cfg[1]);
+        var el   = document.getElementById(cfg[0]);
+        var wrap = document.getElementById(cfg[1]);
+        var hint = document.getElementById(cfg[2]);
         if (!el) return;
         el.addEventListener('input', function () {
             var pos = this.selectionStart;
             this.value = this.value.replace(/\b\w/g, function(c) { return c.toUpperCase(); });
             try { this.setSelectionRange(pos, pos); } catch(e) {}
             var v = this.value.trim();
-            if (!v) { setNeutral(this, hint, cfg[2]); return; }
+            if (!v) { setNeutral(wrap, hint, cfg[3]); return; }
             if (/[^a-zA-ZÀ-ÿ\s\-\.\']/.test(v)) {
                 this.value = this.value.replace(/[^a-zA-ZÀ-ÿ\s\-\.\']/g, '');
-                setWarn(this, hint, 'Numbers and special characters are not allowed.');
+                setWarn(wrap, hint, 'Numbers and special characters are not allowed.');
             } else {
-                setOk(this, hint, 'Looks good.');
+                setOk(wrap, hint, 'Looks good.');
             }
         });
     });
 
-    /* ── License number: auto-uppercase + format check ── */
+    /* ── License number ── */
     var licenseEl   = document.getElementById('license_number');
+    var licenseWrap = document.getElementById('wrap-license-number');
     var licenseHint = document.getElementById('hint-license');
     if (licenseEl) {
         licenseEl.addEventListener('input', function () {
@@ -348,33 +746,35 @@ document.addEventListener('DOMContentLoaded', function () {
             this.value = this.value.toUpperCase();
             try { this.setSelectionRange(pos, pos); } catch(e) {}
             var v = this.value.trim();
-            if (!v) { setNeutral(this, licenseHint, 'LTO format: N01-23-456789. Auto-uppercased.'); return; }
+            if (!v) { setNeutral(licenseWrap, licenseHint, 'LTO format: N01-23-456789. Auto-uppercased.'); return; }
             if (/^[A-Z]\d{2}-\d{2}-\d{6}$/.test(v)) {
-                setOk(this, licenseHint, 'Valid LTO license number format.');
+                setOk(licenseWrap, licenseHint, 'Valid LTO license number format.');
             } else {
-                setWarn(this, licenseHint, 'Expected format: N01-23-456789');
+                setWarn(licenseWrap, licenseHint, 'Expected format: N01-23-456789');
             }
         });
     }
 
-    /* ── Expiry date: warn if expired ── */
+    /* ── Expiry date ── */
     var expiryEl   = document.getElementById('license_expiry_date');
+    var expiryWrap = document.getElementById('wrap-expiry');
     var expiryHint = document.getElementById('hint-expiry');
     if (expiryEl) {
         expiryEl.addEventListener('change', function () {
             var v = this.value;
-            if (!v) { setNeutral(this, expiryHint, 'Expiration date printed on the license card.'); return; }
+            if (!v) { setNeutral(expiryWrap, expiryHint, 'Expiration date printed on the license card.'); return; }
             var chosen = new Date(v), today = new Date(); today.setHours(0,0,0,0);
             if (chosen < today) {
-                setWarn(this, expiryHint, 'This license is already EXPIRED.');
+                setWarn(expiryWrap, expiryHint, 'This license is already EXPIRED.');
             } else {
-                setOk(this, expiryHint, 'License is still valid.');
+                setOk(expiryWrap, expiryHint, 'License is still valid.');
             }
         });
     }
 
-    /* ── Contact number: auto-format 09XX-XXX-XXXX ── */
+    /* ── Contact number ── */
     var contactEl   = document.getElementById('contact_number');
+    var contactWrap = document.getElementById('wrap-contact');
     var contactHint = document.getElementById('hint-contact');
     if (contactEl) {
         contactEl.addEventListener('input', function () {
@@ -383,31 +783,33 @@ document.addEventListener('DOMContentLoaded', function () {
             if (digits.length > 7)      fmt = digits.slice(0,4) + '-' + digits.slice(4,7) + '-' + digits.slice(7);
             else if (digits.length > 4) fmt = digits.slice(0,4) + '-' + digits.slice(4);
             this.value = fmt;
-            if (!digits) { setNeutral(this, contactHint, 'PH mobile format: 09XX-XXX-XXXX (11 digits).'); return; }
+            if (!digits) { setNeutral(contactWrap, contactHint, 'PH mobile format: 09XX-XXX-XXXX (11 digits).'); return; }
             if (digits.length === 11 && /^09\d{9}$/.test(digits)) {
-                setOk(this, contactHint, 'Valid PH mobile number.');
+                setOk(contactWrap, contactHint, 'Valid PH mobile number.');
             } else if (digits.length === 11) {
-                setWarn(this, contactHint, 'PH numbers must start with 09.');
+                setWarn(contactWrap, contactHint, 'PH numbers must start with 09.');
             } else {
-                setWarn(this, contactHint, digits.length + '/11 digits. Keep typing…');
+                setWarn(contactWrap, contactHint, digits.length + '/11 digits. Keep typing…');
             }
         });
     }
 
-    /* ── Profile photo preview — observe the sync input written by initPhotoPicker ── */
-    var photoPreviewCircle = document.getElementById('photoPreview');
+    /* ── Photo avatar preview ── */
+    var avatarEl = document.getElementById('photoPreview');
     var pickerDiv = document.getElementById('picker-photo');
-    if (pickerDiv && photoPreviewCircle) {
+    if (pickerDiv && avatarEl) {
         var observer = new MutationObserver(function () {
             var syncInp = pickerDiv.querySelector('.picker-sync-input');
             if (syncInp && syncInp.files && syncInp.files[0]) {
                 var reader = new FileReader();
                 reader.onload = function (ev) {
-                    photoPreviewCircle.innerHTML = '<img src="' + ev.target.result + '" style="width:96px;height:96px;object-fit:cover;border-radius:50%;">';
+                    avatarEl.innerHTML = '<img src="' + ev.target.result + '" style="width:88px;height:88px;object-fit:cover;border-radius:50%;">'
+                        + '<span class="photo-avatar-edit"><i class="ph-bold ph-pencil-simple" style="font-size:.6rem;color:#fff;"></i></span>';
                 };
                 reader.readAsDataURL(syncInp.files[0]);
             } else {
-                photoPreviewCircle.innerHTML = '<i class="ph-fill ph-user" style="font-size:2.4rem;color:#93c5fd;"></i>';
+                avatarEl.innerHTML = '<i class="ph-fill ph-user" style="font-size:2.4rem;color:#93c5fd;"></i>'
+                    + '<span class="photo-avatar-edit"><i class="ph-bold ph-pencil-simple" style="font-size:.6rem;color:#fff;"></i></span>';
             }
         });
         observer.observe(pickerDiv, { childList: true, subtree: true });
