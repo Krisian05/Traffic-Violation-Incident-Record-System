@@ -356,7 +356,7 @@
                         <div class="field-wrap @error('gender') is-invalid-wrap @enderror">
                             <span class="field-adorn"><i class="ph ph-gender-intersex"></i></span>
                             <select name="gender" class="form-select mob-select">
-                                <option value="">— Select —</option>
+                                <option value="">Select</option>
                                 <option value="Male"   {{ old('gender', $violator->gender) === 'Male'   ? 'selected' : '' }}>Male</option>
                                 <option value="Female" {{ old('gender', $violator->gender) === 'Female' ? 'selected' : '' }}>Female</option>
                             </select>
@@ -371,9 +371,9 @@
                     <div class="field-group">
                         <label class="mob-label">Civil Status</label>
                         <div class="field-wrap @error('civil_status') is-invalid-wrap @enderror">
-                            <span class="field-adorn"><i class="ph ph-ring"></i></span>
+                            <span class="field-adorn"><i class="ph ph-heart"></i></span>
                             <select name="civil_status" class="form-select mob-select">
-                                <option value="">— Select —</option>
+                                <option value="">Select</option>
                                 <option value="Single"    {{ old('civil_status', $violator->civil_status) === 'Single'    ? 'selected' : '' }}>Single</option>
                                 <option value="Married"   {{ old('civil_status', $violator->civil_status) === 'Married'   ? 'selected' : '' }}>Married</option>
                                 <option value="Widowed"   {{ old('civil_status', $violator->civil_status) === 'Widowed'   ? 'selected' : '' }}>Widowed</option>
@@ -389,7 +389,7 @@
                         <div class="field-wrap @error('blood_type') is-invalid-wrap @enderror">
                             <span class="field-adorn"><i class="ph ph-drop"></i></span>
                             <select name="blood_type" class="form-select mob-select">
-                                <option value="">— Select —</option>
+                                <option value="">Select</option>
                                 @foreach(['O+','O-','A+','A-','B+','B-','AB+','AB-'] as $bt)
                                 <option value="{{ $bt }}" {{ old('blood_type', $violator->blood_type) === $bt ? 'selected' : '' }}>{{ $bt }}</option>
                                 @endforeach
@@ -486,7 +486,7 @@
                         <div class="field-wrap @error('license_type') is-invalid-wrap @enderror">
                             <span class="field-adorn"><i class="ph ph-certificate"></i></span>
                             <select name="license_type" class="form-select mob-select">
-                                <option value="">— Select —</option>
+                                <option value="">Select</option>
                                 <option value="Non-Professional" {{ old('license_type', $violator->license_type) === 'Non-Professional' ? 'selected' : '' }}>Non-Professional</option>
                                 <option value="Professional"     {{ old('license_type', $violator->license_type) === 'Professional'     ? 'selected' : '' }}>Professional</option>
                             </select>
