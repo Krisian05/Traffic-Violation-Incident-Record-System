@@ -51,36 +51,91 @@
         padding: 1rem;
     }
 
-    /* Input with leading icon */
+    /* ── Field group ── */
     .field-group {
         margin-bottom: .875rem;
     }
-
     .field-group:last-child { margin-bottom: 0; }
 
+    /* ── Input group with icon panel ── */
     .field-wrap {
-        position: relative;
+        display: flex;
+        align-items: stretch;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+        transition: border-color .18s, box-shadow .18s;
     }
 
-    .field-icon {
-        position: absolute;
-        left: .85rem;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 1rem;
-        color: var(--text-muted);
-        pointer-events: none;
-        z-index: 2;
+    .field-wrap:focus-within {
+        border-color: #1d4ed8;
+        box-shadow: 0 0 0 3px rgba(29,78,216,.1);
     }
 
-    .field-icon--top {
-        top: .78rem;
-        transform: none;
+    .field-wrap.is-invalid-wrap {
+        border-color: #dc2626;
+        box-shadow: 0 0 0 3px rgba(220,38,38,.1);
     }
 
-    .has-field-icon .mob-input,
-    .has-field-icon .mob-select {
-        padding-left: 2.45rem !important;
+    .field-adorn {
+        width: 42px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8fafc;
+        border-right: 1.5px solid #e2e8f0;
+        color: #94a3b8;
+        font-size: 1.05rem;
+        flex-shrink: 0;
+        transition: color .18s, background .18s;
+    }
+
+    .field-wrap:focus-within .field-adorn {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-right-color: #bfdbfe;
+    }
+
+    .field-wrap.is-invalid-wrap .field-adorn {
+        background: #fff1f2;
+        color: #dc2626;
+        border-right-color: #fca5a5;
+    }
+
+    .field-wrap .mob-input,
+    .field-wrap .mob-select {
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        flex: 1;
+        min-width: 0;
+        background: transparent;
+        padding-left: .75rem !important;
+    }
+
+    .field-wrap .mob-input:focus,
+    .field-wrap .mob-select:focus {
+        box-shadow: none !important;
+        border: none !important;
+        outline: none;
+    }
+
+    /* textarea adorn aligned to top */
+    .field-adorn--top {
+        align-items: flex-start;
+        padding-top: .72rem;
+    }
+
+    /* invalid feedback below wrap */
+    .field-error {
+        font-size: .72rem;
+        color: #dc2626;
+        margin-top: .3rem;
+        display: flex;
+        align-items: center;
+        gap: .3rem;
     }
 
     /* Restriction chip checkboxes */
@@ -194,62 +249,59 @@
 
             <div class="field-group">
                 <label class="mob-label">First Name <span class="text-danger">*</span></label>
-                <div class="field-wrap has-field-icon">
-                    <i class="ph ph-text-aa field-icon"></i>
+                <div class="field-wrap @error('first_name') is-invalid-wrap @enderror">
+                    <span class="field-adorn"><i class="ph ph-user"></i></span>
                     <input type="text" name="first_name" value="{{ old('first_name', $violator->first_name) }}" required
-                           class="form-control mob-input @error('first_name') is-invalid @enderror"
-                           placeholder="e.g. Juan">
-                    @error('first_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                           class="form-control mob-input" placeholder="e.g. Juan">
                 </div>
+                @error('first_name')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
             </div>
 
             <div class="field-group">
                 <label class="mob-label">Middle Name <span style="font-weight:400;color:var(--text-muted);text-transform:none;letter-spacing:0;">(optional)</span></label>
-                <div class="field-wrap has-field-icon">
-                    <i class="ph ph-text-aa field-icon"></i>
+                <div class="field-wrap @error('middle_name') is-invalid-wrap @enderror">
+                    <span class="field-adorn"><i class="ph ph-user"></i></span>
                     <input type="text" name="middle_name" value="{{ old('middle_name', $violator->middle_name) }}"
-                           class="form-control mob-input @error('middle_name') is-invalid @enderror"
-                           placeholder="e.g. Dela">
-                    @error('middle_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                           class="form-control mob-input" placeholder="e.g. Dela">
                 </div>
+                @error('middle_name')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
             </div>
 
             <div class="field-group">
                 <label class="mob-label">Last Name <span class="text-danger">*</span></label>
-                <div class="field-wrap has-field-icon">
-                    <i class="ph ph-text-aa field-icon"></i>
+                <div class="field-wrap @error('last_name') is-invalid-wrap @enderror">
+                    <span class="field-adorn"><i class="ph ph-user"></i></span>
                     <input type="text" name="last_name" value="{{ old('last_name', $violator->last_name) }}" required
-                           class="form-control mob-input @error('last_name') is-invalid @enderror"
-                           placeholder="e.g. Cruz">
-                    @error('last_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                           class="form-control mob-input" placeholder="e.g. Cruz">
                 </div>
+                @error('last_name')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
             </div>
 
             <div class="row g-2 mb-0">
                 <div class="col-6">
                     <div class="field-group">
                         <label class="mob-label">Date of Birth</label>
-                        <div class="field-wrap has-field-icon">
-                            <i class="ph ph-calendar-blank field-icon"></i>
+                        <div class="field-wrap @error('date_of_birth') is-invalid-wrap @enderror">
+                            <span class="field-adorn"><i class="ph ph-calendar-blank"></i></span>
                             <input type="date" name="date_of_birth"
                                    value="{{ old('date_of_birth', $violator->date_of_birth?->format('Y-m-d')) }}"
-                                   class="form-control mob-input @error('date_of_birth') is-invalid @enderror">
-                            @error('date_of_birth')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                   class="form-control mob-input">
                         </div>
+                        @error('date_of_birth')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="field-group">
                         <label class="mob-label">Gender</label>
-                        <div class="field-wrap has-field-icon">
-                            <i class="ph ph-gender-intersex field-icon"></i>
-                            <select name="gender" class="form-select mob-select has-field-icon @error('gender') is-invalid @enderror">
+                        <div class="field-wrap @error('gender') is-invalid-wrap @enderror">
+                            <span class="field-adorn"><i class="ph ph-gender-intersex"></i></span>
+                            <select name="gender" class="form-select mob-select">
                                 <option value="">— Select —</option>
                                 <option value="Male"   {{ old('gender', $violator->gender) === 'Male'   ? 'selected' : '' }}>Male</option>
                                 <option value="Female" {{ old('gender', $violator->gender) === 'Female' ? 'selected' : '' }}>Female</option>
                             </select>
-                            @error('gender')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
+                        @error('gender')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
                     </div>
                 </div>
             </div>
@@ -258,95 +310,90 @@
                 <div class="col-6">
                     <div class="field-group">
                         <label class="mob-label">Civil Status</label>
-                        <div class="field-wrap has-field-icon">
-                            <i class="ph ph-ring field-icon"></i>
-                            <select name="civil_status" class="form-select mob-select @error('civil_status') is-invalid @enderror">
+                        <div class="field-wrap @error('civil_status') is-invalid-wrap @enderror">
+                            <span class="field-adorn"><i class="ph ph-ring"></i></span>
+                            <select name="civil_status" class="form-select mob-select">
                                 <option value="">— Select —</option>
                                 <option value="Single"    {{ old('civil_status', $violator->civil_status) === 'Single'    ? 'selected' : '' }}>Single</option>
                                 <option value="Married"   {{ old('civil_status', $violator->civil_status) === 'Married'   ? 'selected' : '' }}>Married</option>
                                 <option value="Widowed"   {{ old('civil_status', $violator->civil_status) === 'Widowed'   ? 'selected' : '' }}>Widowed</option>
                                 <option value="Separated" {{ old('civil_status', $violator->civil_status) === 'Separated' ? 'selected' : '' }}>Separated</option>
                             </select>
-                            @error('civil_status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
+                        @error('civil_status')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="field-group">
                         <label class="mob-label">Blood Type</label>
-                        <div class="field-wrap has-field-icon">
-                            <i class="ph ph-drop field-icon"></i>
-                            <select name="blood_type" class="form-select mob-select @error('blood_type') is-invalid @enderror">
+                        <div class="field-wrap @error('blood_type') is-invalid-wrap @enderror">
+                            <span class="field-adorn"><i class="ph ph-drop"></i></span>
+                            <select name="blood_type" class="form-select mob-select">
                                 <option value="">— Select —</option>
                                 @foreach(['O+','O-','A+','A-','B+','B-','AB+','AB-'] as $bt)
                                 <option value="{{ $bt }}" {{ old('blood_type', $violator->blood_type) === $bt ? 'selected' : '' }}>{{ $bt }}</option>
                                 @endforeach
                             </select>
-                            @error('blood_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
+                        @error('blood_type')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
                     </div>
                 </div>
             </div>
 
             <div class="field-group">
                 <label class="mob-label">Place of Birth</label>
-                <div class="field-wrap has-field-icon">
-                    <i class="ph ph-map-pin field-icon"></i>
+                <div class="field-wrap @error('place_of_birth') is-invalid-wrap @enderror">
+                    <span class="field-adorn"><i class="ph ph-map-pin"></i></span>
                     <input type="text" name="place_of_birth"
                            value="{{ old('place_of_birth', $violator->place_of_birth) }}"
-                           class="form-control mob-input @error('place_of_birth') is-invalid @enderror"
-                           placeholder="City / Municipality">
-                    @error('place_of_birth')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                           class="form-control mob-input" placeholder="City / Municipality">
                 </div>
+                @error('place_of_birth')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
             </div>
 
             <div class="row g-2 mb-0">
                 <div class="col-6">
                     <div class="field-group">
                         <label class="mob-label">Height (cm)</label>
-                        <div class="field-wrap has-field-icon">
-                            <i class="ph ph-ruler field-icon"></i>
+                        <div class="field-wrap @error('height') is-invalid-wrap @enderror">
+                            <span class="field-adorn"><i class="ph ph-ruler"></i></span>
                             <input type="number" name="height" value="{{ old('height', $violator->height) }}" min="50" max="250" step="0.1"
-                                   class="form-control mob-input @error('height') is-invalid @enderror"
-                                   placeholder="165">
-                            @error('height')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                   class="form-control mob-input" placeholder="165">
                         </div>
+                        @error('height')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="field-group">
                         <label class="mob-label">Weight (kg)</label>
-                        <div class="field-wrap has-field-icon">
-                            <i class="ph ph-scales field-icon"></i>
+                        <div class="field-wrap @error('weight') is-invalid-wrap @enderror">
+                            <span class="field-adorn"><i class="ph ph-scales"></i></span>
                             <input type="number" name="weight" value="{{ old('weight', $violator->weight) }}" min="10" max="300" step="0.1"
-                                   class="form-control mob-input @error('weight') is-invalid @enderror"
-                                   placeholder="60">
-                            @error('weight')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                   class="form-control mob-input" placeholder="60">
                         </div>
+                        @error('weight')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
                     </div>
                 </div>
             </div>
 
             <div class="field-group">
                 <label class="mob-label">Valid ID Presented</label>
-                <div class="field-wrap has-field-icon">
-                    <i class="ph ph-identification-card field-icon"></i>
+                <div class="field-wrap @error('valid_id') is-invalid-wrap @enderror">
+                    <span class="field-adorn"><i class="ph ph-identification-card"></i></span>
                     <input type="text" name="valid_id" value="{{ old('valid_id', $violator->valid_id) }}"
-                           class="form-control mob-input @error('valid_id') is-invalid @enderror"
-                           placeholder="PhilSys ID / Passport / UMID">
-                    @error('valid_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                           class="form-control mob-input" placeholder="PhilSys ID / Passport / UMID">
                 </div>
+                @error('valid_id')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
             </div>
 
             <div class="field-group">
                 <label class="mob-label">Email Address</label>
-                <div class="field-wrap has-field-icon">
-                    <i class="ph ph-envelope field-icon"></i>
+                <div class="field-wrap @error('email') is-invalid-wrap @enderror">
+                    <span class="field-adorn"><i class="ph ph-envelope"></i></span>
                     <input type="email" name="email" value="{{ old('email', $violator->email) }}"
-                           class="form-control mob-input @error('email') is-invalid @enderror"
-                           placeholder="juan@email.com">
-                    @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                           class="form-control mob-input" placeholder="juan@email.com">
                 </div>
+                @error('email')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
             </div>
 
         </div>
@@ -364,53 +411,52 @@
 
             <div class="field-group">
                 <label class="mob-label">License Number</label>
-                <div class="field-wrap has-field-icon">
-                    <i class="ph ph-hash field-icon"></i>
+                <div class="field-wrap @error('license_number') is-invalid-wrap @enderror">
+                    <span class="field-adorn"><i class="ph ph-hash"></i></span>
                     <input type="text" name="license_number" value="{{ old('license_number', $violator->license_number) }}"
-                           class="form-control mob-input @error('license_number') is-invalid @enderror"
-                           placeholder="N01-01-123456">
-                    @error('license_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                           class="form-control mob-input" placeholder="N01-01-123456">
                 </div>
+                @error('license_number')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
             </div>
 
             <div class="row g-2 mb-0">
                 <div class="col-7">
                     <div class="field-group">
                         <label class="mob-label">License Type</label>
-                        <div class="field-wrap has-field-icon">
-                            <i class="ph ph-certificate field-icon"></i>
-                            <select name="license_type" class="form-select mob-select @error('license_type') is-invalid @enderror">
+                        <div class="field-wrap @error('license_type') is-invalid-wrap @enderror">
+                            <span class="field-adorn"><i class="ph ph-certificate"></i></span>
+                            <select name="license_type" class="form-select mob-select">
                                 <option value="">— Select —</option>
                                 <option value="Non-Professional" {{ old('license_type', $violator->license_type) === 'Non-Professional' ? 'selected' : '' }}>Non-Professional</option>
                                 <option value="Professional"     {{ old('license_type', $violator->license_type) === 'Professional'     ? 'selected' : '' }}>Professional</option>
                             </select>
-                            @error('license_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
+                        @error('license_type')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
                     </div>
                 </div>
                 <div class="col-5">
                     <div class="field-group">
                         <label class="mob-label">Expiry Date</label>
-                        <div class="field-wrap has-field-icon">
-                            <i class="ph ph-calendar-x field-icon"></i>
+                        <div class="field-wrap @error('license_expiry_date') is-invalid-wrap @enderror">
+                            <span class="field-adorn"><i class="ph ph-calendar-x"></i></span>
                             <input type="date" name="license_expiry_date"
                                    value="{{ old('license_expiry_date', $violator->license_expiry_date?->format('Y-m-d')) }}"
-                                   class="form-control mob-input @error('license_expiry_date') is-invalid @enderror">
-                            @error('license_expiry_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                   class="form-control mob-input">
                         </div>
+                        @error('license_expiry_date')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
                     </div>
                 </div>
             </div>
 
             <div class="field-group">
                 <label class="mob-label">Date Issued</label>
-                <div class="field-wrap has-field-icon">
-                    <i class="ph ph-calendar-check field-icon"></i>
+                <div class="field-wrap @error('license_issued_date') is-invalid-wrap @enderror">
+                    <span class="field-adorn"><i class="ph ph-calendar-check"></i></span>
                     <input type="date" name="license_issued_date"
                            value="{{ old('license_issued_date', $violator->license_issued_date?->format('Y-m-d')) }}"
-                           class="form-control mob-input @error('license_issued_date') is-invalid @enderror">
-                    @error('license_issued_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                           class="form-control mob-input">
                 </div>
+                @error('license_issued_date')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
             </div>
 
             <div class="field-group">
@@ -426,19 +472,19 @@
                     </label>
                     @endforeach
                 </div>
-                @error('license_restriction')<div style="font-size:.72rem;color:#dc2626;margin-top:.3rem;">{{ $message }}</div>@enderror
+                @error('license_restriction')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
             </div>
 
             <div class="field-group">
                 <label class="mob-label">Conditions / Remarks</label>
-                <div class="field-wrap has-field-icon">
-                    <i class="ph ph-note-pencil field-icon field-icon--top"></i>
+                <div class="field-wrap @error('license_conditions') is-invalid-wrap @enderror" style="align-items:flex-start;">
+                    <span class="field-adorn field-adorn--top"><i class="ph ph-note-pencil"></i></span>
                     <textarea name="license_conditions" rows="2"
-                              class="form-control mob-input @error('license_conditions') is-invalid @enderror"
+                              class="form-control mob-input"
                               placeholder="e.g. Must wear corrective lenses"
                               style="min-height:auto;resize:none;">{{ old('license_conditions', $violator->license_conditions) }}</textarea>
-                    @error('license_conditions')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
+                @error('license_conditions')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
             </div>
 
         </div>
@@ -456,37 +502,36 @@
 
             <div class="field-group">
                 <label class="mob-label">Contact Number</label>
-                <div class="field-wrap has-field-icon">
-                    <i class="ph ph-device-mobile field-icon"></i>
+                <div class="field-wrap @error('contact_number') is-invalid-wrap @enderror">
+                    <span class="field-adorn"><i class="ph ph-device-mobile"></i></span>
                     <input type="text" name="contact_number" value="{{ old('contact_number', $violator->contact_number) }}"
-                           class="form-control mob-input @error('contact_number') is-invalid @enderror"
-                           placeholder="09XX-XXX-XXXX">
-                    @error('contact_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                           class="form-control mob-input" placeholder="09XX-XXX-XXXX">
                 </div>
+                @error('contact_number')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
             </div>
 
             <div class="field-group">
                 <label class="mob-label">Temporary / Current Address</label>
-                <div class="field-wrap has-field-icon">
-                    <i class="ph ph-house field-icon field-icon--top"></i>
+                <div class="field-wrap @error('address') is-invalid-wrap @enderror" style="align-items:flex-start;">
+                    <span class="field-adorn field-adorn--top"><i class="ph ph-house"></i></span>
                     <textarea name="address" rows="2"
-                              class="form-control mob-input @error('address') is-invalid @enderror"
+                              class="form-control mob-input"
                               placeholder="Barangay / Municipality / Province"
                               style="min-height:auto;resize:none;">{{ old('address', $violator->temporary_address) }}</textarea>
-                    @error('address')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
+                @error('address')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
             </div>
 
             <div class="field-group">
                 <label class="mob-label">Permanent Address</label>
-                <div class="field-wrap has-field-icon">
-                    <i class="ph ph-map-trifold field-icon field-icon--top"></i>
+                <div class="field-wrap @error('permanent_address') is-invalid-wrap @enderror" style="align-items:flex-start;">
+                    <span class="field-adorn field-adorn--top"><i class="ph ph-map-trifold"></i></span>
                     <textarea name="permanent_address" rows="2"
-                              class="form-control mob-input @error('permanent_address') is-invalid @enderror"
+                              class="form-control mob-input"
                               placeholder="Street, Barangay, City / Province"
                               style="min-height:auto;resize:none;">{{ old('permanent_address', $violator->permanent_address) }}</textarea>
-                    @error('permanent_address')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
+                @error('permanent_address')<div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>@enderror
                 <div style="display:flex;align-items:center;gap:.35rem;margin-top:.35rem;">
                     <i class="ph ph-info" style="font-size:.8rem;color:var(--text-muted);"></i>
                     <span style="font-size:.68rem;color:var(--text-muted);">Leave blank if same as temporary address.</span>
