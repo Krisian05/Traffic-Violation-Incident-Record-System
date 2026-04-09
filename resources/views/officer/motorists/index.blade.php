@@ -244,7 +244,7 @@
 
 @media (max-width: 420px) {
     .mot-pagination-wrap {
-        padding-right: 4.75rem;
+        padding-right: 3.5rem;
     }
 }
 </style>

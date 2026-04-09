@@ -57,11 +57,32 @@
             font-size: .8rem;
             font-weight: 700;
         }
+        .mob-page-btn-label {
+            white-space: nowrap;
+        }
         .mob-page-dots {
             font-size: .82rem;
             color: #94a3b8;
             padding: 0 .15rem;
             line-height: 38px;
+        }
+        @media (max-width: 420px) {
+            .mob-pager-row {
+                gap: .28rem;
+            }
+            .mob-page-btn {
+                min-width: 34px;
+                height: 34px;
+                padding: 0 .45rem;
+                font-size: .76rem;
+            }
+            .mob-page-btn--nav {
+                gap: 0;
+                padding: 0;
+            }
+            .mob-page-btn-label {
+                display: none;
+            }
         }
     </style>
 
@@ -73,12 +94,14 @@
         <div class="mob-pager-row">
             {{-- Prev --}}
             @if ($paginator->onFirstPage())
-                <span class="mob-page-btn mob-page-btn--nav disabled">
-                    <i class="ph ph-caret-left"></i> Prev
+                <span class="mob-page-btn mob-page-btn--nav disabled" aria-label="@lang('pagination.previous')">
+                    <i class="ph ph-caret-left"></i>
+                    <span class="mob-page-btn-label">Prev</span>
                 </span>
             @else
-                <a class="mob-page-btn mob-page-btn--nav" href="{{ $paginator->previousPageUrl() }}" rel="prev">
-                    <i class="ph ph-caret-left"></i> Prev
+                <a class="mob-page-btn mob-page-btn--nav" href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="@lang('pagination.previous')">
+                    <i class="ph ph-caret-left"></i>
+                    <span class="mob-page-btn-label">Prev</span>
                 </a>
             @endif
 
@@ -100,12 +123,14 @@
 
             {{-- Next --}}
             @if ($paginator->hasMorePages())
-                <a class="mob-page-btn mob-page-btn--nav" href="{{ $paginator->nextPageUrl() }}" rel="next">
-                    Next <i class="ph ph-caret-right"></i>
+                <a class="mob-page-btn mob-page-btn--nav" href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="@lang('pagination.next')">
+                    <span class="mob-page-btn-label">Next</span>
+                    <i class="ph ph-caret-right"></i>
                 </a>
             @else
-                <span class="mob-page-btn mob-page-btn--nav disabled">
-                    Next <i class="ph ph-caret-right"></i>
+                <span class="mob-page-btn mob-page-btn--nav disabled" aria-label="@lang('pagination.next')">
+                    <span class="mob-page-btn-label">Next</span>
+                    <i class="ph ph-caret-right"></i>
                 </span>
             @endif
         </div>
