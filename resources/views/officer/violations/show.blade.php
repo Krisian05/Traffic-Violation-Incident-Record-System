@@ -1,19 +1,19 @@
 @extends('layouts.mobile')
 @section('title', $violation->ticket_number ?? 'Violation Detail')
-@section('back_url', route('officer.motorists.show', $violation->violator))
+@section('back_url', $violation->violator ? route('officer.motorists.show', $violation->violator) : route('officer.motorists.index'))
+
+@push('styles')
+@include('partials.motshow-styles')
+@endpush
 
 @section('content')
 
 @php
-    $isOverdue = $violation->status === 'pending' && $violation->date_of_violation <= now()->subHours(72);
-    $status = $violation->status;
+    $isOverdue = $violation->status === 'pending'
+        && $violation->date_of_violation
+        && $violation->date_of_violation <= now()->subHours(72);
+    $status = $violation->status ?? 'pending';
 
-    $statusColor = match(true) {
-        $status === 'settled'   => ['bg' => '#059669', 'light' => '#f0fdf4', 'border' => '#86efac', 'text' => '#065f46'],
-        $status === 'contested' => ['bg' => '#7c3aed', 'light' => '#f5f3ff', 'border' => '#c4b5fd', 'text' => '#4c1d95'],
-        $isOverdue              => ['bg' => '#dc2626', 'light' => '#fef2f2', 'border' => '#fca5a5', 'text' => '#991b1b'],
-        default                 => ['bg' => '#d97706', 'light' => '#fffbeb', 'border' => '#fde68a', 'text' => '#92400e'],
-    };
     $statusLabel = match(true) {
         $status === 'settled'   => 'Settled',
         $status === 'contested' => 'Contested',
