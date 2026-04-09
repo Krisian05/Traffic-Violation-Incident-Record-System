@@ -462,7 +462,7 @@
 
 {{-- Edit FAB --}}
 <a href="{{ route('officer.motorists.edit', $violator) }}"
-   style="position:fixed;bottom:1.5rem;right:1.25rem;z-index:999;
+   style="position:fixed;bottom:calc(var(--nav-h) + var(--bot-h) + 1rem);right:1.25rem;z-index:999;
           width:52px;height:52px;border-radius:50%;
           background:linear-gradient(135deg,#1d4ed8,#1e40af);
           color:#fff;display:flex;align-items:center;justify-content:center;
