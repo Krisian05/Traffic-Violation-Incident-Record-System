@@ -311,9 +311,53 @@
         ].join('|');
     }
 
+    function bindQueuedMotoristToForm(form, offlineMotoristKey, duplicateLookupKey) {
+        if (!form) {
+            return;
+        }
+
+        var normalizedOfflineKey = cleanedString(offlineMotoristKey);
+        var normalizedDuplicateKey = cleanedString(duplicateLookupKey);
+
+        if (normalizedOfflineKey) {
+            form.dataset.offlineMotoristKey = normalizedOfflineKey;
+        } else {
+            delete form.dataset.offlineMotoristKey;
+        }
+
+        if (normalizedDuplicateKey) {
+            form.dataset.offlineDuplicateKey = normalizedDuplicateKey;
+        } else {
+            delete form.dataset.offlineDuplicateKey;
+        }
+    }
+
+    function clearQueuedMotoristBinding(form) {
+        if (!form) {
+            return false;
+        }
+
+        var hadBinding = !!(cleanedString(form.dataset.offlineMotoristKey) || cleanedString(form.dataset.offlineDuplicateKey));
+        delete form.dataset.offlineMotoristKey;
+        delete form.dataset.offlineDuplicateKey;
+        return hadBinding;
+    }
+
     function findOfflineMotoristForForm(form) {
         if (!form) {
             return Promise.resolve(null);
+        }
+
+        var boundOfflineKey = cleanedString(form.dataset.offlineMotoristKey);
+        if (boundOfflineKey) {
+            return getOfflineMotoristByKey(boundOfflineKey).then(function (motorist) {
+                if (motorist) {
+                    return motorist;
+                }
+
+                clearQueuedMotoristBinding(form);
+                return null;
+            });
         }
 
         var lookup = buildMotoristSummary(serializeFormData(new FormData(form)));
@@ -808,6 +852,11 @@
         var metadata = buildRecordMetadata(form, entries);
         var fingerprint = buildFingerprint(entries);
         var duplicateLookupKey = formDuplicateLookupKey(form, entries, metadata, fingerprint);
+
+        if (metadata.recordType === 'motorist-create') {
+            bindQueuedMotoristToForm(form, metadata.offlineMotoristKey, duplicateLookupKey);
+        }
+
         var record = {
             userId: currentUserId,
             state: 'pending',
@@ -834,7 +883,8 @@
 
             if (duplicate) {
                 if (record.recordType === 'motorist-create') {
-                    showToast('This motorist is already queued offline on this device.', 'pending');
+                    bindQueuedMotoristToForm(form, duplicate.offlineMotoristKey, duplicateLookupKey);
+                    showToast('This motorist is already queued offline on this device. You can record a linked violation now.', 'pending');
                     notifyOfflineRecordQueued(duplicate);
                     notifyOfflineDataChanged({ duplicate: true, record: duplicate });
                 } else if (record.recordType === 'offline-violation-create') {
@@ -847,7 +897,8 @@
 
             return addRecord(record).then(function () {
                 if (record.recordType === 'motorist-create') {
-                    showToast('Motorist saved offline. Open it from Queued Offline to record a violation.', 'pending');
+                    bindQueuedMotoristToForm(form, record.offlineMotoristKey, duplicateLookupKey);
+                    showToast('Motorist saved offline. You can record a linked violation now on this page.', 'pending');
                 } else if (record.recordType === 'offline-violation-create') {
                     showToast('Violation queued for this offline motorist. It will sync after the motorist record.', 'pending');
                 } else {
@@ -905,6 +956,18 @@
         var metadata = buildRecordMetadata(form, entries);
         var fingerprint = buildFingerprint(entries);
         var duplicateLookupKey = formDuplicateLookupKey(form, entries, metadata, fingerprint);
+
+        if (cleanedString(metadata.recordType) === 'motorist-create') {
+            var boundDuplicateKey = cleanedString(form.dataset.offlineDuplicateKey);
+            var boundOfflineKey = cleanedString(form.dataset.offlineMotoristKey);
+
+            if (boundDuplicateKey && boundDuplicateKey !== duplicateLookupKey) {
+                clearQueuedMotoristBinding(form);
+            } else if (boundDuplicateKey && boundOfflineKey) {
+                return Promise.resolve(true);
+            }
+        }
+
         return getRecordsForCurrentUser().then(function (records) {
             return (records || []).some(function (existingRecord) {
                 return !!DUPLICATE_STATES[String(existingRecord.state || '')]
