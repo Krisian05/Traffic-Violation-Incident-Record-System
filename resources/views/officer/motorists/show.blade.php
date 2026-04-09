@@ -439,9 +439,32 @@
     <div style="display:flex;align-items:flex-start;gap:.85rem;background:#fff;border-radius:16px;border:1px solid rgba(15,23,42,.06);box-shadow:0 2px 10px rgba(15,23,42,.04);margin-bottom:.65rem;overflow:hidden;position:relative;">
         <div style="width:4px;background:linear-gradient(180deg,#2563eb,#1d4ed8);align-self:stretch;flex-shrink:0;"></div>
         <div style="display:flex;align-items:flex-start;gap:.75rem;flex:1;min-width:0;padding:.85rem .85rem .85rem 0;">
+            @php
+                $vehPhotos   = $veh->photos;
+                $vehCaption  = 'Vehicle — ' . ($veh->plate_number ?: 'No Plate');
+                $vehGallery  = $vehPhotos->map(fn($p) => uploaded_file_url($p->photo))->values()->toJson();
+                $vehExtra    = $vehPhotos->count() - 1;
+            @endphp
+            @if($vehPhotos->isNotEmpty())
+            <div style="position:relative;width:40px;height:40px;border-radius:12px;overflow:hidden;flex-shrink:0;box-shadow:0 4px 12px rgba(29,78,216,.25);cursor:zoom-in;">
+                <img src="{{ uploaded_file_url($vehPhotos->first()->photo) }}"
+                     alt="Vehicle photo"
+                     class="mob-photo-thumb"
+                     data-full="{{ uploaded_file_url($vehPhotos->first()->photo) }}"
+                     data-gallery="{{ e($vehGallery) }}"
+                     data-caption="{{ $vehCaption }}"
+                     style="width:40px;height:40px;object-fit:cover;display:block;">
+                @if($vehExtra > 0)
+                <div style="position:absolute;inset:0;background:rgba(0,0,0,.48);display:flex;align-items:center;justify-content:center;pointer-events:none;">
+                    <span style="color:#fff;font-size:.52rem;font-weight:800;line-height:1;">+{{ $vehExtra }}</span>
+                </div>
+                @endif
+            </div>
+            @else
             <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(29,78,216,.25);">
                 <i class="ph-fill ph-car-profile" style="font-size:1.1rem;color:#fff;"></i>
             </div>
+            @endif
             <div style="flex:1;min-width:0;">
                 <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.18rem;">
                     <span style="font-size:.9rem;font-weight:800;color:#0f172a;">{{ $veh->plate_number ?: '—' }}</span>
@@ -470,18 +493,6 @@
                     <span style="display:inline-flex;align-items:center;gap:.22rem;background:#fef9c3;color:#92400e;border-radius:8px;font-size:.63rem;font-weight:800;padding:.1rem .4rem;">
                         <i class="ph ph-user-circle"></i> {{ $veh->owner_name }}
                     </span>
-                </div>
-                @endif
-                @if($veh->photos->count() > 0)
-                <div style="display:flex;gap:.35rem;margin-top:.5rem;overflow-x:auto;padding-bottom:.1rem;">
-                    @foreach($veh->photos->take(4) as $photo)
-                    <img src="{{ uploaded_file_url($photo->photo) }}"
-                         alt="Vehicle photo"
-                         class="mob-photo-thumb"
-                         data-full="{{ uploaded_file_url($photo->photo) }}"
-                         data-caption="Vehicle — {{ $veh->plate_number }}"
-                         style="width:58px;height:44px;object-fit:cover;border-radius:8px;border:1.5px solid #e2e8f0;flex-shrink:0;cursor:zoom-in;">
-                    @endforeach
                 </div>
                 @endif
             </div>
