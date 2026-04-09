@@ -241,6 +241,9 @@
     justify-content: center;
     margin-bottom: 1rem;
 }
+.mot-fab-lower {
+    bottom: calc(var(--nav-h) + var(--bot-h) + .55rem);
+}
 </style>
 @endpush
 
@@ -343,7 +346,7 @@
     @endif
 @endif
 
-<a href="{{ route('officer.motorists.create') }}" class="mob-fab" title="Add Motorist">
+<a href="{{ route('officer.motorists.create') }}" class="mob-fab mot-fab-lower" title="Add Motorist">
     <i class="ph-bold ph-plus"></i>
 </a>
 
