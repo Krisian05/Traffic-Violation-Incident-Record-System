@@ -996,6 +996,7 @@ class OfficerController extends Controller
             'password'          => ['required', 'min:8', 'confirmed'],
         ]);
 
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         if (!Hash::check($request->current_password, $user->password)) {
