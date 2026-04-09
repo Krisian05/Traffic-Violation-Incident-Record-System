@@ -940,16 +940,16 @@ document.addEventListener('keydown', function (e) {
                     </div>
                     @endif
                     <div class="mb-3">
-                        <label class="mob-label">Current Password</label>
-                        <input type="password" name="current_password" class="form-control mob-input" required autocomplete="current-password" placeholder="Enter current password">
+                        <label for="cp_current_password" class="mob-label">Current Password</label>
+                        <input id="cp_current_password" type="password" name="current_password" class="form-control mob-input" required autocomplete="current-password" placeholder="Enter current password">
                     </div>
                     <div class="mb-3">
-                        <label class="mob-label">New Password</label>
-                        <input type="password" name="password" class="form-control mob-input" required autocomplete="new-password" placeholder="At least 8 characters">
+                        <label for="cp_password" class="mob-label">New Password</label>
+                        <input id="cp_password" type="password" name="password" class="form-control mob-input" required autocomplete="new-password" placeholder="At least 8 characters">
                     </div>
                     <div class="mb-4">
-                        <label class="mob-label">Confirm New Password</label>
-                        <input type="password" name="password_confirmation" class="form-control mob-input" required autocomplete="new-password" placeholder="Repeat new password">
+                        <label for="cp_password_confirmation" class="mob-label">Confirm New Password</label>
+                        <input id="cp_password_confirmation" type="password" name="password_confirmation" class="form-control mob-input" required autocomplete="new-password" placeholder="Repeat new password">
                     </div>
                     <button type="submit" class="mob-btn-primary mb-2">
                         <i class="ph-bold ph-check"></i> Update Password
