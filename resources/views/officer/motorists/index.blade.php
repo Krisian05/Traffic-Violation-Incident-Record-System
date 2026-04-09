@@ -333,7 +333,7 @@
 
     @if($violators->hasPages())
     <div class="d-flex justify-content-center mb-4">
-        {{ $violators->links() }}
+        {{ $violators->links('vendor.pagination.bootstrap-5') }}
     </div>
     @endif
 @endif
