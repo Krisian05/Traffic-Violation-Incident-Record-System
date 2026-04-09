@@ -63,7 +63,7 @@
 <div class="mob-card">
     <div class="mob-card-body">
         <form method="POST" action="{{ route('officer.motorists.vehicles.store', $violator) }}"
-              enctype="multipart/form-data" id="vehicleForm">
+              enctype="multipart/form-data" id="vehicleForm" data-offline-sync="true" data-offline-label="Vehicle">
             @csrf
 
             @if($errors->any())

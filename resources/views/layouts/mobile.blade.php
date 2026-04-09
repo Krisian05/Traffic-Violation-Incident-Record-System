@@ -8,6 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="TVIRS Officer">
     <meta name="theme-color" content="#1d4ed8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     <link rel="icon" type="image/png" href="{{ asset('images/Balamban.png') }}">
@@ -185,6 +186,122 @@
         .mob-fab--red {
             background: linear-gradient(135deg, var(--red), var(--red-dark));
             box-shadow: 0 4px 20px rgba(220,38,38,.45);
+        }
+
+        .mob-sync-chip {
+            position: fixed;
+            left: .875rem;
+            bottom: calc(var(--nav-h) + var(--bot-h) + 1rem);
+            z-index: 92;
+            display: none;
+            align-items: center;
+            gap: .45rem;
+            max-width: calc(100vw - 6rem);
+            padding: .55rem .82rem;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            background: #fff;
+            color: var(--text-med);
+            box-shadow: 0 4px 18px rgba(15,23,42,.12);
+            font-size: .72rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .mob-sync-chip.show {
+            display: inline-flex;
+        }
+
+        .mob-sync-chip i {
+            font-size: .95rem;
+            flex-shrink: 0;
+        }
+
+        .mob-sync-chip--offline {
+            background: #fff7ed;
+            border-color: #fdba74;
+            color: #9a3412;
+        }
+
+        .mob-sync-chip--pending {
+            background: #eff6ff;
+            border-color: #93c5fd;
+            color: #1d4ed8;
+        }
+
+        .mob-sync-chip--syncing {
+            background: #eef2ff;
+            border-color: #a5b4fc;
+            color: #4338ca;
+        }
+
+        .mob-sync-chip--error {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #b91c1c;
+        }
+
+        .mob-sync-toast {
+            position: fixed;
+            left: 50%;
+            bottom: calc(var(--nav-h) + var(--bot-h) + 4.8rem);
+            transform: translateX(-50%) translateY(12px);
+            width: min(calc(100vw - 1.75rem), 340px);
+            z-index: 110;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s ease, transform .2s ease;
+        }
+
+        .mob-sync-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .mob-sync-toast-inner {
+            display: flex;
+            align-items: flex-start;
+            gap: .55rem;
+            padding: .78rem .9rem;
+            border-radius: 14px;
+            box-shadow: 0 10px 28px rgba(15,23,42,.2);
+            border: 1px solid transparent;
+            background: #fff;
+            color: var(--text-dark);
+            font-size: .76rem;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .mob-sync-toast-inner i {
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin-top: .04rem;
+        }
+
+        .mob-sync-toast--success .mob-sync-toast-inner {
+            background: #f0fdf4;
+            border-color: #86efac;
+            color: #166534;
+        }
+
+        .mob-sync-toast--pending .mob-sync-toast-inner,
+        .mob-sync-toast--syncing .mob-sync-toast-inner {
+            background: #eff6ff;
+            border-color: #93c5fd;
+            color: #1d4ed8;
+        }
+
+        .mob-sync-toast--offline .mob-sync-toast-inner {
+            background: #fff7ed;
+            border-color: #fdba74;
+            color: #9a3412;
+        }
+
+        .mob-sync-toast--error .mob-sync-toast-inner {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #b91c1c;
         }
 
         .mob-card {
@@ -774,7 +891,7 @@
 
     @stack('styles')
 </head>
-<body>
+<body data-auth-user-id="{{ Auth::id() }}">
 
 <header class="mob-topbar">
     <div class="mob-topbar-left">
@@ -851,6 +968,9 @@
 
     @yield('content')
 </main>
+
+<button type="button" id="mob-sync-chip" class="mob-sync-chip" aria-live="polite" aria-label="Offline sync status"></button>
+<div id="mob-sync-toast" class="mob-sync-toast" aria-live="polite" aria-atomic="true"></div>
 
 <nav class="mob-bottom-nav">
     <a href="{{ route('officer.dashboard') }}"
@@ -1155,5 +1275,6 @@ function initPhotoPicker(wrapperId, inputName, options) {
     galInput.addEventListener('change', () => handleFiles(galInput));
 }
 </script>
+<script src="{{ asset('mobile-offline.js') }}"></script>
 </body>
 </html>

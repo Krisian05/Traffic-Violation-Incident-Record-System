@@ -19,7 +19,7 @@
 
 <div class="mob-card">
     <div class="mob-card-body">
-        <form method="POST" action="{{ route('officer.incidents.update', $incident) }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('officer.incidents.update', $incident) }}" enctype="multipart/form-data" data-offline-sync="true" data-offline-label="Incident Update">
             @csrf
             @method('PUT')
 

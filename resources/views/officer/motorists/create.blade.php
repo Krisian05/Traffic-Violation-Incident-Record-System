@@ -308,7 +308,7 @@
     </div>
 </div>
 
-<form method="POST" action="{{ route('officer.motorists.store') }}" enctype="multipart/form-data" id="motoristForm">
+<form method="POST" action="{{ route('officer.motorists.store') }}" enctype="multipart/form-data" id="motoristForm" data-offline-sync="true" data-offline-label="Motorist">
     @csrf
 
     @if($errors->any())

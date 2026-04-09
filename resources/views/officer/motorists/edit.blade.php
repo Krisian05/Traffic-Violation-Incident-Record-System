@@ -286,7 +286,7 @@
     </div>
 </div>
 
-<form method="POST" action="{{ route('officer.motorists.update', $violator) }}" enctype="multipart/form-data">
+<form method="POST" action="{{ route('officer.motorists.update', $violator) }}" enctype="multipart/form-data" data-offline-sync="true" data-offline-label="Motorist Update">
     @csrf
     @method('PUT')
 

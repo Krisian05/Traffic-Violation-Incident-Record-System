@@ -49,7 +49,7 @@
 
 <div class="mob-card">
     <div class="mob-card-body">
-        <form method="POST" action="{{ route('officer.violations.update', $violation) }}" enctype="multipart/form-data" id="officerViolationEditForm">
+        <form method="POST" action="{{ route('officer.violations.update', $violation) }}" enctype="multipart/form-data" id="officerViolationEditForm" data-offline-sync="true" data-offline-label="Violation Update">
             @csrf
             @method('PUT')
 
