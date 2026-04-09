@@ -308,6 +308,13 @@ class OfficerController extends Controller
         return view('officer.violations.create', compact('violator', 'violationTypes', 'allVehicles', 'relatedIncidents'));
     }
 
+    public function createOfflineViolation(): View
+    {
+        $violationTypes = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
+
+        return view('officer.violations.offline-create', compact('violationTypes'));
+    }
+
     public function storeViolation(Request $request, Violator $violator): RedirectResponse
     {
         $data = $request->validate([

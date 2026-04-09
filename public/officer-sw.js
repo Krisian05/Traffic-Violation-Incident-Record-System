@@ -1,13 +1,16 @@
-var STATIC_CACHE = 'tvirs-mobile-static-v1';
-var PAGE_CACHE = 'tvirs-mobile-pages-v1';
-var EXTERNAL_CACHE = 'tvirs-mobile-external-v1';
+var STATIC_CACHE = 'tvirs-mobile-static-v2';
+var PAGE_CACHE = 'tvirs-mobile-pages-v2';
+var EXTERNAL_CACHE = 'tvirs-mobile-external-v2';
 var OFFLINE_FALLBACK = '/offline-mobile.html';
 var CORE_URLS = [
     '/manifest.json',
     '/favicon.ico',
     '/images/Balamban.png',
     '/images/PNP.png',
-    OFFLINE_FALLBACK
+    OFFLINE_FALLBACK,
+    '/officer/motorists',
+    '/officer/motorists/create',
+    '/officer/offline/violations/create'
 ];
 var EXTERNAL_URLS = [
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',

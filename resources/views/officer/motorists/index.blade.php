@@ -236,6 +236,126 @@
     color: #b91c1c;
     border: 1px solid #fca5a5;
 }
+.mot-offline-shell {
+    margin-bottom: 1rem;
+}
+.mot-offline-lead {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    padding: .9rem 1rem;
+    border-radius: 18px;
+    background: #fff7ed;
+    border: 1px solid #fdba74;
+    color: #9a3412;
+    margin-bottom: .75rem;
+}
+.mot-offline-lead i {
+    font-size: 1rem;
+    margin-top: .08rem;
+    flex-shrink: 0;
+}
+.mot-offline-title {
+    font-size: .8rem;
+    font-weight: 800;
+    color: #7c2d12;
+}
+.mot-offline-sub {
+    font-size: .7rem;
+    line-height: 1.5;
+    margin-top: .15rem;
+}
+.mot-offline-card {
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid rgba(15,23,42,.05);
+    box-shadow: 0 4px 18px rgba(15,23,42,.06);
+    padding: 1rem;
+    margin-bottom: .72rem;
+}
+.mot-offline-head {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+}
+.mot-offline-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    background: linear-gradient(135deg,#0f766e,#115e59);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .95rem;
+    font-weight: 800;
+    box-shadow: 0 6px 18px rgba(15,118,110,.22);
+    flex-shrink: 0;
+}
+.mot-offline-name {
+    font-size: .92rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.25;
+}
+.mot-offline-meta {
+    font-size: .72rem;
+    color: #64748b;
+    line-height: 1.45;
+    margin-top: .16rem;
+}
+.mot-offline-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .38rem;
+    margin-top: .52rem;
+}
+.mot-offline-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .24rem;
+    border-radius: 999px;
+    padding: .16rem .52rem;
+    font-size: .6rem;
+    font-weight: 800;
+}
+.mot-offline-tag--pending {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+.mot-offline-tag--failed {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+}
+.mot-offline-actions {
+    display: flex;
+    gap: .55rem;
+    margin-top: .85rem;
+}
+.mot-offline-btn {
+    flex: 1;
+    min-height: 44px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    text-decoration: none;
+    font-size: .78rem;
+    font-weight: 800;
+}
+.mot-offline-btn--primary {
+    background: linear-gradient(135deg,#dc2626,#b91c1c);
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(220,38,38,.18);
+}
+.mot-offline-btn--ghost {
+    border: 1px solid #dbe5f1;
+    background: #f8fafc;
+    color: #334155;
+}
 .mot-pagination-wrap {
     display: flex;
     justify-content: center;
@@ -287,7 +407,19 @@
         </div>
     </form>
 
-    <div id="motoristSearchDropdown" class="mot-search-dropdown"></div>
+<div id="motoristSearchDropdown" class="mot-search-dropdown"></div>
+</div>
+
+<div id="offlineMotoristShell" class="mot-offline-shell" style="display:none;">
+    <div class="motshow-section">Queued Offline</div>
+    <div class="mot-offline-lead">
+        <i class="ph-fill ph-wifi-slash"></i>
+        <div>
+            <div class="mot-offline-title">Unsynced motorists saved on this device</div>
+            <div class="mot-offline-sub">You can still record a violation for them right now. The motorist syncs first, then the linked violation follows automatically.</div>
+        </div>
+    </div>
+    <div id="offlineMotoristList"></div>
 </div>
 
 <div class="motshow-section">Motorist Records</div>
@@ -457,5 +589,96 @@
         }
     });
 })();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var shell = document.getElementById('offlineMotoristShell');
+    var list = document.getElementById('offlineMotoristList');
+    var searchInput = document.getElementById('motoristSearchInput');
+    var escapeHtml = function (value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    };
+
+    function renderOfflineMotorists() {
+        if (!window.TvirsOffline || typeof window.TvirsOffline.listOfflineMotorists !== 'function') {
+            shell.style.display = 'none';
+            list.innerHTML = '';
+            return;
+        }
+
+        window.TvirsOffline.listOfflineMotorists().then(function (motorists) {
+            var query = String(searchInput && searchInput.value ? searchInput.value : '').trim().toLowerCase();
+            var filtered = (motorists || []).filter(function (motorist) {
+                if (!query) {
+                    return true;
+                }
+
+                return String(motorist.summary && motorist.summary.searchText || '').indexOf(query) !== -1;
+            });
+
+            if (!filtered.length) {
+                shell.style.display = 'none';
+                list.innerHTML = '';
+                return;
+            }
+
+            shell.style.display = '';
+            list.innerHTML = filtered.map(function (motorist) {
+                var metaParts = [];
+                if (motorist.summary.licenseNumber) metaParts.push('License ' + escapeHtml(motorist.summary.licenseNumber));
+                if (motorist.summary.address) metaParts.push(escapeHtml(motorist.summary.address));
+                if (!metaParts.length) metaParts.push('Saved only in the local offline queue');
+
+                var stateTag = motorist.state === 'failed'
+                    ? '<span class="mot-offline-tag mot-offline-tag--failed"><i class="ph-fill ph-warning-octagon"></i>Needs Review</span>'
+                    : '<span class="mot-offline-tag mot-offline-tag--pending"><i class="ph-fill ph-cloud-arrow-up"></i>Pending Sync</span>';
+
+                var violationTag = motorist.queuedViolations > 0
+                    ? '<span class="mot-offline-tag mot-offline-tag--pending"><i class="ph-fill ph-files"></i>' + motorist.queuedViolations + ' queued violation' + (motorist.queuedViolations === 1 ? '' : 's') + '</span>'
+                    : '';
+
+                var reviewText = motorist.lastError
+                    ? '<div class="mot-offline-meta" style="color:#b91c1c;margin-top:.45rem;">' + escapeHtml(motorist.lastError) + '</div>'
+                    : '';
+
+                return '' +
+                    '<div class="mot-offline-card">' +
+                        '<div class="mot-offline-head">' +
+                            '<div class="mot-offline-avatar">' + escapeHtml(motorist.summary.initials || 'OF') + '</div>' +
+                            '<div style="flex:1;min-width:0;">' +
+                                '<div class="mot-offline-name">' + escapeHtml(motorist.summary.displayName || 'Unnamed Motorist') + '</div>' +
+                                '<div class="mot-offline-meta">' + metaParts.join(' &bull; ') + '</div>' +
+                                '<div class="mot-offline-tags">' + stateTag + violationTag + '</div>' +
+                                reviewText +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="mot-offline-actions">' +
+                            '<a href="' + escapeHtml(window.TvirsOffline.buildOfflineViolationHref(motorist.offlineMotoristKey)) + '" class="mot-offline-btn mot-offline-btn--primary">' +
+                                '<i class="ph-fill ph-file-plus"></i>Record Violation' +
+                            '</a>' +
+                            '<a href="{{ route('officer.motorists.create') }}" class="mot-offline-btn mot-offline-btn--ghost">' +
+                                '<i class="ph ph-user-plus"></i>New Motorist' +
+                            '</a>' +
+                        '</div>' +
+                    '</div>';
+            }).join('');
+        }).catch(function () {
+            shell.style.display = 'none';
+            list.innerHTML = '';
+        });
+    }
+
+    renderOfflineMotorists();
+    window.addEventListener('tvirs-offline-updated', renderOfflineMotorists);
+
+    if (searchInput) {
+        searchInput.addEventListener('input', renderOfflineMotorists);
+    }
+});
 </script>
 @endpush

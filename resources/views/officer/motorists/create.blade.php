@@ -308,7 +308,7 @@
     </div>
 </div>
 
-<form method="POST" action="{{ route('officer.motorists.store') }}" enctype="multipart/form-data" id="motoristForm" data-offline-sync="true" data-offline-label="Motorist">
+<form method="POST" action="{{ route('officer.motorists.store') }}" enctype="multipart/form-data" id="motoristForm" data-offline-sync="true" data-offline-label="Motorist" data-offline-record-type="motorist-create">
     @csrf
 
     @if($errors->any())
@@ -674,6 +674,15 @@
         </button>
     </div>
 
+    <div class="submit-strip" id="offlineMotoristActions" style="display:none;margin-top:.85rem;">
+        <div style="font-size:.76rem;font-weight:800;color:#0f172a;">Motorist queued on this device</div>
+        <div style="font-size:.7rem;color:#64748b;line-height:1.5;margin-top:.2rem;">You can record a violation for this unsynced motorist right away. It will publish after the motorist record syncs.</div>
+        <a href="{{ route('officer.offline.violations.create') }}" id="offlineMotoristViolationLink" class="mob-btn-primary mob-btn-danger" style="margin-top:.8rem;text-decoration:none;">
+            <i class="ph-bold ph-file-plus"></i>
+            Record Violation Now
+        </a>
+    </div>
+
 </form>
 
 @endsection
@@ -828,6 +837,19 @@ document.addEventListener('DOMContentLoaded', function () {
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Saving…';
         }
+    });
+
+    window.addEventListener('tvirs-offline-record-queued', function (event) {
+        var record = event.detail && event.detail.record ? event.detail.record : null;
+        var actions = document.getElementById('offlineMotoristActions');
+        var link = document.getElementById('offlineMotoristViolationLink');
+
+        if (!record || record.recordType !== 'motorist-create' || !actions || !link) {
+            return;
+        }
+
+        actions.style.display = '';
+        link.href = '{{ route('officer.offline.violations.create') }}#motorist=' + encodeURIComponent(record.offlineMotoristKey || '');
     });
 
 })();

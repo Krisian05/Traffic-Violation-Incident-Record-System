@@ -9,7 +9,10 @@
     var FORM_SELECTOR = 'form[data-offline-sync="true"]';
     var PAGE_CACHE_PREFIX = 'tvirs-mobile-pages-';
     var LAST_USER_KEY = 'tvirs-mobile-last-user';
+    var MOTORIST_LINK_KEY = 'tvirs-offline-motorist-links';
     var SYNC_INTERVAL_MS = 30000;
+    var OFFLINE_VIOLATION_CREATE_PATH = '/officer/offline/violations/create';
+    var DUPLICATE_STATES = { pending: true, failed: true };
     var toastTimer = null;
     var syncing = false;
     var chip = document.getElementById(CHIP_ID);
@@ -76,18 +79,24 @@
     function addRecord(record) {
         return withStore('readwrite', function (store) {
             store.add(record);
+        }).then(function () {
+            notifyOfflineDataChanged();
         });
     }
 
     function putRecord(record) {
         return withStore('readwrite', function (store) {
             store.put(record);
+        }).then(function () {
+            notifyOfflineDataChanged();
         });
     }
 
     function deleteRecord(id) {
         return withStore('readwrite', function (store) {
             store.delete(id);
+        }).then(function () {
+            notifyOfflineDataChanged();
         });
     }
 
@@ -106,6 +115,129 @@
             return (records || [])
                 .filter(function (record) { return String(record.userId || '') === currentUserId; })
                 .sort(function (a, b) { return Number(a.id || 0) - Number(b.id || 0); });
+        });
+    }
+
+    function dedupeExistingQueuedRecords() {
+        return getRecordsForCurrentUser().then(function (records) {
+            var ordered = (records || []).slice().sort(function (a, b) {
+                var aPending = String(a.state || '') === 'pending' ? 0 : 1;
+                var bPending = String(b.state || '') === 'pending' ? 0 : 1;
+
+                if (aPending !== bPending) {
+                    return aPending - bPending;
+                }
+
+                return Number(a.id || 0) - Number(b.id || 0);
+            });
+
+            var seen = {};
+            var deletions = [];
+
+            ordered.forEach(function (record) {
+                if (!DUPLICATE_STATES[String(record.state || '')]) {
+                    return;
+                }
+
+                var key = [
+                    String(record.action || ''),
+                    String(record.method || ''),
+                    recordFingerprint(record)
+                ].join('|');
+
+                if (seen[key]) {
+                    deletions.push(deleteRecord(record.id));
+                    return;
+                }
+
+                seen[key] = true;
+            });
+
+            if (!deletions.length) {
+                return 0;
+            }
+
+            return Promise.all(deletions).then(function () {
+                return deletions.length;
+            });
+        });
+    }
+
+    function migrateLegacyQueuedRecords() {
+        return getRecordsForCurrentUser().then(function (records) {
+            var updates = [];
+
+            (records || []).forEach(function (record) {
+                if (normalizeQueuedRecord(record)) {
+                    updates.push(putRecord(record));
+                }
+            });
+
+            if (!updates.length) {
+                return 0;
+            }
+
+            return Promise.all(updates).then(function () {
+                return updates.length;
+            });
+        });
+    }
+
+    function listOfflineMotorists() {
+        return getRecordsForCurrentUser().then(function (records) {
+            var queuedViolationCounts = {};
+            var motorists = [];
+
+            (records || []).forEach(function (record) {
+                normalizeQueuedRecord(record);
+
+                if (!DUPLICATE_STATES[String(record.state || '')]) {
+                    return;
+                }
+
+                if (inferRecordType(record) === 'offline-violation-create' && record.parentOfflineMotoristKey) {
+                    queuedViolationCounts[record.parentOfflineMotoristKey] = (queuedViolationCounts[record.parentOfflineMotoristKey] || 0) + 1;
+                }
+            });
+
+            (records || []).forEach(function (record) {
+                normalizeQueuedRecord(record);
+
+                if (!DUPLICATE_STATES[String(record.state || '')] || inferRecordType(record) !== 'motorist-create') {
+                    return;
+                }
+
+                motorists.push({
+                    id: record.id,
+                    state: record.state,
+                    lastError: record.lastError || '',
+                    offlineMotoristKey: cleanedString(record.offlineMotoristKey),
+                    queuedViolations: queuedViolationCounts[record.offlineMotoristKey] || 0,
+                    summary: record.summary || buildMotoristSummary(record.entries || [])
+                });
+            });
+
+            return motorists.sort(function (a, b) {
+                return Number(b.id || 0) - Number(a.id || 0);
+            });
+        });
+    }
+
+    function getOfflineMotoristByKey(offlineMotoristKey) {
+        var targetKey = cleanedString(offlineMotoristKey);
+
+        if (!targetKey) {
+            return Promise.resolve(null);
+        }
+
+        return listOfflineMotorists().then(function (motorists) {
+            for (var i = 0; i < motorists.length; i += 1) {
+                if (cleanedString(motorists[i].offlineMotoristKey) === targetKey) {
+                    return motorists[i];
+                }
+            }
+
+            return null;
         });
     }
 
@@ -128,6 +260,18 @@
 
     function isLoginUrl(url) {
         return pathOf(url) === '/login';
+    }
+
+    function notifyOfflineDataChanged(detail) {
+        window.dispatchEvent(new CustomEvent('tvirs-offline-updated', {
+            detail: detail || {}
+        }));
+    }
+
+    function notifyOfflineRecordQueued(record) {
+        window.dispatchEvent(new CustomEvent('tvirs-offline-record-queued', {
+            detail: { record: record }
+        }));
     }
 
     function escapeHtml(value) {
@@ -165,6 +309,268 @@
             });
         });
         return entries;
+    }
+
+    function cleanedString(value) {
+        return String(value == null ? '' : value).replace(/\s+/g, ' ').trim();
+    }
+
+    function getEntryValues(entries, name) {
+        return (entries || []).filter(function (entry) {
+            return entry.name === name && entry.kind === 'text';
+        }).map(function (entry) {
+            return cleanedString(entry.value);
+        }).filter(Boolean);
+    }
+
+    function getLastEntryValue(entries, name) {
+        var values = getEntryValues(entries, name);
+        return values.length ? values[values.length - 1] : '';
+    }
+
+    function generateOfflineKey(prefix) {
+        return [
+            prefix || 'queued',
+            Date.now().toString(36),
+            Math.random().toString(36).slice(2, 8)
+        ].join('-');
+    }
+
+    function buildMotoristDisplayName(firstName, middleName, lastName) {
+        var first = cleanedString(firstName);
+        var middle = cleanedString(middleName);
+        var last = cleanedString(lastName);
+        var lead = [last, first].filter(Boolean).join(', ');
+
+        if (lead && middle) {
+            return lead + ' ' + middle.charAt(0).toUpperCase() + '.';
+        }
+
+        return lead || [first, middle, last].filter(Boolean).join(' ') || 'Unnamed Motorist';
+    }
+
+    function buildMotoristSummary(entries) {
+        var firstName = getLastEntryValue(entries, 'first_name');
+        var middleName = getLastEntryValue(entries, 'middle_name');
+        var lastName = getLastEntryValue(entries, 'last_name');
+        var licenseNumber = getLastEntryValue(entries, 'license_number');
+        var address = getLastEntryValue(entries, 'address') || getLastEntryValue(entries, 'permanent_address');
+        var displayName = buildMotoristDisplayName(firstName, middleName, lastName);
+        var initials = ((firstName.charAt(0) || '') + (lastName.charAt(0) || '')).toUpperCase() || 'OF';
+
+        return {
+            displayName: displayName,
+            firstName: firstName,
+            middleName: middleName,
+            lastName: lastName,
+            initials: initials,
+            licenseNumber: licenseNumber,
+            gender: getLastEntryValue(entries, 'gender'),
+            contactNumber: getLastEntryValue(entries, 'contact_number'),
+            address: address,
+            searchText: cleanedString([
+                firstName,
+                middleName,
+                lastName,
+                licenseNumber,
+                address
+            ].join(' ')).toLowerCase()
+        };
+    }
+
+    function buildViolationSummary(form, entries) {
+        var violationTypeField = form ? form.querySelector('[name="violation_type_id"]') : null;
+        var violationTypeName = '';
+
+        if (violationTypeField && violationTypeField.selectedIndex >= 0) {
+            violationTypeName = cleanedString(violationTypeField.options[violationTypeField.selectedIndex].textContent || '');
+        }
+
+        return {
+            violationTypeId: getLastEntryValue(entries, 'violation_type_id'),
+            violationTypeName: violationTypeName,
+            dateOfViolation: getLastEntryValue(entries, 'date_of_violation'),
+            ticketNumber: getLastEntryValue(entries, 'ticket_number'),
+            location: getLastEntryValue(entries, 'location'),
+            status: getLastEntryValue(entries, 'status')
+        };
+    }
+
+    function inferRecordType(record) {
+        var explicitType = cleanedString(record && record.recordType);
+        if (explicitType) {
+            return explicitType;
+        }
+
+        var actionPath = pathOf(record && record.action);
+        var method = String(record && record.method || 'POST').toUpperCase();
+
+        if (method === 'POST' && actionPath === '/officer/motorists') {
+            return 'motorist-create';
+        }
+
+        if ((record && record.sourcePath) === OFFLINE_VIOLATION_CREATE_PATH || actionPath === OFFLINE_VIOLATION_CREATE_PATH) {
+            return 'offline-violation-create';
+        }
+
+        return '';
+    }
+
+    function normalizeQueuedRecord(record) {
+        if (!record) {
+            return false;
+        }
+
+        var changed = false;
+        var recordType = inferRecordType(record);
+
+        if (recordType && record.recordType !== recordType) {
+            record.recordType = recordType;
+            changed = true;
+        }
+
+        if (recordType === 'motorist-create') {
+            if (!cleanedString(record.offlineMotoristKey)) {
+                record.offlineMotoristKey = generateOfflineKey('motorist');
+                changed = true;
+            }
+
+            var motoristSummary = buildMotoristSummary(record.entries || []);
+            if (JSON.stringify(record.summary || {}) !== JSON.stringify(motoristSummary)) {
+                record.summary = motoristSummary;
+                changed = true;
+            }
+        }
+
+        if (recordType === 'offline-violation-create') {
+            var parentKey = cleanedString(record.parentOfflineMotoristKey || getLastEntryValue(record.entries || [], 'offline_motorist_key'));
+            if (parentKey && record.parentOfflineMotoristKey !== parentKey) {
+                record.parentOfflineMotoristKey = parentKey;
+                changed = true;
+            }
+
+            var violationSummary = record.summary || {
+                violationTypeId: getLastEntryValue(record.entries || [], 'violation_type_id'),
+                violationTypeName: '',
+                dateOfViolation: getLastEntryValue(record.entries || [], 'date_of_violation'),
+                ticketNumber: getLastEntryValue(record.entries || [], 'ticket_number'),
+                location: getLastEntryValue(record.entries || [], 'location'),
+                status: getLastEntryValue(record.entries || [], 'status')
+            };
+
+            if (JSON.stringify(record.summary || {}) !== JSON.stringify(violationSummary)) {
+                record.summary = violationSummary;
+                changed = true;
+            }
+        }
+
+        return changed;
+    }
+
+    function getMotoristLinkMap() {
+        try {
+            return JSON.parse(window.localStorage.getItem(MOTORIST_LINK_KEY) || '{}') || {};
+        } catch (error) {
+            return {};
+        }
+    }
+
+    function saveMotoristLinkMap(map) {
+        try {
+            window.localStorage.setItem(MOTORIST_LINK_KEY, JSON.stringify(map || {}));
+        } catch (error) {
+            return;
+        }
+    }
+
+    function rememberSyncedMotorist(record, serverId) {
+        var offlineKey = cleanedString(record && record.offlineMotoristKey);
+        var normalizedServerId = cleanedString(serverId);
+
+        if (!offlineKey || !normalizedServerId) {
+            return;
+        }
+
+        var map = getMotoristLinkMap();
+        map[offlineKey] = {
+            serverId: normalizedServerId,
+            syncedAt: new Date().toISOString(),
+            displayName: record.summary && record.summary.displayName ? record.summary.displayName : record.label
+        };
+        saveMotoristLinkMap(map);
+    }
+
+    function getSyncedMotoristId(offlineKey) {
+        var normalizedKey = cleanedString(offlineKey);
+        if (!normalizedKey) {
+            return '';
+        }
+
+        var map = getMotoristLinkMap();
+        return cleanedString(map[normalizedKey] && map[normalizedKey].serverId);
+    }
+
+    function buildOfflineViolationHref(offlineMotoristKey) {
+        return OFFLINE_VIOLATION_CREATE_PATH + '#motorist=' + encodeURIComponent(cleanedString(offlineMotoristKey));
+    }
+
+    function buildRecordMetadata(form, entries) {
+        var recordType = cleanedString(form.dataset.offlineRecordType) || inferRecordType({
+            method: form.getAttribute('method'),
+            action: form.action,
+            sourcePath: window.location.pathname
+        });
+
+        if (recordType === 'motorist-create') {
+            return {
+                recordType: recordType,
+                offlineMotoristKey: cleanedString(form.dataset.offlineMotoristKey) || generateOfflineKey('motorist'),
+                summary: buildMotoristSummary(entries)
+            };
+        }
+
+        if (recordType === 'offline-violation-create') {
+            return {
+                recordType: recordType,
+                parentOfflineMotoristKey: cleanedString(form.dataset.offlineParentKey || getLastEntryValue(entries, 'offline_motorist_key')),
+                summary: buildViolationSummary(form, entries)
+            };
+        }
+
+        return {
+            recordType: recordType
+        };
+    }
+
+    function entryFingerprint(entry) {
+        if (entry.kind === 'file') {
+            var size = typeof entry.size === 'number'
+                ? entry.size
+                : ((entry.file && typeof entry.file.size === 'number') ? entry.file.size : 0);
+
+            return [
+                entry.name,
+                entry.kind,
+                entry.filename || '',
+                entry.mimeType || '',
+                String(size),
+                String(entry.lastModified || 0)
+            ].join('::');
+        }
+
+        return [
+            entry.name,
+            entry.kind,
+            entry.value == null ? '' : String(entry.value)
+        ].join('::');
+    }
+
+    function buildFingerprint(entries) {
+        return (entries || []).map(entryFingerprint).join('||');
+    }
+
+    function recordFingerprint(record) {
+        return record && record.fingerprint ? record.fingerprint : buildFingerprint(record ? record.entries : []);
     }
 
     function rebuildFormData(record) {
@@ -306,6 +712,9 @@
 
     function queueFormSubmission(form) {
         var formData = new FormData(form);
+        var entries = serializeFormData(formData);
+        var metadata = buildRecordMetadata(form, entries);
+        var fingerprint = buildFingerprint(entries);
         var record = {
             userId: currentUserId,
             state: 'pending',
@@ -314,28 +723,187 @@
             action: form.action,
             sourceUrl: window.location.href,
             sourcePath: window.location.pathname,
-            entries: serializeFormData(formData),
+            entries: entries,
+            fingerprint: fingerprint,
+            recordType: metadata.recordType || '',
+            offlineMotoristKey: metadata.offlineMotoristKey || '',
+            parentOfflineMotoristKey: metadata.parentOfflineMotoristKey || '',
+            summary: metadata.summary || {},
             createdAt: new Date().toISOString(),
             lastError: ''
         };
 
-        return addRecord(record).then(function () {
-            showToast(record.label + ' saved offline. It will sync automatically when internet is back.', 'pending');
-            return updateOfflineStatus();
+        return getRecordsForCurrentUser().then(function (records) {
+            var duplicate = (records || []).some(function (existingRecord) {
+                return String(existingRecord.action || '') === String(record.action || '')
+                    && String(existingRecord.method || '') === String(record.method || '')
+                    && !!DUPLICATE_STATES[String(existingRecord.state || '')]
+                    && recordFingerprint(existingRecord) === fingerprint;
+            });
+
+            if (duplicate) {
+                if (record.recordType === 'offline-violation-create') {
+                    showToast('This violation is already queued for that offline motorist.', 'pending');
+                } else {
+                    showToast(record.label + ' is already queued offline.', 'pending');
+                }
+                return updateOfflineStatus();
+            }
+
+            return addRecord(record).then(function () {
+                if (record.recordType === 'motorist-create') {
+                    showToast('Motorist saved offline. Open it from Queued Offline to record a violation.', 'pending');
+                } else if (record.recordType === 'offline-violation-create') {
+                    showToast('Violation queued for this offline motorist. It will sync after the motorist record.', 'pending');
+                } else {
+                    showToast(record.label + ' saved offline. It will sync automatically when internet is back.', 'pending');
+                }
+                notifyOfflineRecordQueued(record);
+                return updateOfflineStatus();
+            });
+        }).finally(function () {
+            delete form.dataset.offlineQueueBusy;
+        });
+    }
+
+    function queueOfflineFormWithGuard(form) {
+        if (form.dataset.offlineQueueBusy === '1') {
+            return Promise.resolve();
+        }
+
+        form.dataset.offlineQueueBusy = '1';
+
+        return queueFormSubmission(form);
+    }
+
+    function setOfflineSubmitState(form, isQueued) {
+        var buttons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+        buttons.forEach(function (button) {
+            if (!button.dataset.offlineOriginalLabel) {
+                button.dataset.offlineOriginalLabel = button.tagName === 'INPUT'
+                    ? (button.value || '')
+                    : button.innerHTML;
+            }
+
+            if (!isQueued) {
+                button.disabled = false;
+                if (button.tagName === 'INPUT') {
+                    button.value = button.dataset.offlineOriginalLabel;
+                } else {
+                    button.innerHTML = button.dataset.offlineOriginalLabel;
+                }
+                return;
+            }
+
+            button.disabled = true;
+            if (button.tagName === 'INPUT') {
+                button.value = 'Queued Offline';
+            } else {
+                button.innerHTML = '<i class="ph ph-check-circle"></i> Queued Offline';
+            }
+        });
+    }
+
+    function formHasQueuedDuplicate(form) {
+        var formData = new FormData(form);
+        var fingerprint = buildFingerprint(serializeFormData(formData));
+        return getRecordsForCurrentUser().then(function (records) {
+            return (records || []).some(function (existingRecord) {
+                return String(existingRecord.action || '') === String(form.action || '')
+                    && String(existingRecord.method || 'POST').toUpperCase() === String(form.getAttribute('method') || 'POST').toUpperCase()
+                    && !!DUPLICATE_STATES[String(existingRecord.state || '')]
+                    && recordFingerprint(existingRecord) === fingerprint;
+            });
+        });
+    }
+
+    function formRequiresForcedQueue(form) {
+        return cleanedString(form.dataset.offlineRecordType) === 'offline-violation-create';
+    }
+
+    function forcedQueueParentKey(form) {
+        var linkedField = form.querySelector('[name="offline_motorist_key"]');
+        return cleanedString(form.dataset.offlineParentKey || (linkedField ? linkedField.value : ''));
+    }
+
+    function setOfflineSubmitLocked(form, label) {
+        var buttons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+        buttons.forEach(function (button) {
+            if (!button.dataset.offlineOriginalLabel) {
+                button.dataset.offlineOriginalLabel = button.tagName === 'INPUT'
+                    ? (button.value || '')
+                    : button.innerHTML;
+            }
+
+            button.disabled = true;
+            if (button.tagName === 'INPUT') {
+                button.value = label || 'Loading...';
+            } else {
+                button.innerHTML = '<i class="ph ph-hourglass"></i> ' + escapeHtml(label || 'Loading...');
+            }
+        });
+    }
+
+    function refreshQueuedFormStates() {
+        document.querySelectorAll(FORM_SELECTOR).forEach(function (form) {
+            if (formRequiresForcedQueue(form) && !forcedQueueParentKey(form)) {
+                setOfflineSubmitLocked(form, 'Loading Motorist');
+                return;
+            }
+
+            formHasQueuedDuplicate(form).then(function (hasDuplicate) {
+                setOfflineSubmitState(form, hasDuplicate);
+            }).catch(function () {
+                return null;
+            });
         });
     }
 
     async function syncRecord(record) {
+        normalizeQueuedRecord(record);
+
         var formData = rebuildFormData(record);
+        var targetAction = record.action;
         var response;
 
+        if (inferRecordType(record) === 'offline-violation-create') {
+            var parentOfflineMotoristKey = cleanedString(record.parentOfflineMotoristKey || getLastEntryValue(record.entries || [], 'offline_motorist_key'));
+            var syncedMotoristId = getSyncedMotoristId(parentOfflineMotoristKey);
+
+            if (!syncedMotoristId) {
+                var currentRecords = await getRecordsForCurrentUser();
+                var parentRecord = (currentRecords || []).find(function (existingRecord) {
+                    normalizeQueuedRecord(existingRecord);
+                    return inferRecordType(existingRecord) === 'motorist-create'
+                        && cleanedString(existingRecord.offlineMotoristKey) === parentOfflineMotoristKey;
+                });
+
+                if (parentRecord && String(parentRecord.state || '') === 'failed') {
+                    return {
+                        ok: false,
+                        retryable: false,
+                        message: 'Linked offline motorist needs review before this violation can sync.'
+                    };
+                }
+
+                return {
+                    ok: false,
+                    retryable: true,
+                    message: 'Waiting for the linked offline motorist to sync first.'
+                };
+            }
+
+            targetAction = '/officer/motorists/' + encodeURIComponent(syncedMotoristId) + '/violations';
+        }
+
         try {
-            response = await fetch(record.action, {
+            response = await fetch(targetAction, {
                 method: record.method || 'POST',
                 body: formData,
                 credentials: 'same-origin',
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json, text/html;q=0.9, */*;q=0.8'
                 }
             });
         } catch (error) {
@@ -354,6 +922,32 @@
             };
         }
 
+        if (response.status === 422) {
+            var payloadMessage = '';
+
+            try {
+                var payload = await response.clone().json();
+                if (payload && payload.message) {
+                    payloadMessage = cleanedString(payload.message);
+                }
+
+                if (!payloadMessage && payload && payload.errors) {
+                    var errorKeys = Object.keys(payload.errors);
+                    if (errorKeys.length && payload.errors[errorKeys[0]] && payload.errors[errorKeys[0]][0]) {
+                        payloadMessage = cleanedString(payload.errors[errorKeys[0]][0]);
+                    }
+                }
+            } catch (error) {
+                payloadMessage = '';
+            }
+
+            return {
+                ok: false,
+                retryable: false,
+                message: payloadMessage || 'The queued record needs manual review before it can sync.'
+            };
+        }
+
         if (!response.ok) {
             return {
                 ok: false,
@@ -362,13 +956,20 @@
             };
         }
 
-        if (isSamePath(response.url, record.sourceUrl)) {
+        if (isSamePath(response.url, record.sourceUrl) || isSamePath(response.url, record.action)) {
             var html = await response.text();
             return {
                 ok: false,
                 retryable: false,
                 message: extractResponseMessage(html) || 'The queued record needs manual review before it can sync.'
             };
+        }
+
+        if (inferRecordType(record) === 'motorist-create') {
+            var motoristMatch = pathOf(response.url).match(/^\/officer\/motorists\/(\d+)\/?$/);
+            if (motoristMatch && motoristMatch[1]) {
+                rememberSyncedMotorist(record, motoristMatch[1]);
+            }
         }
 
         return { ok: true };
@@ -415,6 +1016,7 @@
         } finally {
             syncing = false;
             await updateOfflineStatus();
+            refreshQueuedFormStates();
         }
 
         if (failedCount > 0) {
@@ -434,18 +1036,54 @@
 
     function attachOfflineHandlers() {
         document.querySelectorAll(FORM_SELECTOR).forEach(function (form) {
+            function reevaluateQueuedState() {
+                if (formRequiresForcedQueue(form) && !forcedQueueParentKey(form)) {
+                    setOfflineSubmitLocked(form, 'Loading Motorist');
+                    return;
+                }
+
+                if (!navigator.onLine || formRequiresForcedQueue(form)) {
+                    formHasQueuedDuplicate(form).then(function (hasDuplicate) {
+                        setOfflineSubmitState(form, hasDuplicate);
+                    }).catch(function () {
+                        return null;
+                    });
+                } else {
+                    setOfflineSubmitState(form, false);
+                }
+            }
+
+            form.querySelectorAll('input, textarea, select').forEach(function (field) {
+                field.addEventListener('input', reevaluateQueuedState);
+                field.addEventListener('change', reevaluateQueuedState);
+            });
+
             form.addEventListener('submit', function (event) {
-                if (navigator.onLine) {
+                if (formRequiresForcedQueue(form) && !forcedQueueParentKey(form)) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    showToast('Open this page from a queued offline motorist before recording a violation.', 'error');
+                    return;
+                }
+
+                if (navigator.onLine && !formRequiresForcedQueue(form)) {
+                    setOfflineSubmitState(form, false);
                     return;
                 }
 
                 event.preventDefault();
                 event.stopImmediatePropagation();
 
-                queueFormSubmission(form).catch(function () {
+                queueOfflineFormWithGuard(form).then(function () {
+                    return formHasQueuedDuplicate(form).then(function (hasDuplicate) {
+                        setOfflineSubmitState(form, hasDuplicate);
+                    });
+                }).catch(function () {
                     showToast('Unable to save this record offline on this device.', 'error');
                 });
             }, true);
+
+            reevaluateQueuedState();
         });
     }
 
@@ -531,37 +1169,55 @@
     attachLogoutCleanup();
     reconcileCachedPagesForUser();
     registerServiceWorker();
-    updateOfflineStatus();
+    window.TvirsOffline = {
+        listOfflineMotorists: listOfflineMotorists,
+        getOfflineMotoristByKey: getOfflineMotoristByKey,
+        getSyncedMotoristId: getSyncedMotoristId,
+        buildOfflineViolationHref: buildOfflineViolationHref
+    };
 
-    if (navigator.onLine) {
-        syncPendingRecords();
-    }
+    migrateLegacyQueuedRecords().finally(function () {
+        dedupeExistingQueuedRecords().finally(function () {
+            updateOfflineStatus();
+            refreshQueuedFormStates();
+
+            if (navigator.onLine) {
+                syncPendingRecords();
+            }
+        });
+    });
 
     window.addEventListener('online', function () {
+        refreshQueuedFormStates();
         showToast('Back online. Syncing queued records now.', 'syncing');
         syncPendingRecords();
     });
 
     window.addEventListener('offline', function () {
+        refreshQueuedFormStates();
         updateOfflineStatus();
         showToast('You are offline. New records will be saved on this device.', 'offline');
     });
 
     document.addEventListener('visibilitychange', function () {
         if (!document.hidden && navigator.onLine) {
+            refreshQueuedFormStates();
             syncPendingRecords();
             return;
         }
 
+        refreshQueuedFormStates();
         updateOfflineStatus();
     });
 
     window.setInterval(function () {
         if (navigator.onLine) {
+            refreshQueuedFormStates();
             syncPendingRecords();
             return;
         }
 
+        refreshQueuedFormStates();
         updateOfflineStatus();
     }, SYNC_INTERVAL_MS);
 })();
