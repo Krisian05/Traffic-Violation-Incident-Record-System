@@ -1397,6 +1397,8 @@ var mobLbGallery = [];
 var mobLbIndex = 0;
 
 function mobLbShow(index) {
+    if (!mobLbGallery || mobLbGallery.length === 0) { mobLbClose(); return; }
+
     var lb   = document.getElementById('mob-lightbox');
     var img  = document.getElementById('mob-lb-img');
     var cap  = document.getElementById('mob-lightbox-caption');
@@ -1433,7 +1435,8 @@ document.addEventListener('click', function (e) {
     var thumb = e.target.closest('.mob-photo-thumb, .mob-photo-single');
     if (!thumb) return;
 
-    var gallery = thumb.dataset.gallery ? JSON.parse(thumb.dataset.gallery) : null;
+    var gallery = null;
+    if (thumb.dataset.gallery) { try { gallery = JSON.parse(thumb.dataset.gallery); } catch (e) { gallery = null; } }
     var caption = thumb.dataset.caption || thumb.alt || '';
 
     if (gallery && gallery.length > 1) {

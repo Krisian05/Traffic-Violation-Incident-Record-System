@@ -208,13 +208,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function setMotoristState(motorist) {
         keyInput.value = motorist.offlineMotoristKey;
-        form.dataset.offlineParentKey = motorista.offlineMotoristKey;
-        form.dataset.offlineLabel = 'Vehicle for ' + motorista.summary.displayName;
-        nameEl.textContent = motorista.summary.displayName;
+        form.dataset.offlineParentKey = motorist.offlineMotoristKey;
+        form.dataset.offlineLabel = 'Vehicle for ' + motorist.summary.displayName;
+        nameEl.textContent = motorist.summary.displayName;
         var metaParts = [];
-        if (motorist.summary.licenseNumber) metaParts.push('License ' + motorista.summary.licenseNumber);
+        if (motorist.summary.licenseNumber) metaParts.push('License ' + motorist.summary.licenseNumber);
         metaEl.textContent = metaParts.join(' • ') || 'Saved only on this device until internet returns.';
-        avatarEl.textContent = motorista.summary.initials || 'OF';
+        avatarEl.textContent = motorist.summary.initials || 'OF';
         missingAlert.style.display = 'none';
         submitBtn.disabled = false;
         keyInput.dispatchEvent(new Event('change', { bubbles: true }));

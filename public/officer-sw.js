@@ -15,6 +15,7 @@ var PAGE_URLS = [
     '/officer/motorists',
     '/officer/motorists/create',
     '/officer/offline/violations/create',
+    '/officer/offline/vehicles/create',
     '/officer/vehicles',
     '/officer/vehicles/create',
     '/officer/incidents/create'

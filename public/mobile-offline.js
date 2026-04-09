@@ -699,6 +699,14 @@
             };
         }
 
+        if (recordType === 'offline-vehicle-create') {
+            return {
+                recordType: recordType,
+                parentOfflineMotoristKey: cleanedString(form.dataset.offlineParentKey || getLastEntryValue(entries, 'offline_motorist_key')),
+                summary: buildVehicleSummary(form, entries)
+            };
+        }
+
         return {
             recordType: recordType
         };
@@ -1245,6 +1253,37 @@
             }
 
             targetAction = '/officer/motorists/' + encodeURIComponent(syncedMotoristId) + '/violations';
+        }
+
+        if (inferRecordType(record) === 'offline-vehicle-create') {
+            var vehParentKey = cleanedString(record.parentOfflineMotoristKey || getLastEntryValue(record.entries || [], 'offline_motorist_key'));
+            var vehSyncedId = getSyncedMotoristId(vehParentKey);
+
+            if (!vehSyncedId) {
+                var vehRecords = await getRecordsForCurrentUser();
+                var vehParentRecord = (vehRecords || []).find(function (existingRecord) {
+                    normalizeQueuedRecord(existingRecord);
+                    return inferRecordType(existingRecord) === 'motorist-create'
+                        && cleanedString(existingRecord.offlineMotoristKey) === vehParentKey;
+                });
+
+                if (vehParentRecord && String(vehParentRecord.state || '') === 'failed') {
+                    return {
+                        ok: false,
+                        retryable: false,
+                        message: 'Linked offline motorist needs review before this vehicle can sync.'
+                    };
+                }
+
+                return {
+                    ok: false,
+                    retryable: true,
+                    message: 'Waiting for the linked offline motorist to sync first.'
+                };
+            }
+
+            formData.set('violator_id', vehSyncedId);
+            targetAction = '/officer/offline/vehicles/create';
         }
 
         try {

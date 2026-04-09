@@ -73,7 +73,7 @@ class OfficerController extends Controller
             return response()->json([]);
         }
 
-$motorists = Violator::withCount('violations') ->select('violators.*')
+        $motorists = Violator::withCount('violations')->select('violators.*')
             ->with(['vehicles' => fn($query) => $query->select('id', 'violator_id', 'plate_number')->limit(1)])
             ->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
@@ -586,7 +586,7 @@ $vehicle->update([
                     'chassis_number' => $data['vehicle_chassis'] ?? null,
                 ]);
             } else {
-                optional($existing)->fill([
+                $existing->fill([
                     'vehicle_type'   => $existing->vehicle_type ?: ($data['vehicle_type'] ?? null),
                     'owner_name'     => $existing->owner_name ?: (!empty($data['vehicle_owner_name']) ? $data['vehicle_owner_name'] : ($violation->violator?->full_name ?? 'Unknown')),
                     'make'           => $existing->make ?: ($data['vehicle_make'] ?? null),
@@ -870,31 +870,31 @@ $vehiclePhotos = $request->file('motorist_photos') ? [$request->file('motorist_p
         if (!empty($m['vehicle_plate'])) {
             $vehicle = Vehicle::where('violator_id', $violator->id)
                 ->where('plate_number', $m['vehicle_plate'])->first();
-        if (!$vehicle) {
-            $vehicle = Vehicle::create([
-                'violator_id'    => $violator->id,
-                'plate_number'   => $m['vehicle_plate'],
-                'owner_name'     => ($violator->first_name . ' ' . $violator->last_name),
-                'vehicle_type'   => $m['vehicle_type_manual'] ?? null,
-                'make'           => $m['vehicle_make'] ?? null,
-                'model'          => $m['vehicle_model'] ?? null,
-                'color'          => $m['vehicle_color'] ?? null,
-                'or_number'      => $m['vehicle_or_number'] ?? null,
-                'cr_number'      => $m['vehicle_cr_number'] ?? null,
-                'chassis_number' => $m['vehicle_chassis'] ?? null,
-            ]);
-        } else {
-            optional($vehicle)->fill([
-                'owner_name'     => $vehicle->owner_name ?: $violator->full_name,
-                'vehicle_type'   => $vehicle->vehicle_type ?: ($m['vehicle_type_manual'] ?? null),
-                'make'           => $vehicle->make ?: ($m['vehicle_make'] ?? null),
-                'model'          => $vehicle->model ?: ($m['vehicle_model'] ?? null),
-                'color'          => $vehicle->color ?: ($m['vehicle_color'] ?? null),
-                'or_number'      => $vehicle->or_number ?: ($m['vehicle_or_number'] ?? null),
-                'cr_number'      => $vehicle->cr_number ?: ($m['vehicle_cr_number'] ?? null),
-                'chassis_number' => $vehicle->chassis_number ?: ($m['vehicle_chassis'] ?? null),
-            ])->save();
-        }
+            if (!$vehicle) {
+                $vehicle = Vehicle::create([
+                    'violator_id'    => $violator->id,
+                    'plate_number'   => $m['vehicle_plate'],
+                    'owner_name'     => $violator->full_name,
+                    'vehicle_type'   => $m['vehicle_type_manual'] ?? null,
+                    'make'           => $m['vehicle_make'] ?? null,
+                    'model'          => $m['vehicle_model'] ?? null,
+                    'color'          => $m['vehicle_color'] ?? null,
+                    'or_number'      => $m['vehicle_or_number'] ?? null,
+                    'cr_number'      => $m['vehicle_cr_number'] ?? null,
+                    'chassis_number' => $m['vehicle_chassis'] ?? null,
+                ]);
+            } else {
+                $vehicle->fill([
+                    'owner_name'     => $vehicle->owner_name ?: $violator->full_name,
+                    'vehicle_type'   => $vehicle->vehicle_type ?: ($m['vehicle_type_manual'] ?? null),
+                    'make'           => $vehicle->make ?: ($m['vehicle_make'] ?? null),
+                    'model'          => $vehicle->model ?: ($m['vehicle_model'] ?? null),
+                    'color'          => $vehicle->color ?: ($m['vehicle_color'] ?? null),
+                    'or_number'      => $vehicle->or_number ?: ($m['vehicle_or_number'] ?? null),
+                    'cr_number'      => $vehicle->cr_number ?: ($m['vehicle_cr_number'] ?? null),
+                    'chassis_number' => $vehicle->chassis_number ?: ($m['vehicle_chassis'] ?? null),
+                ])->save();
+            }
             $vehicleId = $vehicle->id;
         }
 
