@@ -346,8 +346,19 @@
                         </div>
                         @endif
 
-                        @if($violation->vehiclePhotos->isNotEmpty())
+                    @else
+                        {{-- No manual details, no photos row if vehicle from system --}}
+                        @if($violation->vehiclePhotos->isEmpty() && !$violation->vehicle_plate)
                         <div class="d-flex align-items-start gap-3 px-4 py-3">
+                            <div style="width:120px;flex-shrink:0;font-size:.8rem;color:#a8a29e;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">Details</div>
+                            <div style="color:#a8a29e;font-style:italic;font-size:.875rem;">No vehicle recorded for this violation.</div>
+                        </div>
+                        @endif
+                    @endif
+
+                        {{-- Vehicle photos — always shown regardless of vehicle source --}}
+                        @if($violation->vehiclePhotos->isNotEmpty())
+                        <div class="d-flex align-items-start gap-3 px-4 py-3" style="border-top:1px solid #f5f0e8;">
                             <div style="width:120px;flex-shrink:0;font-size:.8rem;color:#a8a29e;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">Photos</div>
                             <div>
                                 <div class="d-flex flex-wrap gap-2 veh-photo-grid">
@@ -367,16 +378,6 @@
                             </div>
                         </div>
                         @endif
-
-                    @else
-                        {{-- No manual details, no photos row if vehicle from system --}}
-                        @if($violation->vehiclePhotos->isEmpty() && !$violation->vehicle_plate)
-                        <div class="d-flex align-items-start gap-3 px-4 py-3">
-                            <div style="width:120px;flex-shrink:0;font-size:.8rem;color:#a8a29e;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">Details</div>
-                            <div style="color:#a8a29e;font-style:italic;font-size:.875rem;">No vehicle recorded for this violation.</div>
-                        </div>
-                        @endif
-                    @endif
 
                 </dl>
             </div>
