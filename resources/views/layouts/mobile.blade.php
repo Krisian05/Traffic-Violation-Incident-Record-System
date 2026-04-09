@@ -891,7 +891,15 @@
 
     @stack('styles')
 </head>
-<body data-auth-user-id="{{ Auth::id() }}">
+@php
+    $mobileOfflineVersion = file_exists(public_path('mobile-offline.js')) ? filemtime(public_path('mobile-offline.js')) : time();
+    $officerSwVersion = file_exists(public_path('officer-sw.js')) ? filemtime(public_path('officer-sw.js')) : time();
+@endphp
+<body
+    data-auth-user-id="{{ Auth::id() }}"
+    data-mobile-offline-version="{{ $mobileOfflineVersion }}"
+    data-officer-sw-version="{{ $officerSwVersion }}"
+>
 
 <header class="mob-topbar">
     <div class="mob-topbar-left">
@@ -1275,6 +1283,6 @@ function initPhotoPicker(wrapperId, inputName, options) {
     galInput.addEventListener('change', () => handleFiles(galInput));
 }
 </script>
-<script src="{{ asset('mobile-offline.js') }}"></script>
+<script src="{{ asset('mobile-offline.js') }}?v={{ $mobileOfflineVersion }}"></script>
 </body>
 </html>

@@ -13,6 +13,7 @@
     var SYNC_INTERVAL_MS = 30000;
     var OFFLINE_VIOLATION_CREATE_PATH = '/officer/offline/violations/create';
     var DUPLICATE_STATES = { pending: true, failed: true };
+    var serviceWorkerVersion = cleanedString(document.body.dataset.officerSwVersion || '');
     var toastTimer = null;
     var syncing = false;
     var chip = document.getElementById(CHIP_ID);
@@ -1322,7 +1323,19 @@
         if (!('serviceWorker' in navigator)) return;
 
         window.addEventListener('load', function () {
-            navigator.serviceWorker.register('/officer-sw.js').catch(function () {
+            var serviceWorkerUrl = '/officer-sw.js';
+
+            if (serviceWorkerVersion) {
+                serviceWorkerUrl += '?v=' + encodeURIComponent(serviceWorkerVersion);
+            }
+
+            navigator.serviceWorker.register(serviceWorkerUrl).then(function (registration) {
+                if (registration && typeof registration.update === 'function') {
+                    registration.update().catch(function () {
+                        return null;
+                    });
+                }
+            }).catch(function () {
                 return null;
             });
         });
