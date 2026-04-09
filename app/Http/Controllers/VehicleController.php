@@ -157,7 +157,7 @@ class VehicleController extends Controller
                 'violator' => $motorist->violator,
                 'incidents_count' => 1,
                 'last_activity_at' => $motorist->incident?->date_of_incident?->timestamp ?? $motorist->created_at?->timestamp ?? 0,
-                'last_activity_label' => 'Incident ' . ($motorist->incident->incident_number ?? 'record'),
+                'last_activity_label' => 'Incident ' . ($motorist->incident?->incident_number ?? 'record'),
             ]);
         }
 

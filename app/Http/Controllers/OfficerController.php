@@ -414,7 +414,7 @@ class OfficerController extends Controller
                     'chassis_number' => $data['vehicle_chassis'] ?? null,
                 ]);
             } else {
-$vehicle->update([
+                $vehicle->update([
                     'vehicle_type'   => $vehicle->vehicle_type ?: ($data['vehicle_type'] ?? null),
                     'owner_name'     => $vehicle->owner_name ?: (!empty($data['vehicle_owner_name']) ? $data['vehicle_owner_name'] : $violator->full_name),
                     'make'           => $vehicle->make ?: ($data['vehicle_make'] ?? null),
@@ -748,7 +748,7 @@ $vehicle->update([
                 'recorded_by'      => Auth::id(),
             ]);
 
-$vehiclePhotos = $request->file('motorist_photos') ? [$request->file('motorist_photos')] : [];
+            $vehiclePhotos = $request->file('motorist_photos') ? [$request->file('motorist_photos')] : [];
             $motoristIdPhotos = $request->file('motorist_id_photos', []);
 
             if ($request->hasFile('incident_photos')) {
@@ -846,7 +846,9 @@ $vehiclePhotos = $request->file('motorist_photos') ? [$request->file('motorist_p
                 if (!$violator->license_expiry_date       && !empty($m['license_expiry_date'])) $fill['license_expiry_date']  = $m['license_expiry_date'];
                 if (empty($violator->contact_number)      && !empty($m['motorist_contact']))    $fill['contact_number']       = $m['motorist_contact'];
                 if (empty($violator->temporary_address)   && !empty($m['motorist_address']))    $fill['temporary_address']    = $m['motorist_address'];
-                optional($violator)->fill($fill)->save();
+                if (!empty($fill)) {
+                    $violator->fill($fill)->save();
+                }
             }
         }
 
