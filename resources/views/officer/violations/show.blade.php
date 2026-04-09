@@ -233,7 +233,7 @@
              alt="Citation Ticket"
              class="mob-photo-thumb"
              data-full="{{ uploaded_file_url($violation->citation_ticket_photo) }}"
-             data-caption="Citation Ticket — {{ $violation->violationType->name ?? 'Violation' }}"
+             data-caption="Citation Ticket — {{ $violation->violationType?->name ?? 'Violation' }}"
              style="width:100%;border-radius:14px;box-shadow:0 4px 16px rgba(15,23,42,.1);cursor:zoom-in;display:block;">
         <div style="display:flex;align-items:center;justify-content:center;gap:.35rem;margin-top:.6rem;font-size:.7rem;color:#94a3b8;">
             <i class="ph ph-magnifying-glass-plus"></i> Tap to enlarge
