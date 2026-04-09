@@ -222,57 +222,68 @@
 <div class="motshow-section">Vehicle Involved</div>
 <div class="motshow-card" style="margin-bottom:.9rem;">
 
-    {{-- Photos strip (clickable) --}}
+    {{-- Main photo (first photo, full-width) --}}
     @if($violation->vehiclePhotos->isNotEmpty())
-    <div style="display:flex;gap:.45rem;padding:.85rem 1rem .6rem;overflow-x:auto;">
-        @foreach($violation->vehiclePhotos as $photo)
+    @php $firstPhoto = $violation->vehiclePhotos->first(); @endphp
+    <img src="{{ uploaded_file_url($firstPhoto->photo) }}"
+         alt="Vehicle photo"
+         class="mob-photo-thumb"
+         data-full="{{ uploaded_file_url($firstPhoto->photo) }}"
+         data-caption="{{ $plate ? 'Vehicle — ' . $plate : 'Vehicle Photo' }}"
+         style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;cursor:zoom-in;">
+
+    {{-- Additional photos strip --}}
+    @if($violation->vehiclePhotos->count() > 1)
+    <div style="display:flex;gap:.35rem;padding:.5rem .75rem;overflow-x:auto;background:#f8fafc;border-top:1px solid #f1f5f9;">
+        @foreach($violation->vehiclePhotos->skip(1) as $photo)
         <img src="{{ uploaded_file_url($photo->photo) }}"
              alt="Vehicle photo"
              class="mob-photo-thumb"
              data-full="{{ uploaded_file_url($photo->photo) }}"
              data-caption="{{ $plate ? 'Vehicle — ' . $plate : 'Vehicle Photo' }}"
-             style="width:90px;height:68px;object-fit:cover;border-radius:10px;border:1.5px solid #e2e8f0;flex-shrink:0;cursor:zoom-in;">
+             style="width:64px;height:48px;object-fit:cover;border-radius:8px;border:1.5px solid #e2e8f0;flex-shrink:0;cursor:zoom-in;">
         @endforeach
     </div>
+    @endif
     <div style="border-top:1px solid #f1f5f9;"></div>
     @endif
 
-    <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.75rem 1rem;">
-        @if($violation->vehiclePhotos->isEmpty())
-        <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(29,78,216,.25);">
-            <i class="ph-fill ph-car-profile" style="font-size:1.1rem;color:#fff;"></i>
+    {{-- Vehicle details --}}
+    <div style="padding:.75rem 1rem;">
+        @if(!$hasVehicle && $violation->vehiclePhotos->isEmpty())
+        <div style="display:flex;align-items:center;justify-content:center;gap:.5rem;color:#94a3b8;font-size:.8rem;padding:.5rem 0;">
+            <i class="ph ph-car-profile"></i> No vehicle details
+        </div>
+        @else
+        @if($plate)
+        <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.18rem;">
+            <span style="font-size:.98rem;font-weight:800;color:#0f172a;">{{ $plate }}</span>
+            @if($color)
+            <span style="background:#eff6ff;color:#1e40af;border-radius:6px;font-size:.62rem;font-weight:800;padding:.08rem .38rem;">{{ $color }}</span>
+            @endif
         </div>
         @endif
-        <div style="flex:1;min-width:0;">
-            @if($plate)
-            <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.15rem;">
-                <span style="font-size:.95rem;font-weight:800;color:#0f172a;">{{ $plate }}</span>
-                @if($color)
-                <span style="background:#eff6ff;color:#1e40af;border-radius:6px;font-size:.62rem;font-weight:800;padding:.08rem .38rem;">{{ $color }}</span>
-                @endif
-            </div>
-            @endif
-            @if($make || $model)
-            <div style="font-size:.78rem;color:#64748b;margin-bottom:.12rem;">{{ trim($make . ' ' . $model) }}</div>
-            @endif
-            @if($owner)
-            <div style="margin-top:.25rem;">
-                <span style="display:inline-flex;align-items:center;gap:.22rem;background:#fef9c3;color:#92400e;border-radius:8px;font-size:.63rem;font-weight:800;padding:.1rem .4rem;">
-                    <i class="ph ph-user-circle"></i> {{ $owner }}
-                </span>
-            </div>
-            @endif
-            @if($orNo || $crNo)
-            <div style="font-size:.68rem;color:#94a3b8;margin-top:.3rem;">
-                @if($orNo)OR: {{ $orNo }}@endif
-                @if($orNo && $crNo) &middot; @endif
-                @if($crNo)CR: {{ $crNo }}@endif
-            </div>
-            @endif
-            @if($chaNo)
-            <div style="font-size:.68rem;color:#94a3b8;">Chassis: {{ $chaNo }}</div>
-            @endif
+        @if($make || $model)
+        <div style="font-size:.78rem;color:#64748b;margin-bottom:.12rem;">{{ trim($make . ' ' . $model) }}</div>
+        @endif
+        @if($owner)
+        <div style="margin-top:.28rem;">
+            <span style="display:inline-flex;align-items:center;gap:.22rem;background:#fef9c3;color:#92400e;border-radius:8px;font-size:.63rem;font-weight:800;padding:.1rem .4rem;">
+                <i class="ph ph-user-circle"></i> {{ $owner }}
+            </span>
         </div>
+        @endif
+        @if($orNo || $crNo)
+        <div style="font-size:.68rem;color:#94a3b8;margin-top:.3rem;">
+            @if($orNo)OR: {{ $orNo }}@endif
+            @if($orNo && $crNo) &middot; @endif
+            @if($crNo)CR: {{ $crNo }}@endif
+        </div>
+        @endif
+        @if($chaNo)
+        <div style="font-size:.68rem;color:#94a3b8;">Chassis: {{ $chaNo }}</div>
+        @endif
+        @endif
     </div>
 </div>
 @endif
