@@ -13,10 +13,6 @@
 .vshow-stat { text-align:center;padding:.78rem .42rem;border-radius:15px;background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.16); }
 .vshow-stat-num   { font-size:1.1rem;line-height:1;font-weight:800;color:#fff; }
 .vshow-stat-label { margin-top:.22rem;font-size:.56rem;font-weight:800;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.08em; }
-.vph-1 { height: 120px; }
-.vph-2 { height: 60px; }
-.vph-3 { height: 40px; }
-.vph-4 { height: 30px; }
 </style>
 @endpush
 
@@ -227,22 +223,25 @@
 <div class="motshow-card" style="margin-bottom:.9rem;">
     <div style="display:flex;align-items:stretch;gap:0;">
 
-        {{-- Left: photo grid --}}
+        {{-- Left: single photo with gallery on tap --}}
         @if($violation->vehiclePhotos->isNotEmpty())
         @php
-            $vPhotoCount = min($violation->vehiclePhotos->count(), 4);
-            $vPhotoH = [1 => 120, 2 => 60, 3 => 40, 4 => 30][$vPhotoCount] ?? 30;
-            $vCaption = $plate ? 'Vehicle — ' . $plate : 'Vehicle Photo';
+            $vPhotos   = $violation->vehiclePhotos;
+            $vCaption  = $plate ? 'Vehicle — ' . $plate : 'Vehicle Photo';
+            $vGallery  = $vPhotos->map(fn($p) => uploaded_file_url($p->photo))->values()->toJson();
+            $vExtra    = $vPhotos->count() - 1;
         @endphp
-        <div style="display:flex;flex-direction:column;gap:2px;width:110px;flex-shrink:0;overflow:hidden;border-radius:18px 0 0 18px;">
-            @foreach($violation->vehiclePhotos->take(4) as $photo)
-            <img src="{{ uploaded_file_url($photo->photo) }}"
+        <div style="position:relative;width:110px;flex-shrink:0;overflow:hidden;border-radius:18px 0 0 18px;">
+            <img src="{{ uploaded_file_url($vPhotos->first()->photo) }}"
                  alt="Vehicle photo"
-                 class="mob-photo-thumb vph-{{ $vPhotoCount }}"
-                 data-full="{{ uploaded_file_url($photo->photo) }}"
+                 class="mob-photo-thumb"
+                 data-full="{{ uploaded_file_url($vPhotos->first()->photo) }}"
+                 data-gallery="{{ e($vGallery) }}"
                  data-caption="{{ $vCaption }}"
-                 style="width:110px;object-fit:cover;display:block;cursor:zoom-in;flex-shrink:0;">
-            @endforeach
+                 style="width:110px;height:110px;object-fit:cover;display:block;cursor:zoom-in;">
+            @if($vExtra > 0)
+            <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.52);color:#fff;font-size:.68rem;font-weight:700;text-align:center;padding:.28rem 0;pointer-events:none;">+{{ $vExtra }} more</div>
+            @endif
         </div>
         <div style="width:1px;background:#f1f5f9;flex-shrink:0;"></div>
         @endif

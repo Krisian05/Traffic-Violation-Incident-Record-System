@@ -1097,6 +1097,36 @@
             display: block;
         }
 
+        .mob-lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.18);
+            border: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            z-index: 2;
+        }
+        .mob-lightbox-nav:active { background: rgba(255,255,255,.32); }
+        .mob-lightbox-nav.prev { left: .75rem; }
+        .mob-lightbox-nav.next { right: .75rem; }
+        .mob-lightbox-nav[hidden] { display: none; }
+
+        .mob-lightbox-counter {
+            color: rgba(255,255,255,.6);
+            font-size: .72rem;
+            font-weight: 600;
+            text-align: center;
+            letter-spacing: .04em;
+        }
+
         .mob-lightbox-close {
             position: absolute;
             top: calc(env(safe-area-inset-top, 0px) + .875rem);
@@ -1279,13 +1309,20 @@
     </a>
 </nav>
 
-<div id="mob-lightbox" class="mob-lightbox" onclick="this.classList.remove('open')">
-    <button class="mob-lightbox-close" onclick="event.stopPropagation();document.getElementById('mob-lightbox').classList.remove('open')">
+<div id="mob-lightbox" class="mob-lightbox" onclick="mobLbClose()">
+    <button class="mob-lightbox-close" onclick="event.stopPropagation();mobLbClose()">
         <i class="ph ph-x" style="font-size:1.1rem;"></i>
     </button>
-    <div style="display:flex;flex-direction:column;align-items:center;gap:.75rem;max-width:100%;" onclick="event.stopPropagation()">
-        <img src="" alt="Photo" style="max-width:100%;max-height:80vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);display:block;">
-        <div id="mob-lightbox-caption" style="color:rgba(255,255,255,.75);font-size:.78rem;font-weight:600;text-align:center;padding:0 1rem;max-width:320px;line-height:1.4;min-height:1em;"></div>
+    <button class="mob-lightbox-nav prev" id="mob-lb-prev" onclick="event.stopPropagation();mobLbStep(-1)" hidden>
+        <i class="ph ph-caret-left" style="font-size:1.2rem;"></i>
+    </button>
+    <button class="mob-lightbox-nav next" id="mob-lb-next" onclick="event.stopPropagation();mobLbStep(1)" hidden>
+        <i class="ph ph-caret-right" style="font-size:1.2rem;"></i>
+    </button>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:.6rem;max-width:100%;padding:0 3rem;" onclick="event.stopPropagation()">
+        <img id="mob-lb-img" src="" alt="Photo" style="max-width:100%;max-height:78vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);display:block;">
+        <div id="mob-lightbox-caption" style="color:rgba(255,255,255,.75);font-size:.78rem;font-weight:600;text-align:center;padding:0;max-width:320px;line-height:1.4;min-height:1em;"></div>
+        <div id="mob-lb-counter" class="mob-lightbox-counter"></div>
     </div>
 </div>
 
@@ -1356,6 +1393,38 @@ if (document.getElementById('changePasswordModal')?.dataset.hasErrors === '1') {
     });
 }
 
+var mobLbGallery = [];
+var mobLbIndex = 0;
+
+function mobLbShow(index) {
+    var lb   = document.getElementById('mob-lightbox');
+    var img  = document.getElementById('mob-lb-img');
+    var cap  = document.getElementById('mob-lightbox-caption');
+    var ctr  = document.getElementById('mob-lb-counter');
+    var prev = document.getElementById('mob-lb-prev');
+    var next = document.getElementById('mob-lb-next');
+
+    mobLbIndex = Math.max(0, Math.min(index, mobLbGallery.length - 1));
+    var item = mobLbGallery[mobLbIndex];
+
+    if (img) img.src = item.src;
+    if (cap) cap.textContent = item.caption || '';
+    if (ctr) ctr.textContent = mobLbGallery.length > 1 ? (mobLbIndex + 1) + ' / ' + mobLbGallery.length : '';
+
+    if (prev) prev.hidden = mobLbIndex === 0;
+    if (next) next.hidden = mobLbIndex === mobLbGallery.length - 1;
+
+    lb.classList.add('open');
+}
+
+function mobLbStep(dir) {
+    mobLbShow(mobLbIndex + dir);
+}
+
+function mobLbClose() {
+    document.getElementById('mob-lightbox').classList.remove('open');
+}
+
 document.addEventListener('click', function (e) {
     if (!e.target.closest('.mob-user-menu-wrap')) {
         closeMobUserMenu();
@@ -1364,20 +1433,27 @@ document.addEventListener('click', function (e) {
     var thumb = e.target.closest('.mob-photo-thumb, .mob-photo-single');
     if (!thumb) return;
 
-    var lb = document.getElementById('mob-lightbox');
-    lb.querySelector('img').src = thumb.dataset.full || thumb.src;
+    var gallery = thumb.dataset.gallery ? JSON.parse(thumb.dataset.gallery) : null;
+    var caption = thumb.dataset.caption || thumb.alt || '';
 
-    var cap = document.getElementById('mob-lightbox-caption');
-    if (cap) cap.textContent = thumb.dataset.caption || thumb.alt || '';
-
-    lb.classList.add('open');
+    if (gallery && gallery.length > 1) {
+        mobLbGallery = gallery.map(function (src) { return { src: src, caption: caption }; });
+        mobLbShow(0);
+    } else {
+        mobLbGallery = [{ src: thumb.dataset.full || thumb.src, caption: caption }];
+        mobLbShow(0);
+    }
 });
 
 document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
         closeMobUserMenu();
-        document.getElementById('mob-lightbox').classList.remove('open');
+        mobLbClose();
     }
+    var lb = document.getElementById('mob-lightbox');
+    if (!lb.classList.contains('open')) return;
+    if (e.key === 'ArrowLeft')  mobLbStep(-1);
+    if (e.key === 'ArrowRight') mobLbStep(1);
 });
 </script>
 {{-- ── Change Password Modal ── --}}
