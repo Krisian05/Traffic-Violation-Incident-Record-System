@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var avatarEl = document.getElementById('offlineMotoristAvatar');
     var missingAlert = document.getElementById('offlineMotoristMissing');
     var submitBtn = document.getElementById('offlineViolationSubmitBtn');
-    var baseCreatePath = '{{ url('/officer/motorists') }}';
+    var baseCreatePath = "{{ url('/officer/motorists') }}";
 
     function hashMotoristKey() {
         var hash = String(window.location.hash || '').replace(/^#/, '');
