@@ -135,6 +135,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [OfficerController::class, 'dashboard'])->name('dashboard');
         Route::put('/password', [OfficerController::class, 'updatePassword'])->name('password.update');
         Route::get('/offline/violations/create', [OfficerController::class, 'createOfflineViolation'])->name('offline.violations.create');
+        Route::get('/offline/vehicles/create', [OfficerController::class, 'createOfflineVehicle'])->name('offline.vehicles.create');
+        Route::post('/offline/vehicles/create', [OfficerController::class, 'storeOfflineVehicle'])->name('officer.offline.vehicles.create');
 
         // Motorists
         Route::get('/motorists', [OfficerController::class, 'motorists'])->name('motorists.index');

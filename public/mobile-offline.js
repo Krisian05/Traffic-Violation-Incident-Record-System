@@ -519,6 +519,24 @@
         };
     }
 
+    function buildVehicleSummary(form, entries) {
+        var plate = getLastEntryValue(entries, 'plate_number');
+        var typeField = form ? form.querySelector('[name="vehicle_type"]') : null;
+        var typeName = '';
+        if (typeField && typeField.selectedIndex >= 0) {
+            typeName = cleanedString(typeField.options[typeField.selectedIndex].textContent || '');
+        }
+
+        return {
+            plateNumber: plate,
+            vehicleType: getLastEntryValue(entries, 'vehicle_type'),
+            vehicleTypeName: typeName,
+            make: getLastEntryValue(entries, 'make'),
+            model: getLastEntryValue(entries, 'model'),
+            color: getLastEntryValue(entries, 'color')
+        };
+    }
+
     function buildViolationSummary(form, entries) {
         var violationTypeField = form ? form.querySelector('[name="violation_type_id"]') : null;
         var violationTypeName = '';
@@ -552,6 +570,9 @@
 
         if ((record && record.sourcePath) === OFFLINE_VIOLATION_CREATE_PATH || actionPath === OFFLINE_VIOLATION_CREATE_PATH) {
             return 'offline-violation-create';
+        }
+        if (actionPath === '/officer/offline/vehicles/create') {
+            return 'offline-vehicle-create';
         }
 
         return '';

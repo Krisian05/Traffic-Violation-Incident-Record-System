@@ -853,9 +853,9 @@ document.addEventListener('DOMContentLoaded', function () {
     var violationLink = document.getElementById('offlineMotoristViolationLink');
     var offlineActions = document.getElementById('offlineMotoristActions');
     var motoristForm = document.getElementById('motoristForm');
-    var baseOfflineViolationHref = '{{ route('officer.offline.violations.create') }}';
-    var defaultActionsTitle = actionsTitle ? actionsTitle.textContent : 'Offline Violation';
-    var defaultActionsText = actionsText ? actionsText.textContent : 'Save this motorist while offline first, then use the button below to add a linked violation on this device.';
+var baseOfflineViolationHref = '{{ route("officer.offline.violations.create") }}';
+var defaultActionsTitle = actionsTitle ? actionsTitle.textContent : "Offline Violation";
+    var defaultActionsText = actionsText ? actionsText.textContent : "Save this motorist while offline first, then use the button below to add a linked violation on this device.";
     var defaultViolationLabel = violationLink ? violationLink.innerHTML : '<i class="ph-bold ph-file-plus"></i> Save Motorist Offline First';
 
     function syncOfflineViolationVisibility() {

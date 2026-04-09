@@ -14,7 +14,10 @@ var PAGE_URLS = [
     '/officer/incidents',
     '/officer/motorists',
     '/officer/motorists/create',
-    '/officer/offline/violations/create'
+    '/officer/offline/violations/create',
+    '/officer/vehicles',
+    '/officer/vehicles/create',
+    '/officer/incidents/create'
 ];
 var EXTERNAL_URLS = [
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
