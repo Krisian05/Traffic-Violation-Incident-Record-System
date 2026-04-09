@@ -236,6 +236,17 @@
     color: #b91c1c;
     border: 1px solid #fca5a5;
 }
+.mot-pagination-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 420px) {
+    .mot-pagination-wrap {
+        padding-right: 4.75rem;
+    }
+}
 </style>
 @endpush
 
@@ -332,7 +343,7 @@
     @endforeach
 
     @if($violators->hasPages())
-    <div class="d-flex justify-content-center mb-4">
+    <div class="mot-pagination-wrap">
         {{ $violators->links('vendor.pagination.bootstrap-5') }}
     </div>
     @endif
