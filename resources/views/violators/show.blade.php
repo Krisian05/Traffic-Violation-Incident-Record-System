@@ -311,14 +311,22 @@
                             <tr class="vlt-tbl-row">
                                 <td style="padding-left:1.25rem;min-width:80px;">
                                     @php
-                                        $thumbSrc = $v->photos->isNotEmpty()
-                                            ? uploaded_file_url($v->photos->first()->photo)
-                                            : ($v->firstViolationPhoto ? uploaded_file_url($v->firstViolationPhoto->photo) : null);
-                                        $allPhotos = $v->photos->map(fn($p) => [
-                                            'src'     => uploaded_file_url($p->photo),
-                                            'caption' => $v->plate_number,
-                                        ])->values()->toJson();
-                                        $extra = $v->photos->count() - 1;
+                                        if ($v->photos->isNotEmpty()) {
+                                            $galleryPhotos = $v->photos->map(fn($p) => [
+                                                'src'     => uploaded_file_url($p->photo),
+                                                'caption' => $v->plate_number,
+                                            ])->values();
+                                        } elseif ($v->firstViolationPhoto) {
+                                            $galleryPhotos = collect([[
+                                                'src'     => uploaded_file_url($v->firstViolationPhoto->photo),
+                                                'caption' => $v->plate_number,
+                                            ]]);
+                                        } else {
+                                            $galleryPhotos = collect([]);
+                                        }
+                                        $thumbSrc  = $galleryPhotos->first()['src'] ?? null;
+                                        $allPhotos = $galleryPhotos->toJson();
+                                        $extra     = max(0, $galleryPhotos->count() - 1);
                                     @endphp
                                     @if($thumbSrc)
                                         <div class="vlt-gallery-thumb"

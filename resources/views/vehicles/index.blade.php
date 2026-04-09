@@ -96,7 +96,10 @@
                         @if($vhThumb)
                             <img src="{{ uploaded_file_url($vhThumb) }}"
                                  alt="Vehicle photo"
-                                 style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #e7dfd5;">
+                                 data-lightbox="{{ uploaded_file_url($vhThumb) }}"
+                                 data-caption="{{ $vh->plate_number }}"
+                                 style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #e7dfd5;cursor:zoom-in;"
+                                 onclick="event.stopPropagation();openVhLightbox(this)">
                         @else
                             <div style="width:44px;height:44px;border-radius:8px;background:#f5f0e8;border:1px solid #e7dfd5;display:flex;align-items:center;justify-content:center;">
                                 <i class="bi bi-car-front" style="color:#a8a29e;font-size:.9rem;"></i>
@@ -583,10 +586,38 @@ document.querySelectorAll('.vio-row[data-href]').forEach(function (row) {
         if (e.target.closest('a'))             return;
         if (e.target.closest('button'))        return;
         if (e.target.closest('form'))          return;
+        if (e.target.closest('[data-lightbox]')) return;
         window.location.href = row.dataset.href;
     });
 });
+
+function openVhLightbox(img) {
+    var src  = img.dataset.lightbox || img.src;
+    var cap  = img.dataset.caption  || '';
+    var modal = document.getElementById('vhLightboxModal');
+    modal.querySelector('#vhLightboxImg').src         = src;
+    modal.querySelector('#vhLightboxCaption').textContent = cap;
+    bootstrap.Modal.getOrCreateInstance(modal).show();
+}
 </script>
+
+<div class="modal fade" id="vhLightboxModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background:#0f172a;border:none;">
+            <div class="modal-header border-0 pb-0">
+                <div style="display:flex;align-items:center;gap:.6rem;">
+                    <i class="bi bi-images" style="color:#fcd34d;font-size:.9rem;"></i>
+                    <span id="vhLightboxCaption" style="color:#e2e8f0;font-size:.82rem;font-weight:600;"></span>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-3">
+                <img id="vhLightboxImg" src="" alt="Vehicle photo"
+                     style="max-width:100%;max-height:75vh;border-radius:10px;object-fit:contain;">
+            </div>
+        </div>
+    </div>
+</div>
 @endpush
 
 @endsection
