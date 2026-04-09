@@ -1235,7 +1235,14 @@
 
 <button type="button" id="mob-sync-chip" class="mob-sync-chip" aria-live="polite" aria-label="Offline sync status"></button>
 <div id="mob-sync-toast" class="mob-sync-toast" aria-live="polite" aria-atomic="true"></div>
-<div id="mob-flash-toast" class="mob-flash-toast" role="alert" aria-live="assertive" aria-atomic="true"></div>
+@php
+    $flashType = session('success') ? 'success' : (session('error') ? 'error' : (session('warning') ? 'warning' : (session('info') ? 'info' : '')));
+    $flashMsg  = e(session('success') ?? session('error') ?? session('warning') ?? session('info') ?? '');
+@endphp
+<div id="mob-flash-toast" class="mob-flash-toast"
+     data-type="{{ $flashType }}"
+     data-msg="{{ $flashMsg }}"
+     role="alert" aria-live="assertive" aria-atomic="true"></div>
 <div id="mob-sync-sheet" class="mob-sync-sheet" hidden>
     <button type="button" class="mob-sync-sheet-backdrop" data-sync-sheet-close aria-label="Close offline queue"></button>
     <div class="mob-sync-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="mob-sync-sheet-title">
@@ -1284,16 +1291,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-@php
-    $flashType = session('success') ? 'success'
-        : (session('error')   ? 'error'
-        : (session('warning') ? 'warning'
-        : (session('info')    ? 'info' : null)));
-    $flashMsg = session('success') ?? session('error') ?? session('warning') ?? session('info');
-@endphp
 (function () {
-    var msg  = @json($flashMsg ?? null);
-    var type = @json($flashType ?? null);
+    var el   = document.getElementById('mob-flash-toast');
+    var msg  = el && el.dataset.msg;
+    var type = el && el.dataset.type;
     if (!msg || !type) return;
 
     var icons = {
@@ -1303,7 +1304,6 @@
         info:    'ph-fill ph-info',
     };
 
-    var el = document.getElementById('mob-flash-toast');
     el.className = 'mob-flash-toast mob-flash-toast--' + type;
     el.innerHTML = '<div class="mob-flash-toast-inner">'
         + '<i class="' + (icons[type] || icons.info) + '"></i>'
