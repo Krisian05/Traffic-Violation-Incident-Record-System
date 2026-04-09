@@ -41,7 +41,10 @@ function cacheExternalUrl(cache, url) {
 function cacheInternalUrl(cache, url) {
     return fetch(url, { credentials: 'same-origin' })
         .then(function (response) {
-            if (response && response.ok) {
+            var requestPath = new URL(url, self.location.origin).pathname;
+            var responsePath = response.url ? new URL(response.url).pathname : null;
+            // Don't cache if the response is an auth redirect (e.g. /login)
+            if (response && response.ok && (!responsePath || responsePath === requestPath)) {
                 return cache.put(url, response.clone());
             }
             return null;
