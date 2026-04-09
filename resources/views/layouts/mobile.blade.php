@@ -306,6 +306,42 @@
             color: #b91c1c;
         }
 
+        /* ── Flash message toast ── */
+        .mob-flash-toast {
+            position: fixed;
+            top: calc(var(--safe-top) + var(--top-h) + .6rem);
+            right: .9rem;
+            width: min(calc(100vw - 1.75rem), 320px);
+            z-index: 115;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-10px);
+            transition: opacity .22s ease, transform .22s ease;
+        }
+        .mob-flash-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .mob-flash-toast-inner {
+            display: flex;
+            align-items: flex-start;
+            gap: .55rem;
+            padding: .75rem .9rem;
+            border-radius: 14px;
+            box-shadow: 0 8px 28px rgba(15,23,42,.18);
+            border: 1px solid transparent;
+            background: #fff;
+            font-size: .76rem;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+        .mob-flash-toast-inner i { font-size: 1rem; flex-shrink: 0; margin-top: .04rem; }
+        .mob-flash-toast--success .mob-flash-toast-inner { background: #f0fdf4; border-color: #86efac; color: #166534; }
+        .mob-flash-toast--error   .mob-flash-toast-inner { background: #fef2f2; border-color: #fca5a5; color: #b91c1c; }
+        .mob-flash-toast--warning .mob-flash-toast-inner { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+        .mob-flash-toast--info    .mob-flash-toast-inner { background: #eff6ff; border-color: #93c5fd; color: #1d4ed8; }
+
         body.mob-sheet-open {
             overflow: hidden;
         }
@@ -1194,25 +1230,12 @@
 </header>
 
 <main class="mob-content">
-    @if(session('success'))
-        <div class="mob-alert mob-alert-success">
-            <i class="ph-fill ph-check-circle flex-shrink-0"></i>
-            <div>{{ session('success') }}</div>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="mob-alert mob-alert-danger">
-            <i class="ph-fill ph-warning-circle flex-shrink-0"></i>
-            <div>{{ session('error') }}</div>
-        </div>
-    @endif
-
     @yield('content')
 </main>
 
 <button type="button" id="mob-sync-chip" class="mob-sync-chip" aria-live="polite" aria-label="Offline sync status"></button>
 <div id="mob-sync-toast" class="mob-sync-toast" aria-live="polite" aria-atomic="true"></div>
+<div id="mob-flash-toast" class="mob-flash-toast" role="alert" aria-live="assertive" aria-atomic="true"></div>
 <div id="mob-sync-sheet" class="mob-sync-sheet" hidden>
     <button type="button" class="mob-sync-sheet-backdrop" data-sync-sheet-close aria-label="Close offline queue"></button>
     <div class="mob-sync-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="mob-sync-sheet-title">
@@ -1261,6 +1284,41 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+@php
+    $flashType = session('success') ? 'success'
+        : (session('error')   ? 'error'
+        : (session('warning') ? 'warning'
+        : (session('info')    ? 'info' : null)));
+    $flashMsg = session('success') ?? session('error') ?? session('warning') ?? session('info');
+@endphp
+(function () {
+    var msg  = @json($flashMsg ?? null);
+    var type = @json($flashType ?? null);
+    if (!msg || !type) return;
+
+    var icons = {
+        success: 'ph-fill ph-check-circle',
+        error:   'ph-fill ph-warning-circle',
+        warning: 'ph-fill ph-warning',
+        info:    'ph-fill ph-info',
+    };
+
+    var el = document.getElementById('mob-flash-toast');
+    el.className = 'mob-flash-toast mob-flash-toast--' + type;
+    el.innerHTML = '<div class="mob-flash-toast-inner">'
+        + '<i class="' + (icons[type] || icons.info) + '"></i>'
+        + '<span>' + msg + '</span>'
+        + '</div>';
+
+    requestAnimationFrame(function () {
+        requestAnimationFrame(function () { el.classList.add('show'); });
+    });
+
+    setTimeout(function () {
+        el.classList.remove('show');
+    }, 3800);
+})();
+
 const mobUserMenuToggle = document.getElementById('mobUserMenuToggle');
 const mobUserMenu = document.getElementById('mob-user-menu');
 const mobLogoutAction = document.getElementById('mobLogoutAction');
