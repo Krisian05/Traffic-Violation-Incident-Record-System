@@ -92,8 +92,9 @@
 
                     {{-- Thumbnail --}}
                     <td class="d-none d-md-table-cell" style="padding-left:1.25rem;">
-                        @if($vh->photos->isNotEmpty())
-                            <img src="{{ uploaded_file_url($vh->photos->first()->photo) }}"
+                        @php $vhThumb = $vh->photos->first()?->photo ?? $vh->firstViolationPhoto?->photo; @endphp
+                        @if($vhThumb)
+                            <img src="{{ uploaded_file_url($vhThumb) }}"
                                  alt="Vehicle photo"
                                  style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #e7dfd5;">
                         @else

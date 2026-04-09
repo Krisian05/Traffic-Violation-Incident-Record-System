@@ -310,18 +310,21 @@
                             @foreach($violator->vehicles as $v)
                             <tr class="vlt-tbl-row">
                                 <td style="padding-left:1.25rem;min-width:80px;">
-                                    @if($v->photos->isNotEmpty())
-                                        @php
-                                            $allPhotos = $v->photos->map(fn($p) => [
-                                                'src'     => uploaded_file_url($p->photo),
-                                                'caption' => $v->plate_number,
-                                            ])->values()->toJson();
-                                            $extra = $v->photos->count() - 1;
-                                        @endphp
+                                    @php
+                                        $thumbSrc = $v->photos->isNotEmpty()
+                                            ? uploaded_file_url($v->photos->first()->photo)
+                                            : ($v->firstViolationPhoto ? uploaded_file_url($v->firstViolationPhoto->photo) : null);
+                                        $allPhotos = $v->photos->map(fn($p) => [
+                                            'src'     => uploaded_file_url($p->photo),
+                                            'caption' => $v->plate_number,
+                                        ])->values()->toJson();
+                                        $extra = $v->photos->count() - 1;
+                                    @endphp
+                                    @if($thumbSrc)
                                         <div class="vlt-gallery-thumb"
                                              data-photos="{{ $allPhotos }}"
                                              onclick="openGallery(this, 0)">
-                                            <img src="{{ uploaded_file_url($v->photos->first()->photo) }}"
+                                            <img src="{{ $thumbSrc }}"
                                                  style="width:64px;height:48px;object-fit:cover;border-radius:8px;border:2px solid #bfdbfe;"
                                                  alt="vehicle photo">
                                             @if($extra > 0)

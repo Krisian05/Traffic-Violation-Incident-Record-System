@@ -135,6 +135,7 @@ class ViolatorController extends Controller
     {
         $violator->load([
             'vehicles.photos',
+            'vehicles.firstViolationPhoto',
             'violations.violationType',
             'violations.vehicle',
             'violations.recorder',

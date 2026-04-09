@@ -13,7 +13,7 @@ class VehicleController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Vehicle::with(['violator', 'photos'])
+        $query = Vehicle::with(['violator', 'photos', 'firstViolationPhoto'])
             ->withCount('violations');
 
         if ($search = $request->input('search')) {
