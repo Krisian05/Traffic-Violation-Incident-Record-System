@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vehicle extends Model
@@ -44,6 +43,19 @@ class Vehicle extends Model
     public function firstViolationPhoto()
     {
         return $this->hasOneThrough(
+            ViolationVehiclePhoto::class,
+            Violation::class,
+            'vehicle_id',   // FK on violations → vehicles
+            'violation_id', // FK on violation_vehicle_photos → violations
+            'id',
+            'id'
+        );
+    }
+
+    /** All violation vehicle photos across every violation linked to this vehicle */
+    public function allViolationPhotos()
+    {
+        return $this->hasManyThrough(
             ViolationVehiclePhoto::class,
             Violation::class,
             'vehicle_id',   // FK on violations → vehicles

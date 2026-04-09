@@ -316,11 +316,11 @@
                                                 'src'     => uploaded_file_url($p->photo),
                                                 'caption' => $v->plate_number,
                                             ])->values();
-                                        } elseif ($v->firstViolationPhoto) {
-                                            $galleryPhotos = collect([[
-                                                'src'     => uploaded_file_url($v->firstViolationPhoto->photo),
+                                        } elseif ($v->allViolationPhotos->isNotEmpty()) {
+                                            $galleryPhotos = $v->allViolationPhotos->map(fn($p) => [
+                                                'src'     => uploaded_file_url($p->photo),
                                                 'caption' => $v->plate_number,
-                                            ]]);
+                                            ])->values();
                                         } else {
                                             $galleryPhotos = collect([]);
                                         }
