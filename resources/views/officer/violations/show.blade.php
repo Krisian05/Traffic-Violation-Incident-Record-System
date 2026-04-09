@@ -221,10 +221,28 @@
 @if($hasVehicle)
 <div class="motshow-section">Vehicle Involved</div>
 <div class="motshow-card" style="margin-bottom:.9rem;">
-    <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.85rem 1rem;">
+
+    {{-- Photos strip (clickable) --}}
+    @if($violation->vehiclePhotos->isNotEmpty())
+    <div style="display:flex;gap:.45rem;padding:.85rem 1rem .6rem;overflow-x:auto;">
+        @foreach($violation->vehiclePhotos as $photo)
+        <img src="{{ uploaded_file_url($photo->photo) }}"
+             alt="Vehicle photo"
+             class="mob-photo-thumb"
+             data-full="{{ uploaded_file_url($photo->photo) }}"
+             data-caption="{{ $plate ? 'Vehicle — ' . $plate : 'Vehicle Photo' }}"
+             style="width:90px;height:68px;object-fit:cover;border-radius:10px;border:1.5px solid #e2e8f0;flex-shrink:0;cursor:zoom-in;">
+        @endforeach
+    </div>
+    <div style="border-top:1px solid #f1f5f9;"></div>
+    @endif
+
+    <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.75rem 1rem;">
+        @if($violation->vehiclePhotos->isEmpty())
         <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(29,78,216,.25);">
             <i class="ph-fill ph-car-profile" style="font-size:1.1rem;color:#fff;"></i>
         </div>
+        @endif
         <div style="flex:1;min-width:0;">
             @if($plate)
             <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.15rem;">
@@ -272,25 +290,6 @@
              style="width:100%;border-radius:14px;box-shadow:0 4px 16px rgba(15,23,42,.1);cursor:zoom-in;display:block;">
         <div style="display:flex;align-items:center;justify-content:center;gap:.35rem;margin-top:.6rem;font-size:.7rem;color:#94a3b8;">
             <i class="ph ph-magnifying-glass-plus"></i> Tap to enlarge
-        </div>
-    </div>
-</div>
-@endif
-
-{{-- ── Vehicle Photos ── --}}
-@if($violation->vehiclePhotos->isNotEmpty())
-<div class="motshow-section">Vehicle Photos</div>
-<div class="motshow-card" style="margin-bottom:.9rem;">
-    <div style="padding:1rem;">
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem;">
-            @foreach($violation->vehiclePhotos as $photo)
-            <img src="{{ uploaded_file_url($photo->photo) }}"
-                 alt="Vehicle photo"
-                 class="mob-photo-thumb"
-                 data-full="{{ uploaded_file_url($photo->photo) }}"
-                 data-caption="Vehicle Photo"
-                 style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;box-shadow:0 2px 8px rgba(15,23,42,.08);cursor:zoom-in;display:block;">
-            @endforeach
         </div>
     </div>
 </div>
