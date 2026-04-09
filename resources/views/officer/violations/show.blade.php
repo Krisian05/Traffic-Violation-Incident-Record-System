@@ -312,14 +312,5 @@
 </div>
 @endif
 
-{{-- ── Edit FAB ── --}}
-<a href="{{ route('officer.violations.edit', $violation) }}"
-   style="position:fixed;bottom:1.5rem;right:1.25rem;z-index:999;
-          width:52px;height:52px;border-radius:50%;
-          background:linear-gradient(135deg,#dc2626,#b91c1c);
-          color:#fff;display:flex;align-items:center;justify-content:center;
-          box-shadow:0 4px 14px rgba(220,38,38,.45);text-decoration:none;">
-    <i class="ph ph-pencil-simple" style="font-size:1.3rem;"></i>
-</a>
 
 @endsection
