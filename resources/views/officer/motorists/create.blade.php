@@ -674,7 +674,7 @@
         </button>
     </div>
 
-    <div class="submit-strip" id="offlineMotoristActions" style="margin-top:.85rem;">
+    <div class="submit-strip" id="offlineMotoristActions" style="margin-top:.85rem;display:none;">
         <div id="offlineMotoristActionsTitle" style="font-size:.76rem;font-weight:800;color:#0f172a;">Offline Violation</div>
         <div id="offlineMotoristActionsText" style="font-size:.7rem;color:#64748b;line-height:1.5;margin-top:.2rem;">Save this motorist while offline first, then use the button below to add a linked violation on this device.</div>
         <a href="{{ route('officer.offline.violations.create') }}" id="offlineMotoristViolationLink" class="mob-btn-primary mob-btn-danger" style="margin-top:.8rem;text-decoration:none;pointer-events:none;opacity:.55;">
@@ -851,13 +851,23 @@ document.addEventListener('DOMContentLoaded', function () {
     var actionsTitle = document.getElementById('offlineMotoristActionsTitle');
     var actionsText = document.getElementById('offlineMotoristActionsText');
     var violationLink = document.getElementById('offlineMotoristViolationLink');
+    var offlineActions = document.getElementById('offlineMotoristActions');
     var baseOfflineViolationHref = '{{ route('officer.offline.violations.create') }}';
+
+    function syncOfflineViolationVisibility() {
+        if (!offlineActions) {
+            return;
+        }
+
+        offlineActions.style.display = navigator.onLine ? 'none' : '';
+    }
 
     function activateOfflineViolationLink(record) {
         if (!record || !violationLink || !actionsText || !actionsTitle) {
             return;
         }
 
+        syncOfflineViolationVisibility();
         actionsTitle.textContent = 'Motorist queued on this device';
         actionsText.textContent = 'You can record a violation for this unsynced motorist right away. It will publish after the motorist record syncs.';
         violationLink.href = baseOfflineViolationHref + '#motorist=' + encodeURIComponent(record.offlineMotoristKey || '');
@@ -882,8 +892,14 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    syncOfflineViolationVisibility();
     refreshOfflineViolationLink();
     window.addEventListener('tvirs-offline-updated', refreshOfflineViolationLink);
+    window.addEventListener('online', syncOfflineViolationVisibility);
+    window.addEventListener('offline', function () {
+        syncOfflineViolationVisibility();
+        refreshOfflineViolationLink();
+    });
 
 })();
 </script>
