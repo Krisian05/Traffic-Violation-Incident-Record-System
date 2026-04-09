@@ -67,6 +67,13 @@
             font-size: .86rem;
             font-weight: 600;
         }
+
+        .hint {
+            margin-top: .8rem;
+            font-size: .8rem;
+            color: #64748b;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
@@ -74,7 +81,65 @@
         <div class="icon">+</div>
         <h1>You are offline</h1>
         <p>TVIRS mobile can keep already opened officer pages available offline, and queued form submissions will sync automatically once the device reconnects.</p>
-        <div class="note">Reconnect to load uncached pages or to finish publishing queued records.</div>
+        <div class="note" id="offline-note">Checking saved officer pages on this device…</div>
+        <div class="hint" id="offline-hint">If a previously cached page is available, TVIRS will reopen it automatically.</div>
     </div>
+    <script>
+        (function () {
+            var note = document.getElementById('offline-note');
+            var hint = document.getElementById('offline-hint');
+            var candidates = [
+                '/officer/dashboard',
+                '/officer/motorists',
+                '/officer/incidents',
+                '/officer/motorists/create',
+                '/officer/offline/violations/create'
+            ];
+
+            if (!('caches' in window)) {
+                if (note) {
+                    note.textContent = 'Reconnect to load uncached pages or to finish publishing queued records.';
+                }
+                return;
+            }
+
+            Promise.all(candidates.map(function (path) {
+                return caches.match(path).then(function (match) {
+                    return match ? path : '';
+                }).catch(function () {
+                    return '';
+                });
+            })).then(function (matches) {
+                var firstAvailable = matches.find(function (path) {
+                    return !!path;
+                });
+
+                if (firstAvailable) {
+                    if (note) {
+                        note.textContent = 'Opening the last saved officer page available on this device…';
+                    }
+                    if (hint) {
+                        hint.textContent = firstAvailable;
+                    }
+
+                    window.setTimeout(function () {
+                        window.location.replace(firstAvailable);
+                    }, 220);
+                    return;
+                }
+
+                if (note) {
+                    note.textContent = 'Reconnect to load uncached pages or to finish publishing queued records.';
+                }
+                if (hint) {
+                    hint.textContent = 'This device does not have a saved officer page yet. Open the app once while online first.';
+                }
+            }).catch(function () {
+                if (note) {
+                    note.textContent = 'Reconnect to load uncached pages or to finish publishing queued records.';
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
