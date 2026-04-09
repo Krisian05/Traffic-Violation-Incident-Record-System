@@ -241,12 +241,6 @@
     justify-content: center;
     margin-bottom: 1rem;
 }
-
-@media (max-width: 420px) {
-    .mot-pagination-wrap {
-        padding-right: 3.5rem;
-    }
-}
 </style>
 @endpush
 
