@@ -1438,10 +1438,11 @@ document.addEventListener('click', function (e) {
     var gallery = null;
     if (thumb.dataset.gallery) { try { gallery = JSON.parse(thumb.dataset.gallery); } catch (e) { gallery = null; } }
     var caption = thumb.dataset.caption || thumb.alt || '';
+    var startIndex = parseInt(thumb.dataset.galleryIndex || '0', 10) || 0;
 
-    if (gallery && gallery.length > 1) {
+    if (gallery && gallery.length >= 1) {
         mobLbGallery = gallery.map(function (src) { return { src: src, caption: caption }; });
-        mobLbShow(0);
+        mobLbShow(startIndex);
     } else {
         mobLbGallery = [{ src: thumb.dataset.full || thumb.src, caption: caption }];
         mobLbShow(0);

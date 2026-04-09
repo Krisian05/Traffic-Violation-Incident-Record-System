@@ -292,6 +292,50 @@
 </div>
 @endif
 
+{{-- ── Vehicle Photos ── --}}
+@if(!empty($vPhotos) && $vPhotos->isNotEmpty())
+@php
+    $vPhotoGallery = $vPhotos->map(fn($p) => uploaded_file_url($p->photo))->values()->toJson();
+    $vPhotoCaption = $plate ? 'Vehicle — ' . $plate : 'Vehicle Photo';
+@endphp
+<div class="motshow-section">Vehicle Photos</div>
+<div class="motshow-card" style="margin-bottom:.9rem;overflow:hidden;">
+    @if($vPhotos->count() === 1)
+        <div style="padding:1rem;">
+            <img src="{{ uploaded_file_url($vPhotos->first()->photo) }}"
+                 alt="Vehicle photo"
+                 class="mob-photo-thumb"
+                 data-full="{{ uploaded_file_url($vPhotos->first()->photo) }}"
+                 data-gallery="{{ e($vPhotoGallery) }}"
+                 data-gallery-index="0"
+                 data-caption="{{ $vPhotoCaption }}"
+                 style="width:100%;border-radius:14px;box-shadow:0 4px 16px rgba(15,23,42,.1);cursor:zoom-in;display:block;object-fit:cover;max-height:220px;">
+            <div style="display:flex;align-items:center;justify-content:center;gap:.35rem;margin-top:.6rem;font-size:.7rem;color:#94a3b8;">
+                <i class="ph ph-magnifying-glass-plus"></i> Tap to enlarge
+            </div>
+        </div>
+    @else
+        <div style="display:flex;gap:.5rem;overflow-x:auto;padding:1rem;scrollbar-width:none;">
+            @foreach($vPhotos as $idx => $vp)
+            <div style="flex:0 0 auto;position:relative;">
+                <img src="{{ uploaded_file_url($vp->photo) }}"
+                     alt="Vehicle photo {{ $idx + 1 }}"
+                     class="mob-photo-thumb"
+                     data-full="{{ uploaded_file_url($vp->photo) }}"
+                     data-gallery="{{ e($vPhotoGallery) }}"
+                     data-gallery-index="{{ $idx }}"
+                     data-caption="{{ $vPhotoCaption }}"
+                     style="width:110px;height:110px;object-fit:cover;border-radius:12px;cursor:zoom-in;display:block;box-shadow:0 3px 10px rgba(15,23,42,.12);">
+            </div>
+            @endforeach
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:.35rem;padding-bottom:.85rem;font-size:.7rem;color:#94a3b8;">
+            <i class="ph ph-images"></i> {{ $vPhotos->count() }} photos — tap to view
+        </div>
+    @endif
+</div>
+@endif
+
 {{-- ── Citation Ticket Photo ── --}}
 @if($violation->citation_ticket_photo)
 <div class="motshow-section">Citation Ticket</div>
