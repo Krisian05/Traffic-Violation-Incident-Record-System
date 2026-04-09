@@ -1,6 +1,6 @@
-var STATIC_CACHE = 'tvirs-mobile-static-v4';
-var PAGE_CACHE = 'tvirs-mobile-pages-v4';
-var EXTERNAL_CACHE = 'tvirs-mobile-external-v4';
+var STATIC_CACHE = 'tvirs-mobile-static-v5';
+var PAGE_CACHE = 'tvirs-mobile-pages-v5';
+var EXTERNAL_CACHE = 'tvirs-mobile-external-v5';
 var OFFLINE_FALLBACK = '/offline-mobile.html';
 var STATIC_URLS = [
     '/manifest.json',
@@ -10,6 +10,8 @@ var STATIC_URLS = [
     OFFLINE_FALLBACK
 ];
 var PAGE_URLS = [
+    '/officer/dashboard',
+    '/officer/incidents',
     '/officer/motorists',
     '/officer/motorists/create',
     '/officer/offline/violations/create'
