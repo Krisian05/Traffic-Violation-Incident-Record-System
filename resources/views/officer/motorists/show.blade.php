@@ -159,299 +159,369 @@
 
 {{-- ── Personal Info ── --}}
 <div class="motshow-section">Personal Info</div>
-<div class="motshow-card">
-    <div class="motshow-card-body">
-        <div class="motshow-feature-box">
-            <div class="motshow-info-grid">
-                @if($violator->date_of_birth)
-                <div>
-                    <div class="motshow-label"><i class="ph ph-cake me-1"></i>Date of Birth</div>
-                    <div class="motshow-value">{{ $violator->date_of_birth->format('M d, Y') }}</div>
-                    @if($age)<div class="motshow-item-submeta">{{ $age }} years old</div>@endif
-                </div>
-                @endif
+<div class="motshow-card" style="margin-bottom:.9rem;">
 
-                @if($violator->gender)
-                <div>
-                    <div class="motshow-label"><i class="ph ph-gender-intersex me-1"></i>Sex</div>
-                    <div class="motshow-value">{{ $violator->gender }}</div>
-                </div>
-                @endif
-
-                @if($violator->civil_status)
-                <div>
-                    <div class="motshow-label"><i class="ph ph-heart me-1"></i>Civil Status</div>
-                    <div class="motshow-value">{{ $violator->civil_status }}</div>
-                </div>
-                @endif
-
-                @if($violator->blood_type)
-                <div>
-                    <div class="motshow-label"><i class="ph ph-drop me-1"></i>Blood Type</div>
-                    <div class="motshow-value">{{ $violator->blood_type }}</div>
-                </div>
-                @endif
-
-                @if($violator->height)
-                <div>
-                    <div class="motshow-label"><i class="ph ph-arrows-vertical me-1"></i>Height</div>
-                    <div class="motshow-value">{{ $violator->height }}</div>
-                </div>
-                @endif
-
-                @if($violator->weight)
-                <div>
-                    <div class="motshow-label"><i class="ph ph-barbell me-1"></i>Weight</div>
-                    <div class="motshow-value">{{ $violator->weight }}</div>
-                </div>
-                @endif
-
-                @if($violator->place_of_birth)
-                <div class="motshow-info-full">
-                    <div class="motshow-label"><i class="ph ph-map-pin me-1"></i>Place of Birth</div>
-                    <div class="motshow-value motshow-value--soft">{{ $violator->place_of_birth }}</div>
-                </div>
-                @endif
-
-                @if($violator->valid_id)
-                <div class="motshow-info-full">
-                    <div class="motshow-label"><i class="ph ph-identification-badge me-1"></i>Valid ID</div>
-                    <div class="motshow-value motshow-value--soft">{{ $violator->valid_id }}</div>
-                </div>
-                @endif
+    {{-- Identity rows --}}
+    @php $hasIdentity = $violator->date_of_birth || $violator->gender || $violator->civil_status || $violator->blood_type || $violator->height || $violator->weight || $violator->place_of_birth || $violator->valid_id; @endphp
+    @if($hasIdentity)
+    <div style="padding:.75rem 1rem .35rem;">
+        <div style="font-size:.58rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.55rem;">Identity</div>
+    </div>
+    @if($violator->date_of_birth)
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <div style="width:32px;height:32px;border-radius:10px;background:#eff6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ph-fill ph-cake" style="font-size:.9rem;color:#2563eb;"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Date of Birth</div>
+            <div style="font-size:.88rem;font-weight:700;color:#0f172a;">{{ $violator->date_of_birth->format('M d, Y') }}</div>
+        </div>
+        @if($age)<span style="font-size:.7rem;font-weight:700;color:#64748b;flex-shrink:0;">{{ $age }} yrs</span>@endif
+    </div>
+    @endif
+    @if($violator->gender || $violator->civil_status)
+    <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #f1f5f9;">
+        @if($violator->gender)
+        <div style="display:flex;align-items:center;gap:.6rem;padding:.6rem 1rem;{{ $violator->civil_status ? 'border-right:1px solid #f1f5f9;' : '' }}">
+            <div style="width:32px;height:32px;border-radius:10px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="ph-fill ph-user" style="font-size:.9rem;color:#16a34a;"></i>
+            </div>
+            <div>
+                <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Sex</div>
+                <div style="font-size:.88rem;font-weight:700;color:#0f172a;">{{ $violator->gender }}</div>
             </div>
         </div>
-
-        @if($violator->contact_number || $violator->email || $violator->temporary_address || $violator->permanent_address)
-        <div style="height:1px;background:#e2e8f0;margin:.9rem 0;"></div>
-        <div class="motshow-info-grid">
-            @if($violator->contact_number)
+        @endif
+        @if($violator->civil_status)
+        <div style="display:flex;align-items:center;gap:.6rem;padding:.6rem 1rem;">
+            <div style="width:32px;height:32px;border-radius:10px;background:#fdf4ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="ph-fill ph-heart" style="font-size:.9rem;color:#a21caf;"></i>
+            </div>
             <div>
-                <div class="motshow-label"><i class="ph ph-phone me-1"></i>Contact</div>
-                <div class="motshow-value">{{ $violator->contact_number }}</div>
+                <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Civil Status</div>
+                <div style="font-size:.88rem;font-weight:700;color:#0f172a;">{{ $violator->civil_status }}</div>
             </div>
-            @endif
-
-            @if($violator->email)
-            <div class="{{ $violator->contact_number ? '' : 'motshow-info-full' }}">
-                <div class="motshow-label"><i class="ph ph-envelope me-1"></i>Email</div>
-                <div class="motshow-value motshow-value--soft" style="word-break:break-all;font-size:.82rem;">{{ $violator->email }}</div>
-            </div>
-            @endif
-
-            @if($violator->temporary_address)
-            <div class="motshow-info-full">
-                <div class="motshow-label"><i class="ph ph-house-line me-1"></i>Current Address</div>
-                <div class="motshow-value motshow-value--soft">{{ $violator->temporary_address }}</div>
-            </div>
-            @endif
-
-            @if($violator->permanent_address)
-            <div class="motshow-info-full">
-                <div class="motshow-label"><i class="ph ph-map-trifold me-1"></i>Permanent Address</div>
-                <div class="motshow-value motshow-value--soft">{{ $violator->permanent_address }}</div>
-            </div>
-            @endif
         </div>
         @endif
     </div>
-</div>
-
-{{-- ── License ── --}}
-@if($violator->license_number || $violator->license_type || $violator->license_expiry_date || $restrCodes)
-<div class="motshow-section">Driver's License</div>
-<div class="motshow-card">
-    <div class="motshow-card-body">
-        <div class="motshow-feature-box">
-            <div class="motshow-info-grid">
-                @if($violator->license_number)
-                <div class="motshow-info-full">
-                    <div class="motshow-label"><i class="ph ph-identification-card me-1"></i>License Number</div>
-                    <div class="motshow-value" style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.04em;">
-                        {{ $violator->license_number }}
-                    </div>
-                </div>
-                @endif
-
-                @if($violator->license_type)
-                <div>
-                    <div class="motshow-label"><i class="ph ph-cardholder me-1"></i>Type</div>
-                    <div class="motshow-value">{{ $violator->license_type }}</div>
-                </div>
-                @endif
-
-                @if($violator->license_expiry_date)
-                <div>
-                    <div class="motshow-label"><i class="ph ph-calendar-x me-1"></i>Expiry</div>
-                    <div class="motshow-value {{ $licenseExpired ? 'text-danger fw-bold' : '' }}">
-                        {{ $violator->license_expiry_date->format('M d, Y') }}
-                    </div>
-                    <span class="motshow-license-flag {{ $licenseExpired ? 'motshow-license-flag--danger' : 'motshow-license-flag--safe' }}">
-                        <i class="ph-fill {{ $licenseExpired ? 'ph-warning-circle' : 'ph-check-circle' }}"></i>
-                        {{ $licenseExpired ? 'Expired' : 'Valid on file' }}
-                    </span>
-                </div>
-                @endif
-
-                @if($restrCodes)
-                <div class="motshow-info-full">
-                    <div class="motshow-label"><i class="ph ph-list-checks me-1"></i>Restrictions</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.2rem;">
-                        @foreach($restrCodes as $code)
-                            <span class="motshow-license-code" title="{{ $restrDesc[$code] ?? '' }}">{{ $code }}</span>
-                        @endforeach
-                    </div>
-                </div>
-                @endif
-            </div>
+    @endif
+    @if($violator->blood_type || $violator->height || $violator->weight)
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid #f1f5f9;">
+        @if($violator->blood_type)
+        <div style="padding:.6rem .75rem;text-align:center;{{ ($violator->height || $violator->weight) ? 'border-right:1px solid #f1f5f9;' : '' }}">
+            <div style="font-size:1.05rem;font-weight:800;color:#dc2626;">{{ $violator->blood_type }}</div>
+            <div style="font-size:.58rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-top:.1rem;">Blood</div>
+        </div>
+        @endif
+        @if($violator->height)
+        <div style="padding:.6rem .75rem;text-align:center;{{ $violator->weight ? 'border-right:1px solid #f1f5f9;' : '' }}">
+            <div style="font-size:1.05rem;font-weight:800;color:#0f172a;">{{ $violator->height }}</div>
+            <div style="font-size:.58rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-top:.1rem;">Height</div>
+        </div>
+        @endif
+        @if($violator->weight)
+        <div style="padding:.6rem .75rem;text-align:center;">
+            <div style="font-size:1.05rem;font-weight:800;color:#0f172a;">{{ $violator->weight }}</div>
+            <div style="font-size:.58rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-top:.1rem;">Weight</div>
+        </div>
+        @endif
+    </div>
+    @endif
+    @if($violator->place_of_birth)
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <div style="width:32px;height:32px;border-radius:10px;background:#fff7ed;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ph-fill ph-map-pin" style="font-size:.9rem;color:#ea580c;"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Place of Birth</div>
+            <div style="font-size:.85rem;font-weight:600;color:#334155;">{{ $violator->place_of_birth }}</div>
         </div>
     </div>
+    @endif
+    @if($violator->valid_id)
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;{{ ($violator->contact_number || $violator->email || $violator->temporary_address || $violator->permanent_address) ? 'border-bottom:1px solid #f1f5f9;' : '' }}">
+        <div style="width:32px;height:32px;border-radius:10px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ph-fill ph-identification-badge" style="font-size:.9rem;color:#16a34a;"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Valid ID</div>
+            <div style="font-size:.85rem;font-weight:600;color:#334155;">{{ $violator->valid_id }}</div>
+        </div>
+    </div>
+    @endif
+    @endif
+
+    {{-- Contact rows --}}
+    @if($violator->contact_number || $violator->email || $violator->temporary_address || $violator->permanent_address)
+    <div style="padding:.75rem 1rem .35rem;">
+        <div style="font-size:.58rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.55rem;">Contact &amp; Address</div>
+    </div>
+    @if($violator->contact_number)
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <div style="width:32px;height:32px;border-radius:10px;background:#eff6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ph-fill ph-phone" style="font-size:.9rem;color:#2563eb;"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Contact Number</div>
+            <div style="font-size:.88rem;font-weight:700;color:#0f172a;">{{ $violator->contact_number }}</div>
+        </div>
+    </div>
+    @endif
+    @if($violator->email)
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <div style="width:32px;height:32px;border-radius:10px;background:#f5f3ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ph-fill ph-envelope" style="font-size:.9rem;color:#7c3aed;"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Email</div>
+            <div style="font-size:.82rem;font-weight:600;color:#334155;word-break:break-all;">{{ $violator->email }}</div>
+        </div>
+    </div>
+    @endif
+    @if($violator->temporary_address)
+    <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.6rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <div style="width:32px;height:32px;border-radius:10px;background:#fff7ed;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem;">
+            <i class="ph-fill ph-house-line" style="font-size:.9rem;color:#ea580c;"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Current Address</div>
+            <div style="font-size:.85rem;font-weight:600;color:#334155;line-height:1.4;">{{ $violator->temporary_address }}</div>
+        </div>
+    </div>
+    @endif
+    @if($violator->permanent_address)
+    <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.6rem 1rem;">
+        <div style="width:32px;height:32px;border-radius:10px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem;">
+            <i class="ph-fill ph-map-trifold" style="font-size:.9rem;color:#16a34a;"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Permanent Address</div>
+            <div style="font-size:.85rem;font-weight:600;color:#334155;line-height:1.4;">{{ $violator->permanent_address }}</div>
+        </div>
+    </div>
+    @endif
+    @endif
+</div>
+
+{{-- ── Driver's License ── --}}
+@if($violator->license_number || $violator->license_type || $violator->license_expiry_date || $restrCodes)
+<div class="motshow-section">Driver's License</div>
+<div class="motshow-card" style="margin-bottom:.9rem;">
+    @if($violator->license_number)
+    <div style="padding:1rem 1rem .75rem;border-bottom:1px solid #f1f5f9;">
+        <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem;">License Number</div>
+        <div style="font-size:1.05rem;font-weight:800;color:#0f172a;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.06em;">{{ $violator->license_number }}</div>
+    </div>
+    @endif
+    <div style="display:grid;grid-template-columns:1fr 1fr;">
+        @if($violator->license_type)
+        <div style="padding:.75rem 1rem;{{ $violator->license_expiry_date ? 'border-right:1px solid #f1f5f9;' : '' }}">
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">Type</div>
+            <div style="font-size:.88rem;font-weight:700;color:#0f172a;">{{ $violator->license_type }}</div>
+        </div>
+        @endif
+        @if($violator->license_expiry_date)
+        <div style="padding:.75rem 1rem;">
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">Expiry Date</div>
+            <div style="font-size:.88rem;font-weight:700;color:{{ $licenseExpired ? '#dc2626' : '#0f172a' }};">{{ $violator->license_expiry_date->format('M d, Y') }}</div>
+            <span class="motshow-license-flag {{ $licenseExpired ? 'motshow-license-flag--danger' : 'motshow-license-flag--safe' }}">
+                <i class="ph-fill {{ $licenseExpired ? 'ph-warning-circle' : 'ph-check-circle' }}"></i>
+                {{ $licenseExpired ? 'Expired' : 'Valid' }}
+            </span>
+        </div>
+        @endif
+    </div>
+    @if($restrCodes)
+    <div style="padding:.75rem 1rem;border-top:1px solid #f1f5f9;">
+        <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;">Restriction Codes</div>
+        <div style="display:flex;flex-wrap:wrap;gap:.3rem;">
+            @foreach($restrCodes as $code)
+                <span class="motshow-license-code" title="{{ $restrDesc[$code] ?? '' }}">{{ $code }}</span>
+            @endforeach
+        </div>
+    </div>
+    @endif
 </div>
 @endif
 
 {{-- ── Violation History ── --}}
-<div class="motshow-section">Violation History</div>
-<div class="motshow-list">
-    @forelse($violator->violations as $viol)
-        @php
-            $isOverdue = $viol->status === 'pending' && $viol->date_of_violation && $viol->date_of_violation <= now()->subHours(72);
-            $badgeClass = match($viol->status) {
-                'settled'   => 'mob-badge-settled',
-                'contested' => 'mob-badge-contested',
-                default     => $isOverdue ? 'mob-badge-overdue' : 'mob-badge-pending',
-            };
-            $badgeLabel = match($viol->status) {
-                'settled'   => 'Settled',
-                'contested' => 'Contested',
-                default     => $isOverdue ? 'Overdue' : 'Pending',
-            };
-        @endphp
-        <a href="{{ route('officer.violations.show', $viol) }}" class="motshow-item">
-            <div class="motshow-item-icon motshow-item-icon--danger">
-                <i class="ph-fill ph-warning-circle"></i>
+<div class="motshow-section">Violation History
+    @if($violationCount > 0)
+    <span style="margin-left:.35rem;background:#fef2f2;color:#b91c1c;border:1px solid #fca5a5;border-radius:999px;font-size:.6rem;font-weight:800;padding:.1rem .45rem;">{{ $violationCount }}</span>
+    @endif
+</div>
+@forelse($violator->violations as $viol)
+    @php
+        $isOverdue = $viol->status === 'pending' && $viol->date_of_violation && $viol->date_of_violation <= now()->subHours(72);
+        $badgeClass = match($viol->status) {
+            'settled'   => 'mob-badge-settled',
+            'contested' => 'mob-badge-contested',
+            default     => $isOverdue ? 'mob-badge-overdue' : 'mob-badge-pending',
+        };
+        $badgeLabel = match($viol->status) {
+            'settled'   => 'Settled',
+            'contested' => 'Contested',
+            default     => $isOverdue ? 'Overdue' : 'Pending',
+        };
+        $accentColor = match($viol->status) {
+            'settled'   => '#16a34a',
+            'contested' => '#7c3aed',
+            default     => $isOverdue ? '#dc2626' : '#f59e0b',
+        };
+    @endphp
+    <a href="{{ route('officer.violations.show', $viol) }}"
+       style="display:flex;align-items:flex-start;gap:.85rem;background:#fff;border-radius:16px;border:1px solid rgba(15,23,42,.06);box-shadow:0 2px 10px rgba(15,23,42,.04);margin-bottom:.65rem;overflow:hidden;text-decoration:none;color:inherit;position:relative;">
+        <div style="width:4px;background:{{ $accentColor }};align-self:stretch;flex-shrink:0;"></div>
+        <div style="display:flex;align-items:flex-start;gap:.75rem;flex:1;min-width:0;padding:.85rem .85rem .85rem 0;">
+            <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#ef4444,#dc2626);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(220,38,38,.25);">
+                <i class="ph-fill ph-warning-circle" style="font-size:1.1rem;color:#fff;"></i>
             </div>
             <div style="flex:1;min-width:0;">
-                <div class="motshow-item-title">{{ $viol->violationType?->name ?? '—' }}</div>
-                <div class="motshow-item-meta">
-                    <i class="ph ph-calendar-blank" style="font-size:.65rem;"></i>
+                <div style="font-size:.9rem;font-weight:800;color:#0f172a;line-height:1.25;margin-bottom:.18rem;">{{ $viol->violationType?->name ?? '—' }}</div>
+                <div style="font-size:.72rem;color:#64748b;display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;">
+                    <i class="ph ph-calendar-blank"></i>
                     {{ $viol->date_of_violation ? $viol->date_of_violation->format('M d, Y') : '—' }}
                     @if($viol->location)
-                        &middot; {{ \Illuminate\Support\Str::limit($viol->location, 28) }}
+                    <span style="color:#cbd5e1;">&middot;</span>
+                    <i class="ph ph-map-pin"></i>
+                    {{ \Illuminate\Support\Str::limit($viol->location, 24) }}
                     @endif
                 </div>
                 @if($viol->ticket_number)
-                <div class="motshow-item-submeta"><i class="ph ph-ticket" style="font-size:.62rem;"></i> #{{ $viol->ticket_number }}</div>
+                <div style="margin-top:.28rem;font-size:.68rem;color:#94a3b8;display:flex;align-items:center;gap:.25rem;">
+                    <i class="ph ph-ticket"></i> Ticket #{{ $viol->ticket_number }}
+                </div>
                 @endif
             </div>
-            <div class="d-flex flex-column align-items-end gap-1 ms-2 flex-shrink-0">
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;flex-shrink:0;">
                 <span class="mob-badge {{ $badgeClass }}">{{ $badgeLabel }}</span>
                 <i class="ph ph-caret-right" style="color:#cbd5e1;font-size:.82rem;"></i>
             </div>
-        </a>
-    @empty
-        <div class="motshow-card">
-            <div class="mob-empty">
-                <i class="ph ph-file-x mob-empty-icon"></i>
-                <div class="mob-empty-text">No violations on record</div>
-                <div class="mob-empty-sub">Tap "Record Violation" above to add one</div>
-            </div>
         </div>
-    @endforelse
-</div>
+    </a>
+@empty
+    <div class="motshow-card" style="margin-bottom:.65rem;">
+        <div class="mob-empty">
+            <i class="ph ph-file-x mob-empty-icon"></i>
+            <div class="mob-empty-text">No violations on record</div>
+            <div class="mob-empty-sub">Tap "Record Violation" above to add one</div>
+        </div>
+    </div>
+@endforelse
 
 {{-- ── Vehicles on File ── --}}
-<div class="motshow-section" style="margin-top:.75rem;">Vehicles on File</div>
-<div class="motshow-list">
-    @forelse($violator->vehicles as $veh)
-        <div class="motshow-item motshow-item--static">
-            <div class="motshow-item-icon motshow-item-icon--blue">
-                <i class="ph-fill ph-car-profile"></i>
+<div class="motshow-section" style="margin-top:.35rem;">Vehicles on File
+    @if($vehicleCount > 0)
+    <span style="margin-left:.35rem;background:#eff6ff;color:#1d4ed8;border:1px solid #93c5fd;border-radius:999px;font-size:.6rem;font-weight:800;padding:.1rem .45rem;">{{ $vehicleCount }}</span>
+    @endif
+</div>
+@forelse($violator->vehicles as $veh)
+    <div style="display:flex;align-items:flex-start;gap:.85rem;background:#fff;border-radius:16px;border:1px solid rgba(15,23,42,.06);box-shadow:0 2px 10px rgba(15,23,42,.04);margin-bottom:.65rem;overflow:hidden;position:relative;">
+        <div style="width:4px;background:linear-gradient(180deg,#2563eb,#1d4ed8);align-self:stretch;flex-shrink:0;"></div>
+        <div style="display:flex;align-items:flex-start;gap:.75rem;flex:1;min-width:0;padding:.85rem .85rem .85rem 0;">
+            <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(29,78,216,.25);">
+                <i class="ph-fill ph-car-profile" style="font-size:1.1rem;color:#fff;"></i>
             </div>
             <div style="flex:1;min-width:0;">
-                <div class="motshow-item-title">
-                    {{ $veh->plate_number ?: '—' }}
+                <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.18rem;">
+                    <span style="font-size:.9rem;font-weight:800;color:#0f172a;">{{ $veh->plate_number ?: '—' }}</span>
                     @if($veh->vehicle_type)
-                        <span class="motshow-tag motshow-tag--plate">{{ $veh->vehicle_type }}</span>
+                    <span style="background:#eff6ff;color:#1e40af;border-radius:6px;font-size:.62rem;font-weight:800;padding:.08rem .38rem;">{{ $veh->vehicle_type }}</span>
                     @endif
                 </div>
-                <div class="motshow-item-meta">
-                    {{ trim(($veh->make ?? '') . ' ' . ($veh->model ?? '')) ?: '—' }}
-                    @if($veh->color) &middot; {{ $veh->color }} @endif
+                @if($veh->make || $veh->model || $veh->color)
+                <div style="font-size:.75rem;color:#64748b;margin-bottom:.14rem;">
+                    {{ trim(($veh->make ?? '') . ' ' . ($veh->model ?? '')) ?: '' }}
+                    @if($veh->color) <span style="color:#cbd5e1;">&middot;</span> {{ $veh->color }} @endif
                 </div>
+                @endif
                 @if($veh->or_number || $veh->cr_number)
-                <div class="motshow-item-submeta">
-                    @if($veh->or_number) OR: {{ $veh->or_number }} @endif
+                <div style="font-size:.68rem;color:#94a3b8;">
+                    @if($veh->or_number)<span>OR: {{ $veh->or_number }}</span>@endif
                     @if($veh->or_number && $veh->cr_number) &middot; @endif
-                    @if($veh->cr_number) CR: {{ $veh->cr_number }} @endif
+                    @if($veh->cr_number)<span>CR: {{ $veh->cr_number }}</span>@endif
                 </div>
                 @endif
                 @if($veh->chassis_number)
-                <div class="motshow-item-submeta">Chassis: {{ $veh->chassis_number }}</div>
+                <div style="font-size:.68rem;color:#94a3b8;">Chassis: {{ $veh->chassis_number }}</div>
                 @endif
                 @if($veh->owner_name)
                 <div style="margin-top:.3rem;">
-                    <span class="motshow-tag motshow-tag--owner">
+                    <span style="display:inline-flex;align-items:center;gap:.22rem;background:#fef9c3;color:#92400e;border-radius:8px;font-size:.63rem;font-weight:800;padding:.1rem .4rem;">
                         <i class="ph ph-user-circle"></i> {{ $veh->owner_name }}
                     </span>
                 </div>
                 @endif
                 @if($veh->photos->count() > 0)
-                <div class="motshow-inline-photos">
+                <div style="display:flex;gap:.35rem;margin-top:.5rem;overflow-x:auto;padding-bottom:.1rem;">
                     @foreach($veh->photos->take(4) as $photo)
                     <img src="{{ uploaded_file_url($photo->photo) }}"
                          alt="Vehicle photo"
                          class="mob-photo-thumb"
                          data-full="{{ uploaded_file_url($photo->photo) }}"
-                         data-caption="Vehicle — {{ $veh->plate_number }}">
+                         data-caption="Vehicle — {{ $veh->plate_number }}"
+                         style="width:58px;height:44px;object-fit:cover;border-radius:8px;border:1.5px solid #e2e8f0;flex-shrink:0;cursor:zoom-in;">
                     @endforeach
                 </div>
                 @endif
             </div>
         </div>
-    @empty
-        <div class="motshow-card">
-            <div class="mob-empty">
-                <i class="ph-fill ph-car mob-empty-icon"></i>
-                <div class="mob-empty-text">No vehicles on file</div>
-                <div class="mob-empty-sub">Tap "Add Vehicle" above to register one</div>
-            </div>
+    </div>
+@empty
+    <div class="motshow-card" style="margin-bottom:.65rem;">
+        <div class="mob-empty">
+            <i class="ph-fill ph-car mob-empty-icon"></i>
+            <div class="mob-empty-text">No vehicles on file</div>
+            <div class="mob-empty-sub">Tap "Add Vehicle" above to register one</div>
         </div>
-    @endforelse
-</div>
+    </div>
+@endforelse
 
 {{-- ── Linked Incidents ── --}}
-<div class="motshow-section" style="margin-top:.75rem;">Linked Incidents</div>
-<div class="motshow-list">
-    @forelse($incidents as $inc)
-        @php
-            $sc = ['open' => 'mob-badge-open', 'under_review' => 'mob-badge-review', 'closed' => 'mob-badge-closed'][$inc->status] ?? 'mob-badge-closed';
-        @endphp
-        <a href="{{ route('officer.incidents.show', $inc) }}" class="motshow-item">
-            <div class="motshow-item-icon motshow-item-icon--slate">
+<div class="motshow-section" style="margin-top:.35rem;">Linked Incidents
+    @if($incidentCount > 0)
+    <span style="margin-left:.35rem;background:#f5f3ff;color:#6d28d9;border:1px solid #c4b5fd;border-radius:999px;font-size:.6rem;font-weight:800;padding:.1rem .45rem;">{{ $incidentCount }}</span>
+    @endif
+</div>
+@forelse($incidents as $inc)
+    @php
+        $incAccent = ['open' => '#dc2626', 'under_review' => '#2563eb', 'closed' => '#64748b'][$inc->status] ?? '#64748b';
+        $incIcon   = ['open' => 'motshow-item-icon--danger', 'under_review' => 'motshow-item-icon--blue', 'closed' => 'motshow-item-icon--slate'][$inc->status] ?? 'motshow-item-icon--slate';
+        $sc = ['open' => 'mob-badge-open', 'under_review' => 'mob-badge-review', 'closed' => 'mob-badge-closed'][$inc->status] ?? 'mob-badge-closed';
+    @endphp
+    <a href="{{ route('officer.incidents.show', $inc) }}"
+       style="display:flex;align-items:flex-start;gap:.85rem;background:#fff;border-radius:16px;border:1px solid rgba(15,23,42,.06);box-shadow:0 2px 10px rgba(15,23,42,.04);margin-bottom:.65rem;overflow:hidden;text-decoration:none;color:inherit;">
+        <div style="width:4px;background:{{ $incAccent }};align-self:stretch;flex-shrink:0;"></div>
+        <div style="display:flex;align-items:flex-start;gap:.75rem;flex:1;min-width:0;padding:.85rem .85rem .85rem 0;">
+            <div class="motshow-item-icon {{ $incIcon }}" style="flex-shrink:0;">
                 <i class="ph-fill ph-flag"></i>
             </div>
             <div style="flex:1;min-width:0;">
-                <div class="motshow-item-title">{{ $inc->incident_number }}</div>
-                <div class="motshow-item-meta">
-                    <i class="ph ph-calendar-blank" style="font-size:.65rem;"></i>
+                <div style="font-size:.9rem;font-weight:800;color:#0f172a;margin-bottom:.18rem;">{{ $inc->incident_number }}</div>
+                <div style="font-size:.72rem;color:#64748b;display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;">
+                    <i class="ph ph-calendar-blank"></i>
                     {{ $inc->date_of_incident ? \Carbon\Carbon::parse($inc->date_of_incident)->format('M d, Y') : '—' }}
-                    @if($inc->location) &middot; {{ \Illuminate\Support\Str::limit($inc->location, 26) }} @endif
+                    @if($inc->location)
+                    <span style="color:#cbd5e1;">&middot;</span>
+                    <i class="ph ph-map-pin"></i>
+                    {{ \Illuminate\Support\Str::limit($inc->location, 24) }}
+                    @endif
                 </div>
             </div>
-            <div class="d-flex flex-column align-items-end gap-1 ms-2 flex-shrink-0">
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;flex-shrink:0;">
                 <span class="mob-badge {{ $sc }}">{{ ucfirst(str_replace('_', ' ', $inc->status)) }}</span>
                 <i class="ph ph-caret-right" style="color:#cbd5e1;font-size:.82rem;"></i>
             </div>
-        </a>
-    @empty
-        <div class="motshow-card">
-            <div class="mob-empty">
-                <i class="ph ph-flag mob-empty-icon"></i>
-                <div class="mob-empty-text">No incidents linked</div>
-            </div>
         </div>
-    @endforelse
-</div>
+    </a>
+@empty
+    <div class="motshow-card" style="margin-bottom:.65rem;">
+        <div class="mob-empty">
+            <i class="ph ph-flag mob-empty-icon"></i>
+            <div class="mob-empty-text">No incidents linked</div>
+        </div>
+    </div>
+@endforelse
 
 {{-- Edit FAB --}}
 <a href="{{ route('officer.motorists.edit', $violator) }}" class="mob-fab" title="Edit Motorist">

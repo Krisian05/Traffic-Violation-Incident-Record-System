@@ -1,13 +1,15 @@
-var STATIC_CACHE = 'tvirs-mobile-static-v3';
-var PAGE_CACHE = 'tvirs-mobile-pages-v3';
-var EXTERNAL_CACHE = 'tvirs-mobile-external-v3';
+var STATIC_CACHE = 'tvirs-mobile-static-v4';
+var PAGE_CACHE = 'tvirs-mobile-pages-v4';
+var EXTERNAL_CACHE = 'tvirs-mobile-external-v4';
 var OFFLINE_FALLBACK = '/offline-mobile.html';
-var CORE_URLS = [
+var STATIC_URLS = [
     '/manifest.json',
     '/favicon.ico',
     '/images/Balamban.png',
     '/images/PNP.png',
-    OFFLINE_FALLBACK,
+    OFFLINE_FALLBACK
+];
+var PAGE_URLS = [
     '/officer/motorists',
     '/officer/motorists/create',
     '/officer/offline/violations/create'
@@ -50,8 +52,13 @@ function cacheInternalUrl(cache, url) {
 self.addEventListener('install', function (event) {
     event.waitUntil((async function () {
         var staticCache = await caches.open(STATIC_CACHE);
-        await Promise.allSettled(CORE_URLS.map(function (url) {
+        await Promise.allSettled(STATIC_URLS.map(function (url) {
             return cacheInternalUrl(staticCache, url);
+        }));
+
+        var pageCache = await caches.open(PAGE_CACHE);
+        await Promise.allSettled(PAGE_URLS.map(function (url) {
+            return cacheInternalUrl(pageCache, url);
         }));
 
         var externalCache = await caches.open(EXTERNAL_CACHE);
@@ -120,20 +127,32 @@ async function staleWhileRevalidate(request, cacheName) {
 }
 
 async function networkFirstPage(request) {
-    var cache = await caches.open(PAGE_CACHE);
+    var pageCache = await caches.open(PAGE_CACHE);
+    var staticCache = await caches.open(STATIC_CACHE);
+    var pagePath = new URL(request.url).pathname;
 
     try {
         var response = await fetch(request);
         var finalUrl = new URL(response.url);
 
         if (response.ok && finalUrl.origin === self.location.origin && finalUrl.pathname.indexOf('/officer') === 0) {
-            cache.put(request, response.clone());
+            pageCache.put(request, response.clone());
         }
 
         return response;
     } catch (error) {
-        var cached = await cache.match(request);
+        var cached = await pageCache.match(request);
         if (cached) return cached;
+
+        cached = await pageCache.match(pagePath);
+        if (cached) return cached;
+
+        cached = await staticCache.match(request);
+        if (cached) return cached;
+
+        cached = await staticCache.match(pagePath);
+        if (cached) return cached;
+
         return caches.match(OFFLINE_FALLBACK);
     }
 }
