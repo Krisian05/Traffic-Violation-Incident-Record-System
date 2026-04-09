@@ -2,18 +2,7 @@
 @section('title', $incident->incident_number)
 @section('back_url', route('officer.incidents.index'))
 
-@section('content')
-
-@php
-    $sc = ['open'=>'mob-badge-open','under_review'=>'mob-badge-review','closed'=>'mob-badge-closed'][$incident->status] ?? 'mob-badge-closed';
-    $restrDesc = [
-        'A'=>'Motorcycle','A1'=>'MC w/ Sidecar','B'=>'Light Vehicle',
-        'B1'=>'Light Vehicle (Prof.)','B2'=>'Light Vehicle w/ Trailer',
-        'C'=>'Medium/Heavy Truck','D'=>'Bus','BE'=>'Light + Heavy Trailer','CE'=>'Large Truck + Trailer'
-    ];
-    $mediaLabels = ['scene'=>'Scene Photo','ticket'=>'Citation Ticket','document'=>'Document','other'=>'Other'];
-@endphp
-
+@push('styles')
 <style>
 .inc-media-badge { display:inline-block;font-size:.62rem;font-weight:700;padding:.15rem .45rem;border-radius:8px; }
 .inc-media-scene    { background:#eff6ff;color:#3b82f6; }
@@ -26,6 +15,19 @@
 .inc-exp-expired { color:#dc2626; }
 .inc-exp-valid   { color:#334155; }
 </style>
+@endpush
+
+@section('content')
+
+@php
+    $sc = ['open'=>'mob-badge-open','under_review'=>'mob-badge-review','closed'=>'mob-badge-closed'][$incident->status] ?? 'mob-badge-closed';
+    $restrDesc = [
+        'A'=>'Motorcycle','A1'=>'MC w/ Sidecar','B'=>'Light Vehicle',
+        'B1'=>'Light Vehicle (Prof.)','B2'=>'Light Vehicle w/ Trailer',
+        'C'=>'Medium/Heavy Truck','D'=>'Bus','BE'=>'Light + Heavy Trailer','CE'=>'Large Truck + Trailer'
+    ];
+    $mediaLabels = ['scene'=>'Scene Photo','ticket'=>'Citation Ticket','document'=>'Document','other'=>'Other'];
+@endphp
 
 {{-- ── Incident Header ── --}}
 <div class="mob-card" style="border-left:4px solid #dc2626;">

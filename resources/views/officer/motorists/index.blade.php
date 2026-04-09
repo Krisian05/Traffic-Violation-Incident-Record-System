@@ -1,26 +1,8 @@
 @extends('layouts.mobile')
 @section('title', 'Motorists')
 
-@section('content')
-
+@push('styles')
 <style>
-.mot-section-heading {
-    font-size: .6rem;
-    font-weight: 800;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: .1em;
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    margin-bottom: .65rem;
-}
-.mot-section-heading::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #e2e8f0;
-}
 .mot-search-wrap {
     position: relative;
     margin-bottom: 1rem;
@@ -255,8 +237,11 @@
     border: 1px solid #fca5a5;
 }
 </style>
+@endpush
 
-<div class="mot-section-heading">Quick Search</div>
+@section('content')
+
+<div class="motshow-section">Quick Search</div>
 
 <div class="mot-search-wrap">
     <form method="GET" action="{{ route('officer.motorists.index') }}" id="motoristSearchForm" class="mot-search-shell">
@@ -297,7 +282,7 @@
     <div id="motoristSearchDropdown" class="mot-search-dropdown"></div>
 </div>
 
-<div class="mot-section-heading">Motorist Records</div>
+<div class="motshow-section">Motorist Records</div>
 
 @if($violators->isEmpty())
     <div class="mob-card">
@@ -364,7 +349,7 @@
 (() => {
     const input = document.getElementById('motoristSearchInput');
     const dropdown = document.getElementById('motoristSearchDropdown');
-    const url = '{{ route('officer.motorists.suggestions') }}';
+    const url = "{{ route('officer.motorists.suggestions') }}";
     let timer = null;
     let controller = null;
 

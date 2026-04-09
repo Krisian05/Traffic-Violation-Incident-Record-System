@@ -742,6 +742,34 @@
             color: #64748b;
             margin-bottom: .35rem;
         }
+
+        /* ── Shared section heading (replaces mot-section-heading, inc-section-heading) ── */
+        .motshow-section {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            margin-bottom: .65rem;
+            font-size: .6rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .1em;
+        }
+        .motshow-section::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── Shared hint text (used in form fields) ── */
+        .mob-hint {
+            display: block;
+            font-size: .68rem;
+            color: var(--text-muted);
+            margin-top: .28rem;
+            line-height: 1.4;
+        }
     </style>
 
     @stack('styles')

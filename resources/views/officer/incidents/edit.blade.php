@@ -113,9 +113,12 @@
                 @error('incident_photos')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
             </div>
 
-            <button type="submit" class="btn btn-primary w-100" style="border-radius:12px;font-weight:700;padding:.75rem;">
-                <i class="ph ph-floppy-disk me-2"></i>Save Changes
+            <button type="submit" class="mob-btn-primary mob-btn-danger mb-2" id="incidentEditSubmitBtn">
+                <i class="ph-bold ph-check"></i> Save Changes
             </button>
+            <a href="{{ route('officer.incidents.show', $incident) }}" class="mob-btn-outline">
+                <i class="ph ph-x-circle"></i> Cancel
+            </a>
         </form>
     </div>
 </div>
@@ -124,6 +127,12 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     initPhotoPicker('picker-incident-photos', 'incident_photos[]', { multiple: true });
+
+    document.querySelector('form').addEventListener('submit', function () {
+        var btn = document.getElementById('incidentEditSubmitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ph ph-hourglass"></i> Saving…';
+    });
 });
 </script>
 @endpush

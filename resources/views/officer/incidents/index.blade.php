@@ -1,32 +1,8 @@
 @extends('layouts.mobile')
 @section('title', 'Incidents')
 
-@section('content')
-
-@php
-    $openCount = $incidents->getCollection()->where('status', 'open')->count();
-    $reviewCount = $incidents->getCollection()->where('status', 'under_review')->count();
-    $closedCount = $incidents->getCollection()->where('status', 'closed')->count();
-@endphp
-
+@push('styles')
 <style>
-.inc-section-heading {
-    font-size: .6rem;
-    font-weight: 800;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: .1em;
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    margin-bottom: .65rem;
-}
-.inc-section-heading::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #e2e8f0;
-}
 .inc-search-shell {
     background: #fff;
     border: 1px solid rgba(15,23,42,.05);
@@ -215,25 +191,34 @@
     background: linear-gradient(135deg,#64748b,#475569);
 }
 .inc-list-title {
-    font-size: .92rem;
+    font-size: .88rem;
     font-weight: 800;
     color: #0f172a;
-    line-height: 1.25;
+    line-height: 1.3;
 }
 .inc-list-meta {
-    font-size: .72rem;
+    font-size: .71rem;
     color: #64748b;
-    margin-top: .12rem;
-    line-height: 1.45;
+    margin-top: .14rem;
+    line-height: 1.46;
 }
 .inc-list-submeta {
-    font-size: .68rem;
+    font-size: .67rem;
     color: #94a3b8;
-    margin-top: .18rem;
+    margin-top: .2rem;
 }
 </style>
+@endpush
 
-<div class="inc-section-heading">Search &amp; Filter</div>
+@section('content')
+
+@php
+    $openCount = $incidents->getCollection()->where('status', 'open')->count();
+    $reviewCount = $incidents->getCollection()->where('status', 'under_review')->count();
+    $closedCount = $incidents->getCollection()->where('status', 'closed')->count();
+@endphp
+
+<div class="motshow-section">Search &amp; Filter</div>
 
 <form method="GET" action="{{ route('officer.incidents.index') }}" class="inc-search-shell">
     <div class="inc-search-bar">
@@ -306,7 +291,7 @@
     </div>
 </div>
 
-<div class="inc-section-heading">Incident Records</div>
+<div class="motshow-section">Incident Records</div>
 
 @if($incidents->isEmpty())
     <div class="mob-card">
