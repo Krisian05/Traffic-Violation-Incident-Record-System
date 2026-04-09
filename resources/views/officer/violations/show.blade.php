@@ -3,8 +3,16 @@
 @section('back_url', $violation->violator ? route('officer.motorists.show', $violation->violator) : route('officer.motorists.index'))
 
 @push('styles')
+@include('partials.motshow-styles')
 <style>
-.motshow-hero{position:relative;overflow:hidden;background:linear-gradient(160deg,#0f2167 0%,#1d4ed8 56%,#1e40af 100%);border-radius:24px;padding:1.15rem;margin-bottom:1rem;box-shadow:0 14px 36px rgba(15,33,103,.36)}.motshow-hero::before{content:'';position:absolute;top:-78px;right:-46px;width:176px;height:176px;border-radius:50%;background:rgba(255,255,255,.08)}.motshow-hero::after{content:'';position:absolute;left:-22px;bottom:-62px;width:138px;height:138px;border-radius:50%;background:rgba(255,255,255,.05)}.motshow-hero-inner{position:relative;z-index:1}.motshow-chip{display:inline-flex;align-items:center;gap:.34rem;padding:.22rem .62rem;border-radius:999px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.88);font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.motshow-name{margin-top:.65rem;font-size:1.12rem;font-weight:800;line-height:1.2;color:#fff}.motshow-subtitle{margin-top:.2rem;color:rgba(255,255,255,.72);font-size:.73rem;line-height:1.4}.motshow-meta-row{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem}.motshow-meta-chip{display:inline-flex;align-items:center;gap:.24rem;padding:.18rem .48rem;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.86);font-size:.62rem;font-weight:700}.motshow-stat{text-align:center;padding:.78rem .42rem;border-radius:15px;background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.16)}.motshow-stat-num{font-size:1.3rem;line-height:1;font-weight:800;color:#fff}.motshow-stat-label{margin-top:.22rem;font-size:.56rem;font-weight:800;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.08em}.motshow-alert{display:flex;align-items:flex-start;gap:.75rem;border-radius:16px;padding:.9rem 1rem;margin-bottom:.95rem;border:1px solid transparent}.motshow-alert-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.05rem}.motshow-alert--danger{background:linear-gradient(135deg,#fef2f2,#fff);border-color:#fecaca}.motshow-alert--danger .motshow-alert-icon{background:#fee2e2;color:#dc2626}.motshow-alert-title{font-size:.9rem;font-weight:800;color:#0f172a}.motshow-alert-text{margin-top:.16rem;font-size:.74rem;line-height:1.45;color:#64748b}.motshow-section{display:flex;align-items:center;gap:.5rem;margin-bottom:.65rem;font-size:.6rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em}.motshow-section::after{content:'';flex:1;height:1px;background:#e2e8f0}.motshow-card{background:#fff;border-radius:18px;border:1px solid rgba(15,23,42,.05);box-shadow:0 3px 16px rgba(15,23,42,.06);overflow:hidden;margin-bottom:.9rem}.motshow-card-head{padding:.88rem 1rem .32rem;font-size:.64rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em}.motshow-card-body{padding:0 1rem 1rem}.motshow-feature-box{background:linear-gradient(135deg,#eff6ff,#f8fbff);border:1px solid #dbeafe;border-radius:16px;padding:.9rem}.motshow-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem .8rem}.motshow-info-full{grid-column:1/-1}.motshow-label{margin-bottom:.18rem;font-size:.63rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em}.motshow-value{font-size:.88rem;line-height:1.38;font-weight:700;color:#0f172a}.motshow-value--soft{font-weight:600;color:#334155}.motshow-item{display:flex;align-items:flex-start;gap:.85rem;padding:.92rem;background:#fff;border:1px solid rgba(15,23,42,.05);border-radius:16px;color:inherit;text-decoration:none;box-shadow:0 2px 10px rgba(15,23,42,.04)}.motshow-item--static{cursor:default}.motshow-item-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;box-shadow:0 6px 16px rgba(15,23,42,.12)}.motshow-item-icon--blue{background:linear-gradient(135deg,#2563eb,#1d4ed8)}.motshow-item-title{font-size:.88rem;line-height:1.3;font-weight:800;color:#0f172a}.motshow-item-meta{margin-top:.14rem;font-size:.71rem;line-height:1.46;color:#64748b}.motshow-item-submeta{margin-top:.2rem;font-size:.67rem;line-height:1.45;color:#94a3b8}.motshow-tag{display:inline-flex;align-items:center;gap:.22rem;padding:.12rem .44rem;border-radius:8px;font-size:.63rem;font-weight:800}.motshow-tag--plate{background:#eff6ff;color:#1e40af}.motshow-tag--owner{background:#fef9c3;color:#92400e}
+.vshow-hero { position:relative;overflow:hidden;background:linear-gradient(160deg,#7f1d1d 0%,#dc2626 55%,#b91c1c 100%);border-radius:24px;padding:1.15rem;margin-bottom:1rem;box-shadow:0 14px 36px rgba(127,29,29,.36); }
+.vshow-hero::before { content:'';position:absolute;top:-78px;right:-46px;width:176px;height:176px;border-radius:50%;background:rgba(255,255,255,.08); }
+.vshow-hero::after  { content:'';position:absolute;left:-22px;bottom:-62px;width:138px;height:138px;border-radius:50%;background:rgba(255,255,255,.05); }
+.vshow-hero-inner { position:relative;z-index:1; }
+.vshow-stat-grid { display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-top:1rem; }
+.vshow-stat { text-align:center;padding:.78rem .42rem;border-radius:15px;background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.16); }
+.vshow-stat-num   { font-size:1.1rem;line-height:1;font-weight:800;color:#fff; }
+.vshow-stat-label { margin-top:.22rem;font-size:.56rem;font-weight:800;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.08em; }
 </style>
 @endpush
 
@@ -35,19 +43,19 @@
     $model = $veh ? $veh->model : $violation->vehicle_model;
     $color = $veh ? $veh->color : $violation->vehicle_color;
     $owner = $violation->vehicle_owner_name ?: ($veh?->owner_name ?: $veh?->violator?->full_name);
-    $orNo  = $veh ? $veh->or_number : $violation->vehicle_or_number;
-    $crNo  = $veh ? $veh->cr_number : $violation->vehicle_cr_number;
+    $orNo  = $veh ? $veh->or_number  : $violation->vehicle_or_number;
+    $crNo  = $veh ? $veh->cr_number  : $violation->vehicle_cr_number;
     $chaNo = $veh ? $veh->chassis_number : $violation->vehicle_chassis;
     $hasVehicle = $plate || $make || $model || $owner;
+
+    $fineAmt = $violation->violationType?->fine_amount ?? 0;
 @endphp
 
-{{-- ── Hero Header ── --}}
-<div class="motshow-hero" style="background:linear-gradient(160deg,#7f1d1d 0%,#dc2626 55%,#b91c1c 100%);box-shadow:0 14px 36px rgba(127,29,29,.36);">
-    <div class="motshow-hero::before" style="display:none;"></div>
-    <div class="motshow-hero-inner">
+{{-- ── Hero ── --}}
+<div class="vshow-hero">
+    <div class="vshow-hero-inner">
         <div class="d-flex align-items-start gap-3">
 
-            {{-- Violation type icon --}}
             <div style="width:72px;height:72px;border-radius:20px;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 10px 22px rgba(0,0,0,.18);">
                 <i class="ph-fill ph-warning-circle" style="font-size:2rem;color:#fff;"></i>
             </div>
@@ -77,24 +85,22 @@
                     </span>
                     @endif
                 </div>
-                {{-- Status badge --}}
-                <span style="display:inline-flex;align-items:center;gap:.28rem;margin-top:.55rem;padding:.2rem .62rem;border-radius:999px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;">
+                <span class="motshow-status motshow-status--{{ $status === 'settled' ? 'safe' : ($status === 'contested' ? 'info' : ($isOverdue ? 'danger' : 'warn')) }}">
                     <i class="ph-fill {{ $statusIcon }}"></i>
                     {{ $statusLabel }}
                 </span>
             </div>
         </div>
 
-        {{-- Fine amount stat --}}
-        @if($violation->violationType && $violation->violationType->fine_amount > 0)
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-top:1rem;">
-            <div class="motshow-stat">
-                <div class="motshow-stat-num" style="font-size:1.1rem;">₱{{ number_format($violation->violationType->fine_amount, 0) }}</div>
-                <div class="motshow-stat-label">Fine Amount</div>
+        @if($fineAmt > 0)
+        <div class="vshow-stat-grid">
+            <div class="vshow-stat">
+                <div class="vshow-stat-num">₱{{ number_format($fineAmt, 0) }}</div>
+                <div class="vshow-stat-label">Fine Amount</div>
             </div>
-            <div class="motshow-stat">
-                <div class="motshow-stat-num" style="font-size:1.1rem;">{{ $violation->date_of_violation?->format('Y') ?? '—' }}</div>
-                <div class="motshow-stat-label">Year</div>
+            <div class="vshow-stat">
+                <div class="vshow-stat-num">{{ $violation->date_of_violation?->format('Y') ?? '—' }}</div>
+                <div class="vshow-stat-label">Year</div>
             </div>
         </div>
         @endif
@@ -104,16 +110,17 @@
 {{-- ── Motorist card ── --}}
 @php $motorist = $violation->violator; @endphp
 @if($motorist)
-<a href="{{ route('officer.motorists.show', $motorist) }}" style="display:flex;align-items:center;gap:.85rem;padding:.9rem 1rem;background:#fff;border-radius:18px;border:1px solid rgba(15,23,42,.05);box-shadow:0 3px 16px rgba(15,23,42,.06);margin-bottom:.9rem;text-decoration:none;color:inherit;">
+<a href="{{ route('officer.motorists.show', $motorist) }}"
+   style="display:flex;align-items:center;gap:.85rem;padding:.9rem 1rem;background:#fff;border-radius:18px;border:1px solid rgba(15,23,42,.05);box-shadow:0 3px 16px rgba(15,23,42,.06);margin-bottom:.9rem;text-decoration:none;color:inherit;">
     <div style="width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#1d4ed8,#1e40af);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;box-shadow:0 4px 12px rgba(29,78,216,.3);">
         @if($motorist->photo)
-            <img src="{{ uploaded_file_url($motorist->photo) }}" style="width:100%;height:100%;object-fit:cover;">
+            <img src="{{ uploaded_file_url($motorist->photo) }}" style="width:100%;height:100%;object-fit:cover;" alt="Motorist">
         @else
             <span style="font-size:.88rem;font-weight:800;color:#fff;">{{ strtoupper(substr($motorist->first_name,0,1).substr($motorist->last_name,0,1)) }}</span>
         @endif
     </div>
     <div style="flex:1;min-width:0;">
-        <div style="font-size:.62rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Motorist</div>
+        <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Motorist</div>
         <div style="font-size:.92rem;font-weight:800;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $motorist->full_name }}</div>
         @if($motorist->license_number)
         <div style="font-size:.72rem;color:#64748b;margin-top:.05rem;">License {{ $motorist->license_number }}</div>
@@ -125,7 +132,7 @@
 
 {{-- ── Overdue alert ── --}}
 @if($isOverdue && $status === 'pending')
-<div class="motshow-alert motshow-alert--danger" style="margin-bottom:.9rem;">
+<div class="motshow-alert motshow-alert--danger">
     <div class="motshow-alert-icon"><i class="ph-fill ph-warning-octagon"></i></div>
     <div>
         <div class="motshow-alert-title">Overdue Violation</div>
@@ -136,90 +143,118 @@
 
 {{-- ── Violation Details ── --}}
 <div class="motshow-section">Violation Details</div>
-<div class="motshow-card">
-    <div class="motshow-card-head">Record Info</div>
-    <div class="motshow-card-body">
-        <div class="motshow-feature-box">
-            <div class="motshow-info-grid">
-                @if($violation->date_of_violation)
-                <div>
-                    <div class="motshow-label"><i class="ph ph-calendar-blank me-1"></i>Date</div>
-                    <div class="motshow-value">{{ $violation->date_of_violation->format('M d, Y') }}</div>
-                </div>
-                @endif
-                @if($violation->ticket_number)
-                <div>
-                    <div class="motshow-label"><i class="ph ph-ticket me-1"></i>Ticket #</div>
-                    <div class="motshow-value" style="font-family:ui-monospace,monospace;font-size:.82rem;">{{ $violation->ticket_number }}</div>
-                </div>
-                @endif
-                @if($violation->incident)
-                <div>
-                    <div class="motshow-label"><i class="ph ph-flag me-1"></i>Incident</div>
-                    <div class="motshow-value">
-                        <a href="{{ route('officer.incidents.show', $violation->incident) }}" style="color:#1d4ed8;text-decoration:none;">{{ $violation->incident->incident_number }}</a>
-                    </div>
-                </div>
-                @endif
-                @if($violation->location)
-                <div class="motshow-info-full">
-                    <div class="motshow-label"><i class="ph ph-map-pin me-1"></i>Location</div>
-                    <div class="motshow-value motshow-value--soft">{{ $violation->location }}</div>
-                </div>
-                @endif
-                @if($violation->recorder)
-                <div class="motshow-info-full">
-                    <div class="motshow-label"><i class="ph ph-user me-1"></i>Recorded By</div>
-                    <div class="motshow-value motshow-value--soft">{{ $violation->recorder->name }}</div>
-                </div>
-                @endif
-                @if($violation->notes)
-                <div class="motshow-info-full">
-                    <div class="motshow-label"><i class="ph ph-note me-1"></i>Notes</div>
-                    <div class="motshow-value motshow-value--soft" style="font-weight:400;">{{ $violation->notes }}</div>
-                </div>
-                @endif
-            </div>
+<div class="motshow-card" style="margin-bottom:.9rem;">
+    @if($violation->ticket_number)
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <div style="width:32px;height:32px;border-radius:10px;background:#fef2f2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ph-fill ph-ticket" style="font-size:.9rem;color:#dc2626;"></i>
+        </div>
+        <div>
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Ticket Number</div>
+            <div style="font-size:.88rem;font-weight:800;color:#0f172a;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.04em;">{{ $violation->ticket_number }}</div>
         </div>
     </div>
+    @endif
+
+    @if($violation->date_of_violation)
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <div style="width:32px;height:32px;border-radius:10px;background:#eff6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ph-fill ph-calendar-blank" style="font-size:.9rem;color:#2563eb;"></i>
+        </div>
+        <div>
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Date of Violation</div>
+            <div style="font-size:.88rem;font-weight:700;color:#0f172a;">{{ $violation->date_of_violation->format('F d, Y') }}</div>
+        </div>
+    </div>
+    @endif
+
+    @if($violation->location)
+    <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.6rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <div style="width:32px;height:32px;border-radius:10px;background:#fff7ed;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem;">
+            <i class="ph-fill ph-map-pin" style="font-size:.9rem;color:#ea580c;"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Location</div>
+            <div style="font-size:.85rem;font-weight:600;color:#334155;line-height:1.4;">{{ $violation->location }}</div>
+        </div>
+    </div>
+    @endif
+
+    @if($violation->incident)
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <div style="width:32px;height:32px;border-radius:10px;background:#f5f3ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ph-fill ph-flag" style="font-size:.9rem;color:#7c3aed;"></i>
+        </div>
+        <div>
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Linked Incident</div>
+            <a href="{{ route('officer.incidents.show', $violation->incident) }}" style="font-size:.88rem;font-weight:700;color:#1d4ed8;text-decoration:none;">{{ $violation->incident->incident_number }}</a>
+        </div>
+    </div>
+    @endif
+
+    @if($violation->recorder)
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <div style="width:32px;height:32px;border-radius:10px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ph-fill ph-user-circle-check" style="font-size:.9rem;color:#16a34a;"></i>
+        </div>
+        <div>
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Recorded By</div>
+            <div style="font-size:.88rem;font-weight:600;color:#334155;">{{ $violation->recorder->name }}</div>
+        </div>
+    </div>
+    @endif
+
+    @if($violation->notes)
+    <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.6rem 1rem;">
+        <div style="width:32px;height:32px;border-radius:10px;background:#fafafa;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem;">
+            <i class="ph-fill ph-note" style="font-size:.9rem;color:#64748b;"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Notes</div>
+            <div style="font-size:.85rem;color:#334155;line-height:1.5;">{{ $violation->notes }}</div>
+        </div>
+    </div>
+    @endif
 </div>
 
 {{-- ── Vehicle ── --}}
 @if($hasVehicle)
 <div class="motshow-section">Vehicle Involved</div>
-<div class="motshow-item motshow-item--static" style="margin-bottom:.9rem;">
-    <div class="motshow-item-icon motshow-item-icon--blue">
-        <i class="ph-fill ph-car-profile"></i>
-    </div>
-    <div style="flex:1;min-width:0;">
-        @if($plate)
-        <div class="motshow-item-title">
-            {{ $plate }}
-            @if($color)
-            <span class="motshow-tag motshow-tag--plate">{{ $color }}</span>
+<div class="motshow-card" style="margin-bottom:.9rem;">
+    <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.85rem 1rem;">
+        <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(29,78,216,.25);">
+            <i class="ph-fill ph-car-profile" style="font-size:1.1rem;color:#fff;"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+            @if($plate)
+            <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.15rem;">
+                <span style="font-size:.95rem;font-weight:800;color:#0f172a;">{{ $plate }}</span>
+                @if($color)
+                <span style="background:#eff6ff;color:#1e40af;border-radius:6px;font-size:.62rem;font-weight:800;padding:.08rem .38rem;">{{ $color }}</span>
+                @endif
+            </div>
+            @endif
+            @if($make || $model)
+            <div style="font-size:.78rem;color:#64748b;margin-bottom:.12rem;">{{ trim($make . ' ' . $model) }}</div>
+            @endif
+            @if($owner)
+            <div style="margin-top:.25rem;">
+                <span style="display:inline-flex;align-items:center;gap:.22rem;background:#fef9c3;color:#92400e;border-radius:8px;font-size:.63rem;font-weight:800;padding:.1rem .4rem;">
+                    <i class="ph ph-user-circle"></i> {{ $owner }}
+                </span>
+            </div>
+            @endif
+            @if($orNo || $crNo)
+            <div style="font-size:.68rem;color:#94a3b8;margin-top:.3rem;">
+                @if($orNo)OR: {{ $orNo }}@endif
+                @if($orNo && $crNo) &middot; @endif
+                @if($crNo)CR: {{ $crNo }}@endif
+            </div>
+            @endif
+            @if($chaNo)
+            <div style="font-size:.68rem;color:#94a3b8;">Chassis: {{ $chaNo }}</div>
             @endif
         </div>
-        @endif
-        @if($make || $model)
-        <div class="motshow-item-meta">{{ trim($make . ' ' . $model) }}</div>
-        @endif
-        @if($owner)
-        <div class="mt-1">
-            <span class="motshow-tag motshow-tag--owner">
-                <i class="ph ph-user-circle"></i> {{ $owner }}
-            </span>
-        </div>
-        @endif
-        @if($orNo || $crNo)
-        <div class="motshow-item-submeta" style="margin-top:.3rem;">
-            @if($orNo) OR: {{ $orNo }}@endif
-            @if($orNo && $crNo) &middot; @endif
-            @if($crNo) CR: {{ $crNo }}@endif
-        </div>
-        @endif
-        @if($chaNo)
-        <div class="motshow-item-submeta">Chassis: {{ $chaNo }}</div>
-        @endif
     </div>
 </div>
 @endif
@@ -228,7 +263,7 @@
 @if($violation->citation_ticket_photo)
 <div class="motshow-section">Citation Ticket</div>
 <div class="motshow-card" style="margin-bottom:.9rem;">
-    <div class="motshow-card-body" style="padding:1rem;">
+    <div style="padding:1rem;">
         <img src="{{ uploaded_file_url($violation->citation_ticket_photo) }}"
              alt="Citation Ticket"
              class="mob-photo-thumb"
@@ -246,7 +281,7 @@
 @if($violation->vehiclePhotos->isNotEmpty())
 <div class="motshow-section">Vehicle Photos</div>
 <div class="motshow-card" style="margin-bottom:.9rem;">
-    <div class="motshow-card-body" style="padding:1rem;">
+    <div style="padding:1rem;">
         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem;">
             @foreach($violation->vehiclePhotos as $photo)
             <img src="{{ uploaded_file_url($photo->photo) }}"
@@ -265,52 +300,69 @@
 @if($status === 'settled' || $violation->or_number || $violation->cashier_name || $violation->receipt_photo)
 <div class="motshow-section">Settlement</div>
 <div class="motshow-card" style="margin-bottom:.9rem;">
-    <div class="motshow-card-head" style="display:flex;align-items:center;gap:.45rem;">
-        <span style="width:24px;height:24px;border-radius:8px;background:linear-gradient(135deg,#059669,#047857);display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;color:#fff;flex-shrink:0;">
-            <i class="ph-bold ph-check"></i>
-        </span>
-        Settlement Details
-    </div>
-    <div class="motshow-card-body">
-        <div class="motshow-info-grid">
-            @if($violation->settled_at)
-            <div>
-                <div class="motshow-label"><i class="ph ph-clock me-1"></i>Settled At</div>
-                <div class="motshow-value">{{ $violation->settled_at->format('M d, Y') }}</div>
-                <div style="font-size:.7rem;color:#64748b;">{{ $violation->settled_at->format('g:i A') }}</div>
-            </div>
-            @endif
-            @if($violation->or_number)
-            <div>
-                <div class="motshow-label"><i class="ph ph-receipt me-1"></i>OR Number</div>
-                <div class="motshow-value" style="font-family:ui-monospace,monospace;">{{ $violation->or_number }}</div>
-            </div>
-            @endif
-            @if($violation->cashier_name)
-            <div class="motshow-info-full">
-                <div class="motshow-label"><i class="ph ph-user me-1"></i>Cashier</div>
-                <div class="motshow-value motshow-value--soft">{{ $violation->cashier_name }}</div>
-            </div>
-            @endif
+    <div style="display:flex;align-items:center;gap:.65rem;padding:.75rem 1rem .5rem;">
+        <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#059669,#047857);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ph-bold ph-check" style="font-size:.85rem;color:#fff;"></i>
         </div>
+        <div style="font-size:.62rem;font-weight:800;color:#059669;text-transform:uppercase;letter-spacing:.08em;">Settled</div>
+    </div>
 
-        @if($violation->receipt_photo)
-        <div style="margin-top:.9rem;">
-            <div class="motshow-label" style="margin-bottom:.45rem;"><i class="ph ph-image me-1"></i>Receipt Photo</div>
-            <img src="{{ uploaded_file_url($violation->receipt_photo) }}"
-                 alt="Receipt Photo"
-                 class="mob-photo-thumb"
-                 data-full="{{ uploaded_file_url($violation->receipt_photo) }}"
-                 data-caption="Settlement Receipt"
-                 style="width:100%;border-radius:14px;box-shadow:0 4px 16px rgba(15,23,42,.1);cursor:zoom-in;display:block;">
-            <div style="display:flex;align-items:center;justify-content:center;gap:.35rem;margin-top:.5rem;font-size:.7rem;color:#94a3b8;">
-                <i class="ph ph-magnifying-glass-plus"></i> Tap to enlarge
-            </div>
+    @if($violation->settled_at)
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;border-top:1px solid #f1f5f9;border-bottom:1px solid #f1f5f9;">
+        <div style="width:32px;height:32px;border-radius:10px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ph-fill ph-clock" style="font-size:.9rem;color:#16a34a;"></i>
         </div>
-        @endif
+        <div>
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Settled At</div>
+            <div style="font-size:.88rem;font-weight:700;color:#0f172a;">{{ $violation->settled_at->format('M d, Y') }}</div>
+            <div style="font-size:.72rem;color:#64748b;">{{ $violation->settled_at->format('g:i A') }}</div>
+        </div>
     </div>
+    @endif
+
+    @if($violation->or_number)
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <div style="width:32px;height:32px;border-radius:10px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ph-fill ph-receipt" style="font-size:.9rem;color:#16a34a;"></i>
+        </div>
+        <div>
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">OR Number</div>
+            <div style="font-size:.88rem;font-weight:800;color:#0f172a;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;">{{ $violation->or_number }}</div>
+        </div>
+    </div>
+    @endif
+
+    @if($violation->cashier_name)
+    @if($violation->receipt_photo)
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;border-bottom:1px solid #f1f5f9;">
+    @else
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;">
+    @endif
+        <div style="width:32px;height:32px;border-radius:10px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ph-fill ph-user" style="font-size:.9rem;color:#16a34a;"></i>
+        </div>
+        <div>
+            <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Cashier</div>
+            <div style="font-size:.88rem;font-weight:600;color:#334155;">{{ $violation->cashier_name }}</div>
+        </div>
+    </div>
+    @endif
+
+    @if($violation->receipt_photo)
+    <div style="padding:1rem;">
+        <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;">Receipt Photo</div>
+        <img src="{{ uploaded_file_url($violation->receipt_photo) }}"
+             alt="Receipt Photo"
+             class="mob-photo-thumb"
+             data-full="{{ uploaded_file_url($violation->receipt_photo) }}"
+             data-caption="Settlement Receipt"
+             style="width:100%;border-radius:14px;box-shadow:0 4px 16px rgba(15,23,42,.1);cursor:zoom-in;display:block;">
+        <div style="display:flex;align-items:center;justify-content:center;gap:.35rem;margin-top:.5rem;font-size:.7rem;color:#94a3b8;">
+            <i class="ph ph-magnifying-glass-plus"></i> Tap to enlarge
+        </div>
+    </div>
+    @endif
 </div>
 @endif
-
 
 @endsection
