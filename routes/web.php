@@ -152,6 +152,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/motorists/{violator}/violations/create', [OfficerController::class, 'createViolation'])->name('violations.create');
         Route::post('/motorists/{violator}/violations', [OfficerController::class, 'storeViolation'])->name('violations.store');
         Route::get('/violations/{violation}', [OfficerController::class, 'showViolation'])->name('violations.show');
+        Route::get('/violations/{violation}/edit', [OfficerController::class, 'editViolation'])->name('violations.edit');
+        Route::put('/violations/{violation}', [OfficerController::class, 'updateViolation'])->name('violations.update');
 
         // Incidents
         Route::get('/incidents', [OfficerController::class, 'incidents'])->name('incidents.index');
