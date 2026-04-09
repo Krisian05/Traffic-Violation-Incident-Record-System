@@ -238,12 +238,12 @@
 
     {{-- ── Pagination ── --}}
     @if($violators->hasPages())
-        <div class="vlt-footer d-flex justify-content-between align-items-center">
+        <div class="vlt-footer vlt-footer--paged">
             <div class="vlt-footer-count">
                 Showing <strong>{{ $violators->firstItem() }}</strong>–<strong>{{ $violators->lastItem() }}</strong>
                 of <strong>{{ $violators->total() }}</strong> records
             </div>
-            {{ $violators->links() }}
+            {{ $violators->links('components.pagination.violators') }}
         </div>
     @else
         <div class="vlt-footer text-end">
@@ -554,9 +554,82 @@
     border-top: 1px solid #f0ebe3;
     background: #fdf8f0;
 }
+.vlt-footer--paged {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
 .vlt-footer-count {
     font-size: .8rem;
     color: #78716c;
+}
+.vlt-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+    gap: .4rem;
+    justify-content: flex-end;
+}
+.vlt-pagination .page-item {
+    display: flex;
+}
+.vlt-pagination .page-link {
+    min-width: 2.5rem;
+    height: 2.5rem;
+    padding: 0 .85rem;
+    border-radius: 10px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .35rem;
+    font-size: .8rem;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+.vlt-pagination .page-link:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,.08);
+}
+.vlt-pagination .page-item.active .page-link {
+    box-shadow: 0 6px 14px rgba(217,119,6,.22);
+}
+.vlt-pagination .page-item.disabled .page-link {
+    box-shadow: none;
+}
+.vlt-pagination .page-link i {
+    font-size: .75rem;
+}
+.vlt-page-label {
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .vlt-footer--paged {
+        justify-content: center;
+    }
+    .vlt-footer-count {
+        width: 100%;
+        text-align: center;
+    }
+    .vlt-pagination {
+        width: 100%;
+        justify-content: center;
+    }
+    .vlt-pagination .page-link {
+        min-width: 2.2rem;
+        height: 2.2rem;
+        padding: 0 .7rem;
+        font-size: .76rem;
+    }
+    .vlt-page-label {
+        display: none;
+    }
 }
 
 .fw-600 { font-weight: 600; }
