@@ -860,7 +860,7 @@ document.querySelectorAll('.about-tab').forEach(function(tab) {
 
 {{-- LOGIN MODAL --}}
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true"
-     data-has-errors="{{ $errors->any() ? '1' : '0' }}">
+     data-has-errors="{{ ($errors->any() || session('error')) ? '1' : '0' }}">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 rounded-4 shadow" style="overflow:hidden;">
 
@@ -877,6 +877,12 @@ document.querySelectorAll('.about-tab').forEach(function(tab) {
 
             {{-- Modal Body --}}
             <div class="modal-body px-4 pb-4 pt-3" style="background:#fff;">
+                @if(session('error'))
+                <div class="alert alert-warning d-flex align-items-center gap-2 py-2 px-3 mb-3" style="border-radius:10px;font-size:.875rem;">
+                    <i class="bi bi-clock-history flex-shrink-0"></i>
+                    {{ session('error') }}
+                </div>
+                @endif
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
 
