@@ -96,12 +96,20 @@
                 '/officer/offline/violations/create'
             ];
 
+            function showReconnect() {
+                if (note) note.textContent = 'Reconnect to load uncached pages or to finish publishing queued records.';
+                if (hint) hint.textContent = '';
+            }
+
             if (!('caches' in window)) {
-                if (note) {
-                    note.textContent = 'Reconnect to load uncached pages or to finish publishing queued records.';
-                }
+                showReconnect();
                 return;
             }
+
+            var done = false;
+            var guardTimer = window.setTimeout(function () {
+                if (!done) { done = true; showReconnect(); }
+            }, 2500);
 
             Promise.all(candidates.map(function (path) {
                 return caches.match(path).then(function (match) {
@@ -110,34 +118,28 @@
                     return '';
                 });
             })).then(function (matches) {
-                var firstAvailable = matches.find(function (path) {
-                    return !!path;
-                });
+                if (done) return;
+                done = true;
+                clearTimeout(guardTimer);
+
+                var firstAvailable = matches.find(function (path) { return !!path; });
 
                 if (firstAvailable) {
-                    if (note) {
-                        note.textContent = 'Opening the last saved officer page available on this device…';
-                    }
-                    if (hint) {
-                        hint.textContent = firstAvailable;
-                    }
-
+                    if (note) note.textContent = 'Opening the last saved officer page on this device…';
+                    if (hint) hint.textContent = firstAvailable;
                     window.setTimeout(function () {
                         window.location.replace(firstAvailable);
                     }, 220);
                     return;
                 }
 
-                if (note) {
-                    note.textContent = 'Reconnect to load uncached pages or to finish publishing queued records.';
-                }
-                if (hint) {
-                    hint.textContent = 'This device does not have a saved officer page yet. Open the app once while online first.';
-                }
+                showReconnect();
+                if (hint) hint.textContent = 'This device does not have a saved officer page yet. Open the app once while online first.';
             }).catch(function () {
-                if (note) {
-                    note.textContent = 'Reconnect to load uncached pages or to finish publishing queued records.';
-                }
+                if (done) return;
+                done = true;
+                clearTimeout(guardTimer);
+                showReconnect();
             });
         })();
     </script>
