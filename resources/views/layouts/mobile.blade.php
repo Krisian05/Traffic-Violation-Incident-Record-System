@@ -243,9 +243,11 @@
 
         .mob-sync-toast {
             position: fixed;
-            left: 50%;
-            bottom: calc(var(--nav-h) + var(--bot-h) + 4.8rem);
-            transform: translateX(-50%) translateY(12px);
+            top: calc(var(--safe-top) + .85rem);
+            right: .9rem;
+            left: auto;
+            bottom: auto;
+            transform: translateY(-12px);
             width: min(calc(100vw - 1.75rem), 340px);
             z-index: 110;
             opacity: 0;
@@ -255,7 +257,7 @@
 
         .mob-sync-toast.show {
             opacity: 1;
-            transform: translateX(-50%) translateY(0);
+            transform: translateY(0);
         }
 
         .mob-sync-toast-inner {
