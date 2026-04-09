@@ -182,7 +182,11 @@
     @if($violator->gender || $violator->civil_status)
     <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #f1f5f9;">
         @if($violator->gender)
-        <div style="display:flex;align-items:center;gap:.6rem;padding:.6rem 1rem;{{ $violator->civil_status ? 'border-right:1px solid #f1f5f9;' : '' }}">
+        @if($violator->civil_status)
+        <div style="display:flex;align-items:center;gap:.6rem;padding:.6rem 1rem;border-right:1px solid #f1f5f9;">
+        @else
+        <div style="display:flex;align-items:center;gap:.6rem;padding:.6rem 1rem;">
+        @endif
             <div style="width:32px;height:32px;border-radius:10px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 <i class="ph-fill ph-user" style="font-size:.9rem;color:#16a34a;"></i>
             </div>
@@ -208,13 +212,21 @@
     @if($violator->blood_type || $violator->height || $violator->weight)
     <div style="display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid #f1f5f9;">
         @if($violator->blood_type)
-        <div style="padding:.6rem .75rem;text-align:center;{{ ($violator->height || $violator->weight) ? 'border-right:1px solid #f1f5f9;' : '' }}">
+        @if($violator->height || $violator->weight)
+        <div style="padding:.6rem .75rem;text-align:center;border-right:1px solid #f1f5f9;">
+        @else
+        <div style="padding:.6rem .75rem;text-align:center;">
+        @endif
             <div style="font-size:1.05rem;font-weight:800;color:#dc2626;">{{ $violator->blood_type }}</div>
             <div style="font-size:.58rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-top:.1rem;">Blood</div>
         </div>
         @endif
         @if($violator->height)
-        <div style="padding:.6rem .75rem;text-align:center;{{ $violator->weight ? 'border-right:1px solid #f1f5f9;' : '' }}">
+        @if($violator->weight)
+        <div style="padding:.6rem .75rem;text-align:center;border-right:1px solid #f1f5f9;">
+        @else
+        <div style="padding:.6rem .75rem;text-align:center;">
+        @endif
             <div style="font-size:1.05rem;font-weight:800;color:#0f172a;">{{ $violator->height }}</div>
             <div style="font-size:.58rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-top:.1rem;">Height</div>
         </div>
@@ -239,7 +251,11 @@
     </div>
     @endif
     @if($violator->valid_id)
-    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;{{ ($violator->contact_number || $violator->email || $violator->temporary_address || $violator->permanent_address) ? 'border-bottom:1px solid #f1f5f9;' : '' }}">
+    @if($violator->contact_number || $violator->email || $violator->temporary_address || $violator->permanent_address)
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;border-bottom:1px solid #f1f5f9;">
+    @else
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;">
+    @endif
         <div style="width:32px;height:32px;border-radius:10px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class="ph-fill ph-identification-badge" style="font-size:.9rem;color:#16a34a;"></i>
         </div>
@@ -315,7 +331,11 @@
     @endif
     <div style="display:grid;grid-template-columns:1fr 1fr;">
         @if($violator->license_type)
-        <div style="padding:.75rem 1rem;{{ $violator->license_expiry_date ? 'border-right:1px solid #f1f5f9;' : '' }}">
+        @if($violator->license_expiry_date)
+        <div style="padding:.75rem 1rem;border-right:1px solid #f1f5f9;">
+        @else
+        <div style="padding:.75rem 1rem;">
+        @endif
             <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">Type</div>
             <div style="font-size:.88rem;font-weight:700;color:#0f172a;">{{ $violator->license_type }}</div>
         </div>
@@ -323,7 +343,7 @@
         @if($violator->license_expiry_date)
         <div style="padding:.75rem 1rem;">
             <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">Expiry Date</div>
-            <div style="font-size:.88rem;font-weight:700;color:{{ $licenseExpired ? '#dc2626' : '#0f172a' }};">{{ $violator->license_expiry_date->format('M d, Y') }}</div>
+            <div class="{{ $licenseExpired ? 'motshow-license-date--expired' : 'motshow-license-date--valid' }}" style="font-size:.88rem;font-weight:700;">{{ $violator->license_expiry_date->format('M d, Y') }}</div>
             <span class="motshow-license-flag {{ $licenseExpired ? 'motshow-license-flag--danger' : 'motshow-license-flag--safe' }}">
                 <i class="ph-fill {{ $licenseExpired ? 'ph-warning-circle' : 'ph-check-circle' }}"></i>
                 {{ $licenseExpired ? 'Expired' : 'Valid' }}
@@ -363,15 +383,15 @@
             'contested' => 'Contested',
             default     => $isOverdue ? 'Overdue' : 'Pending',
         };
-        $accentColor = match($viol->status) {
-            'settled'   => '#16a34a',
-            'contested' => '#7c3aed',
-            default     => $isOverdue ? '#dc2626' : '#f59e0b',
+        $accentClass = match($viol->status) {
+            'settled'   => 'motshow-accent--settled',
+            'contested' => 'motshow-accent--contested',
+            default     => $isOverdue ? 'motshow-accent--overdue' : 'motshow-accent--pending',
         };
     @endphp
     <a href="{{ route('officer.violations.show', $viol) }}"
        style="display:flex;align-items:flex-start;gap:.85rem;background:#fff;border-radius:16px;border:1px solid rgba(15,23,42,.06);box-shadow:0 2px 10px rgba(15,23,42,.04);margin-bottom:.65rem;overflow:hidden;text-decoration:none;color:inherit;position:relative;">
-        <div style="width:4px;background:{{ $accentColor }};align-self:stretch;flex-shrink:0;"></div>
+        <div class="motshow-accent-bar {{ $accentClass }}"></div>
         <div style="display:flex;align-items:flex-start;gap:.75rem;flex:1;min-width:0;padding:.85rem .85rem .85rem 0;">
             <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#ef4444,#dc2626);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(220,38,38,.25);">
                 <i class="ph-fill ph-warning-circle" style="font-size:1.1rem;color:#fff;"></i>
@@ -485,13 +505,13 @@
 </div>
 @forelse($incidents as $inc)
     @php
-        $incAccent = ['open' => '#dc2626', 'under_review' => '#2563eb', 'closed' => '#64748b'][$inc->status] ?? '#64748b';
+        $incAccentClass = ['open' => 'motshow-accent--open', 'under_review' => 'motshow-accent--review', 'closed' => 'motshow-accent--closed'][$inc->status] ?? 'motshow-accent--closed';
         $incIcon   = ['open' => 'motshow-item-icon--danger', 'under_review' => 'motshow-item-icon--blue', 'closed' => 'motshow-item-icon--slate'][$inc->status] ?? 'motshow-item-icon--slate';
         $sc = ['open' => 'mob-badge-open', 'under_review' => 'mob-badge-review', 'closed' => 'mob-badge-closed'][$inc->status] ?? 'mob-badge-closed';
     @endphp
     <a href="{{ route('officer.incidents.show', $inc) }}"
        style="display:flex;align-items:flex-start;gap:.85rem;background:#fff;border-radius:16px;border:1px solid rgba(15,23,42,.06);box-shadow:0 2px 10px rgba(15,23,42,.04);margin-bottom:.65rem;overflow:hidden;text-decoration:none;color:inherit;">
-        <div style="width:4px;background:{{ $incAccent }};align-self:stretch;flex-shrink:0;"></div>
+        <div class="motshow-accent-bar {{ $incAccentClass }}"></div>
         <div style="display:flex;align-items:flex-start;gap:.75rem;flex:1;min-width:0;padding:.85rem .85rem .85rem 0;">
             <div class="motshow-item-icon {{ $incIcon }}" style="flex-shrink:0;">
                 <i class="ph-fill ph-flag"></i>

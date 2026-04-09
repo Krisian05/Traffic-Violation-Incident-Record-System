@@ -139,4 +139,14 @@
 .motshow-tag--owner { background: #fef9c3; color: #92400e; }
 .motshow-inline-photos { display: flex; gap: .35rem; margin-top: .48rem; padding-bottom: .1rem; overflow-x: auto; }
 .motshow-inline-photos img { width: 58px; height: 42px; object-fit: cover; border-radius: 8px; border: 1.5px solid #e2e8f0; flex-shrink: 0; }
+.motshow-accent-bar { width: 4px; align-self: stretch; flex-shrink: 0; }
+.motshow-accent--settled   { background: #16a34a; }
+.motshow-accent--contested { background: #7c3aed; }
+.motshow-accent--overdue   { background: #dc2626; }
+.motshow-accent--pending   { background: #f59e0b; }
+.motshow-accent--open      { background: #dc2626; }
+.motshow-accent--review    { background: #2563eb; }
+.motshow-accent--closed    { background: #64748b; }
+.motshow-license-date--expired { color: #dc2626; }
+.motshow-license-date--valid   { color: #0f172a; }
 </style>
