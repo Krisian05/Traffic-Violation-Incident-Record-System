@@ -139,11 +139,7 @@
                     return;
                 }
 
-                var key = [
-                    String(record.action || ''),
-                    String(record.method || ''),
-                    recordFingerprint(record)
-                ].join('|');
+                var key = recordDuplicateLookupKey(record);
 
                 if (seen[key]) {
                     deletions.push(deleteRecord(record.id));
@@ -246,16 +242,73 @@
             return false;
         }
 
-        var licenseA = cleanedString(summaryA.licenseNumber).toLowerCase();
-        var licenseB = cleanedString(summaryB.licenseNumber).toLowerCase();
+        var duplicateIdentityA = motoristDuplicateIdentity(summaryA);
+        var duplicateIdentityB = motoristDuplicateIdentity(summaryB);
 
-        if (licenseA && licenseB) {
-            return licenseA === licenseB;
+        if (duplicateIdentityA && duplicateIdentityB) {
+            return duplicateIdentityA === duplicateIdentityB;
         }
 
-        return cleanedString(summaryA.firstName).toLowerCase() === cleanedString(summaryB.firstName).toLowerCase()
-            && cleanedString(summaryA.middleName).toLowerCase() === cleanedString(summaryB.middleName).toLowerCase()
-            && cleanedString(summaryA.lastName).toLowerCase() === cleanedString(summaryB.lastName).toLowerCase();
+        return false;
+    }
+
+    function motoristDuplicateIdentity(summary) {
+        if (!summary) {
+            return '';
+        }
+
+        var license = cleanedString(summary.licenseNumber).toLowerCase();
+        if (license) {
+            return 'motorist-license|' + license;
+        }
+
+        var firstName = cleanedString(summary.firstName).toLowerCase();
+        var lastName = cleanedString(summary.lastName).toLowerCase();
+
+        if (!firstName || !lastName) {
+            return '';
+        }
+
+        return 'motorist-name|' + firstName + '|' + lastName;
+    }
+
+    function recordDuplicateLookupKey(record) {
+        if (!record) {
+            return '';
+        }
+
+        normalizeQueuedRecord(record);
+
+        if (inferRecordType(record) === 'motorist-create') {
+            var motoristKey = motoristDuplicateIdentity(record.summary || buildMotoristSummary(record.entries || []));
+            if (motoristKey) {
+                return motoristKey;
+            }
+        }
+
+        return [
+            String(record.action || ''),
+            String(record.method || ''),
+            recordFingerprint(record)
+        ].join('|');
+    }
+
+    function formDuplicateLookupKey(form, entries, metadata, fingerprint) {
+        var resolvedEntries = entries || serializeFormData(new FormData(form));
+        var resolvedMetadata = metadata || buildRecordMetadata(form, resolvedEntries);
+
+        if (cleanedString(resolvedMetadata.recordType) === 'motorist-create') {
+            var motoristKey = motoristDuplicateIdentity(resolvedMetadata.summary || buildMotoristSummary(resolvedEntries));
+            if (motoristKey) {
+                return motoristKey;
+            }
+        }
+
+        return [
+            String(form.action || ''),
+            String(form.getAttribute('method') || 'POST').toUpperCase(),
+            fingerprint || buildFingerprint(resolvedEntries)
+        ].join('|');
     }
 
     function findOfflineMotoristForForm(form) {
@@ -754,6 +807,7 @@
         var entries = serializeFormData(formData);
         var metadata = buildRecordMetadata(form, entries);
         var fingerprint = buildFingerprint(entries);
+        var duplicateLookupKey = formDuplicateLookupKey(form, entries, metadata, fingerprint);
         var record = {
             userId: currentUserId,
             state: 'pending',
@@ -773,15 +827,17 @@
         };
 
         return getRecordsForCurrentUser().then(function (records) {
-            var duplicate = (records || []).some(function (existingRecord) {
-                return String(existingRecord.action || '') === String(record.action || '')
-                    && String(existingRecord.method || '') === String(record.method || '')
-                    && !!DUPLICATE_STATES[String(existingRecord.state || '')]
-                    && recordFingerprint(existingRecord) === fingerprint;
+            var duplicate = (records || []).find(function (existingRecord) {
+                return !!DUPLICATE_STATES[String(existingRecord.state || '')]
+                    && recordDuplicateLookupKey(existingRecord) === duplicateLookupKey;
             });
 
             if (duplicate) {
-                if (record.recordType === 'offline-violation-create') {
+                if (record.recordType === 'motorist-create') {
+                    showToast('This motorist is already queued offline on this device.', 'pending');
+                    notifyOfflineRecordQueued(duplicate);
+                    notifyOfflineDataChanged({ duplicate: true, record: duplicate });
+                } else if (record.recordType === 'offline-violation-create') {
                     showToast('This violation is already queued for that offline motorist.', 'pending');
                 } else {
                     showToast(record.label + ' is already queued offline.', 'pending');
@@ -845,13 +901,14 @@
 
     function formHasQueuedDuplicate(form) {
         var formData = new FormData(form);
-        var fingerprint = buildFingerprint(serializeFormData(formData));
+        var entries = serializeFormData(formData);
+        var metadata = buildRecordMetadata(form, entries);
+        var fingerprint = buildFingerprint(entries);
+        var duplicateLookupKey = formDuplicateLookupKey(form, entries, metadata, fingerprint);
         return getRecordsForCurrentUser().then(function (records) {
             return (records || []).some(function (existingRecord) {
-                return String(existingRecord.action || '') === String(form.action || '')
-                    && String(existingRecord.method || 'POST').toUpperCase() === String(form.getAttribute('method') || 'POST').toUpperCase()
-                    && !!DUPLICATE_STATES[String(existingRecord.state || '')]
-                    && recordFingerprint(existingRecord) === fingerprint;
+                return !!DUPLICATE_STATES[String(existingRecord.state || '')]
+                    && recordDuplicateLookupKey(existingRecord) === duplicateLookupKey;
             });
         });
     }
@@ -1223,6 +1280,7 @@
 
     migrateLegacyQueuedRecords().finally(function () {
         dedupeExistingQueuedRecords().finally(function () {
+            notifyOfflineDataChanged({ phase: 'ready' });
             updateOfflineStatus();
             refreshQueuedFormStates();
 
