@@ -36,10 +36,92 @@
     flex-shrink: 0;
     margin-top: .08rem;
 }
+.offline-location-guide {
+    display: flex;
+    gap: .65rem;
+    align-items: flex-start;
+    padding: .8rem .88rem;
+    margin-top: .45rem;
+    border-radius: 14px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1d4ed8;
+    font-size: .73rem;
+    line-height: 1.5;
+}
+.offline-location-guide i {
+    font-size: .95rem;
+    flex-shrink: 0;
+    margin-top: .08rem;
+}
+.offline-location-fixed {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    min-height: 44px;
+    padding: .72rem .82rem;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+    font-size: .84rem;
+    font-weight: 700;
+}
+.offline-location-fixed i {
+    font-size: 1rem;
+    color: #1d4ed8;
+}
+.offline-location-preview {
+    display: none;
+    margin-top: .55rem;
+    padding: .58rem .75rem;
+    border-radius: 12px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+    font-size: .74rem;
+    line-height: 1.45;
+    font-weight: 700;
+}
+.offline-location-preview i {
+    margin-right: .28rem;
+}
 </style>
 @endpush
 
 @section('content')
+@php
+    $balambanBarangays = [
+        'Abucayan',
+        'Aliwanay',
+        'Arpili',
+        'Baliwagan',
+        'Bayong',
+        'Biasong',
+        'Buanoy',
+        'Cabagdalan',
+        'Cabasiangan',
+        'Cambuhawe',
+        'Cansomoroy',
+        'Cantibas',
+        'Cantu-od',
+        'Duangan',
+        'Gaas',
+        'Ginatilan',
+        'Hingatmonan',
+        'Lamesa',
+        'Liki',
+        'Luca',
+        'Matun-og',
+        'Nangka',
+        'Pondol',
+        'Prenza',
+        'Singsing',
+        'Sta. Cruz - Sto. Nino',
+        'Sunog',
+        'Vito',
+    ];
+@endphp
 
 <div class="mob-card" style="border-left:4px solid #1d4ed8;">
     <div class="mob-card-body d-flex align-items-center gap-3">
@@ -116,8 +198,26 @@
             </div>
 
             <div class="mb-3">
-                <label class="mob-label">Location</label>
-                <input type="text" name="location" class="form-control mob-input" placeholder="Street / Barangay / Municipality">
+                <label class="mob-label">Violation Location <span class="text-danger">*</span></label>
+                <input type="hidden" name="location" id="offline_location_value" value="">
+                <div class="offline-location-fixed">
+                    <i class="ph-fill ph-map-pin-area"></i>
+                    <span>Municipality: Balamban, Cebu</span>
+                </div>
+                <select id="offline_location_barangay" class="form-select mob-select mt-2" required>
+                    <option value="">Tap to choose barangay</option>
+                    @foreach($balambanBarangays as $barangay)
+                    <option value="{{ $barangay }}">{{ $barangay }}</option>
+                    @endforeach
+                </select>
+                <div class="offline-location-guide">
+                    <i class="ph-fill ph-hand-tap"></i>
+                    <div>Choose the barangay by tapping the list above. The system will save the full location automatically so officers do not need to type it manually.</div>
+                </div>
+                <div id="offline_location_preview" class="offline-location-preview">
+                    <i class="ph-fill ph-check-circle"></i>
+                    <span id="offline_location_preview_text"></span>
+                </div>
             </div>
 
             <div class="mb-3">
@@ -219,6 +319,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var missingAlert = document.getElementById('offlineMotoristMissing');
     var submitBtn = document.getElementById('offlineViolationSubmitBtn');
     var baseCreatePath = '{{ url('/officer/motorists') }}';
+    var locationValue = document.getElementById('offline_location_value');
+    var locationBarangay = document.getElementById('offline_location_barangay');
+    var locationPreview = document.getElementById('offline_location_preview');
+    var locationPreviewText = document.getElementById('offline_location_preview_text');
 
     function hashMotoristKey() {
         var hash = String(window.location.hash || '').replace(/^#/, '');
@@ -270,6 +374,28 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     fineField.dispatchEvent(new Event('change'));
+
+    function syncOfflineLocation() {
+        if (!locationBarangay || !locationValue || !locationPreview || !locationPreviewText) {
+            return;
+        }
+
+        var barangay = String(locationBarangay.value || '').trim();
+        if (!barangay) {
+            locationValue.value = '';
+            locationPreview.style.display = 'none';
+            return;
+        }
+
+        locationValue.value = 'Brgy. ' + barangay + ', Balamban, Cebu';
+        locationPreviewText.textContent = locationValue.value;
+        locationPreview.style.display = 'block';
+    }
+
+    if (locationBarangay) {
+        locationBarangay.addEventListener('change', syncOfflineLocation);
+        syncOfflineLocation();
+    }
 
     var motoristKey = hashMotoristKey();
     if (!motoristKey) {

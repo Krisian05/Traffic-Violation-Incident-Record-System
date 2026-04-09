@@ -304,6 +304,238 @@
             color: #b91c1c;
         }
 
+        body.mob-sheet-open {
+            overflow: hidden;
+        }
+
+        .mob-sync-sheet {
+            position: fixed;
+            inset: 0;
+            z-index: 120;
+            display: none;
+        }
+
+        .mob-sync-sheet.open {
+            display: block;
+        }
+
+        .mob-sync-sheet-backdrop {
+            position: absolute;
+            inset: 0;
+            border: none;
+            background: rgba(15, 23, 42, .46);
+            backdrop-filter: blur(3px);
+        }
+
+        .mob-sync-sheet-panel {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            max-height: min(75vh, 560px);
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 34%);
+            border-radius: 26px 26px 0 0;
+            box-shadow: 0 -18px 48px rgba(15,23,42,.24);
+            transform: translateY(28px);
+            opacity: 0;
+            transition: transform .24s ease, opacity .24s ease;
+        }
+
+        .mob-sync-sheet.open .mob-sync-sheet-panel {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .mob-sync-sheet-handle {
+            width: 54px;
+            height: 5px;
+            border-radius: 999px;
+            background: #cbd5e1;
+            margin: .72rem auto .15rem;
+            flex-shrink: 0;
+        }
+
+        .mob-sync-sheet-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: .8rem;
+            padding: .4rem 1rem .55rem;
+            flex-shrink: 0;
+        }
+
+        .mob-sync-sheet-kicker {
+            font-size: .64rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #64748b;
+        }
+
+        .mob-sync-sheet-title {
+            margin-top: .18rem;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+
+        .mob-sync-sheet-subtitle {
+            margin-top: .22rem;
+            font-size: .74rem;
+            color: #64748b;
+            line-height: 1.45;
+        }
+
+        .mob-sync-sheet-close {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            border: 1px solid #dbe4f0;
+            background: #fff;
+            color: #475569;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 18px rgba(15,23,42,.08);
+            flex-shrink: 0;
+        }
+
+        .mob-sync-sheet-body {
+            padding: 0 1rem 1.15rem;
+            overflow-y: auto;
+        }
+
+        .mob-sync-sheet-list {
+            display: grid;
+            gap: .7rem;
+        }
+
+        .mob-sync-sheet-item {
+            display: flex;
+            align-items: flex-start;
+            gap: .72rem;
+            padding: .9rem;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            box-shadow: 0 10px 28px rgba(15,23,42,.06);
+        }
+
+        .mob-sync-sheet-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            color: #fff;
+            font-size: .82rem;
+            font-weight: 800;
+            letter-spacing: .04em;
+            flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(29,78,216,.22);
+        }
+
+        .mob-sync-sheet-copy {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .mob-sync-sheet-item-title {
+            font-size: .87rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.35;
+            word-break: break-word;
+        }
+
+        .mob-sync-sheet-item-meta {
+            margin-top: .2rem;
+            font-size: .72rem;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        .mob-sync-sheet-item-error {
+            margin-top: .46rem;
+            padding: .5rem .62rem;
+            border-radius: 12px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            font-size: .7rem;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .mob-sync-sheet-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 72px;
+            padding: .34rem .58rem;
+            border-radius: 999px;
+            font-size: .64rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            flex-shrink: 0;
+            margin-top: .06rem;
+            border: 1px solid transparent;
+        }
+
+        .mob-sync-sheet-badge--pending {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+            color: #1d4ed8;
+        }
+
+        .mob-sync-sheet-badge--failed {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #b91c1c;
+        }
+
+        .mob-sync-sheet-empty {
+            padding: 1.1rem 1rem 1rem;
+            text-align: center;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            box-shadow: 0 10px 28px rgba(15,23,42,.06);
+        }
+
+        .mob-sync-sheet-empty-icon {
+            width: 54px;
+            height: 54px;
+            margin: 0 auto .7rem;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            color: #1d4ed8;
+            font-size: 1.35rem;
+            box-shadow: 0 10px 24px rgba(29,78,216,.16);
+        }
+
+        .mob-sync-sheet-empty-title {
+            font-size: .9rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .mob-sync-sheet-empty-text {
+            margin-top: .32rem;
+            font-size: .74rem;
+            color: #64748b;
+            line-height: 1.55;
+        }
+
         .mob-card {
             background: #fff;
             border-radius: 16px;
@@ -979,6 +1211,23 @@
 
 <button type="button" id="mob-sync-chip" class="mob-sync-chip" aria-live="polite" aria-label="Offline sync status"></button>
 <div id="mob-sync-toast" class="mob-sync-toast" aria-live="polite" aria-atomic="true"></div>
+<div id="mob-sync-sheet" class="mob-sync-sheet" hidden>
+    <button type="button" class="mob-sync-sheet-backdrop" data-sync-sheet-close aria-label="Close offline queue"></button>
+    <div class="mob-sync-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="mob-sync-sheet-title">
+        <div class="mob-sync-sheet-handle"></div>
+        <div class="mob-sync-sheet-header">
+            <div>
+                <div class="mob-sync-sheet-kicker">Offline Queue</div>
+                <div class="mob-sync-sheet-title" id="mob-sync-sheet-title">Queued records</div>
+                <div class="mob-sync-sheet-subtitle" id="mob-sync-sheet-subtitle">Saved on this device and synced automatically once internet returns.</div>
+            </div>
+            <button type="button" class="mob-sync-sheet-close" data-sync-sheet-close aria-label="Close offline queue">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+        <div class="mob-sync-sheet-body" id="mob-sync-sheet-body"></div>
+    </div>
+</div>
 
 <nav class="mob-bottom-nav">
     <a href="{{ route('officer.dashboard') }}"

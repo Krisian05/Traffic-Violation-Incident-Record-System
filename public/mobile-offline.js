@@ -18,6 +18,10 @@
     var syncing = false;
     var chip = document.getElementById(CHIP_ID);
     var toast = document.getElementById(TOAST_ID);
+    var syncSheet = document.getElementById('mob-sync-sheet');
+    var syncSheetBody = document.getElementById('mob-sync-sheet-body');
+    var syncSheetTitle = document.getElementById('mob-sync-sheet-title');
+    var syncSheetSubtitle = document.getElementById('mob-sync-sheet-subtitle');
     var currentUserId = String(document.body.dataset.authUserId || '');
 
     function openDb() {
@@ -734,6 +738,20 @@
         return count + ' ' + noun + (count === 1 ? '' : 's');
     }
 
+    function initialsFromName(name) {
+        var parts = cleanedString(name).split(/\s+/).filter(Boolean);
+
+        if (!parts.length) {
+            return 'OF';
+        }
+
+        if (parts.length === 1) {
+            return parts[0].slice(0, 2).toUpperCase();
+        }
+
+        return ((parts[0].charAt(0) || '') + (parts[parts.length - 1].charAt(0) || '')).toUpperCase() || 'OF';
+    }
+
     function toastIcon(tone) {
         if (tone === 'success') return 'ph-fill ph-check-circle';
         if (tone === 'error') return 'ph-fill ph-warning-circle';
@@ -796,6 +814,153 @@
         if (!chip) return;
         chip.className = meta.className;
         chip.innerHTML = '<i class="' + meta.icon + '"></i><span>' + escapeHtml(meta.text) + '</span>';
+    }
+
+    function queueBadgeMeta(state) {
+        if (String(state || '') === 'failed') {
+            return {
+                className: 'mob-sync-sheet-badge mob-sync-sheet-badge--failed',
+                text: 'Needs review'
+            };
+        }
+
+        return {
+            className: 'mob-sync-sheet-badge mob-sync-sheet-badge--pending',
+            text: 'Pending'
+        };
+    }
+
+    function buildQueuedMotoristLookup(records) {
+        var lookup = {};
+
+        (records || []).forEach(function (record) {
+            normalizeQueuedRecord(record);
+
+            if (inferRecordType(record) !== 'motorist-create') {
+                return;
+            }
+
+            var key = cleanedString(record.offlineMotoristKey);
+            if (!key) {
+                return;
+            }
+
+            lookup[key] = {
+                displayName: cleanedString(record.summary && record.summary.displayName) || cleanedString(record.label) || 'Unnamed Motorist',
+                initials: cleanedString(record.summary && record.summary.initials) || initialsFromName(record.summary && record.summary.displayName),
+                licenseNumber: cleanedString(record.summary && record.summary.licenseNumber)
+            };
+        });
+
+        return lookup;
+    }
+
+    function queuedRecordPresentation(record, motoristLookup) {
+        normalizeQueuedRecord(record);
+
+        var type = inferRecordType(record);
+        var badge = queueBadgeMeta(record.state);
+        var title = cleanedString(record.label) || 'Queued record';
+        var metaParts = [];
+        var initials = 'OF';
+
+        if (type === 'motorist-create') {
+            title = cleanedString(record.summary && record.summary.displayName) || title || 'Unnamed Motorist';
+            initials = cleanedString(record.summary && record.summary.initials) || initialsFromName(title);
+            metaParts.push('Motorist record');
+
+            if (cleanedString(record.summary && record.summary.licenseNumber)) {
+                metaParts.push('License ' + cleanedString(record.summary.licenseNumber));
+            }
+        } else if (type === 'offline-violation-create') {
+            var linkedMotorist = motoristLookup[cleanedString(record.parentOfflineMotoristKey)] || null;
+            var linkedName = linkedMotorist ? cleanedString(linkedMotorist.displayName) : '';
+            var violationType = cleanedString(record.summary && record.summary.violationTypeName);
+
+            title = linkedName || title || 'Queued violation';
+            initials = linkedMotorist
+                ? (cleanedString(linkedMotorist.initials) || initialsFromName(linkedName))
+                : initialsFromName(title);
+            metaParts.push(violationType ? 'Violation: ' + violationType : 'Violation record');
+        } else {
+            initials = initialsFromName(title);
+            metaParts.push('Officer mobile record');
+        }
+
+        return {
+            badge: badge,
+            title: title,
+            meta: metaParts.join(' - '),
+            initials: initials,
+            lastError: cleanedString(record.lastError)
+        };
+    }
+
+    function renderChipSummary(records) {
+        if (!syncSheetBody || !syncSheetTitle || !syncSheetSubtitle) {
+            return;
+        }
+
+        if (!(records || []).length) {
+            syncSheetTitle.textContent = navigator.onLine ? 'No queued records' : 'Offline mode active';
+            syncSheetSubtitle.textContent = navigator.onLine
+                ? 'This device is clear right now.'
+                : 'New officer mobile submissions will be saved here until internet returns.';
+            syncSheetBody.innerHTML =
+                '<div class="mob-sync-sheet-empty">' +
+                    '<div class="mob-sync-sheet-empty-icon"><i class="ph-fill ph-cloud-check"></i></div>' +
+                    '<div class="mob-sync-sheet-empty-title">' + escapeHtml(navigator.onLine ? 'Everything is synced' : 'Ready for offline saving') + '</div>' +
+                    '<div class="mob-sync-sheet-empty-text">' +
+                        escapeHtml(navigator.onLine
+                            ? 'There are no queued mobile records on this device.'
+                            : 'New records you save offline will appear here and publish automatically once the device reconnects.') +
+                    '</div>' +
+                '</div>';
+            return;
+        }
+
+        syncSheetTitle.textContent = describeCount(records.length, 'queued record');
+        syncSheetSubtitle.textContent = 'Saved on this device and synced automatically once internet returns.';
+
+        var motoristLookup = buildQueuedMotoristLookup(records);
+        syncSheetBody.innerHTML =
+            '<div class="mob-sync-sheet-list">' +
+            records.map(function (record) {
+                var item = queuedRecordPresentation(record, motoristLookup);
+
+                return '' +
+                    '<div class="mob-sync-sheet-item">' +
+                        '<div class="mob-sync-sheet-avatar">' + escapeHtml(item.initials) + '</div>' +
+                        '<div class="mob-sync-sheet-copy">' +
+                            '<div class="mob-sync-sheet-item-title">' + escapeHtml(item.title) + '</div>' +
+                            '<div class="mob-sync-sheet-item-meta">' + escapeHtml(item.meta) + '</div>' +
+                            (item.lastError
+                                ? '<div class="mob-sync-sheet-item-error">' + escapeHtml(item.lastError) + '</div>'
+                                : '') +
+                        '</div>' +
+                        '<div class="' + item.badge.className + '">' + escapeHtml(item.badge.text) + '</div>' +
+                    '</div>';
+            }).join('') +
+            '</div>';
+    }
+
+    function setChipSummaryOpen(isOpen) {
+        if (!syncSheet) {
+            return;
+        }
+
+        syncSheet.hidden = !isOpen;
+        syncSheet.classList.toggle('open', isOpen);
+        document.body.classList.toggle('mob-sheet-open', isOpen);
+    }
+
+    function closeChipSummary() {
+        setChipSummaryOpen(false);
+    }
+
+    function openChipSummary(records) {
+        renderChipSummary(records || []);
+        setChipSummaryOpen(true);
     }
 
     function updateOfflineStatus() {
@@ -1252,30 +1417,36 @@
         });
     }
 
-    function chipSummary(records) {
-        if (!records.length) {
-            if (navigator.onLine) {
-                return 'You are online and there are no queued mobile records.';
-            }
-
-            return 'You are offline. New officer mobile submissions will be saved on this device and synced automatically later.';
-        }
-
-        return records.map(function (record, index) {
-            var line = (index + 1) + '. ' + record.label + ' - ' + record.state;
-            if (record.lastError) {
-                line += ' - ' + record.lastError;
-            }
-            return line;
-        }).join('\n');
-    }
-
     function attachChipSummary() {
         if (!chip) return;
 
         chip.addEventListener('click', function () {
             getRecordsForCurrentUser().then(function (records) {
-                window.alert(chipSummary(records));
+                openChipSummary(records);
+            });
+        });
+
+        if (syncSheet) {
+            syncSheet.querySelectorAll('[data-sync-sheet-close]').forEach(function (element) {
+                element.addEventListener('click', closeChipSummary);
+            });
+        }
+
+        window.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && syncSheet && syncSheet.classList.contains('open')) {
+                closeChipSummary();
+            }
+        });
+
+        window.addEventListener('tvirs-offline-updated', function () {
+            if (!syncSheet || !syncSheet.classList.contains('open')) {
+                return;
+            }
+
+            getRecordsForCurrentUser().then(function (records) {
+                renderChipSummary(records);
+            }).catch(function () {
+                return null;
             });
         });
     }
