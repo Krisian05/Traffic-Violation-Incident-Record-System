@@ -674,12 +674,12 @@
         </button>
     </div>
 
-    <div class="submit-strip" id="offlineMotoristActions" style="display:none;margin-top:.85rem;">
-        <div style="font-size:.76rem;font-weight:800;color:#0f172a;">Motorist queued on this device</div>
-        <div style="font-size:.7rem;color:#64748b;line-height:1.5;margin-top:.2rem;">You can record a violation for this unsynced motorist right away. It will publish after the motorist record syncs.</div>
-        <a href="{{ route('officer.offline.violations.create') }}" id="offlineMotoristViolationLink" class="mob-btn-primary mob-btn-danger" style="margin-top:.8rem;text-decoration:none;">
+    <div class="submit-strip" id="offlineMotoristActions" style="margin-top:.85rem;">
+        <div id="offlineMotoristActionsTitle" style="font-size:.76rem;font-weight:800;color:#0f172a;">Offline Violation</div>
+        <div id="offlineMotoristActionsText" style="font-size:.7rem;color:#64748b;line-height:1.5;margin-top:.2rem;">Save this motorist while offline first, then use the button below to add a linked violation on this device.</div>
+        <a href="{{ route('officer.offline.violations.create') }}" id="offlineMotoristViolationLink" class="mob-btn-primary mob-btn-danger" style="margin-top:.8rem;text-decoration:none;pointer-events:none;opacity:.55;">
             <i class="ph-bold ph-file-plus"></i>
-            Record Violation Now
+            Save Motorist Offline First
         </a>
     </div>
 
@@ -841,16 +841,49 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.addEventListener('tvirs-offline-record-queued', function (event) {
         var record = event.detail && event.detail.record ? event.detail.record : null;
-        var actions = document.getElementById('offlineMotoristActions');
-        var link = document.getElementById('offlineMotoristViolationLink');
-
-        if (!record || record.recordType !== 'motorist-create' || !actions || !link) {
+        if (!record || record.recordType !== 'motorist-create') {
             return;
         }
 
-        actions.style.display = '';
-        link.href = '{{ route('officer.offline.violations.create') }}#motorist=' + encodeURIComponent(record.offlineMotoristKey || '');
+        activateOfflineViolationLink(record);
     });
+
+    var actionsTitle = document.getElementById('offlineMotoristActionsTitle');
+    var actionsText = document.getElementById('offlineMotoristActionsText');
+    var violationLink = document.getElementById('offlineMotoristViolationLink');
+    var baseOfflineViolationHref = '{{ route('officer.offline.violations.create') }}';
+
+    function activateOfflineViolationLink(record) {
+        if (!record || !violationLink || !actionsText || !actionsTitle) {
+            return;
+        }
+
+        actionsTitle.textContent = 'Motorist queued on this device';
+        actionsText.textContent = 'You can record a violation for this unsynced motorist right away. It will publish after the motorist record syncs.';
+        violationLink.href = baseOfflineViolationHref + '#motorist=' + encodeURIComponent(record.offlineMotoristKey || '');
+        violationLink.style.pointerEvents = 'auto';
+        violationLink.style.opacity = '1';
+        violationLink.innerHTML = '<i class="ph-bold ph-file-plus"></i> Record Violation Now';
+    }
+
+    function refreshOfflineViolationLink() {
+        if (!window.TvirsOffline || typeof window.TvirsOffline.findOfflineMotoristForForm !== 'function') {
+            return;
+        }
+
+        window.TvirsOffline.findOfflineMotoristForForm(document.getElementById('motoristForm')).then(function (motorist) {
+            if (!motorist) {
+                return;
+            }
+
+            activateOfflineViolationLink(motorist);
+        }).catch(function () {
+            return null;
+        });
+    }
+
+    refreshOfflineViolationLink();
+    window.addEventListener('tvirs-offline-updated', refreshOfflineViolationLink);
 
 })();
 </script>

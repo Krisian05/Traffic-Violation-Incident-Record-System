@@ -241,6 +241,45 @@
         });
     }
 
+    function sameOfflineMotoristSummary(summaryA, summaryB) {
+        if (!summaryA || !summaryB) {
+            return false;
+        }
+
+        var licenseA = cleanedString(summaryA.licenseNumber).toLowerCase();
+        var licenseB = cleanedString(summaryB.licenseNumber).toLowerCase();
+
+        if (licenseA && licenseB) {
+            return licenseA === licenseB;
+        }
+
+        return cleanedString(summaryA.firstName).toLowerCase() === cleanedString(summaryB.firstName).toLowerCase()
+            && cleanedString(summaryA.middleName).toLowerCase() === cleanedString(summaryB.middleName).toLowerCase()
+            && cleanedString(summaryA.lastName).toLowerCase() === cleanedString(summaryB.lastName).toLowerCase();
+    }
+
+    function findOfflineMotoristForForm(form) {
+        if (!form) {
+            return Promise.resolve(null);
+        }
+
+        var lookup = buildMotoristSummary(serializeFormData(new FormData(form)));
+
+        if (!cleanedString(lookup.firstName) || !cleanedString(lookup.lastName)) {
+            return Promise.resolve(null);
+        }
+
+        return listOfflineMotorists().then(function (motorists) {
+            for (var i = 0; i < motorists.length; i += 1) {
+                if (sameOfflineMotoristSummary(motorists[i].summary, lookup)) {
+                    return motorists[i];
+                }
+            }
+
+            return null;
+        });
+    }
+
     function getCsrfToken() {
         var meta = document.querySelector('meta[name="csrf-token"]');
         return meta ? meta.getAttribute('content') : '';
@@ -851,6 +890,11 @@
                 return;
             }
 
+            if (navigator.onLine && !formRequiresForcedQueue(form)) {
+                setOfflineSubmitState(form, false);
+                return;
+            }
+
             formHasQueuedDuplicate(form).then(function (hasDuplicate) {
                 setOfflineSubmitState(form, hasDuplicate);
             }).catch(function () {
@@ -1172,6 +1216,7 @@
     window.TvirsOffline = {
         listOfflineMotorists: listOfflineMotorists,
         getOfflineMotoristByKey: getOfflineMotoristByKey,
+        findOfflineMotoristForForm: findOfflineMotoristForForm,
         getSyncedMotoristId: getSyncedMotoristId,
         buildOfflineViolationHref: buildOfflineViolationHref
     };
