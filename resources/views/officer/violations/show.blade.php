@@ -226,50 +226,37 @@
             ? $veh->photos
             : $veh->allViolationPhotos;
     }
-    $vCount = $vPhotos->count();
+    $vCaption = $plate ? 'Vehicle — ' . $plate : 'Vehicle Photo';
+    $vGallery = $vPhotos->map(fn($p) => uploaded_file_url($p->photo))->values()->toJson();
 @endphp
 <div class="motshow-section">Vehicle Involved</div>
-<div style="background:#fff;border-radius:16px;border:1px solid rgba(15,23,42,.06);box-shadow:0 2px 10px rgba(15,23,42,.04);margin-bottom:.9rem;overflow:hidden;">
+<div style="display:flex;align-items:flex-start;gap:.85rem;background:#fff;border-radius:16px;border:1px solid rgba(15,23,42,.06);box-shadow:0 2px 10px rgba(15,23,42,.04);margin-bottom:.9rem;overflow:hidden;position:relative;">
+    <div style="width:4px;background:linear-gradient(180deg,#dc2626,#b91c1c);align-self:stretch;flex-shrink:0;"></div>
+    <div style="display:flex;align-items:flex-start;gap:.75rem;flex:1;min-width:0;padding:.85rem .85rem .85rem 0;">
 
-    {{-- Inline photo carousel --}}
-    @if($vPhotos->isNotEmpty())
-    <div style="position:relative;width:100%;background:#0f172a;overflow:hidden;">
-        {{-- Track --}}
-        <div id="vph-track" style="display:flex;transition:transform .25s ease;will-change:transform;">
-            @foreach($vPhotos as $vp)
-            <div style="flex:0 0 100%;">
-                <img src="{{ uploaded_file_url($vp->photo) }}"
-                     alt="Vehicle photo"
-                     style="width:100%;height:200px;object-fit:cover;display:block;">
+        {{-- Photo thumbnail --}}
+        @if($vPhotos->isNotEmpty())
+        <div style="position:relative;width:72px;height:72px;border-radius:14px;overflow:hidden;flex-shrink:0;box-shadow:0 3px 10px rgba(15,23,42,.15);cursor:zoom-in;">
+            <img src="{{ uploaded_file_url($vPhotos->first()->photo) }}"
+                 alt="Vehicle photo"
+                 class="mob-photo-thumb"
+                 data-full="{{ uploaded_file_url($vPhotos->first()->photo) }}"
+                 data-gallery="{{ e($vGallery) }}"
+                 data-gallery-index="0"
+                 data-caption="{{ $vCaption }}"
+                 style="width:72px;height:72px;object-fit:cover;display:block;">
+            @if($vPhotos->count() > 1)
+            <div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.55);border-radius:6px;padding:.1rem .28rem;pointer-events:none;">
+                <span style="color:#fff;font-size:.55rem;font-weight:800;line-height:1;">1/{{ $vPhotos->count() }}</span>
             </div>
-            @endforeach
+            @endif
         </div>
-        @if($vCount > 1)
-        {{-- Prev --}}
-        <button onclick="vphNav(-1)"
-            style="position:absolute;left:8px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.45);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;">
-            <i class="ph ph-caret-left" style="font-size:1.1rem;"></i>
-        </button>
-        {{-- Next --}}
-        <button onclick="vphNav(1)"
-            style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.45);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;">
-            <i class="ph ph-caret-right" style="font-size:1.1rem;"></i>
-        </button>
-        {{-- Counter --}}
-        <div id="vph-counter" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.55);border-radius:6px;padding:.15rem .45rem;color:#fff;font-size:.65rem;font-weight:800;pointer-events:none;">
-            1/{{ $vCount }}
+        @else
+        <div style="width:72px;height:72px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#b91c1c);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(220,38,38,.3);">
+            <i class="ph-fill ph-car-profile" style="font-size:1.4rem;color:#fff;"></i>
         </div>
         @endif
-    </div>
-    @endif
 
-    {{-- Vehicle info --}}
-    <div style="display:flex;align-items:flex-start;gap:.85rem;padding:.85rem;">
-        @if($vPhotos->isEmpty())
-        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#dc2626,#b91c1c);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <i class="ph-fill ph-car-profile" style="font-size:1.2rem;color:#fff;"></i>
-        </div>
-        @endif
         <div style="flex:1;min-width:0;">
             @if($plate)
             <div style="display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;margin-bottom:.18rem;">
@@ -307,22 +294,6 @@
         </div>
     </div>
 </div>
-
-@if($vCount > 1)
-<script>
-(function(){
-    var track = document.getElementById('vph-track');
-    var counter = document.getElementById('vph-counter');
-    var idx = 0;
-    var total = track ? track.children.length : 1;
-    window.vphNav = function(dir) {
-        idx = Math.max(0, Math.min(idx + dir, total - 1));
-        track.style.transform = 'translateX(-' + (idx * 100) + '%)';
-        if (counter) counter.textContent = (idx + 1) + '/' + total;
-    };
-})();
-</script>
-@endif
 @endif
 
 {{-- ── Citation Ticket Photo ── --}}
