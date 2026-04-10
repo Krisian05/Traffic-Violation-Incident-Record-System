@@ -436,7 +436,7 @@
     @endif
 </div>
 @forelse($violator->vehicles as $veh)
-    <div style="display:flex;align-items:flex-start;gap:.85rem;background:#fff;border-radius:16px;border:1px solid rgba(15,23,42,.06);box-shadow:0 2px 10px rgba(15,23,42,.04);margin-bottom:.65rem;overflow:hidden;position:relative;">
+    <a href="{{ route('vehicles.show', $veh) }}" style="display:flex;align-items:flex-start;gap:.85rem;background:#fff;border-radius:16px;border:1px solid rgba(15,23,42,.06);box-shadow:0 2px 10px rgba(15,23,42,.04);margin-bottom:.65rem;overflow:hidden;position:relative;text-decoration:none;color:inherit;">
         <div style="width:4px;background:linear-gradient(180deg,#2563eb,#1d4ed8);align-self:stretch;flex-shrink:0;"></div>
         <div style="display:flex;align-items:flex-start;gap:.75rem;flex:1;min-width:0;padding:.85rem .85rem .85rem 0;">
             @php
@@ -496,8 +496,9 @@
                 </div>
                 @endif
             </div>
+            <i class="ph ph-caret-right" style="color:#cbd5e1;font-size:1rem;flex-shrink:0;align-self:center;"></i>
         </div>
-    </div>
+    </a>
 @empty
     <div class="motshow-card" style="margin-bottom:.65rem;">
         <div class="mob-empty">
