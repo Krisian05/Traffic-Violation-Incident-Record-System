@@ -14,6 +14,7 @@ use App\Models\ViolationType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -260,7 +261,8 @@ class OfficerController extends Controller
     public function storeVehicle(Request $request, Violator $violator): RedirectResponse
     {
         $data = $request->validate([
-            'plate_number'   => ['required', 'string', 'max:20', 'unique:vehicles,plate_number'],
+            // Exclude soft-deleted rows from the unique check — withTrashed plates are restored below.
+            'plate_number'   => ['required', 'string', 'max:20', Rule::unique('vehicles', 'plate_number')->whereNull('deleted_at')],
             'vehicle_type'   => ['required', 'in:MV,MC'],
             'make'           => ['nullable', 'string', 'max:100'],
             'model'          => ['nullable', 'string', 'max:100'],
@@ -277,7 +279,15 @@ class OfficerController extends Controller
         $data['violator_id'] = $violator->id;
         unset($data['photos']);
 
-        $vehicle = Vehicle::create($data);
+        // Soft-deleted vehicles still hold the unique constraint — restore instead of creating.
+        $softDeleted = Vehicle::onlyTrashed()->where('plate_number', $data['plate_number'])->first();
+        if ($softDeleted) {
+            $softDeleted->restore();
+            $softDeleted->update($data);
+            $vehicle = $softDeleted;
+        } else {
+            $vehicle = Vehicle::create($data);
+        }
 
         if ($request->hasFile('photos')) {
             foreach ($request->file('photos') as $file) {
@@ -299,7 +309,8 @@ class OfficerController extends Controller
     {
         $request->validate([
             'offline_motorist_key' => ['required', 'string'],
-            'plate_number'         => ['required', 'string', 'max:20', 'unique:vehicles,plate_number'],
+            // Exclude soft-deleted rows from the unique check — withTrashed plates are restored below.
+            'plate_number'         => ['required', 'string', 'max:20', Rule::unique('vehicles', 'plate_number')->whereNull('deleted_at')],
             'vehicle_type'         => ['required', 'in:MV,MC'],
             'make'                 => ['nullable', 'string', 'max:100'],
             'model'                => ['nullable', 'string', 'max:100'],
@@ -324,7 +335,15 @@ class OfficerController extends Controller
         ]);
         $data['violator_id'] = $violator->id;
 
-        $vehicle = Vehicle::create($data);
+        // Soft-deleted vehicles still hold the unique constraint — restore instead of creating.
+        $softDeleted = Vehicle::onlyTrashed()->where('plate_number', $data['plate_number'])->first();
+        if ($softDeleted) {
+            $softDeleted->restore();
+            $softDeleted->update($data);
+            $vehicle = $softDeleted;
+        } else {
+            $vehicle = Vehicle::create($data);
+        }
 
         if ($request->hasFile('photos')) {
             foreach ($request->file('photos') as $file) {
