@@ -1427,6 +1427,24 @@ function mobLbClose() {
     document.getElementById('mob-lightbox').classList.remove('open');
 }
 
+/* ── Lightbox swipe ── */
+(function () {
+    var lb = document.getElementById('mob-lightbox');
+    var lbStartX = 0, lbMoved = false;
+    lb.addEventListener('touchstart', function (e) {
+        lbStartX = e.touches[0].clientX;
+        lbMoved  = false;
+    }, { passive: true });
+    lb.addEventListener('touchmove', function (e) {
+        if (Math.abs(e.touches[0].clientX - lbStartX) > 8) lbMoved = true;
+    }, { passive: true });
+    lb.addEventListener('touchend', function (e) {
+        if (!lbMoved) return;
+        var dx = e.changedTouches[0].clientX - lbStartX;
+        if (Math.abs(dx) > 40) mobLbStep(dx < 0 ? 1 : -1);
+    });
+})();
+
 document.addEventListener('click', function (e) {
     if (!e.target.closest('.mob-user-menu-wrap')) {
         closeMobUserMenu();
