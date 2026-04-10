@@ -1334,12 +1334,14 @@
 
 <div id="mob-lightbox" class="mob-lightbox" onclick="mobLbClose()">
     <div id="mob-lb-stage" class="mob-lightbox-stage" onclick="event.stopPropagation()" style="position:relative;">
-        {{-- X — overlaid top-right corner of image --}}
-        <button onclick="event.stopPropagation();mobLbClose()"
-            style="position:absolute;top:.4rem;right:.4rem;z-index:10;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.55);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;">
-            <i class="ph ph-x" style="font-size:.95rem;"></i>
-        </button>
-        <img id="mob-lb-img" src="" alt="Photo" draggable="false" style="max-width:100%;max-height:70vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);display:block;touch-action:none;transform-origin:center center;">
+        {{-- Image + X wrapper --}}
+        <div style="position:relative;display:inline-block;max-width:100%;">
+            <img id="mob-lb-img" src="" alt="Photo" draggable="false" style="max-width:100%;max-height:70vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);display:block;touch-action:none;transform-origin:center center;">
+            <button onclick="event.stopPropagation();mobLbClose()"
+                style="position:absolute;top:.45rem;right:.45rem;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.6);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;">
+                <i class="ph ph-x" style="font-size:.9rem;"></i>
+            </button>
+        </div>
         <div id="mob-lightbox-caption" style="color:rgba(255,255,255,.75);font-size:.78rem;font-weight:600;text-align:center;padding:0;max-width:320px;line-height:1.4;min-height:.8em;margin-top:.3rem;"></div>
         <div id="mob-lb-counter" class="mob-lightbox-counter" style="margin:.2rem 0 0;text-align:center;"></div>
     </div>
