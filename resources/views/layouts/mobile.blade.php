@@ -999,6 +999,7 @@
         .mob-lightbox.open {
             opacity: 1;
             pointer-events: all;
+            touch-action: none;
         }
 
         .mob-lightbox.is-dragging img {
@@ -1550,7 +1551,7 @@ function mobLbClose() {
         }
     }
 
-    stage.addEventListener('touchstart', function (event) {
+    lb.addEventListener('touchstart', function (event) {
         if (!event.touches || !event.touches[0]) {
             return;
         }
@@ -1558,7 +1559,7 @@ function mobLbClose() {
         startGesture(event.touches[0]);
     }, { passive: true });
 
-    stage.addEventListener('touchmove', function (event) {
+    lb.addEventListener('touchmove', function (event) {
         if (!event.touches || !event.touches[0]) {
             return;
         }
@@ -1566,8 +1567,8 @@ function mobLbClose() {
         moveGesture(event.touches[0], event);
     }, { passive: false });
 
-    stage.addEventListener('touchend', endGesture);
-    stage.addEventListener('touchcancel', resetGesture);
+    lb.addEventListener('touchend', endGesture);
+    lb.addEventListener('touchcancel', resetGesture);
 })();
 
 function mobLbOpenFromThumb(thumb) {
