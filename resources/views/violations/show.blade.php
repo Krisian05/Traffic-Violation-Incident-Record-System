@@ -284,9 +284,17 @@
                                 <span class="font-monospace fw-700" style="color:#1c1917;font-size:1rem;letter-spacing:.05em;">
                                     {{ $violation->vehicle->plate_number }}
                                 </span>
+                                @if($violation->vehicle->vehicle_type)
                                 <span class="badge ms-2" style="background:#dbeafe;color:#1e40af;font-size:.72em;">
                                     {{ $violation->vehicle->vehicle_type }}
                                 </span>
+                                @endif
+                                @php $vMake = trim(($violation->vehicle->make ?? '') . ' ' . ($violation->vehicle->model ?? '')); @endphp
+                                @if($vMake || $violation->vehicle->color)
+                                <div style="font-size:.8rem;color:#57534e;margin-top:3px;">
+                                    {{ implode(' · ', array_filter([$vMake ?: null, $violation->vehicle->color])) }}
+                                </div>
+                                @endif
                                 <div style="font-size:.78rem;color:#78716c;margin-top:2px;">
                                     <i class="bi bi-box-arrow-up-right me-1" style="font-size:.65rem;"></i>
                                     @if($violation->vehicle->violator)
@@ -351,8 +359,23 @@
                         @endif
 
                     @else
-                        {{-- No manual details, no photos row if vehicle from system --}}
-                        @if($violation->vehiclePhotos->isEmpty() && !$violation->vehicle_plate)
+                        {{-- System vehicle: show OR/CR and chassis if present --}}
+                        @if($violation->vehicle)
+                            @if($violation->vehicle->or_number || $violation->vehicle->cr_number)
+                            <div class="d-flex align-items-start gap-3 px-4 py-3" style="border-bottom:1px solid #f5f0e8;">
+                                <div style="width:120px;flex-shrink:0;font-size:.8rem;color:#a8a29e;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">OR / CR No.</div>
+                                <div class="font-monospace" style="color:#292524;font-size:.88rem;">
+                                    {{ $violation->vehicle->or_number ?? '—' }}&nbsp;/&nbsp;{{ $violation->vehicle->cr_number ?? '—' }}
+                                </div>
+                            </div>
+                            @endif
+                            @if($violation->vehicle->chassis_number)
+                            <div class="d-flex align-items-start gap-3 px-4 py-3" style="border-bottom:1px solid #f5f0e8;">
+                                <div style="width:120px;flex-shrink:0;font-size:.8rem;color:#a8a29e;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">Chassis No.</div>
+                                <div class="font-monospace" style="color:#292524;font-size:.88rem;">{{ $violation->vehicle->chassis_number }}</div>
+                            </div>
+                            @endif
+                        @elseif($violation->vehiclePhotos->isEmpty() && !$violation->vehicle_plate)
                         <div class="d-flex align-items-start gap-3 px-4 py-3">
                             <div style="width:120px;flex-shrink:0;font-size:.8rem;color:#a8a29e;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">Details</div>
                             <div style="color:#a8a29e;font-style:italic;font-size:.875rem;">No vehicle recorded for this violation.</div>
