@@ -1001,6 +1001,23 @@
             pointer-events: all;
         }
 
+        .mob-lightbox.is-dragging img {
+            transition: none;
+        }
+
+        .mob-lightbox-stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .6rem;
+            width: 100%;
+            max-width: min(100%, 420px);
+            padding: 0 3rem;
+            touch-action: pan-y pinch-zoom;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
         /* ── User button (topbar) ── */
         .mob-user-menu-wrap { position: relative; flex-shrink: 0; }
 
@@ -1095,6 +1112,11 @@
             border-radius: 12px;
             box-shadow: 0 8px 48px rgba(0,0,0,.6);
             display: block;
+            transition: transform .18s ease, opacity .18s ease;
+            touch-action: pan-y pinch-zoom;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-user-drag: none;
         }
 
         .mob-lightbox-nav {
@@ -1319,8 +1341,8 @@
     <button class="mob-lightbox-nav next" id="mob-lb-next" onclick="event.stopPropagation();mobLbStep(1)" hidden>
         <i class="ph ph-caret-right" style="font-size:1.2rem;"></i>
     </button>
-    <div style="display:flex;flex-direction:column;align-items:center;gap:.6rem;max-width:100%;padding:0 3rem;" onclick="event.stopPropagation()">
-        <img id="mob-lb-img" src="" alt="Photo" style="max-width:100%;max-height:78vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);display:block;">
+    <div id="mob-lb-stage" class="mob-lightbox-stage" onclick="event.stopPropagation()">
+        <img id="mob-lb-img" src="" alt="Photo" draggable="false" style="max-width:100%;max-height:78vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);display:block;">
         <div id="mob-lightbox-caption" style="color:rgba(255,255,255,.75);font-size:.78rem;font-weight:600;text-align:center;padding:0;max-width:320px;line-height:1.4;min-height:1em;"></div>
         <div id="mob-lb-counter" class="mob-lightbox-counter"></div>
     </div>
@@ -1395,6 +1417,13 @@ if (document.getElementById('changePasswordModal')?.dataset.hasErrors === '1') {
 
 var mobLbGallery = [];
 var mobLbIndex = 0;
+var mobLbGesture = {
+    tracking: false,
+    dragging: false,
+    startX: 0,
+    startY: 0,
+    deltaX: 0
+};
 
 function mobLbShow(index) {
     if (!mobLbGallery || mobLbGallery.length === 0) { mobLbClose(); return; }
@@ -1424,37 +1453,120 @@ function mobLbStep(dir) {
 }
 
 function mobLbClose() {
-    document.getElementById('mob-lightbox').classList.remove('open');
+    var lb = document.getElementById('mob-lightbox');
+    var img = document.getElementById('mob-lb-img');
+
+    if (img) {
+        img.style.transform = '';
+        img.style.opacity = '';
+    }
+
+    mobLbGesture.tracking = false;
+    mobLbGesture.dragging = false;
+    mobLbGesture.deltaX = 0;
+
+    if (lb) {
+        lb.classList.remove('open');
+        lb.classList.remove('is-dragging');
+    }
 }
 
 /* ── Lightbox swipe ── */
 (function () {
     var lb = document.getElementById('mob-lightbox');
-    var lbStartX = 0, lbStartY = 0, lbSwiped = false;
+    var stage = document.getElementById('mob-lb-stage');
+    var img = document.getElementById('mob-lb-img');
 
-    document.addEventListener('touchstart', function (e) {
-        if (!lb.classList.contains('open')) return;
-        lbStartX = e.touches[0].clientX;
-        lbStartY = e.touches[0].clientY;
-        lbSwiped = false;
-    }, { passive: true });
+    if (!lb || !stage || !img) {
+        return;
+    }
 
-    document.addEventListener('touchmove', function (e) {
-        if (!lb.classList.contains('open')) return;
-        var dx = Math.abs(e.touches[0].clientX - lbStartX);
-        var dy = Math.abs(e.touches[0].clientY - lbStartY);
-        if (dx > dy && dx > 8) lbSwiped = true;
-    }, { passive: true });
+    function resetGesture() {
+        mobLbGesture.tracking = false;
+        mobLbGesture.dragging = false;
+        mobLbGesture.deltaX = 0;
+        lb.classList.remove('is-dragging');
+        img.style.transform = '';
+        img.style.opacity = '';
+    }
 
-    document.addEventListener('touchend', function (e) {
-        if (!lb.classList.contains('open') || !lbSwiped) return;
-        var dx = e.changedTouches[0].clientX - lbStartX;
-        if (Math.abs(dx) > 35) {
-            e.preventDefault();
+    function startGesture(touch) {
+        if (!lb.classList.contains('open') || mobLbGallery.length < 2) {
+            return;
+        }
+
+        mobLbGesture.tracking = true;
+        mobLbGesture.dragging = false;
+        mobLbGesture.startX = touch.clientX;
+        mobLbGesture.startY = touch.clientY;
+        mobLbGesture.deltaX = 0;
+    }
+
+    function moveGesture(touch, event) {
+        if (!mobLbGesture.tracking) {
+            return;
+        }
+
+        var dx = touch.clientX - mobLbGesture.startX;
+        var dy = touch.clientY - mobLbGesture.startY;
+
+        if (!mobLbGesture.dragging) {
+            if (Math.abs(dx) < 8 && Math.abs(dy) < 8) {
+                return;
+            }
+
+            if (Math.abs(dx) <= Math.abs(dy)) {
+                resetGesture();
+                return;
+            }
+
+            mobLbGesture.dragging = true;
+            lb.classList.add('is-dragging');
+        }
+
+        mobLbGesture.deltaX = dx;
+        img.style.transform = 'translateX(' + dx + 'px)';
+        img.style.opacity = String(Math.max(0.72, 1 - (Math.abs(dx) / Math.max(240, window.innerWidth)))));
+
+        if (event && event.cancelable) {
+            event.preventDefault();
+        }
+    }
+
+    function endGesture() {
+        if (!mobLbGesture.tracking) {
+            return;
+        }
+
+        var dx = mobLbGesture.deltaX;
+        var dragging = mobLbGesture.dragging;
+        var threshold = Math.min(120, Math.max(60, window.innerWidth * 0.18));
+
+        resetGesture();
+
+        if (dragging && Math.abs(dx) >= threshold) {
             mobLbStep(dx < 0 ? 1 : -1);
         }
-        lbSwiped = false;
-    });
+    }
+
+    stage.addEventListener('touchstart', function (event) {
+        if (!event.touches || !event.touches[0]) {
+            return;
+        }
+
+        startGesture(event.touches[0]);
+    }, { passive: true });
+
+    stage.addEventListener('touchmove', function (event) {
+        if (!event.touches || !event.touches[0]) {
+            return;
+        }
+
+        moveGesture(event.touches[0], event);
+    }, { passive: false });
+
+    stage.addEventListener('touchend', endGesture);
+    stage.addEventListener('touchcancel', resetGesture);
 })();
 
 document.addEventListener('click', function (e) {
