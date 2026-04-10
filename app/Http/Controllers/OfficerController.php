@@ -253,6 +253,18 @@ class OfficerController extends Controller
     //  VEHICLES
     // ─────────────────────────────────────────────
 
+    public function showVehicle(Vehicle $vehicle): View
+    {
+        $vehicle->load(['violator', 'photos', 'violations.violationType', 'violations.violator']);
+        $vehicle->loadCount('violations');
+
+        $allPhotos = $vehicle->photos->isNotEmpty()
+            ? $vehicle->photos
+            : $vehicle->allViolationPhotos()->get();
+
+        return view('officer.vehicles.show', compact('vehicle', 'allPhotos'));
+    }
+
     public function createVehicle(Violator $violator): View
     {
         return view('officer.vehicles.create', compact('violator'));
