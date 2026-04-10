@@ -397,9 +397,9 @@ class OfficerController extends Controller
                 unset($data[$f]);
             }
         } elseif (!empty($data['vehicle_plate'])) {
-            // Auto-register manual vehicle so it appears on the violator's profile
-            $vehicle = Vehicle::where('violator_id', $violator->id)
-                ->where('plate_number', $data['vehicle_plate'])->first();
+            // Search globally by plate (unique constraint spans entire table).
+            // withTrashed() is required: soft-deleted vehicles still hold the constraint.
+            $vehicle = Vehicle::withTrashed()->where('plate_number', $data['vehicle_plate'])->first();
             if (!$vehicle) {
                 $vehicle = Vehicle::create([
                     'violator_id'    => $violator->id,
@@ -414,6 +414,9 @@ class OfficerController extends Controller
                     'chassis_number' => $data['vehicle_chassis'] ?? null,
                 ]);
             } else {
+                if ($vehicle->trashed()) {
+                    $vehicle->restore();
+                }
                 $vehicle->update([
                     'vehicle_type'   => $vehicle->vehicle_type ?: ($data['vehicle_type'] ?? null),
                     'owner_name'     => $vehicle->owner_name ?: (!empty($data['vehicle_owner_name']) ? $data['vehicle_owner_name'] : $violator->full_name),
@@ -568,9 +571,9 @@ class OfficerController extends Controller
                 $data[$field] = null;
             }
         } elseif (!empty($data['vehicle_plate'])) {
-                $existing = Vehicle::where('violator_id', $violation->violator_id)
-                ->where('plate_number', $data['vehicle_plate'])
-                ->first();
+            // Search globally by plate (unique constraint spans entire table).
+            // withTrashed() is required: soft-deleted vehicles still hold the constraint.
+            $existing = Vehicle::withTrashed()->where('plate_number', $data['vehicle_plate'])->first();
 
             if (!$existing) {
                 $existing = Vehicle::create([
@@ -586,6 +589,9 @@ class OfficerController extends Controller
                     'chassis_number' => $data['vehicle_chassis'] ?? null,
                 ]);
             } else {
+                if ($existing->trashed()) {
+                    $existing->restore();
+                }
                 $existing->fill([
                     'vehicle_type'   => $existing->vehicle_type ?: ($data['vehicle_type'] ?? null),
                     'owner_name'     => $existing->owner_name ?: (!empty($data['vehicle_owner_name']) ? $data['vehicle_owner_name'] : ($violation->violator?->full_name ?? 'Unknown')),
@@ -870,8 +876,9 @@ class OfficerController extends Controller
 
         $vehicleId = null;
         if (!empty($m['vehicle_plate'])) {
-            $vehicle = Vehicle::where('violator_id', $violator->id)
-                ->where('plate_number', $m['vehicle_plate'])->first();
+            // Search globally by plate (unique constraint spans entire table).
+            // withTrashed() is required: soft-deleted vehicles still hold the constraint.
+            $vehicle = Vehicle::withTrashed()->where('plate_number', $m['vehicle_plate'])->first();
             if (!$vehicle) {
                 $vehicle = Vehicle::create([
                     'violator_id'    => $violator->id,
@@ -886,6 +893,9 @@ class OfficerController extends Controller
                     'chassis_number' => $m['vehicle_chassis'] ?? null,
                 ]);
             } else {
+                if ($vehicle->trashed()) {
+                    $vehicle->restore();
+                }
                 $vehicle->fill([
                     'owner_name'     => $vehicle->owner_name ?: $violator->full_name,
                     'vehicle_type'   => $vehicle->vehicle_type ?: ($m['vehicle_type_manual'] ?? null),
