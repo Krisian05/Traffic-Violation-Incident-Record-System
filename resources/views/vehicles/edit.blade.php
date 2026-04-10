@@ -59,6 +59,31 @@
         </div>
     </div>
 </div>
+@elseif($vehicle->allViolationPhotos->isNotEmpty())
+{{-- Show violation evidence photos read-only when no direct vehicle photos exist --}}
+<div class="vlt-section-card mb-4">
+    <div class="vlt-card-header">
+        <span class="vlt-section-icon" style="background:#fef9c3;">
+            <i class="bi bi-images" style="color:#d97706;"></i>
+        </span>
+        <div>
+            <div class="vlt-section-title">Photos (from violation evidence)</div>
+            <div class="vlt-section-sub">These are evidence photos from violations — upload vehicle photos below to replace them</div>
+        </div>
+        <span class="ms-auto badge" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-size:.7rem;font-weight:700;">Read-only</span>
+    </div>
+    <div class="card-body">
+        <div class="d-flex flex-wrap gap-2">
+            @foreach($vehicle->allViolationPhotos as $photo)
+            <img src="{{ uploaded_file_url($photo->photo) }}"
+                data-lightbox="{{ uploaded_file_url($photo->photo) }}"
+                data-caption="{{ $vehicle->plate_number }}"
+                style="height:110px;width:150px;object-fit:cover;border-radius:8px;border:2px solid #fde68a;cursor:pointer;"
+                alt="vehicle photo">
+            @endforeach
+        </div>
+    </div>
+</div>
 @endif
 
 {{-- ── EDIT FORM ── --}}

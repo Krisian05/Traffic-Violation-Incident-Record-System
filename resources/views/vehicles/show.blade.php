@@ -211,7 +211,13 @@
         </div>
 
         {{-- Card 2: Photos --}}
-        @if($vehicle->photos->isNotEmpty())
+        @php
+            $directPhotos    = $vehicle->photos;
+            $violationPhotos = $vehicle->allViolationPhotos;
+            $hasAnyPhotos    = $directPhotos->isNotEmpty() || $violationPhotos->isNotEmpty();
+            $isViolationOnly = $directPhotos->isEmpty() && $violationPhotos->isNotEmpty();
+        @endphp
+        @if($hasAnyPhotos)
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header d-flex align-items-center gap-2 py-3">
                 <span class="rounded d-flex align-items-center justify-content-center"
@@ -219,11 +225,15 @@
                     <i class="bi bi-images" style="font-size:.85rem;color:#d97706;"></i>
                 </span>
                 <span class="fw-600" style="font-size:.925rem;color:#292524;">Vehicle Photos</span>
-                <span class="ms-auto" style="font-size:.75rem;color:#a8a29e;">{{ $vehicle->photos->count() }} / 4</span>
+                @if($isViolationOnly)
+                    <span class="ms-auto badge" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-size:.72rem;">From violation evidence</span>
+                @else
+                    <span class="ms-auto" style="font-size:.75rem;color:#a8a29e;">{{ $directPhotos->count() }} / 4</span>
+                @endif
             </div>
             <div class="card-body p-4">
                 <div class="d-flex flex-wrap gap-3">
-                    @foreach($vehicle->photos as $photo)
+                    @foreach($isViolationOnly ? $violationPhotos : $directPhotos as $photo)
                     <img src="{{ uploaded_file_url($photo->photo) }}"
                          alt="Vehicle photo"
                          data-lightbox="{{ uploaded_file_url($photo->photo) }}"

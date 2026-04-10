@@ -53,6 +53,7 @@ class VehicleController extends Controller
         $vehicle->load([
             'violator.violations',
             'photos',
+            'allViolationPhotos',
             'violations' => fn($q) => $q->with(['violationType', 'violator'])->orderByDesc('date_of_violation'),
         ]);
 
@@ -225,7 +226,7 @@ class VehicleController extends Controller
 
     public function edit(Vehicle $vehicle)
     {
-        $vehicle->load(['violator', 'photos']);
+        $vehicle->load(['violator', 'photos', 'allViolationPhotos']);
         return view('vehicles.edit', compact('vehicle'));
     }
 
