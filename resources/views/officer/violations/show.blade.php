@@ -297,43 +297,88 @@
 @php
     $vPhotoGallery = $vPhotos->map(fn($p) => uploaded_file_url($p->photo))->values()->toJson();
     $vPhotoCaption = $plate ? 'Vehicle — ' . $plate : 'Vehicle Photo';
+    $vPhotoUrls    = $vPhotos->map(fn($p) => uploaded_file_url($p->photo))->values()->all();
 @endphp
 <div class="motshow-section">Vehicle Photos</div>
 <div class="motshow-card" style="margin-bottom:.9rem;overflow:hidden;">
-    @if($vPhotos->count() === 1)
-        <div style="padding:1rem;">
-            <img src="{{ uploaded_file_url($vPhotos->first()->photo) }}"
-                 alt="Vehicle photo"
-                 class="mob-photo-thumb"
-                 data-full="{{ uploaded_file_url($vPhotos->first()->photo) }}"
-                 data-gallery="{{ e($vPhotoGallery) }}"
-                 data-gallery-index="0"
-                 data-caption="{{ $vPhotoCaption }}"
-                 style="width:100%;border-radius:14px;box-shadow:0 4px 16px rgba(15,23,42,.1);cursor:zoom-in;display:block;object-fit:cover;max-height:220px;">
-            <div style="display:flex;align-items:center;justify-content:center;gap:.35rem;margin-top:.6rem;font-size:.7rem;color:#94a3b8;">
-                <i class="ph ph-magnifying-glass-plus"></i> Tap to enlarge
-            </div>
-        </div>
-    @else
-        <div style="display:flex;gap:.5rem;overflow-x:auto;padding:1rem;scrollbar-width:none;">
-            @foreach($vPhotos as $idx => $vp)
-            <div style="flex:0 0 auto;position:relative;">
-                <img src="{{ uploaded_file_url($vp->photo) }}"
+    {{-- Carousel --}}
+    <div id="vphCarousel" style="position:relative;user-select:none;touch-action:pan-y;">
+        {{-- Slides --}}
+        <div id="vphTrack" style="display:flex;transition:transform .32s cubic-bezier(.4,0,.2,1);will-change:transform;">
+            @foreach($vPhotoUrls as $idx => $url)
+            <div style="flex:0 0 100%;min-width:0;padding:.85rem .85rem 0;">
+                <img src="{{ $url }}"
                      alt="Vehicle photo {{ $idx + 1 }}"
                      class="mob-photo-thumb"
-                     data-full="{{ uploaded_file_url($vp->photo) }}"
+                     data-full="{{ $url }}"
                      data-gallery="{{ e($vPhotoGallery) }}"
                      data-gallery-index="{{ $idx }}"
                      data-caption="{{ $vPhotoCaption }}"
-                     style="width:110px;height:110px;object-fit:cover;border-radius:12px;cursor:zoom-in;display:block;box-shadow:0 3px 10px rgba(15,23,42,.12);">
+                     style="width:100%;height:220px;object-fit:cover;border-radius:14px;display:block;box-shadow:0 4px 16px rgba(15,23,42,.1);cursor:zoom-in;">
             </div>
             @endforeach
         </div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:.35rem;padding-bottom:.85rem;font-size:.7rem;color:#94a3b8;">
-            <i class="ph ph-images"></i> {{ $vPhotos->count() }} photos — tap to view
+        {{-- Dot indicators + counter --}}
+        <div style="display:flex;align-items:center;justify-content:center;gap:.45rem;padding:.65rem 1rem .85rem;flex-wrap:wrap;">
+            @if(count($vPhotoUrls) > 1)
+            @foreach($vPhotoUrls as $idx => $url)
+            <span class="vph-dot" data-idx="{{ $idx }}"
+                  style="width:{{ $idx === 0 ? '18px' : '7px' }};height:7px;border-radius:99px;background:{{ $idx === 0 ? '#1d4ed8' : '#cbd5e1' }};transition:all .25s;display:inline-block;cursor:pointer;"></span>
+            @endforeach
+            @else
+            <span style="font-size:.7rem;color:#94a3b8;display:flex;align-items:center;gap:.3rem;">
+                <i class="ph ph-magnifying-glass-plus"></i> Tap to enlarge
+            </span>
+            @endif
         </div>
-    @endif
+    </div>
 </div>
+<script>
+(function () {
+    var track  = document.getElementById('vphTrack');
+    var dots   = document.querySelectorAll('.vph-dot');
+    var total  = {{ count($vPhotoUrls) }};
+    var cur    = 0;
+    var startX = 0, startY = 0, dragging = false, moved = false;
+
+    function goTo(n) {
+        cur = (n + total) % total;
+        track.style.transform = 'translateX(-' + (cur * 100) + '%)';
+        dots.forEach(function (d, i) {
+            d.style.width      = i === cur ? '18px' : '7px';
+            d.style.background = i === cur ? '#1d4ed8' : '#cbd5e1';
+        });
+    }
+
+    dots.forEach(function (d) {
+        d.addEventListener('click', function () { goTo(parseInt(d.dataset.idx)); });
+    });
+
+    /* Touch swipe */
+    track.addEventListener('touchstart', function (e) {
+        startX  = e.touches[0].clientX;
+        startY  = e.touches[0].clientY;
+        dragged = false;
+        moved   = false;
+    }, { passive: true });
+
+    track.addEventListener('touchmove', function (e) {
+        var dx = e.touches[0].clientX - startX;
+        var dy = e.touches[0].clientY - startY;
+        if (!moved && Math.abs(dx) > Math.abs(dy) + 5) { moved = true; }
+    }, { passive: true });
+
+    track.addEventListener('touchend', function (e) {
+        if (!moved) return;
+        var dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) > 40) {
+            goTo(dx < 0 ? cur + 1 : cur - 1);
+            /* prevent lightbox opening on swipe */
+            e.stopPropagation();
+        }
+    });
+})();
+</script>
 @endif
 
 {{-- ── Citation Ticket Photo ── --}}
