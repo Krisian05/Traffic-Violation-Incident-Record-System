@@ -1588,11 +1588,9 @@ function mobLbClose() {
 })();
 
 function mobVphOpen(el) {
-    try {
-        mobLbOpenDirect(JSON.parse(el.dataset.gallery), 0, el.dataset.caption);
-    } catch (err) {
-        mobLbOpenDirect([el.src], 0, el.dataset.caption || '');
-    }
+    var raw = el.dataset.gallery || '';
+    var urls = raw ? raw.split('|') : [el.src];
+    mobLbOpenDirect(urls, 0, el.dataset.caption || '');
 }
 
 function mobLbOpenDirect(urls, startIndex, caption) {

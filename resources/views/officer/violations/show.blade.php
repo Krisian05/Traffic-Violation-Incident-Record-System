@@ -227,7 +227,7 @@
             : $veh->allViolationPhotos;
     }
     $vCaption = $plate ? 'Vehicle — ' . $plate : 'Vehicle Photo';
-    $vGallery = $vPhotos->map(fn($p) => uploaded_file_url($p->photo))->values()->toJson();
+    $vGallery = $vPhotos->map(fn($p) => uploaded_file_url($p->photo))->values()->implode('|');
 @endphp
 <div class="motshow-section">Vehicle Involved</div>
 <div style="display:flex;align-items:flex-start;gap:.85rem;background:#fff;border-radius:16px;border:1px solid rgba(15,23,42,.06);box-shadow:0 2px 10px rgba(15,23,42,.04);margin-bottom:.9rem;overflow:hidden;position:relative;">
@@ -239,7 +239,7 @@
         <div style="position:relative;width:72px;height:72px;border-radius:14px;overflow:hidden;flex-shrink:0;box-shadow:0 3px 10px rgba(15,23,42,.15);cursor:zoom-in;">
             <img src="{{ uploaded_file_url($vPhotos->first()->photo) }}"
                  alt="Vehicle photo"
-                 data-gallery="{{ e($vGallery) }}"
+                 data-gallery="{{ $vGallery }}"
                  data-caption="{{ $vCaption }}"
                  onclick="event.stopPropagation();mobVphOpen(this);"
                  style="width:72px;height:72px;object-fit:cover;display:block;">
