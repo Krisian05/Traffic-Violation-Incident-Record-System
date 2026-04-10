@@ -1587,6 +1587,14 @@ function mobLbClose() {
     lb.addEventListener('touchcancel', resetGesture);
 })();
 
+function mobVphOpen(el) {
+    try {
+        mobLbOpenDirect(JSON.parse(el.dataset.gallery), 0, el.dataset.caption);
+    } catch (err) {
+        mobLbOpenDirect([el.src], 0, el.dataset.caption || '');
+    }
+}
+
 function mobLbOpenDirect(urls, startIndex, caption) {
     if (!urls || !urls.length) return;
     mobLbGallery = urls.map(function(src) { return { src: src, caption: caption || '' }; });

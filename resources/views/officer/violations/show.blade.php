@@ -241,7 +241,7 @@
                  alt="Vehicle photo"
                  data-gallery="{{ e($vGallery) }}"
                  data-caption="{{ $vCaption }}"
-                 onclick="event.stopPropagation();(function(el){try{mobLbOpenDirect(JSON.parse(el.dataset.gallery),0,el.dataset.caption);}catch(e){mobLbOpenDirect([el.src],0,el.dataset.caption);})(this);"
+                 onclick="event.stopPropagation();mobVphOpen(this);"
                  style="width:72px;height:72px;object-fit:cover;display:block;">
             @if($vPhotos->count() > 1)
             <div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.55);border-radius:6px;padding:.1rem .28rem;pointer-events:none;">
