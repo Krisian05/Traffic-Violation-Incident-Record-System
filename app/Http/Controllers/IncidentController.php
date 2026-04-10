@@ -29,13 +29,14 @@ class IncidentController extends Controller
             ->withCount(['motorists', 'media']);
 
         if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('location', 'like', "%{$search}%")
-                  ->orWhere('incident_number', 'like', "%{$search}%")
-                  ->orWhereHas('motorists', function ($mq) use ($search) {
-                      $mq->where('motorist_name', 'like', "%{$search}%")
-                         ->orWhereHas('violator', function ($vq) use ($search) {
-                             $vq->whereRaw("CONCAT(first_name,' ',last_name) LIKE ?", ["%{$search}%"]);
+            $lk = '%' . mb_strtolower($search) . '%';
+            $query->where(function ($q) use ($lk) {
+                $q->whereRaw('LOWER(location) LIKE ?', [$lk])
+                  ->orWhereRaw('LOWER(incident_number) LIKE ?', [$lk])
+                  ->orWhereHas('motorists', function ($mq) use ($lk) {
+                      $mq->whereRaw('LOWER(motorist_name) LIKE ?', [$lk])
+                         ->orWhereHas('violator', function ($vq) use ($lk) {
+                             $vq->whereRaw("LOWER(CONCAT(first_name,' ',last_name)) LIKE ?", [$lk]);
                          });
                   });
             });

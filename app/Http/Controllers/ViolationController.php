@@ -19,16 +19,18 @@ class ViolationController extends Controller
         $query = Violation::with(['violator', 'violationType', 'vehicle']);
 
         if ($search = $request->input('search')) {
-            $query->whereHas('violator', function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('middle_name', 'like', "%{$search}%");
+            $lk = '%' . mb_strtolower($search) . '%';
+            $query->whereHas('violator', function ($q) use ($lk) {
+                $q->whereRaw('LOWER(first_name) LIKE ?', [$lk])
+                  ->orWhereRaw('LOWER(last_name) LIKE ?', [$lk])
+                  ->orWhereRaw('LOWER(middle_name) LIKE ?', [$lk]);
             });
         }
 
         if ($plate = $request->input('plate')) {
-            $query->whereHas('vehicle', function ($q) use ($plate) {
-                $q->where('plate_number', 'like', "%{$plate}%");
+            $plateLk = '%' . mb_strtolower($plate) . '%';
+            $query->whereHas('vehicle', function ($q) use ($plateLk) {
+                $q->whereRaw('LOWER(plate_number) LIKE ?', [$plateLk]);
             });
         }
 

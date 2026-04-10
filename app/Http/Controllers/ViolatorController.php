@@ -17,17 +17,19 @@ class ViolatorController extends Controller
             ->withCount(['violations as overdue_count' => fn($q) => $q->where('status', 'pending')->where('date_of_violation', '<=', now()->subHours(72)->toDateString())]);
 
         if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('middle_name', 'like', "%{$search}%")
-                  ->orWhere('license_number', 'like', "%{$search}%");
+            $lk = '%' . mb_strtolower($search) . '%';
+            $query->where(function ($q) use ($lk) {
+                $q->whereRaw('LOWER(first_name) LIKE ?', [$lk])
+                  ->orWhereRaw('LOWER(last_name) LIKE ?', [$lk])
+                  ->orWhereRaw('LOWER(middle_name) LIKE ?', [$lk])
+                  ->orWhereRaw('LOWER(license_number) LIKE ?', [$lk]);
             });
         }
 
         if ($plate = $request->input('plate')) {
-            $query->whereHas('vehicles', function ($q) use ($plate) {
-                $q->where('plate_number', 'like', "%{$plate}%");
+            $plateLk = '%' . mb_strtolower($plate) . '%';
+            $query->whereHas('vehicles', function ($q) use ($plateLk) {
+                $q->whereRaw('LOWER(plate_number) LIKE ?', [$plateLk]);
             });
         }
 

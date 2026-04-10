@@ -49,11 +49,12 @@ class OfficerController extends Controller
         $query = Violator::withCount('violations');
 
         if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name',  'like', "%{$search}%")
-                  ->orWhere('middle_name','like', "%{$search}%")
-                  ->orWhere('license_number', 'like', "%{$search}%");
+            $lk = '%' . mb_strtolower($search) . '%';
+            $query->where(function ($q) use ($lk) {
+                $q->whereRaw('LOWER(first_name) LIKE ?', [$lk])
+                  ->orWhereRaw('LOWER(last_name) LIKE ?', [$lk])
+                  ->orWhereRaw('LOWER(middle_name) LIKE ?', [$lk])
+                  ->orWhereRaw('LOWER(license_number) LIKE ?', [$lk]);
             });
         }
 
@@ -74,13 +75,14 @@ class OfficerController extends Controller
             return response()->json([]);
         }
 
+        $lk = '%' . mb_strtolower($search) . '%';
         $motorists = Violator::withCount('violations')->select('violators.*')
             ->with(['vehicles' => fn($query) => $query->select('id', 'violator_id', 'plate_number')->limit(1)])
-            ->where(function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('middle_name', 'like', "%{$search}%")
-                  ->orWhere('license_number', 'like', "%{$search}%");
+            ->where(function ($q) use ($lk) {
+                $q->whereRaw('LOWER(first_name) LIKE ?', [$lk])
+                  ->orWhereRaw('LOWER(last_name) LIKE ?', [$lk])
+                  ->orWhereRaw('LOWER(middle_name) LIKE ?', [$lk])
+                  ->orWhereRaw('LOWER(license_number) LIKE ?', [$lk]);
             })
             ->orderBy('last_name')
             ->orderBy('first_name')

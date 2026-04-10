@@ -17,23 +17,24 @@ class VehicleController extends Controller
             ->withCount('violations');
 
         if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $nameSearch = fn($vq) => $vq->where('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('middle_name', 'like', "%{$search}%");
+            $lk = '%' . mb_strtolower($search) . '%';
+            $query->where(function ($q) use ($lk) {
+                $nameSearch = fn($vq) => $vq->whereRaw('LOWER(first_name) LIKE ?', [$lk])
+                    ->orWhereRaw('LOWER(last_name) LIKE ?', [$lk])
+                    ->orWhereRaw('LOWER(middle_name) LIKE ?', [$lk]);
 
-                $q->where('plate_number', 'like', "%{$search}%")
-                  ->orWhere('make', 'like', "%{$search}%")
-                  ->orWhere('model', 'like', "%{$search}%")
-                  ->orWhere('color', 'like', "%{$search}%")
+                $q->whereRaw('LOWER(plate_number) LIKE ?', [$lk])
+                  ->orWhereRaw('LOWER(make) LIKE ?', [$lk])
+                  ->orWhereRaw('LOWER(model) LIKE ?', [$lk])
+                  ->orWhereRaw('LOWER(color) LIKE ?', [$lk])
                   // owner
                   ->orWhereHas('violator', $nameSearch)
                   // anyone who received a violation while using this vehicle
                   ->orWhereHas('violations.violator', $nameSearch)
                   // anyone listed as a motorist in an incident involving this vehicle
                   ->orWhereHas('incidentMotorists', fn($vq) => $vq
-                      ->where('motorist_name', 'like', "%{$search}%")
-                      ->orWhere('motorist_license', 'like', "%{$search}%")
+                      ->whereRaw('LOWER(motorist_name) LIKE ?', [$lk])
+                      ->orWhereRaw('LOWER(motorist_license) LIKE ?', [$lk])
                       ->orWhereHas('violator', $nameSearch)
                   );
             });

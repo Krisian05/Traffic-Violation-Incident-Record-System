@@ -22,9 +22,10 @@ class ReportController extends Controller
             return response()->json([]);
         }
 
-        $violators = Violator::where('first_name', 'like', "%{$q}%")
-            ->orWhere('last_name', 'like', "%{$q}%")
-            ->orWhere('middle_name', 'like', "%{$q}%")
+        $lk = '%' . mb_strtolower($q) . '%';
+        $violators = Violator::whereRaw('LOWER(first_name) LIKE ?', [$lk])
+            ->orWhereRaw('LOWER(last_name) LIKE ?', [$lk])
+            ->orWhereRaw('LOWER(middle_name) LIKE ?', [$lk])
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->limit(8)
