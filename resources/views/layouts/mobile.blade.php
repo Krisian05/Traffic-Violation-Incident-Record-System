@@ -1343,17 +1343,17 @@
         <i class="ph ph-caret-right" style="font-size:1.2rem;"></i>
     </button>
     <div id="mob-lb-stage" class="mob-lightbox-stage" onclick="event.stopPropagation()">
-        <img id="mob-lb-img" src="" alt="Photo" draggable="false" style="max-width:100%;max-height:72vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);display:block;">
+        <img id="mob-lb-img" src="" alt="Photo" draggable="false" style="max-width:100%;max-height:58vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);display:block;">
         <div id="mob-lightbox-caption" style="color:rgba(255,255,255,.75);font-size:.78rem;font-weight:600;text-align:center;padding:0;max-width:320px;line-height:1.4;min-height:1em;"></div>
-        <div id="mob-lb-bottom-nav" style="display:none;align-items:center;justify-content:center;gap:1rem;margin-top:.25rem;">
+        <div id="mob-lb-bottom-nav" style="display:none;align-items:center;justify-content:center;gap:.75rem;margin-top:.5rem;">
             <button id="mob-lb-prev-btn" onclick="event.stopPropagation();mobLbStep(-1)"
-                style="display:flex;align-items:center;gap:.4rem;padding:.55rem 1.1rem;border-radius:999px;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.15);color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;">
-                <i class="ph ph-caret-left"></i> Prev
+                style="display:flex;align-items:center;gap:.4rem;padding:.65rem 1.4rem;border-radius:999px;border:2px solid rgba(255,255,255,.5);background:rgba(255,255,255,.2);color:#fff;font-size:.88rem;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent;">
+                <i class="ph-bold ph-caret-left"></i> Prev
             </button>
-            <div id="mob-lb-counter" class="mob-lightbox-counter" style="margin:0;min-width:40px;text-align:center;"></div>
+            <div id="mob-lb-counter" class="mob-lightbox-counter" style="margin:0;min-width:44px;text-align:center;font-size:.82rem;font-weight:800;color:#fff;"></div>
             <button id="mob-lb-next-btn" onclick="event.stopPropagation();mobLbStep(1)"
-                style="display:flex;align-items:center;gap:.4rem;padding:.55rem 1.1rem;border-radius:999px;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.15);color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;">
-                Next <i class="ph ph-caret-right"></i>
+                style="display:flex;align-items:center;gap:.4rem;padding:.65rem 1.4rem;border-radius:999px;border:2px solid rgba(255,255,255,.5);background:rgba(255,255,255,.2);color:#fff;font-size:.88rem;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent;">
+                Next <i class="ph-bold ph-caret-right"></i>
             </button>
         </div>
     </div>
