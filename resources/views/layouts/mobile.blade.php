@@ -1430,18 +1430,30 @@ function mobLbClose() {
 /* ── Lightbox swipe ── */
 (function () {
     var lb = document.getElementById('mob-lightbox');
-    var lbStartX = 0, lbMoved = false;
-    lb.addEventListener('touchstart', function (e) {
+    var lbStartX = 0, lbStartY = 0, lbSwiped = false;
+
+    document.addEventListener('touchstart', function (e) {
+        if (!lb.classList.contains('open')) return;
         lbStartX = e.touches[0].clientX;
-        lbMoved  = false;
+        lbStartY = e.touches[0].clientY;
+        lbSwiped = false;
     }, { passive: true });
-    lb.addEventListener('touchmove', function (e) {
-        if (Math.abs(e.touches[0].clientX - lbStartX) > 8) lbMoved = true;
+
+    document.addEventListener('touchmove', function (e) {
+        if (!lb.classList.contains('open')) return;
+        var dx = Math.abs(e.touches[0].clientX - lbStartX);
+        var dy = Math.abs(e.touches[0].clientY - lbStartY);
+        if (dx > dy && dx > 8) lbSwiped = true;
     }, { passive: true });
-    lb.addEventListener('touchend', function (e) {
-        if (!lbMoved) return;
+
+    document.addEventListener('touchend', function (e) {
+        if (!lb.classList.contains('open') || !lbSwiped) return;
         var dx = e.changedTouches[0].clientX - lbStartX;
-        if (Math.abs(dx) > 40) mobLbStep(dx < 0 ? 1 : -1);
+        if (Math.abs(dx) > 35) {
+            e.preventDefault();
+            mobLbStep(dx < 0 ? 1 : -1);
+        }
+        lbSwiped = false;
     });
 })();
 
