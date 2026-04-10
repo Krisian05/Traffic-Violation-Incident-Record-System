@@ -223,90 +223,33 @@
     $vPhotos    = $violation->vehiclePhotos;
     $vCaption   = $plate ? 'Vehicle — ' . $plate : 'Vehicle Photo';
     $vGallery   = $vPhotos->map(fn($p) => uploaded_file_url($p->photo))->values()->toJson();
-    $vPhotoUrls = $vPhotos->map(fn($p) => uploaded_file_url($p->photo))->values()->all();
+    $vExtra     = $vPhotos->count() - 1;
 @endphp
 <div class="motshow-section">Vehicle Involved</div>
-<div style="background:#fff;border-radius:16px;border:1px solid rgba(15,23,42,.06);box-shadow:0 2px 10px rgba(15,23,42,.04);margin-bottom:.9rem;overflow:hidden;">
+<div style="display:flex;align-items:flex-start;gap:.85rem;background:#fff;border-radius:16px;border:1px solid rgba(15,23,42,.06);box-shadow:0 2px 10px rgba(15,23,42,.04);margin-bottom:.9rem;overflow:hidden;position:relative;">
+    <div style="width:4px;background:linear-gradient(180deg,#dc2626,#b91c1c);align-self:stretch;flex-shrink:0;"></div>
+    <div style="display:flex;align-items:flex-start;gap:.75rem;flex:1;min-width:0;padding:.85rem .85rem .85rem 0;">
 
-    {{-- Photo carousel (shown when photos exist) --}}
-    @if($vPhotos->isNotEmpty())
-    <div id="vphCarousel" style="position:relative;user-select:none;touch-action:pan-y;">
-        <div id="vphTrack" style="display:flex;transition:transform .32s cubic-bezier(.4,0,.2,1);will-change:transform;">
-            @foreach($vPhotoUrls as $idx => $url)
-            <div style="flex:0 0 100%;min-width:0;">
-                <img src="{{ $url }}"
-                     alt="Vehicle photo {{ $idx + 1 }}"
-                     class="mob-photo-thumb"
-                     data-full="{{ $url }}"
-                     data-gallery="{{ e($vGallery) }}"
-                     data-gallery-index="{{ $idx }}"
-                     data-caption="{{ $vCaption }}"
-                     style="width:100%;height:200px;object-fit:cover;display:block;cursor:zoom-in;">
+        {{-- Square thumbnail with +N badge --}}
+        @if($vPhotos->isNotEmpty())
+        <div style="position:relative;width:64px;height:64px;border-radius:14px;overflow:hidden;flex-shrink:0;box-shadow:0 3px 10px rgba(15,23,42,.15);cursor:zoom-in;">
+            <img src="{{ uploaded_file_url($vPhotos->first()->photo) }}"
+                 alt="Vehicle photo"
+                 class="mob-photo-thumb"
+                 data-full="{{ uploaded_file_url($vPhotos->first()->photo) }}"
+                 data-gallery="{{ e($vGallery) }}"
+                 data-gallery-index="0"
+                 data-caption="{{ $vCaption }}"
+                 style="width:64px;height:64px;object-fit:cover;display:block;">
+            @if($vExtra > 0)
+            <div style="position:absolute;bottom:4px;right:4px;background:#1d4ed8;border-radius:8px;padding:.1rem .32rem;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+                <span style="color:#fff;font-size:.58rem;font-weight:800;line-height:1;">+{{ $vExtra }}</span>
             </div>
-            @endforeach
+            @endif
         </div>
-        {{-- Dots (only when multiple photos) --}}
-        @if(count($vPhotoUrls) > 1)
-        <div style="position:absolute;bottom:.5rem;left:0;right:0;display:flex;justify-content:center;gap:.4rem;pointer-events:none;">
-            @foreach($vPhotoUrls as $idx => $url)
-            <span class="vph-dot" data-idx="{{ $idx }}"
-                  style="width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.5);transition:all .25s;display:inline-block;pointer-events:all;cursor:pointer;"></span>
-            @endforeach
-        </div>
-        @endif
-    </div>
-    <script>
-    (function () {
-        var track  = document.getElementById('vphTrack');
-        var dots   = document.querySelectorAll('.vph-dot');
-        var total  = dots.length || 1;
-        var cur    = 0;
-        var startX = 0, startY = 0, moved = false;
-
-        function goTo(n) {
-            cur = (n + total) % total;
-            track.style.transform = 'translateX(-' + (cur * 100) + '%)';
-            dots.forEach(function (d, i) {
-                d.style.width      = i === cur ? '18px' : '7px';
-                d.style.background = i === cur ? '#fff' : 'rgba(255,255,255,.5)';
-            });
-        }
-
-        dots.forEach(function (d) {
-            d.addEventListener('click', function () { goTo(parseInt(d.dataset.idx)); });
-        });
-
-        track.addEventListener('touchstart', function (e) {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-            moved  = false;
-        }, { passive: true });
-
-        track.addEventListener('touchmove', function (e) {
-            var dx = e.touches[0].clientX - startX;
-            var dy = e.touches[0].clientY - startY;
-            if (!moved && Math.abs(dx) > Math.abs(dy) + 5) { moved = true; }
-        }, { passive: true });
-
-        track.addEventListener('touchend', function (e) {
-            if (!moved) return;
-            var dx = e.changedTouches[0].clientX - startX;
-            if (Math.abs(dx) > 40) {
-                goTo(dx < 0 ? cur + 1 : cur - 1);
-                e.stopPropagation();
-            }
-        });
-
-        goTo(0);
-    })();
-    </script>
-    @endif
-
-    {{-- Vehicle info row --}}
-    <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.75rem .85rem;">
-        @if($vPhotos->isEmpty())
-        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#dc2626,#b91c1c);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(220,38,38,.3);">
-            <i class="ph-fill ph-car-profile" style="font-size:1.1rem;color:#fff;"></i>
+        @else
+        <div style="width:64px;height:64px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#b91c1c);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(220,38,38,.3);">
+            <i class="ph-fill ph-car-profile" style="font-size:1.4rem;color:#fff;"></i>
         </div>
         @endif
         <div style="flex:1;min-width:0;">
