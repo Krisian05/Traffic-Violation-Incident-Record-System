@@ -323,7 +323,7 @@
             @if(count($vPhotoUrls) > 1)
             @foreach($vPhotoUrls as $idx => $url)
             <span class="vph-dot" data-idx="{{ $idx }}"
-                  style="width:{{ $idx === 0 ? '18px' : '7px' }};height:7px;border-radius:99px;background:{{ $idx === 0 ? '#1d4ed8' : '#cbd5e1' }};transition:all .25s;display:inline-block;cursor:pointer;"></span>
+                  style="width:7px;height:7px;border-radius:99px;background:#cbd5e1;transition:all .25s;display:inline-block;cursor:pointer;"></span>
             @endforeach
             @else
             <span style="font-size:.7rem;color:#94a3b8;display:flex;align-items:center;gap:.3rem;">
@@ -337,7 +337,7 @@
 (function () {
     var track  = document.getElementById('vphTrack');
     var dots   = document.querySelectorAll('.vph-dot');
-    var total  = {{ count($vPhotoUrls) }};
+    var total  = dots.length || 1;
     var cur    = 0;
     var startX = 0, startY = 0, dragging = false, moved = false;
 
@@ -377,6 +377,8 @@
             e.stopPropagation();
         }
     });
+
+    goTo(0);
 })();
 </script>
 @endif
