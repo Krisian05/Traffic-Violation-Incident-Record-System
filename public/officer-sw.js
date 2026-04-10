@@ -1,6 +1,6 @@
-var STATIC_CACHE = 'tvirs-mobile-static-v6';
-var PAGE_CACHE = 'tvirs-mobile-pages-v6';
-var EXTERNAL_CACHE = 'tvirs-mobile-external-v6';
+var STATIC_CACHE = 'tvirs-mobile-static-v7';
+var PAGE_CACHE = 'tvirs-mobile-pages-v7';
+var EXTERNAL_CACHE = 'tvirs-mobile-external-v7';
 var OFFLINE_FALLBACK = '/offline-mobile.html';
 var STATIC_URLS = [
     '/manifest.json',
