@@ -1471,21 +1471,16 @@ function mobLbClose() {
     var img = document.getElementById('mob-lb-img');
     if (!img) return;
 
-    var scale = 1, lastScale = 1;
-    var originX = 0, originY = 0;
-    var posX = 0, posY = 0;
-    var lastPosX = 0, lastPosY = 0;
+    var scale = 1, initScale = 1;
+    var posX = 0, posY = 0, initPosX = 0, initPosY = 0;
+    var pivotX = 0, pivotY = 0;
+    var initDist = 0;
     var pinching = false;
     var lastTap = 0;
 
-    function getDistance(t1, t2) {
-        var dx = t1.clientX - t2.clientX;
-        var dy = t1.clientY - t2.clientY;
+    function dist(t1, t2) {
+        var dx = t1.clientX - t2.clientX, dy = t1.clientY - t2.clientY;
         return Math.sqrt(dx * dx + dy * dy);
-    }
-
-    function getMidpoint(t1, t2) {
-        return { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 };
     }
 
     function applyTransform() {
@@ -1493,27 +1488,28 @@ function mobLbClose() {
     }
 
     function resetZoom() {
-        scale = 1; lastScale = 1; posX = 0; posY = 0; lastPosX = 0; lastPosY = 0;
-        img.style.transform = '';
+        scale = 1; posX = 0; posY = 0;
         img.style.transition = 'transform .2s ease';
+        img.style.transform = '';
         setTimeout(function () { img.style.transition = ''; }, 220);
     }
-
-    var initDist = 0;
 
     img.addEventListener('touchstart', function (e) {
         if (e.touches.length === 2) {
             pinching = true;
-            initDist = getDistance(e.touches[0], e.touches[1]);
-            lastScale = scale;
-            var mid = getMidpoint(e.touches[0], e.touches[1]);
-            var rect = img.getBoundingClientRect();
-            originX = mid.x - rect.left - rect.width / 2;
-            originY = mid.y - rect.top - rect.height / 2;
+            initDist  = dist(e.touches[0], e.touches[1]);
+            initScale = scale;
+            initPosX  = posX;
+            initPosY  = posY;
+            var rect  = img.getBoundingClientRect();
+            var mx    = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            var my    = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+            // Pivot = pinch midpoint relative to current rendered element center
+            pivotX = mx - (rect.left + rect.width  / 2);
+            pivotY = my - (rect.top  + rect.height / 2);
             e.preventDefault();
         } else if (e.touches.length === 1) {
             pinching = false;
-            // double-tap to reset
             var now = Date.now();
             if (now - lastTap < 300) { resetZoom(); }
             lastTap = now;
@@ -1522,8 +1518,12 @@ function mobLbClose() {
 
     img.addEventListener('touchmove', function (e) {
         if (e.touches.length === 2 && pinching) {
-            var dist = getDistance(e.touches[0], e.touches[1]);
-            scale = Math.min(5, Math.max(1, lastScale * (dist / initDist)));
+            var newScale = Math.min(5, Math.max(1, initScale * dist(e.touches[0], e.touches[1]) / initDist));
+            var ratio    = newScale / initScale;
+            // Translate so the pivot point stays fixed on screen
+            posX  = pivotX * (1 - ratio) + initPosX;
+            posY  = pivotY * (1 - ratio) + initPosY;
+            scale = newScale;
             applyTransform();
             e.preventDefault();
         }
