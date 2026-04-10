@@ -1527,7 +1527,7 @@ function mobLbClose() {
 
         mobLbGesture.deltaX = dx;
         img.style.transform = 'translateX(' + dx + 'px)';
-        img.style.opacity = String(Math.max(0.72, 1 - (Math.abs(dx) / Math.max(240, window.innerWidth)))));
+        img.style.opacity = String(Math.max(0.72, 1 - (Math.abs(dx) / Math.max(240, window.innerWidth))));
 
         if (event && event.cancelable) {
             event.preventDefault();
