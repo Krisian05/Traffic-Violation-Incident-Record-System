@@ -12,6 +12,7 @@
     var MOTORIST_LINK_KEY = 'tvirs-offline-motorist-links';
     var SYNC_INTERVAL_MS = 30000;
     var OFFLINE_VIOLATION_CREATE_PATH = '/officer/offline/violations/create';
+    var OFFLINE_VEHICLE_CREATE_PATH = '/officer/offline/vehicles/create';
     var DUPLICATE_STATES = { pending: true, failed: true };
     var serviceWorkerVersion = cleanedString(document.body.dataset.officerSwVersion || '');
     var toastTimer = null;
@@ -571,7 +572,7 @@
         if ((record && record.sourcePath) === OFFLINE_VIOLATION_CREATE_PATH || actionPath === OFFLINE_VIOLATION_CREATE_PATH) {
             return 'offline-violation-create';
         }
-        if (actionPath === '/officer/offline/vehicles/create') {
+        if ((record && record.sourcePath) === OFFLINE_VEHICLE_CREATE_PATH || actionPath === OFFLINE_VEHICLE_CREATE_PATH) {
             return 'offline-vehicle-create';
         }
 
@@ -674,6 +675,10 @@
 
     function buildOfflineViolationHref(offlineMotoristKey) {
         return OFFLINE_VIOLATION_CREATE_PATH + '#motorist=' + encodeURIComponent(cleanedString(offlineMotoristKey));
+    }
+
+    function buildOfflineVehicleHref(offlineMotoristKey) {
+        return OFFLINE_VEHICLE_CREATE_PATH + '#motorist=' + encodeURIComponent(cleanedString(offlineMotoristKey));
     }
 
     function buildRecordMetadata(form, entries) {
@@ -1171,8 +1176,17 @@
         });
     }
 
+    function forcedQueueRecordType(form) {
+        return cleanedString(form.dataset.offlineRecordType);
+    }
+
     function formRequiresForcedQueue(form) {
-        return cleanedString(form.dataset.offlineRecordType) === 'offline-violation-create';
+        var recordType = forcedQueueRecordType(form);
+        return recordType === 'offline-violation-create' || recordType === 'offline-vehicle-create';
+    }
+
+    function forcedQueueRecordLabel(form) {
+        return forcedQueueRecordType(form) === 'offline-vehicle-create' ? 'vehicle' : 'violation';
     }
 
     function forcedQueueParentKey(form) {
@@ -1283,7 +1297,7 @@
             }
 
             formData.set('violator_id', vehSyncedId);
-            targetAction = '/officer/offline/vehicles/create';
+            targetAction = OFFLINE_VEHICLE_CREATE_PATH;
         }
 
         try {
@@ -1452,7 +1466,7 @@
                 if (formRequiresForcedQueue(form) && !forcedQueueParentKey(form)) {
                     event.preventDefault();
                     event.stopImmediatePropagation();
-                    showToast('Open this page from a queued offline motorist before recording a violation.', 'error');
+                    showToast('Open this page from a queued offline motorist before recording this ' + forcedQueueRecordLabel(form) + '.', 'error');
                     return;
                 }
 
@@ -1582,7 +1596,8 @@
         getOfflineMotoristByKey: getOfflineMotoristByKey,
         findOfflineMotoristForForm: findOfflineMotoristForForm,
         getSyncedMotoristId: getSyncedMotoristId,
-        buildOfflineViolationHref: buildOfflineViolationHref
+        buildOfflineViolationHref: buildOfflineViolationHref,
+        buildOfflineVehicleHref: buildOfflineVehicleHref
     };
 
     migrateLegacyQueuedRecords().finally(function () {

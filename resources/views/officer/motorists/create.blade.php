@@ -675,10 +675,14 @@
     </div>
 
     <div class="submit-strip" id="offlineMotoristActions" style="margin-top:.85rem;display:none;">
-        <div id="offlineMotoristActionsTitle" style="font-size:.76rem;font-weight:800;color:#0f172a;">Offline Violation</div>
-        <div id="offlineMotoristActionsText" style="font-size:.7rem;color:#64748b;line-height:1.5;margin-top:.2rem;">Save this motorist while offline first, then use the button below to add a linked violation on this device.</div>
+        <div id="offlineMotoristActionsTitle" style="font-size:.76rem;font-weight:800;color:#0f172a;">Offline Actions</div>
+        <div id="offlineMotoristActionsText" style="font-size:.7rem;color:#64748b;line-height:1.5;margin-top:.2rem;">Save this motorist while offline first, then use the buttons below to add linked records on this device.</div>
         <a href="{{ route('officer.offline.violations.create') }}" id="offlineMotoristViolationLink" class="mob-btn-primary mob-btn-danger" style="margin-top:.8rem;text-decoration:none;pointer-events:none;opacity:.55;">
             <i class="ph-bold ph-file-plus"></i>
+            Save Motorist Offline First
+        </a>
+        <a href="{{ route('officer.offline.vehicles.create') }}" id="offlineMotoristVehicleLink" class="mob-btn-outline" style="margin-top:.55rem;text-decoration:none;pointer-events:none;opacity:.55;">
+            <i class="ph-fill ph-car-simple"></i>
             Save Motorist Offline First
         </a>
     </div>
@@ -845,20 +849,23 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        activateOfflineViolationLink(record);
+        activateOfflineMotoristLinks(record);
     });
 
     var actionsTitle = document.getElementById('offlineMotoristActionsTitle');
     var actionsText = document.getElementById('offlineMotoristActionsText');
     var violationLink = document.getElementById('offlineMotoristViolationLink');
+    var vehicleLink = document.getElementById('offlineMotoristVehicleLink');
     var offlineActions = document.getElementById('offlineMotoristActions');
     var motoristForm = document.getElementById('motoristForm');
-var baseOfflineViolationHref = '{{ route("officer.offline.violations.create") }}';
-var defaultActionsTitle = actionsTitle ? actionsTitle.textContent : "Offline Violation";
-    var defaultActionsText = actionsText ? actionsText.textContent : "Save this motorist while offline first, then use the button below to add a linked violation on this device.";
+    var baseOfflineViolationHref = '{{ route("officer.offline.violations.create") }}';
+    var baseOfflineVehicleHref = '{{ route("officer.offline.vehicles.create") }}';
+    var defaultActionsTitle = actionsTitle ? actionsTitle.textContent : "Offline Actions";
+    var defaultActionsText = actionsText ? actionsText.textContent : "Save this motorist while offline first, then use the buttons below to add linked records on this device.";
     var defaultViolationLabel = violationLink ? violationLink.innerHTML : '<i class="ph-bold ph-file-plus"></i> Save Motorist Offline First';
+    var defaultVehicleLabel = vehicleLink ? vehicleLink.innerHTML : '<i class="ph-fill ph-car-simple"></i> Save Motorist Offline First';
 
-    function syncOfflineViolationVisibility() {
+    function syncOfflineMotoristActionVisibility() {
         if (!offlineActions) {
             return;
         }
@@ -866,7 +873,7 @@ var defaultActionsTitle = actionsTitle ? actionsTitle.textContent : "Offline Vio
         offlineActions.style.display = navigator.onLine ? 'none' : '';
     }
 
-    function resetOfflineViolationLink() {
+    function resetOfflineMotoristLinks() {
         if (!violationLink || !actionsText || !actionsTitle) {
             return;
         }
@@ -877,9 +884,16 @@ var defaultActionsTitle = actionsTitle ? actionsTitle.textContent : "Offline Vio
         violationLink.style.pointerEvents = 'none';
         violationLink.style.opacity = '.55';
         violationLink.innerHTML = defaultViolationLabel;
+
+        if (vehicleLink) {
+            vehicleLink.href = baseOfflineVehicleHref;
+            vehicleLink.style.pointerEvents = 'none';
+            vehicleLink.style.opacity = '.55';
+            vehicleLink.innerHTML = defaultVehicleLabel;
+        }
     }
 
-    function activateOfflineViolationLink(record) {
+    function activateOfflineMotoristLinks(record) {
         if (!record || !violationLink || !actionsText || !actionsTitle) {
             return;
         }
@@ -888,16 +902,23 @@ var defaultActionsTitle = actionsTitle ? actionsTitle.textContent : "Offline Vio
             motoristForm.dataset.offlineMotoristKey = record.offlineMotoristKey;
         }
 
-        syncOfflineViolationVisibility();
+        syncOfflineMotoristActionVisibility();
         actionsTitle.textContent = 'Motorist queued on this device';
-        actionsText.textContent = 'You can record a violation for this unsynced motorist right away. It will publish after the motorist record syncs.';
+        actionsText.textContent = 'You can record a violation or add a vehicle for this unsynced motorist right away. Each record will publish after the motorist syncs.';
         violationLink.href = baseOfflineViolationHref + '#motorist=' + encodeURIComponent(record.offlineMotoristKey || '');
         violationLink.style.pointerEvents = 'auto';
         violationLink.style.opacity = '1';
         violationLink.innerHTML = '<i class="ph-bold ph-file-plus"></i> Record Violation Now';
+
+        if (vehicleLink) {
+            vehicleLink.href = baseOfflineVehicleHref + '#motorist=' + encodeURIComponent(record.offlineMotoristKey || '');
+            vehicleLink.style.pointerEvents = 'auto';
+            vehicleLink.style.opacity = '1';
+            vehicleLink.innerHTML = '<i class="ph-fill ph-car-simple"></i> Add Vehicle Now';
+        }
     }
 
-    function activateOfflineViolationLinkFromForm() {
+    function activateOfflineMotoristLinksFromForm() {
         if (!motoristForm) {
             return false;
         }
@@ -907,63 +928,63 @@ var defaultActionsTitle = actionsTitle ? actionsTitle.textContent : "Offline Vio
             return false;
         }
 
-        activateOfflineViolationLink({ offlineMotoristKey: offlineKey });
+        activateOfflineMotoristLinks({ offlineMotoristKey: offlineKey });
         return true;
     }
 
-    function refreshOfflineViolationLink() {
+    function refreshOfflineMotoristLinks() {
         if (!motoristForm) {
-            resetOfflineViolationLink();
+            resetOfflineMotoristLinks();
             return;
         }
 
-        if (activateOfflineViolationLinkFromForm()) {
+        if (activateOfflineMotoristLinksFromForm()) {
             return;
         }
 
         if (!window.TvirsOffline || typeof window.TvirsOffline.findOfflineMotoristForForm !== 'function') {
-            resetOfflineViolationLink();
+            resetOfflineMotoristLinks();
             return;
         }
 
         window.TvirsOffline.findOfflineMotoristForForm(motoristForm).then(function (motorist) {
             if (!motorist) {
-                resetOfflineViolationLink();
+                resetOfflineMotoristLinks();
                 return;
             }
 
             if (motorist.offlineMotoristKey) {
                 motoristForm.dataset.offlineMotoristKey = motorist.offlineMotoristKey;
             }
-            activateOfflineViolationLink(motorist);
+            activateOfflineMotoristLinks(motorist);
         }).catch(function () {
             return null;
         });
     }
 
-    syncOfflineViolationVisibility();
-    refreshOfflineViolationLink();
+    syncOfflineMotoristActionVisibility();
+    refreshOfflineMotoristLinks();
     if (motoristForm) {
         motoristForm.addEventListener('submit', function () {
             if (!navigator.onLine) {
-                window.setTimeout(refreshOfflineViolationLink, 180);
-                window.setTimeout(refreshOfflineViolationLink, 700);
+                window.setTimeout(refreshOfflineMotoristLinks, 180);
+                window.setTimeout(refreshOfflineMotoristLinks, 700);
             }
         });
         motoristForm.querySelectorAll('input, textarea, select').forEach(function (field) {
             field.addEventListener('input', function () {
-                window.setTimeout(refreshOfflineViolationLink, 0);
+                window.setTimeout(refreshOfflineMotoristLinks, 0);
             });
             field.addEventListener('change', function () {
-                window.setTimeout(refreshOfflineViolationLink, 0);
+                window.setTimeout(refreshOfflineMotoristLinks, 0);
             });
         });
     }
-    window.addEventListener('tvirs-offline-updated', refreshOfflineViolationLink);
-    window.addEventListener('online', syncOfflineViolationVisibility);
+    window.addEventListener('tvirs-offline-updated', refreshOfflineMotoristLinks);
+    window.addEventListener('online', syncOfflineMotoristActionVisibility);
     window.addEventListener('offline', function () {
-        syncOfflineViolationVisibility();
-        refreshOfflineViolationLink();
+        syncOfflineMotoristActionVisibility();
+        refreshOfflineMotoristLinks();
     });
 
 })();

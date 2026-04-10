@@ -661,8 +661,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             '<a href="' + escapeHtml(window.TvirsOffline.buildOfflineViolationHref(motorist.offlineMotoristKey)) + '" class="mot-offline-btn mot-offline-btn--primary">' +
                                 '<i class="ph-fill ph-file-plus"></i>Record Violation' +
                             '</a>' +
-                            '<a href="{{ route('officer.motorists.create') }}" class="mot-offline-btn mot-offline-btn--ghost">' +
-                                '<i class="ph ph-user-plus"></i>New Motorist' +
+                            '<a href="' + escapeHtml(window.TvirsOffline.buildOfflineVehicleHref(motorist.offlineMotoristKey)) + '" class="mot-offline-btn mot-offline-btn--ghost">' +
+                                '<i class="ph-fill ph-car-simple"></i>Add Vehicle' +
                             '</a>' +
                         '</div>' +
                     '</div>';
