@@ -306,9 +306,10 @@
 @if($vCount > 1)
 <script>
 (function(){
-    var idx = 0, total = {{ $vCount }};
     var track = document.getElementById('vph-track');
     var counter = document.getElementById('vph-counter');
+    var idx = 0;
+    var total = track ? track.children.length : 1;
     window.vphNav = function(dir) {
         idx = Math.max(0, Math.min(idx + dir, total - 1));
         track.style.transform = 'translateX(-' + (idx * 100) + '%)';
