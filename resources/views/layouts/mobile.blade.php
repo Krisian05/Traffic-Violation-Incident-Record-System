@@ -1333,18 +1333,16 @@
 </nav>
 
 <div id="mob-lightbox" class="mob-lightbox" onclick="mobLbClose()">
-    <div id="mob-lb-stage" class="mob-lightbox-stage" onclick="event.stopPropagation()">
-        {{-- Close button — top-right of image --}}
-        <div style="display:flex;justify-content:flex-end;width:100%;margin-bottom:.35rem;">
-            <button onclick="event.stopPropagation();mobLbClose()"
-                style="width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.5);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;flex-shrink:0;">
-                <i class="ph ph-x" style="font-size:1rem;"></i>
-            </button>
-        </div>
-        <img id="mob-lb-img" src="" alt="Photo" draggable="false" style="max-width:100%;max-height:82vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);display:block;touch-action:none;transform-origin:center center;">
-        <div id="mob-lightbox-caption" style="color:rgba(255,255,255,.75);font-size:.78rem;font-weight:600;text-align:center;padding:0;max-width:320px;line-height:1.4;min-height:.8em;margin-top:.35rem;"></div>
-        {{-- Prev / counter / Next — right below caption --}}
-        <div id="mob-lb-bottom-nav" style="display:none;align-items:center;justify-content:center;gap:.75rem;margin-top:.4rem;" onclick="event.stopPropagation()">
+    <div id="mob-lb-stage" class="mob-lightbox-stage" onclick="event.stopPropagation()" style="position:relative;">
+        {{-- X — overlaid top-right corner of image --}}
+        <button onclick="event.stopPropagation();mobLbClose()"
+            style="position:absolute;top:.4rem;right:.4rem;z-index:10;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.55);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;">
+            <i class="ph ph-x" style="font-size:.95rem;"></i>
+        </button>
+        <img id="mob-lb-img" src="" alt="Photo" draggable="false" style="max-width:100%;max-height:70vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);display:block;touch-action:none;transform-origin:center center;">
+        <div id="mob-lightbox-caption" style="color:rgba(255,255,255,.75);font-size:.78rem;font-weight:600;text-align:center;padding:0;max-width:320px;line-height:1.4;min-height:.8em;margin-top:.3rem;"></div>
+        {{-- Prev / counter / Next --}}
+        <div id="mob-lb-bottom-nav" style="display:none;align-items:center;justify-content:center;gap:.75rem;margin-top:.35rem;" onclick="event.stopPropagation()">
             <button id="mob-lb-prev-btn" onclick="event.stopPropagation();mobLbStep(-1)"
                 style="display:flex;align-items:center;gap:.4rem;padding:.55rem 1.2rem;border-radius:999px;border:2px solid rgba(255,255,255,.5);background:rgba(0,0,0,.5);color:#fff;font-size:.85rem;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent;">
                 <i class="ph-bold ph-caret-left"></i> Prev
