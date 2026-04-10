@@ -190,7 +190,7 @@
                         <div style="width:120px;flex-shrink:0;font-size:.8rem;color:#a8a29e;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">Date</div>
                         <div style="color:#292524;">
                             <i class="bi bi-calendar-event me-1" style="color:#d97706;font-size:.8rem;"></i>
-                            {{ $violation->date_of_violation->format('F d, Y') }}
+                            {{ $violation->date_of_violation?->format('F d, Y') ?? '—' }}
                         </div>
                     </div>
 
@@ -289,10 +289,14 @@
                                 </span>
                                 <div style="font-size:.78rem;color:#78716c;margin-top:2px;">
                                     <i class="bi bi-box-arrow-up-right me-1" style="font-size:.65rem;"></i>
+                                    @if($violation->vehicle->violator)
                                     <a href="{{ route('violators.show', $violation->vehicle->violator) }}"
                                        style="color:#6d28d9;text-decoration:none;font-size:.78rem;">
-                                        Registered to {{ $violation->vehicle->violator?->full_name ?? 'Unknown' }}
+                                        Registered to {{ $violation->vehicle->violator->full_name }}
                                     </a>
+                                    @else
+                                    <span style="font-size:.78rem;color:#a8a29e;">Registered owner not on file</span>
+                                    @endif
                                 </div>
                             @elseif($violation->vehicle_plate)
                                 <span class="font-monospace fw-700" style="color:#1c1917;font-size:1rem;letter-spacing:.05em;">
