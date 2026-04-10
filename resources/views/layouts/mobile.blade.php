@@ -1343,7 +1343,7 @@
         <i class="ph ph-caret-right" style="font-size:1.2rem;"></i>
     </button>
     <div id="mob-lb-stage" class="mob-lightbox-stage" onclick="event.stopPropagation()">
-        <img id="mob-lb-img" src="" alt="Photo" draggable="false" style="max-width:100%;max-height:58vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);display:block;">
+        <img id="mob-lb-img" src="" alt="Photo" draggable="false" style="max-width:100%;max-height:72vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);display:block;">
         <div id="mob-lightbox-caption" style="color:rgba(255,255,255,.75);font-size:.78rem;font-weight:600;text-align:center;padding:0;max-width:320px;line-height:1.4;min-height:1em;"></div>
         <div id="mob-lb-bottom-nav" style="display:none;align-items:center;justify-content:center;gap:.75rem;margin-top:.5rem;">
             <button id="mob-lb-prev-btn" onclick="event.stopPropagation();mobLbStep(-1)"
