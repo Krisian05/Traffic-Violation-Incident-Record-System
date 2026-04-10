@@ -218,10 +218,15 @@
 </div>
 
 {{-- ── Vehicle Involved ── --}}
-@if($hasVehicle || $violation->vehiclePhotos->isNotEmpty())
+@if($hasVehicle || $violation->vehiclePhotos->isNotEmpty() || ($veh && ($veh->photos->isNotEmpty() || $veh->allViolationPhotos->isNotEmpty())))
 @php
-    $vPhotos  = $violation->vehiclePhotos;
-    $vCount   = $vPhotos->count();
+    $vPhotos = $violation->vehiclePhotos;
+    if ($vPhotos->isEmpty() && $veh) {
+        $vPhotos = $veh->photos->isNotEmpty()
+            ? $veh->photos
+            : $veh->allViolationPhotos;
+    }
+    $vCount = $vPhotos->count();
 @endphp
 <div class="motshow-section">Vehicle Involved</div>
 <div style="background:#fff;border-radius:16px;border:1px solid rgba(15,23,42,.06);box-shadow:0 2px 10px rgba(15,23,42,.04);margin-bottom:.9rem;overflow:hidden;">
