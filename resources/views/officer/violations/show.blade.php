@@ -232,23 +232,76 @@
 
         {{-- Photo thumbnail --}}
         @if($vPhotos->isNotEmpty())
-        <div style="position:relative;width:72px;height:72px;border-radius:14px;overflow:hidden;flex-shrink:0;box-shadow:0 3px 10px rgba(15,23,42,.15);cursor:zoom-in;">
+        @php $vPhotoUrls = $vPhotos->map(fn($p) => uploaded_file_url($p->photo))->values()->all(); @endphp
+        <button type="button"
+                id="vth-open"
+                aria-label="Open vehicle photo gallery"
+                style="position:relative;width:72px;height:72px;border-radius:14px;overflow:hidden;flex-shrink:0;box-shadow:0 3px 10px rgba(15,23,42,.15);cursor:zoom-in;padding:0;border:none;background:transparent;-webkit-appearance:none;appearance:none;">
             <img src="{{ uploaded_file_url($vPhotos->first()->photo) }}"
                  alt="Vehicle photo"
                  class="mob-photo-thumb"
-                 data-full="{{ uploaded_file_url($vPhotos->first()->photo) }}"
-                 data-gallery="{{ e($vGallery) }}"
-                 data-gallery-index="0"
-                 data-caption="{{ $vCaption }}"
-                 onclick="event.preventDefault(); event.stopPropagation(); if (window.mobLbOpenIfNeeded) { window.mobLbOpenIfNeeded(this); }"
-                 onpointerup="if (event.pointerType === 'touch') { event.preventDefault(); event.stopPropagation(); if (window.mobLbOpenIfNeeded) { window.mobLbOpenIfNeeded(this); } }"
                  style="width:72px;height:72px;object-fit:cover;display:block;">
             @if($vPhotos->count() > 1)
             <div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.55);border-radius:6px;padding:.1rem .28rem;pointer-events:none;">
                 <span style="color:#fff;font-size:.55rem;font-weight:800;line-height:1;">1/{{ $vPhotos->count() }}</span>
             </div>
             @endif
-        </div>
+        </button>
+        <script type="application/json" id="vth-gallery-data">@json(['urls' => $vPhotoUrls, 'caption' => $vCaption])</script>
+        <script>
+        (function () {
+            var trigger = document.getElementById('vth-open');
+            var dataNode = document.getElementById('vth-gallery-data');
+            var lastOpenAt = 0;
+
+            if (!trigger || !dataNode || typeof window.mobLbShow !== 'function') {
+                return;
+            }
+
+            var payload;
+            try {
+                payload = JSON.parse(dataNode.textContent || '{}');
+            } catch (error) {
+                payload = {};
+            }
+
+            var urls = Array.isArray(payload.urls) ? payload.urls : [];
+            var caption = payload.caption || 'Vehicle Photo';
+            if (!urls.length) {
+                return;
+            }
+
+            function openGallery(event) {
+                var now = Date.now();
+                if ((now - lastOpenAt) < 450) {
+                    if (event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    return;
+                }
+
+                lastOpenAt = now;
+
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+
+                window.mobLbGallery = urls.map(function (src) {
+                    return { src: src, caption: caption };
+                });
+                window.mobLbShow(0);
+            }
+
+            trigger.addEventListener('click', openGallery);
+            trigger.addEventListener('pointerup', function (event) {
+                if (event.pointerType === 'touch') {
+                    openGallery(event);
+                }
+            });
+        })();
+        </script>
         @else
         <div style="width:72px;height:72px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#b91c1c);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(220,38,38,.3);">
             <i class="ph-fill ph-car-profile" style="font-size:1.4rem;color:#fff;"></i>
