@@ -217,42 +217,98 @@
     @endif
 </div>
 
-{{-- ── Vehicle ── --}}
+{{-- ── Vehicle Involved ── --}}
 @if($hasVehicle || $violation->vehiclePhotos->isNotEmpty())
 @php
-    $vPhotos  = $violation->vehiclePhotos;
-    $vCaption = $plate ? 'Vehicle — ' . $plate : 'Vehicle Photo';
-    $vGallery = $vPhotos->map(fn($p) => uploaded_file_url($p->photo))->values()->toJson();
-    $vExtra   = $vPhotos->count() - 1;
+    $vPhotos    = $violation->vehiclePhotos;
+    $vCaption   = $plate ? 'Vehicle — ' . $plate : 'Vehicle Photo';
+    $vGallery   = $vPhotos->map(fn($p) => uploaded_file_url($p->photo))->values()->toJson();
+    $vPhotoUrls = $vPhotos->map(fn($p) => uploaded_file_url($p->photo))->values()->all();
 @endphp
 <div class="motshow-section">Vehicle Involved</div>
-<div style="display:flex;align-items:flex-start;gap:.85rem;background:#fff;border-radius:16px;border:1px solid rgba(15,23,42,.06);box-shadow:0 2px 10px rgba(15,23,42,.04);margin-bottom:.9rem;overflow:hidden;position:relative;">
-    <div style="width:4px;background:linear-gradient(180deg,#dc2626,#b91c1c);align-self:stretch;flex-shrink:0;"></div>
-    <div style="display:flex;align-items:flex-start;gap:.75rem;flex:1;min-width:0;padding:.85rem .85rem .85rem 0;">
+<div style="background:#fff;border-radius:16px;border:1px solid rgba(15,23,42,.06);box-shadow:0 2px 10px rgba(15,23,42,.04);margin-bottom:.9rem;overflow:hidden;">
 
-        {{-- Icon / first photo --}}
-        @if($vPhotos->isNotEmpty())
-        <div style="position:relative;width:40px;height:40px;border-radius:12px;overflow:hidden;flex-shrink:0;box-shadow:0 4px 12px rgba(29,78,216,.25);cursor:zoom-in;">
-            <img src="{{ uploaded_file_url($vPhotos->first()->photo) }}"
-                 alt="Vehicle photo"
-                 class="mob-photo-thumb"
-                 data-full="{{ uploaded_file_url($vPhotos->first()->photo) }}"
-                 data-gallery="{{ e($vGallery) }}"
-                 data-caption="{{ $vCaption }}"
-                 style="width:40px;height:40px;object-fit:cover;display:block;">
-            @if($vExtra > 0)
-            <div style="position:absolute;inset:0;background:rgba(0,0,0,.48);display:flex;align-items:center;justify-content:center;pointer-events:none;">
-                <span style="color:#fff;font-size:.52rem;font-weight:800;line-height:1;">+{{ $vExtra }}</span>
+    {{-- Photo carousel (shown when photos exist) --}}
+    @if($vPhotos->isNotEmpty())
+    <div id="vphCarousel" style="position:relative;user-select:none;touch-action:pan-y;">
+        <div id="vphTrack" style="display:flex;transition:transform .32s cubic-bezier(.4,0,.2,1);will-change:transform;">
+            @foreach($vPhotoUrls as $idx => $url)
+            <div style="flex:0 0 100%;min-width:0;">
+                <img src="{{ $url }}"
+                     alt="Vehicle photo {{ $idx + 1 }}"
+                     class="mob-photo-thumb"
+                     data-full="{{ $url }}"
+                     data-gallery="{{ e($vGallery) }}"
+                     data-gallery-index="{{ $idx }}"
+                     data-caption="{{ $vCaption }}"
+                     style="width:100%;height:200px;object-fit:cover;display:block;cursor:zoom-in;">
             </div>
-            @endif
+            @endforeach
         </div>
-        @else
-        <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#dc2626,#b91c1c);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(220,38,38,.3);">
+        {{-- Dots (only when multiple photos) --}}
+        @if(count($vPhotoUrls) > 1)
+        <div style="position:absolute;bottom:.5rem;left:0;right:0;display:flex;justify-content:center;gap:.4rem;pointer-events:none;">
+            @foreach($vPhotoUrls as $idx => $url)
+            <span class="vph-dot" data-idx="{{ $idx }}"
+                  style="width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.5);transition:all .25s;display:inline-block;pointer-events:all;cursor:pointer;"></span>
+            @endforeach
+        </div>
+        @endif
+    </div>
+    <script>
+    (function () {
+        var track  = document.getElementById('vphTrack');
+        var dots   = document.querySelectorAll('.vph-dot');
+        var total  = dots.length || 1;
+        var cur    = 0;
+        var startX = 0, startY = 0, moved = false;
+
+        function goTo(n) {
+            cur = (n + total) % total;
+            track.style.transform = 'translateX(-' + (cur * 100) + '%)';
+            dots.forEach(function (d, i) {
+                d.style.width      = i === cur ? '18px' : '7px';
+                d.style.background = i === cur ? '#fff' : 'rgba(255,255,255,.5)';
+            });
+        }
+
+        dots.forEach(function (d) {
+            d.addEventListener('click', function () { goTo(parseInt(d.dataset.idx)); });
+        });
+
+        track.addEventListener('touchstart', function (e) {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            moved  = false;
+        }, { passive: true });
+
+        track.addEventListener('touchmove', function (e) {
+            var dx = e.touches[0].clientX - startX;
+            var dy = e.touches[0].clientY - startY;
+            if (!moved && Math.abs(dx) > Math.abs(dy) + 5) { moved = true; }
+        }, { passive: true });
+
+        track.addEventListener('touchend', function (e) {
+            if (!moved) return;
+            var dx = e.changedTouches[0].clientX - startX;
+            if (Math.abs(dx) > 40) {
+                goTo(dx < 0 ? cur + 1 : cur - 1);
+                e.stopPropagation();
+            }
+        });
+
+        goTo(0);
+    })();
+    </script>
+    @endif
+
+    {{-- Vehicle info row --}}
+    <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.75rem .85rem;">
+        @if($vPhotos->isEmpty())
+        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#dc2626,#b91c1c);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(220,38,38,.3);">
             <i class="ph-fill ph-car-profile" style="font-size:1.1rem;color:#fff;"></i>
         </div>
         @endif
-
-        {{-- Vehicle info --}}
         <div style="flex:1;min-width:0;">
             @if($plate)
             <div style="display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;margin-bottom:.18rem;">
@@ -290,97 +346,6 @@
         </div>
     </div>
 </div>
-@endif
-
-{{-- ── Vehicle Photos ── --}}
-@if(!empty($vPhotos) && $vPhotos->isNotEmpty())
-@php
-    $vPhotoGallery = $vPhotos->map(fn($p) => uploaded_file_url($p->photo))->values()->toJson();
-    $vPhotoCaption = $plate ? 'Vehicle — ' . $plate : 'Vehicle Photo';
-    $vPhotoUrls    = $vPhotos->map(fn($p) => uploaded_file_url($p->photo))->values()->all();
-@endphp
-<div class="motshow-section">Vehicle Photos</div>
-<div class="motshow-card" style="margin-bottom:.9rem;overflow:hidden;">
-    {{-- Carousel --}}
-    <div id="vphCarousel" style="position:relative;user-select:none;touch-action:pan-y;">
-        {{-- Slides --}}
-        <div id="vphTrack" style="display:flex;transition:transform .32s cubic-bezier(.4,0,.2,1);will-change:transform;">
-            @foreach($vPhotoUrls as $idx => $url)
-            <div style="flex:0 0 100%;min-width:0;padding:.85rem .85rem 0;">
-                <img src="{{ $url }}"
-                     alt="Vehicle photo {{ $idx + 1 }}"
-                     class="mob-photo-thumb"
-                     data-full="{{ $url }}"
-                     data-gallery="{{ e($vPhotoGallery) }}"
-                     data-gallery-index="{{ $idx }}"
-                     data-caption="{{ $vPhotoCaption }}"
-                     style="width:100%;height:220px;object-fit:cover;border-radius:14px;display:block;box-shadow:0 4px 16px rgba(15,23,42,.1);cursor:zoom-in;">
-            </div>
-            @endforeach
-        </div>
-        {{-- Dot indicators + counter --}}
-        <div style="display:flex;align-items:center;justify-content:center;gap:.45rem;padding:.65rem 1rem .85rem;flex-wrap:wrap;">
-            @if(count($vPhotoUrls) > 1)
-            @foreach($vPhotoUrls as $idx => $url)
-            <span class="vph-dot" data-idx="{{ $idx }}"
-                  style="width:7px;height:7px;border-radius:99px;background:#cbd5e1;transition:all .25s;display:inline-block;cursor:pointer;"></span>
-            @endforeach
-            @else
-            <span style="font-size:.7rem;color:#94a3b8;display:flex;align-items:center;gap:.3rem;">
-                <i class="ph ph-magnifying-glass-plus"></i> Tap to enlarge
-            </span>
-            @endif
-        </div>
-    </div>
-</div>
-<script>
-(function () {
-    var track  = document.getElementById('vphTrack');
-    var dots   = document.querySelectorAll('.vph-dot');
-    var total  = dots.length || 1;
-    var cur    = 0;
-    var startX = 0, startY = 0, dragging = false, moved = false;
-
-    function goTo(n) {
-        cur = (n + total) % total;
-        track.style.transform = 'translateX(-' + (cur * 100) + '%)';
-        dots.forEach(function (d, i) {
-            d.style.width      = i === cur ? '18px' : '7px';
-            d.style.background = i === cur ? '#1d4ed8' : '#cbd5e1';
-        });
-    }
-
-    dots.forEach(function (d) {
-        d.addEventListener('click', function () { goTo(parseInt(d.dataset.idx)); });
-    });
-
-    /* Touch swipe */
-    track.addEventListener('touchstart', function (e) {
-        startX  = e.touches[0].clientX;
-        startY  = e.touches[0].clientY;
-        dragged = false;
-        moved   = false;
-    }, { passive: true });
-
-    track.addEventListener('touchmove', function (e) {
-        var dx = e.touches[0].clientX - startX;
-        var dy = e.touches[0].clientY - startY;
-        if (!moved && Math.abs(dx) > Math.abs(dy) + 5) { moved = true; }
-    }, { passive: true });
-
-    track.addEventListener('touchend', function (e) {
-        if (!moved) return;
-        var dx = e.changedTouches[0].clientX - startX;
-        if (Math.abs(dx) > 40) {
-            goTo(dx < 0 ? cur + 1 : cur - 1);
-            /* prevent lightbox opening on swipe */
-            e.stopPropagation();
-        }
-    });
-
-    goTo(0);
-})();
-</script>
 @endif
 
 {{-- ── Citation Ticket Photo ── --}}
