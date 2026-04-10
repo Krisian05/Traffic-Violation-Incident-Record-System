@@ -230,58 +230,23 @@
     <div style="width:4px;background:linear-gradient(180deg,#dc2626,#b91c1c);align-self:stretch;flex-shrink:0;"></div>
     <div style="display:flex;align-items:flex-start;gap:.75rem;flex:1;min-width:0;padding:.85rem .85rem .85rem 0;">
 
-        {{-- Photo mini-carousel --}}
+        {{-- Photo thumbnail --}}
         @if($vPhotos->isNotEmpty())
-        @php $vPhotoUrls = $vPhotos->map(fn($p) => uploaded_file_url($p->photo))->values()->all(); @endphp
-        <div style="flex-shrink:0;">
-            {{-- Photo frame --}}
-            <div style="position:relative;width:72px;height:72px;border-radius:14px;overflow:hidden;box-shadow:0 3px 10px rgba(15,23,42,.15);">
-                <img id="vth-img"
-                     src="{{ uploaded_file_url($vPhotos->first()->photo) }}"
-                     alt="Vehicle photo"
-                     class="mob-photo-thumb"
-                     data-full="{{ uploaded_file_url($vPhotos->first()->photo) }}"
-                     data-gallery="{{ e($vGallery) }}"
-                     data-gallery-index="0"
-                     data-caption="{{ $vCaption }}"
-                     onclick="event.preventDefault(); event.stopPropagation(); if (window.mobLbOpenIfNeeded) { window.mobLbOpenIfNeeded(this); }"
-                     onpointerup="if (event.pointerType === 'touch') { event.preventDefault(); event.stopPropagation(); if (window.mobLbOpenIfNeeded) { window.mobLbOpenIfNeeded(this); } }"
-                     style="width:72px;height:72px;object-fit:cover;display:block;cursor:zoom-in;">
-                {{-- Counter badge --}}
-                @if(count($vPhotoUrls) > 1)
-                <div id="vth-badge" style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.55);border-radius:6px;padding:.1rem .28rem;pointer-events:none;">
-                    <span id="vth-counter" style="color:#fff;font-size:.55rem;font-weight:800;line-height:1;">1/{{ count($vPhotoUrls) }}</span>
-                </div>
-                @endif
+        <div style="position:relative;width:72px;height:72px;border-radius:14px;overflow:hidden;flex-shrink:0;box-shadow:0 3px 10px rgba(15,23,42,.15);cursor:zoom-in;">
+            <img src="{{ uploaded_file_url($vPhotos->first()->photo) }}"
+                 alt="Vehicle photo"
+                 class="mob-photo-thumb"
+                 data-full="{{ uploaded_file_url($vPhotos->first()->photo) }}"
+                 data-gallery="{{ e($vGallery) }}"
+                 data-gallery-index="0"
+                 data-caption="{{ $vCaption }}"
+                 onclick="event.preventDefault(); event.stopPropagation(); if (window.mobLbOpenIfNeeded) { window.mobLbOpenIfNeeded(this); }"
+                 onpointerup="if (event.pointerType === 'touch') { event.preventDefault(); event.stopPropagation(); if (window.mobLbOpenIfNeeded) { window.mobLbOpenIfNeeded(this); } }"
+                 style="width:72px;height:72px;object-fit:cover;display:block;">
+            @if($vPhotos->count() > 1)
+            <div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.55);border-radius:6px;padding:.1rem .28rem;pointer-events:none;">
+                <span style="color:#fff;font-size:.55rem;font-weight:800;line-height:1;">1/{{ $vPhotos->count() }}</span>
             </div>
-            {{-- Prev / Next buttons --}}
-            @if(count($vPhotoUrls) > 1)
-            <div style="display:flex;justify-content:center;gap:.3rem;margin-top:.35rem;">
-                <button type="button" id="vth-prev" onclick="event.preventDefault(); event.stopPropagation(); vthGo(-1)" style="width:28px;height:20px;border-radius:6px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;">
-                    <i class="ph ph-caret-left" style="font-size:.7rem;color:#64748b;"></i>
-                </button>
-                <button type="button" id="vth-next" onclick="event.preventDefault(); event.stopPropagation(); vthGo(1)" style="width:28px;height:20px;border-radius:6px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;">
-                    <i class="ph ph-caret-right" style="font-size:.7rem;color:#64748b;"></i>
-                </button>
-            </div>
-            <script>
-            (function () {
-                var urls    = {!! json_encode($vPhotoUrls) !!};
-                var gallery = '{{ e($vGallery) }}';
-                var caption = '{{ $vCaption }}';
-                var cur     = 0;
-                var img     = document.getElementById('vth-img');
-                var counter = document.getElementById('vth-counter');
-
-                window.vthGo = function (dir) {
-                    cur = (cur + dir + urls.length) % urls.length;
-                    img.src                    = urls[cur];
-                    img.dataset.full           = urls[cur];
-                    img.dataset.galleryIndex   = cur;
-                    if (counter) counter.textContent = (cur + 1) + '/' + urls.length;
-                };
-            })();
-            </script>
             @endif
         </div>
         @else
