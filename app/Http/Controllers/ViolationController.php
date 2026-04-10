@@ -117,7 +117,8 @@ class ViolationController extends Controller
             // Auto-register the manually-entered vehicle so it appears on the violator's profile.
             // Search globally by plate (plate_number is unique across the whole table) so we never
             // hit a duplicate-key error when the plate is already registered to another violator.
-            $existing = Vehicle::where('plate_number', $data['vehicle_plate'])->first();
+            // withTrashed() is required: soft-deleted vehicles still hold the unique constraint.
+            $existing = Vehicle::withTrashed()->where('plate_number', $data['vehicle_plate'])->first();
             if (!$existing) {
                 $existing = Vehicle::create([
                     'violator_id'    => $violator->id,
@@ -130,6 +131,8 @@ class ViolationController extends Controller
                     'cr_number'      => $data['vehicle_cr_number'] ?? null,
                     'chassis_number' => $data['vehicle_chassis'] ?? null,
                 ]);
+            } elseif ($existing->trashed()) {
+                $existing->restore();
             }
             $data['vehicle_id'] = $existing->id;
         }
@@ -276,7 +279,8 @@ class ViolationController extends Controller
             // Auto-register the manually-entered vehicle so it appears on the violator's profile.
             // Search globally by plate (plate_number is unique across the whole table) so we never
             // hit a duplicate-key error when the plate is already registered to another violator.
-            $existing = Vehicle::where('plate_number', $data['vehicle_plate'])->first();
+            // withTrashed() is required: soft-deleted vehicles still hold the unique constraint.
+            $existing = Vehicle::withTrashed()->where('plate_number', $data['vehicle_plate'])->first();
             if (!$existing) {
                 $existing = Vehicle::create([
                     'violator_id'    => $violation->violator_id,
@@ -289,6 +293,8 @@ class ViolationController extends Controller
                     'cr_number'      => $data['vehicle_cr_number'] ?? null,
                     'chassis_number' => $data['vehicle_chassis'] ?? null,
                 ]);
+            } elseif ($existing->trashed()) {
+                $existing->restore();
             }
             $data['vehicle_id'] = $existing->id;
         }
