@@ -1343,9 +1343,19 @@
         <i class="ph ph-caret-right" style="font-size:1.2rem;"></i>
     </button>
     <div id="mob-lb-stage" class="mob-lightbox-stage" onclick="event.stopPropagation()">
-        <img id="mob-lb-img" src="" alt="Photo" draggable="false" style="max-width:100%;max-height:78vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);display:block;">
+        <img id="mob-lb-img" src="" alt="Photo" draggable="false" style="max-width:100%;max-height:72vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);display:block;">
         <div id="mob-lightbox-caption" style="color:rgba(255,255,255,.75);font-size:.78rem;font-weight:600;text-align:center;padding:0;max-width:320px;line-height:1.4;min-height:1em;"></div>
-        <div id="mob-lb-counter" class="mob-lightbox-counter"></div>
+        <div id="mob-lb-bottom-nav" style="display:none;align-items:center;justify-content:center;gap:1rem;margin-top:.25rem;">
+            <button id="mob-lb-prev-btn" onclick="event.stopPropagation();mobLbStep(-1)"
+                style="display:flex;align-items:center;gap:.4rem;padding:.55rem 1.1rem;border-radius:999px;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.15);color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;">
+                <i class="ph ph-caret-left"></i> Prev
+            </button>
+            <div id="mob-lb-counter" class="mob-lightbox-counter" style="margin:0;min-width:40px;text-align:center;"></div>
+            <button id="mob-lb-next-btn" onclick="event.stopPropagation();mobLbStep(1)"
+                style="display:flex;align-items:center;gap:.4rem;padding:.55rem 1.1rem;border-radius:999px;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.15);color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;">
+                Next <i class="ph ph-caret-right"></i>
+            </button>
+        </div>
     </div>
 </div>
 
@@ -1430,12 +1440,15 @@ var mobLbGesture = {
 function mobLbShow(index) {
     if (!mobLbGallery || mobLbGallery.length === 0) { mobLbClose(); return; }
 
-    var lb   = document.getElementById('mob-lightbox');
-    var img  = document.getElementById('mob-lb-img');
-    var cap  = document.getElementById('mob-lightbox-caption');
-    var ctr  = document.getElementById('mob-lb-counter');
-    var prev = document.getElementById('mob-lb-prev');
-    var next = document.getElementById('mob-lb-next');
+    var lb      = document.getElementById('mob-lightbox');
+    var img     = document.getElementById('mob-lb-img');
+    var cap     = document.getElementById('mob-lightbox-caption');
+    var ctr     = document.getElementById('mob-lb-counter');
+    var prev    = document.getElementById('mob-lb-prev');
+    var next    = document.getElementById('mob-lb-next');
+    var bottomNav  = document.getElementById('mob-lb-bottom-nav');
+    var prevBtn    = document.getElementById('mob-lb-prev-btn');
+    var nextBtn    = document.getElementById('mob-lb-next-btn');
 
     mobLbIndex = Math.max(0, Math.min(index, mobLbGallery.length - 1));
     var item = mobLbGallery[mobLbIndex];
@@ -1446,6 +1459,13 @@ function mobLbShow(index) {
 
     if (prev) prev.hidden = mobLbIndex === 0;
     if (next) next.hidden = mobLbIndex === mobLbGallery.length - 1;
+
+    var multi = mobLbGallery.length > 1;
+    if (bottomNav) bottomNav.style.display = multi ? 'flex' : 'none';
+    if (prevBtn)   prevBtn.style.opacity   = mobLbIndex === 0 ? '0.35' : '1';
+    if (prevBtn)   prevBtn.disabled        = mobLbIndex === 0;
+    if (nextBtn)   nextBtn.style.opacity   = mobLbIndex === mobLbGallery.length - 1 ? '0.35' : '1';
+    if (nextBtn)   nextBtn.disabled        = mobLbIndex === mobLbGallery.length - 1;
 
     lb.classList.add('open');
 }
