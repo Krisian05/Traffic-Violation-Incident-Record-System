@@ -236,14 +236,11 @@
 
         {{-- Photo thumbnail --}}
         @if($vPhotos->isNotEmpty())
+        <script>var _vphUrls={!! $vGallery !!};var _vphCap={!! json_encode($vCaption) !!};</script>
         <div style="position:relative;width:72px;height:72px;border-radius:14px;overflow:hidden;flex-shrink:0;box-shadow:0 3px 10px rgba(15,23,42,.15);cursor:zoom-in;">
             <img src="{{ uploaded_file_url($vPhotos->first()->photo) }}"
                  alt="Vehicle photo"
-                 class="mob-photo-thumb"
-                 data-full="{{ uploaded_file_url($vPhotos->first()->photo) }}"
-                 data-gallery="{{ e($vGallery) }}"
-                 data-gallery-index="0"
-                 data-caption="{{ $vCaption }}"
+                 onclick="event.stopPropagation();mobLbOpenDirect(_vphUrls,0,_vphCap);"
                  style="width:72px;height:72px;object-fit:cover;display:block;">
             @if($vPhotos->count() > 1)
             <div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.55);border-radius:6px;padding:.1rem .28rem;pointer-events:none;">

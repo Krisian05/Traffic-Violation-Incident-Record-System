@@ -1587,6 +1587,12 @@ function mobLbClose() {
     lb.addEventListener('touchcancel', resetGesture);
 })();
 
+function mobLbOpenDirect(urls, startIndex, caption) {
+    if (!urls || !urls.length) return;
+    mobLbGallery = urls.map(function(src) { return { src: src, caption: caption || '' }; });
+    mobLbShow(startIndex || 0);
+}
+
 function mobLbOpenFromThumb(thumb) {
     if (!thumb) return;
 
