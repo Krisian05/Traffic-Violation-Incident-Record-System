@@ -984,7 +984,7 @@
         .mob-lightbox {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,.92);
+            background: rgba(0,0,0,.55);
             z-index: 9999;
             display: flex;
             align-items: center;
