@@ -45,7 +45,6 @@ class ReportController extends Controller
         $repeatOffenders = Violator::withCount('violations')
             ->has('violations', '>', 1)
             ->orderByDesc('violations_count')
-            ->limit(100)
             ->get();
 
         $allTypes = ViolationType::orderBy('name')->get();
@@ -55,7 +54,6 @@ class ReportController extends Controller
         $overdueViolations = Violation::with(['violator', 'violationType', 'vehicle'])
             ->overdue()
             ->orderBy('created_at')
-            ->limit(100)
             ->get();
 
         $incBase = Incident::whereYear('date_of_incident', $year)
