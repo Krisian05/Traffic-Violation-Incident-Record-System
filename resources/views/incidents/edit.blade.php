@@ -141,14 +141,12 @@
                         </div>
                     </div>
                     <div class="col-12">
-                        <label class="form-label fw-500" style="font-size:.84rem;">Location <span class="text-danger">*</span></label>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text"><i class="bi bi-geo-alt-fill" style="color:#16a34a;font-size:.8rem;"></i></span>
-                            <input type="text" name="location"
-                                class="form-control @error('location') is-invalid @enderror"
-                                value="{{ old('location', $incident->location) }}" required>
-                            @error('location')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
+                        @include('partials.location-selector', [
+                            'fieldName'    => 'location',
+                            'required'     => true,
+                            'label'        => 'Location',
+                            'initialValue' => $incident->location,
+                        ])
                     </div>
                     <div class="col-12">
                         <label class="form-label fw-500" style="font-size:.84rem;">Description / Narrative</label>
