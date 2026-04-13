@@ -4,6 +4,10 @@
 
 @push('styles')
 @include('partials.motshow-styles')
+<style>
+.inc-edit-mot-item { display:flex;align-items:center;gap:.65rem;padding:.4rem 0; }
+.inc-edit-mot-sep  { border-bottom:1px solid #e2e8f0; }
+</style>
 @endpush
 
 @section('content')
@@ -81,7 +85,7 @@
             </div>
             <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:.75rem;margin-bottom:1rem;">
                 @foreach($incident->motorists as $m)
-                <div style="display:flex;align-items:center;gap:.65rem;padding:.4rem 0;{{ !$loop->last ? 'border-bottom:1px solid #e2e8f0;' : '' }}">
+                <div class="inc-edit-mot-item {{ !$loop->last ? 'inc-edit-mot-sep' : '' }}">
                     <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#dbeafe,#bfdbfe);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                         <i class="ph-fill ph-user" style="color:#1d4ed8;font-size:.78rem;"></i>
                     </div>

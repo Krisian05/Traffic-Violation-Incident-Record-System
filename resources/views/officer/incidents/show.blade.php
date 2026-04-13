@@ -44,6 +44,8 @@
 .ishow-media-ticket   { background:#fffbeb;color:#f59e0b; }
 .ishow-media-document { background:#f5f3ff;color:#8b5cf6; }
 .ishow-media-other    { background:#f9fafb;color:#6b7280; }
+.ishow-mot-item { padding: .9rem 1rem; }
+.ishow-mot-sep  { border-bottom: 1px solid #f1f5f9; }
 </style>
 @endpush
 
@@ -219,7 +221,7 @@
         $vCR    = $m->vehicle ? $m->vehicle->cr_number     : ($m->vehicle_cr_number ?? null);
         $vCha   = $m->vehicle ? $m->vehicle->chassis_number : ($m->vehicle_chassis ?? null);
     @endphp
-    <div style="padding:.9rem 1rem;{{ !$loop->last ? 'border-bottom:1px solid #f1f5f9;' : '' }}">
+    <div class="ishow-mot-item {{ !$loop->last ? 'ishow-mot-sep' : '' }}">
         <div style="display:flex;align-items:flex-start;gap:.75rem;">
             {{-- Avatar --}}
             @if($m->violator?->photo)
