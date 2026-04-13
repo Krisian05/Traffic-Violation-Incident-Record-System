@@ -69,10 +69,24 @@ tbody tr:nth-child(even) { background: #f9fafb; }
 
 @media print {
     html, body { padding: 0 !important; margin: 0 !important; }
-    body { font-size: 11px; }
+    body { font-size: 10px; }
     .no-print { display: none !important; }
     .page { margin: 0 !important; padding: 0 !important; }
-    @page { size: A4 portrait; margin: 8mm 18mm 15mm; }
+
+    /* 9-column motorists table — landscape + fixed layout */
+    table { table-layout: fixed !important; width: 100% !important; }
+    thead th, tbody td { word-wrap: break-word; font-size: 9px !important; }
+    thead th:nth-child(1) { width: 4%;  } /* # */
+    thead th:nth-child(2) { width: 18%; } /* Name */
+    thead th:nth-child(3) { width: 12%; } /* License No. */
+    thead th:nth-child(4) { width: 8%;  } /* Lic. Type */
+    thead th:nth-child(5) { width: 10%; } /* Restriction */
+    thead th:nth-child(6) { width: 10%; } /* Plate No. */
+    thead th:nth-child(7) { width: 10%; } /* Vehicle */
+    thead th:nth-child(8) { width: 16%; } /* Charge */
+    thead th:nth-child(9) { width: 12%; } /* Notes */
+
+    @page { size: A4 landscape; margin: 8mm 14mm 12mm; }
 }
 </style>
 </head>

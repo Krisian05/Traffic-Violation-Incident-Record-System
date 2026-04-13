@@ -572,6 +572,8 @@ a.vio-page:hover { background: #fdf8f0; border-color: #dc2626; color: #dc2626; }
         box-shadow: none !important;
         border-radius: 0 !important;
     }
+    .table-responsive { overflow: visible !important; }
+    .d-none.d-sm-table-cell, .d-none.d-md-table-cell { display: table-cell !important; }
     .inc-row { page-break-inside: avoid; }
     .inc-table-card { border: 1px solid #ccc !important; }
 

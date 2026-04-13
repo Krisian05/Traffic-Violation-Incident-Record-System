@@ -741,6 +741,7 @@ a.vio-page:hover {
         box-shadow: none !important;
         border-radius: 0 !important;
     }
+    .table-responsive { overflow: visible !important; }
     .vio-row { page-break-inside: avoid; }
     .vio-table-card { border: 1px solid #ccc !important; }
 

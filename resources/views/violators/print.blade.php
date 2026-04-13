@@ -230,6 +230,26 @@
                 margin: 0;
             }
             .section { page-break-inside: avoid; }
+
+            /* 12-column violation history table — fixed layout to prevent overflow */
+            .data-table { table-layout: fixed !important; width: 100% !important; }
+            .data-table thead th,
+            .data-table tbody td { word-wrap: break-word; font-size: 8px !important; padding: 3px 4px !important; }
+            /* Violation History column widths */
+            .data-table thead th:nth-child(1)  { width: 3%;  } /* # */
+            .data-table thead th:nth-child(2)  { width: 9%;  } /* Date */
+            .data-table thead th:nth-child(3)  { width: 9%;  } /* Ticket No. */
+            .data-table thead th:nth-child(4)  { width: 13%; } /* Violation Type */
+            .data-table thead th:nth-child(5)  { width: 12%; } /* Location */
+            .data-table thead th:nth-child(6)  { width: 9%;  } /* Vehicle */
+            .data-table thead th:nth-child(7)  { width: 9%;  } /* Reg. Owner */
+            .data-table thead th:nth-child(8)  { width: 7%;  } /* Status */
+            .data-table thead th:nth-child(9)  { width: 8%;  } /* OR No. */
+            .data-table thead th:nth-child(10) { width: 8%;  } /* Cashier */
+            .data-table thead th:nth-child(11) { width: 8%;  } /* Recorded By */
+            .data-table thead th:nth-child(12) { width: 5%;  } /* Notes */
+
+            @page { size: A4 landscape; margin: 8mm 12mm 12mm; }
         }
     </style>
 </head>
