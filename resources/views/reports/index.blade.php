@@ -1571,7 +1571,9 @@
     .print-date         { font-size: 8pt; color: #555; margin-top: 1pt; }
 
     /* ── Printable section spacing ── */
-    .rpt-printable { margin-bottom: 10pt !important; page-break-inside: avoid; }
+    .rpt-printable { margin-bottom: 10pt !important; }
+    /* Only avoid page breaks inside small sections, not large tables */
+    .rpt-printable .rpt-card-header { page-break-inside: avoid; page-break-after: avoid; }
 
     /* ── Strip ALL card chrome ── */
     .rpt-card, .card {
