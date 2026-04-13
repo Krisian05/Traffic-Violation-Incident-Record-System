@@ -14,11 +14,19 @@
             font-weight: 600;
         }
         .mob-pager-row {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: start;
+            gap: .35rem;
+            width: 100%;
+        }
+        .mob-pager-pages {
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: .35rem;
             flex-wrap: wrap;
-            justify-content: center;
+            min-width: 0;
         }
         .mob-page-btn {
             display: inline-flex;
@@ -56,6 +64,7 @@
             padding: 0 .75rem;
             font-size: .8rem;
             font-weight: 700;
+            white-space: nowrap;
         }
         .mob-page-btn-label {
             white-space: nowrap;
@@ -70,6 +79,9 @@
             .mob-pager-row {
                 gap: .28rem;
             }
+            .mob-pager-pages {
+                gap: .28rem;
+            }
             .mob-page-btn {
                 min-width: 34px;
                 height: 34px;
@@ -79,6 +91,8 @@
             .mob-page-btn--nav {
                 gap: 0;
                 padding: 0;
+                min-width: 34px;
+                width: 34px;
             }
             .mob-page-btn-label {
                 display: none;
@@ -88,7 +102,7 @@
 
     <div class="mob-pager">
         <div class="mob-pager-info">
-            Showing <strong>{{ $paginator->firstItem() }}</strong>–<strong>{{ $paginator->lastItem() }}</strong> of <strong>{{ $paginator->total() }}</strong> results
+            Showing <strong>{{ $paginator->firstItem() }}</strong>&ndash;<strong>{{ $paginator->lastItem() }}</strong> of <strong>{{ $paginator->total() }}</strong> results
         </div>
 
         <div class="mob-pager-row">
@@ -105,21 +119,23 @@
                 </a>
             @endif
 
-            {{-- Page numbers --}}
-            @foreach ($elements as $element)
-                @if (is_string($element))
-                    <span class="mob-page-dots">…</span>
-                @endif
-                @if (is_array($element))
-                    @foreach ($element as $page => $url)
-                        @if ($page == $paginator->currentPage())
-                            <span class="mob-page-btn active" aria-current="page">{{ $page }}</span>
-                        @else
-                            <a class="mob-page-btn" href="{{ $url }}">{{ $page }}</a>
-                        @endif
-                    @endforeach
-                @endif
-            @endforeach
+            <div class="mob-pager-pages">
+                {{-- Page numbers --}}
+                @foreach ($elements as $element)
+                    @if (is_string($element))
+                        <span class="mob-page-dots">&hellip;</span>
+                    @endif
+                    @if (is_array($element))
+                        @foreach ($element as $page => $url)
+                            @if ($page == $paginator->currentPage())
+                                <span class="mob-page-btn active" aria-current="page">{{ $page }}</span>
+                            @else
+                                <a class="mob-page-btn" href="{{ $url }}">{{ $page }}</a>
+                            @endif
+                        @endforeach
+                    @endif
+                @endforeach
+            </div>
 
             {{-- Next --}}
             @if ($paginator->hasMorePages())
