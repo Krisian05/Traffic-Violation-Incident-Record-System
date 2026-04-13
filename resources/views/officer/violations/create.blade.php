@@ -77,11 +77,12 @@
             </div>
 
             <div class="mb-3">
-                <label class="mob-label">Location</label>
-                <input type="text" name="location" value="{{ old('location') }}"
-                       class="form-control mob-input @error('location') is-invalid @enderror"
-                       placeholder="Street / Barangay / Municipality">
-                @error('location')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                @include('partials.location-selector', [
+                    'fieldName' => 'location',
+                    'required'  => false,
+                    'label'     => 'Location',
+                    'inputSize' => '',
+                ])
             </div>
 
             <div class="mb-3">

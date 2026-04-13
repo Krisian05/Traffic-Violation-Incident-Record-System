@@ -9,20 +9,25 @@
       $inputSize  — Bootstrap input size: 'sm' or ''          (default: 'sm')
 --}}
 @php
-    $locField    = $fieldName  ?? 'location';
-    $locRequired = $required   ?? false;
-    $locLabel    = $label      ?? 'Location';
+    $locField    = $fieldName    ?? 'location';
+    $locRequired = $required     ?? false;
+    $locLabel    = $label        ?? 'Location';
     $locSize     = (isset($inputSize) && $inputSize === '') ? '' : 'sm';
+    $locInitial  = $initialValue ?? null;
     // Unique prefix so multiple selectors can coexist on one page
     $uid         = 'loc_' . preg_replace('/[^a-z0-9]/i', '_', $locField);
 
-    // Restore values after validation failure
+    // Restore values after validation failure; fall back to the model's saved value on first load
     $oldRegion   = old('_loc_region_code');
     $oldProvince = old('_loc_province_code');
     $oldCity     = old('_loc_city_code');
     $oldBarangay = old('_loc_barangay_code');
     $oldSpecific = old('_loc_specific');
-    $oldLocation = old($locField);
+    $oldLocation = old($locField, $locInitial);
+
+    // Show the "current location" banner when editing an existing record
+    // that has a saved text value but no PSGC codes yet.
+    $showCurrentBanner = !empty($locInitial) && empty($oldRegion);
 @endphp
 
 <div>
@@ -53,6 +58,15 @@
                placeholder="e.g. Brgy. San Pedro, Caloocan City, Metro Manila"
                value="{{ $oldLocation }}">
     </div>
+
+    {{-- Current-location banner (edit forms: existing text value, no PSGC codes yet) --}}
+    @if($showCurrentBanner)
+    <div id="{{ $uid }}_current_banner" class="mb-2 p-2" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;font-size:.79rem;color:#0369a1;">
+        <i class="bi bi-geo-alt-fill me-1"></i>
+        <strong>Current:</strong> {{ $oldLocation }}
+        <br><span style="font-size:.73rem;color:#0284c7;">Use the dropdowns below to update, or leave them blank to keep the current value.</span>
+    </div>
+    @endif
 
     {{-- Cascading dropdowns --}}
     <div id="{{ $uid }}_selects">
@@ -287,6 +301,9 @@
 
     selR.addEventListener('change', async function () {
         hidRC.value = this.value;
+        // Hide the "current location" banner once the user starts picking from dropdowns
+        const banner = $(uid + '_current_banner');
+        if (banner) banner.style.display = 'none';
         resetBelow('province');
         prow.style.display = '';
         if (!this.value) return;

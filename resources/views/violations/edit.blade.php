@@ -175,17 +175,12 @@
                 <div class="row g-3">
 
                     <div class="col-12">
-                        <label class="form-label">Location of Violation</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-pin-map-fill"></i></span>
-                            <input type="text" name="location"
-                                class="form-control @error('location') is-invalid @enderror"
-                                value="{{ old('location', $violation->location) }}"
-                                placeholder="e.g. Rizal Ave. corner Mabini St.">
-                            @error('location')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        @include('partials.location-selector', [
+                            'fieldName'    => 'location',
+                            'required'     => false,
+                            'label'        => 'Location of Violation',
+                            'initialValue' => $violation->location,
+                        ])
                     </div>
 
                     {{-- Vehicle mode toggle --}}

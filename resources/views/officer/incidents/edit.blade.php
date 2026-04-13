@@ -53,11 +53,13 @@
             </div>
 
             <div class="mb-3">
-                <label class="mob-label">Location <span class="text-danger">*</span></label>
-                <input type="text" name="location" required placeholder="Street / Barangay / Landmark"
-                       value="{{ old('location', $incident->location) }}"
-                       class="form-control mob-input @error('location') is-invalid @enderror">
-                @error('location')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                @include('partials.location-selector', [
+                    'fieldName'    => 'location',
+                    'required'     => true,
+                    'label'        => 'Location',
+                    'inputSize'    => '',
+                    'initialValue' => $incident->location,
+                ])
             </div>
 
             <div class="mb-3">

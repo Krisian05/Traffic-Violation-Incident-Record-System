@@ -112,11 +112,13 @@
             @endif
 
             <div class="mb-3">
-                <label class="mob-label">Location</label>
-                <input type="text" name="location" value="{{ old('location', $violation->location) }}"
-                       class="form-control mob-input @error('location') is-invalid @enderror"
-                       placeholder="Street / Barangay / Municipality">
-                @error('location')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                @include('partials.location-selector', [
+                    'fieldName'    => 'location',
+                    'required'     => false,
+                    'label'        => 'Location',
+                    'inputSize'    => '',
+                    'initialValue' => $violation->location,
+                ])
             </div>
 
             <div class="mb-3">
