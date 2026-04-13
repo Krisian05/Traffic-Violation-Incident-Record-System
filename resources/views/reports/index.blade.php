@@ -1574,6 +1574,8 @@
     .rpt-printable { margin-bottom: 10pt !important; }
     /* Only avoid page breaks inside small sections, not large tables */
     .rpt-printable .rpt-card-header { page-break-inside: avoid; page-break-after: avoid; }
+    /* Show ALL rows in print — screen hides rows beyond 20 via .rpt-show-more-row */
+    .rpt-show-more-row { display: table-row !important; }
 
     /* ── Strip ALL card chrome ── */
     .rpt-card, .card {
