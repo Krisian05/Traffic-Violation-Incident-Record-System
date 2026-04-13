@@ -182,7 +182,7 @@
                         @endphp
                         <div style="margin-top:.25rem;display:flex;align-items:center;gap:.4rem;">
                             <span class="{{ $statusClass }}">{{ $statusLabels[$incident->status] ?? $incident->status }}</span>
-                            <span style="font-size:.64rem;color:#a8a29e;">
+                            <span class="no-print" style="font-size:.64rem;color:#a8a29e;">
                                 <i class="bi bi-eye" style="font-size:.6rem;"></i> Click row to view
                             </span>
                         </div>
