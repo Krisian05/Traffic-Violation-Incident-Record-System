@@ -243,7 +243,7 @@
                         <span class="info-val">{{ $violation->violationType?->name ?? '—' }}</span>
                     </div>
                     <div class="info-cell">
-                        <span class="info-lbl">Date Apprehended</span>
+                        <span class="info-lbl">Date of Violation</span>
                         <span class="info-val">{{ $violation->date_of_violation->format('M d, Y') }}</span>
                     </div>
                     <div class="info-cell">
@@ -257,17 +257,6 @@
                         <span class="info-val mono @if(!$violation->ticket_number) empty @endif">
                             {{ $violation->ticket_number ?: 'Not issued' }}
                         </span>
-                    </div>
-                    <div class="info-cell">
-                        <span class="info-lbl">Penalty Amount</span>
-                        @if($violation->violationType?->fine_amount)
-                            <span class="info-val" style="font-weight:800;color:#b91c1c;">₱{{ number_format($violation->violationType->fine_amount, 2) }}</span>
-                        @else
-                            <span class="info-val empty">No penalty set</span>
-                        @endif
-                    </div>
-                    <div class="info-cell">
-                        {{-- spacer to keep grid even --}}
                     </div>
                     <div class="info-cell" style="grid-column: 1 / -1; border-right: none;">
                         <span class="info-lbl">Notes</span>
@@ -446,26 +435,26 @@
     @endif
 
     {{-- Signatures --}}
-    <div style="display: flex; justify-content: space-between; margin-top: 50pt; margin-bottom: 16pt;">
-        <div style="text-align: center;">
-            <div style="font-size: 10pt; text-align: left; margin-bottom: 28pt;">Prepared by:</div>
-            <div style="border-bottom: 1.5pt solid #1c1917; width: 160pt; margin: 0 auto;"></div>
-            <div style="font-size: 10pt; font-weight: 700; margin-top: 3pt;">{{ Auth::user()->name ?? 'N/A' }}</div>
-            <div style="font-size: 8.5pt; font-style: italic; color: #57534e; margin-top: 1pt;">Operation PNCO</div>
+    <div style="display: flex; justify-content: space-between; margin-top: 60pt; margin-bottom: 20pt;">
+        <div>
+            <div>Prepared by:</div>
+            <div style="font-size: 9pt; font-weight: 600; margin-top: 2pt; text-align: center; width: 130pt; margin-left: 50pt;">{{ Auth::user()->name ?? 'N/A' }}</div>
+            <div style="border-bottom: 1pt solid #000; width: 130pt; margin-top: 1pt; margin-left: 50pt;"></div>
+            <div style="font-size: 8pt; font-style: italic; margin-top: 2pt; text-align: center; width: 130pt; margin-left: 50pt;">Operation PNCO</div>
         </div>
-        <div style="text-align: center;">
-            <div style="font-size: 10pt; text-align: left; margin-bottom: 28pt;">Noted by:</div>
-            <div style="border-bottom: 1.5pt solid #1c1917; width: 160pt; margin: 0 auto;"></div>
-            <div style="font-size: 10pt; font-weight: 700; margin-top: 3pt;">PLTCOL RUEL L BURLAT</div>
-            <div style="font-size: 8.5pt; font-style: italic; color: #57534e; margin-top: 1pt;">Chief of Police</div>
+        <div>
+            <div>Noted by:</div>
+            <div style="font-size: 9pt; font-weight: 600; margin-top: 2pt; text-align: center; width: 130pt; margin-left: 50pt;">PLTCOL RUEL L BURLAT</div>
+            <div style="border-bottom: 1pt solid #000; width: 130pt; margin-top: 1pt; margin-left: 50pt;"></div>
+            <div style="font-size: 8pt; font-style: italic; margin-top: 2pt; text-align: center; width: 130pt; margin-left: 50pt;">Chief of Police</div>
         </div>
     </div>
 
     {{-- Footer --}}
     <div class="doc-footer">
         <div class="doc-footer-left">
-            <div>Record ID: #{{ $violation->id }} &nbsp;|&nbsp; Generated: {{ now()->format('Y-m-d H:i:s') }}</div>
-            <div style="margin-top: 2px;">This document is confidential and for official use only.</div>
+            Record ID: #{{ $violation->id }}<br>
+            Generated: {{ now()->format('F d, Y  g:i A') }}
         </div>
     </div>
 
