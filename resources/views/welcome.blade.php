@@ -976,11 +976,11 @@
                         <img src="{{ asset('images/team-kris.jpg') }}" alt="Kris Ian Calida" class="dev-lead-photo">
                         <div class="dev-lead-info">
                             <div class="dev-lead-name">Kris Ian Calida</div>
-                            <div class="dev-lead-role">Lead Developer &nbsp;·&nbsp; Full-Stack &amp; Backend</div>
+                            <div class="dev-lead-role">Lead Developer &nbsp;·&nbsp; Full-Stack, Backend &amp; UI/UX</div>
                             <p class="dev-lead-desc">
-                                Architected and built TVIRS end-to-end — from database design and server-side logic
-                                to deployment — ensuring a secure, reliable, and production-ready system for
-                                the Balamban Municipal Police Station.
+                                Designed and built TVIRS end-to-end — crafting the UI/UX, frontend interfaces,
+                                backend logic, and database architecture — delivering a complete, production-ready
+                                system for the Balamban Municipal Police Station.
                             </p>
                             <div class="dev-stack">
                                 @foreach(['Laravel','PHP','MySQL','Bootstrap','JavaScript','DigitalOcean'] as $tech)
