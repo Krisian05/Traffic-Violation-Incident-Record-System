@@ -727,12 +727,15 @@
     pointer-events: none;
 }
 .dev-lead-photo {
-    width: 64px; height: 64px; flex-shrink: 0;
+    width: 88px; height: 88px; flex-shrink: 0;
     border-radius: 14px;
     object-fit: cover; object-position: center 15%;
     border: 2.5px solid rgba(255,255,255,.25);
     box-shadow: 0 4px 16px rgba(0,0,0,.3);
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
 }
+.dev-lead-photo:hover { transform: scale(1.04); box-shadow: 0 6px 22px rgba(0,0,0,.45); }
 .dev-lead-info { flex: 1; min-width: 0; }
 .dev-lead-name { font-size: 1rem; font-weight: 800; color: #fff; line-height: 1.2; }
 .dev-lead-role {
@@ -759,11 +762,14 @@
 }
 .dev-contrib-card:hover { border-color: #c7d9f8; box-shadow: 0 2px 10px rgba(37,99,235,.07); }
 .dev-contrib-photo {
-    width: 48px; height: 48px; flex-shrink: 0;
+    width: 64px; height: 64px; flex-shrink: 0;
     border-radius: 11px;
     object-fit: cover; object-position: center 15%;
     border: 1.5px solid #e5e9f0;
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
 }
+.dev-contrib-photo:hover { transform: scale(1.04); box-shadow: 0 3px 12px rgba(0,0,0,.15); }
 .dev-contrib-name { font-size: .82rem; font-weight: 800; color: #1e293b; line-height: 1.2; margin-bottom: .15rem; }
 .dev-contrib-role {
     font-size: .63rem; font-weight: 700; color: #3b82f6;
@@ -839,14 +845,14 @@
 
     /* Dev lead banner */
     .dev-lead-banner { gap: .75rem; padding: .85rem .9rem; }
-    .dev-lead-photo { width: 56px; height: 56px; border-radius: 12px; }
+    .dev-lead-photo { width: 72px; height: 72px; border-radius: 12px; }
     .dev-lead-name { font-size: .92rem; }
     .dev-lead-desc { font-size: .73rem; }
 
     /* Contributors */
     .dev-contrib-grid { grid-template-columns: 1fr 1fr; gap: .5rem; }
     .dev-contrib-card { padding: .65rem .7rem; gap: .6rem; }
-    .dev-contrib-photo { width: 42px; height: 42px; border-radius: 9px; }
+    .dev-contrib-photo { width: 52px; height: 52px; border-radius: 9px; }
     .dev-contrib-name { font-size: .77rem; }
     .dev-contrib-desc { font-size: .68rem; }
 
@@ -973,7 +979,9 @@
 
                     {{-- Lead developer --}}
                     <div class="dev-lead-banner">
-                        <img src="{{ asset('images/team-kris.jpg') }}" alt="Kris Ian Calida" class="dev-lead-photo">
+                        <a href="{{ asset('images/team-kris.jpg') }}" target="_blank" rel="noopener">
+                            <img src="{{ asset('images/team-kris.jpg') }}" alt="Kris Ian Calida" class="dev-lead-photo">
+                        </a>
                         <div class="dev-lead-info">
                             <div class="dev-lead-name">Kris Ian Calida</div>
                             <div class="dev-lead-role">Lead Developer &nbsp;·&nbsp; Full-Stack, Backend &amp; UI/UX</div>
@@ -994,7 +1002,9 @@
                     <div class="about-section-label">Contributors</div>
                     <div class="dev-contrib-grid">
                         <div class="dev-contrib-card">
-                            <img src="{{ asset('images/team-alexies.jpg') }}" alt="Alexies Marie Ricafort" class="dev-contrib-photo">
+                            <a href="{{ asset('images/team-alexies.jpg') }}" target="_blank" rel="noopener">
+                                <img src="{{ asset('images/team-alexies.jpg') }}" alt="Alexies Marie Ricafort" class="dev-contrib-photo" style="object-position:center 25%;">
+                            </a>
                             <div style="min-width:0;">
                                 <div class="dev-contrib-name">Alexies Marie Ricafort</div>
                                 <div class="dev-contrib-role">Frontend &amp; UI/UX</div>
@@ -1002,7 +1012,9 @@
                             </div>
                         </div>
                         <div class="dev-contrib-card">
-                            <img src="{{ asset('images/team-mariz.jpg') }}" alt="Mariz Stela Tagalog" class="dev-contrib-photo">
+                            <a href="{{ asset('images/team-mariz.jpg') }}" target="_blank" rel="noopener">
+                                <img src="{{ asset('images/team-mariz.jpg') }}" alt="Mariz Stela Tagalog" class="dev-contrib-photo" style="object-position:center 15%;">
+                            </a>
                             <div style="min-width:0;">
                                 <div class="dev-contrib-name">Mariz Stela Tagalog</div>
                                 <div class="dev-contrib-role">Frontend &amp; UI/UX</div>
