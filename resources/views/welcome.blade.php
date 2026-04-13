@@ -999,7 +999,7 @@
                             system for the Balamban Municipal Police Station.
                         </p>
                         <div class="dev-stack">
-                            @foreach(['Laravel','PHP','MySQL','Bootstrap','JavaScript','DigitalOcean'] as $tech)
+                            @foreach(['Laravel 12','PHP 8.2','PostgreSQL','Bootstrap 5','JavaScript','Flatpickr','Appwrite','DigitalOcean'] as $tech)
                             <span class="dev-tag">{{ $tech }}</span>
                             @endforeach
                         </div>
