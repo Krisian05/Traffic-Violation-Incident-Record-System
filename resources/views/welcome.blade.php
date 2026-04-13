@@ -713,39 +713,71 @@
 .about-platform-value { font-size: .78rem; font-weight: 700; color: #1e293b; }
 
 /* ── Developer panel ── */
-.dev-card {
-    display: flex; align-items: flex-start; gap: 1rem;
-    padding: 1.1rem 1.2rem;
-    background: linear-gradient(135deg, #f0f7ff, #e8f0fe);
-    border: 1px solid #c7d9f8; border-radius: 14px;
-    margin-bottom: 1rem;
+.dev-lead-banner {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 1rem 1.1rem;
+    background: linear-gradient(135deg, #0f2460, #1e40af);
+    border-radius: 13px; margin-bottom: .85rem;
+    position: relative; overflow: hidden;
 }
-.dev-avatar {
-    width: 54px; height: 54px; flex-shrink: 0; border-radius: 13px;
-    background: linear-gradient(135deg, #1e40af, #2563eb);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.45rem; font-weight: 900; color: #fff;
-    box-shadow: 0 4px 14px rgba(37,99,235,.32);
-    letter-spacing: -.02em;
+.dev-lead-banner::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 100% 50%, rgba(96,165,250,.18) 0%, transparent 60%);
+    pointer-events: none;
 }
-.dev-name { font-size: .98rem; font-weight: 800; color: #1e293b; line-height: 1.2; }
-.dev-role {
-    font-size: .69rem; font-weight: 700; color: #2563eb;
-    text-transform: uppercase; letter-spacing: .08em; margin-top: .15rem;
+.dev-lead-photo {
+    width: 64px; height: 64px; flex-shrink: 0;
+    border-radius: 14px;
+    object-fit: cover; object-position: center top;
+    border: 2.5px solid rgba(255,255,255,.25);
+    box-shadow: 0 4px 16px rgba(0,0,0,.3);
 }
-.dev-desc { font-size: .79rem; color: #4b5563; line-height: 1.7; margin-top: .5rem; }
-.dev-stack { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .8rem; }
+.dev-lead-info { flex: 1; min-width: 0; }
+.dev-lead-name { font-size: 1rem; font-weight: 800; color: #fff; line-height: 1.2; }
+.dev-lead-role {
+    font-size: .67rem; font-weight: 700; color: #93c5fd;
+    text-transform: uppercase; letter-spacing: .09em; margin: .2rem 0 .45rem;
+}
+.dev-lead-desc { font-size: .77rem; color: rgba(255,255,255,.82); line-height: 1.6; margin: 0; }
+.dev-stack { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .55rem; }
 .dev-tag {
-    font-size: .67rem; font-weight: 600; padding: .18rem .5rem; border-radius: 6px;
-    background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;
+    font-size: .63rem; font-weight: 600; padding: .15rem .45rem; border-radius: 5px;
+    background: rgba(255,255,255,.12); color: #bfdbfe; border: 1px solid rgba(255,255,255,.2);
 }
+
+/* Contributors grid */
+.dev-contrib-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: .65rem;
+    margin-bottom: .85rem;
+}
+.dev-contrib-card {
+    display: flex; align-items: flex-start; gap: .75rem;
+    padding: .8rem .9rem;
+    background: #fff; border: 1px solid #e5e9f0; border-radius: 11px;
+    transition: border-color .15s, box-shadow .15s;
+}
+.dev-contrib-card:hover { border-color: #c7d9f8; box-shadow: 0 2px 10px rgba(37,99,235,.07); }
+.dev-contrib-photo {
+    width: 48px; height: 48px; flex-shrink: 0;
+    border-radius: 11px;
+    object-fit: cover; object-position: center top;
+    border: 1.5px solid #e5e9f0;
+}
+.dev-contrib-name { font-size: .82rem; font-weight: 800; color: #1e293b; line-height: 1.2; margin-bottom: .15rem; }
+.dev-contrib-role {
+    font-size: .63rem; font-weight: 700; color: #3b82f6;
+    text-transform: uppercase; letter-spacing: .07em; margin-bottom: .3rem;
+}
+.dev-contrib-desc { font-size: .72rem; color: #64748b; line-height: 1.5; margin: 0; }
+
 .dev-quote {
-    display: flex; gap: .65rem; align-items: flex-start;
-    padding: .8rem 1rem;
-    background: #fafbfc; border: 1px solid #e8ecf2; border-radius: 10px;
-    font-size: .78rem; color: #64748b; line-height: 1.75;
+    display: flex; gap: .6rem; align-items: flex-start;
+    padding: .75rem .9rem;
+    background: #f8fafc; border: 1px solid #e8ecf2; border-radius: 10px;
+    font-size: .76rem; color: #64748b; line-height: 1.75;
 }
-.dev-quote i { font-size: 1.2rem; color: #c7d9f8; flex-shrink: 0; margin-top: .05rem; }
+.dev-quote i { font-size: 1.1rem; color: #c7d9f8; flex-shrink: 0; margin-top: .1rem; }
 
 /* ── Footer strip ── */
 .about-footer-strip {
@@ -805,13 +837,20 @@
     .about-platform-label { font-size: .56rem; }
     .about-platform-value { font-size: .73rem; }
 
-    /* Dev card — stack avatar + content */
-    .dev-card { flex-direction: column; align-items: center; text-align: center; gap: .75rem; padding: 1rem; }
-    .dev-avatar { width: 52px; height: 52px; font-size: 1.35rem; }
-    .dev-name { font-size: .93rem; }
-    .dev-desc { font-size: .76rem; }
-    .dev-stack { justify-content: center; }
-    .dev-quote { font-size: .74rem; padding: .65rem .8rem; }
+    /* Dev lead banner */
+    .dev-lead-banner { gap: .75rem; padding: .85rem .9rem; }
+    .dev-lead-photo { width: 56px; height: 56px; border-radius: 12px; }
+    .dev-lead-name { font-size: .92rem; }
+    .dev-lead-desc { font-size: .73rem; }
+
+    /* Contributors */
+    .dev-contrib-grid { grid-template-columns: 1fr 1fr; gap: .5rem; }
+    .dev-contrib-card { padding: .65rem .7rem; gap: .6rem; }
+    .dev-contrib-photo { width: 42px; height: 42px; border-radius: 9px; }
+    .dev-contrib-name { font-size: .77rem; }
+    .dev-contrib-desc { font-size: .68rem; }
+
+    .dev-quote { font-size: .72rem; padding: .65rem .8rem; }
 
     /* Footer strip — stack vertically */
     .about-footer-strip { flex-direction: column; align-items: flex-start; padding: .55rem 1rem; gap: .3rem; }
@@ -931,15 +970,17 @@
 
                 {{-- Developer Panel --}}
                 <div class="about-panel" id="about-panel-developer">
-                    <div class="dev-card">
-                        <div class="dev-avatar">K</div>
-                        <div style="flex:1;min-width:0;">
-                            <div class="dev-name">Kristian</div>
-                            <div class="dev-role">System Developer</div>
-                            <p class="dev-desc">
-                                Designed and developed TVIRS as a capstone project to modernize traffic enforcement
-                                record-keeping for the Balamban Municipal Police Station — transitioning from manual
-                                logbooks to a fully digital, centralized records platform.
+
+                    {{-- Lead developer --}}
+                    <div class="dev-lead-banner">
+                        <img src="{{ asset('images/team-kris.jpg') }}" alt="Kris Ian Calida" class="dev-lead-photo">
+                        <div class="dev-lead-info">
+                            <div class="dev-lead-name">Kris Ian Calida</div>
+                            <div class="dev-lead-role">Lead Developer &nbsp;·&nbsp; Full-Stack &amp; Backend</div>
+                            <p class="dev-lead-desc">
+                                Architected and built TVIRS end-to-end — from database design and server-side logic
+                                to deployment — ensuring a secure, reliable, and production-ready system for
+                                the Balamban Municipal Police Station.
                             </p>
                             <div class="dev-stack">
                                 @foreach(['Laravel','PHP','MySQL','Bootstrap','JavaScript','DigitalOcean'] as $tech)
@@ -949,11 +990,33 @@
                         </div>
                     </div>
 
+                    {{-- Contributors --}}
+                    <div class="about-section-label">Contributors</div>
+                    <div class="dev-contrib-grid">
+                        <div class="dev-contrib-card">
+                            <img src="{{ asset('images/team-mariz.jpg') }}" alt="Mariz Stela Tagalog" class="dev-contrib-photo">
+                            <div style="min-width:0;">
+                                <div class="dev-contrib-name">Mariz Stela Tagalog</div>
+                                <div class="dev-contrib-role">Frontend &amp; UI/UX</div>
+                                <p class="dev-contrib-desc">Assisted with frontend layout, visual design, and feature testing across the system.</p>
+                            </div>
+                        </div>
+                        <div class="dev-contrib-card">
+                            <img src="{{ asset('images/team-alexies.jpg') }}" alt="Alexies Marie Ricafort" class="dev-contrib-photo">
+                            <div style="min-width:0;">
+                                <div class="dev-contrib-name">Alexies Marie Ricafort</div>
+                                <div class="dev-contrib-role">Frontend &amp; UI/UX</div>
+                                <p class="dev-contrib-desc">Contributed to interface design, user experience improvements, and additional feature support.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="dev-quote">
                         <i class="bi bi-quote"></i>
                         Built with a focus on accuracy, ease of use, and data integrity — ensuring that police personnel
                         can record, retrieve, and report enforcement data efficiently and reliably.
                     </div>
+
                 </div>
 
                 <div class="about-footer-strip">
