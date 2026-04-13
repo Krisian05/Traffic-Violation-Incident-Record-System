@@ -994,17 +994,17 @@
                     <div class="about-section-label">Contributors</div>
                     <div class="dev-contrib-grid">
                         <div class="dev-contrib-card">
-                            <img src="{{ asset('images/team-mariz.jpg') }}" alt="Mariz Stela Tagalog" class="dev-contrib-photo">
+                            <img src="{{ asset('images/team-alexies.jpg') }}" alt="Alexies Marie Ricafort" class="dev-contrib-photo">
                             <div style="min-width:0;">
-                                <div class="dev-contrib-name">Mariz Stela Tagalog</div>
+                                <div class="dev-contrib-name">Alexies Marie Ricafort</div>
                                 <div class="dev-contrib-role">Frontend &amp; UI/UX</div>
                                 <p class="dev-contrib-desc">Assisted with frontend layout, visual design, and feature testing across the system.</p>
                             </div>
                         </div>
                         <div class="dev-contrib-card">
-                            <img src="{{ asset('images/team-alexies.jpg') }}" alt="Alexies Marie Ricafort" class="dev-contrib-photo">
+                            <img src="{{ asset('images/team-mariz.jpg') }}" alt="Mariz Stela Tagalog" class="dev-contrib-photo">
                             <div style="min-width:0;">
-                                <div class="dev-contrib-name">Alexies Marie Ricafort</div>
+                                <div class="dev-contrib-name">Mariz Stela Tagalog</div>
                                 <div class="dev-contrib-role">Frontend &amp; UI/UX</div>
                                 <p class="dev-contrib-desc">Contributed to interface design, user experience improvements, and additional feature support.</p>
                             </div>
