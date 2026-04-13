@@ -1,4 +1,19 @@
 @if ($paginator->hasPages())
+@php
+    $currentPage = $paginator->currentPage();
+    $lastPage = $paginator->lastPage();
+    $compactPages = [];
+
+    if ($lastPage <= 5) {
+        $compactPages = range(1, $lastPage);
+    } elseif ($currentPage <= 3) {
+        $compactPages = [1, 2, 3, 'dots', $lastPage];
+    } elseif ($currentPage >= ($lastPage - 2)) {
+        $compactPages = [1, 'dots', $lastPage - 2, $lastPage - 1, $lastPage];
+    } else {
+        $compactPages = [1, 'dots', $currentPage - 1, $currentPage, $currentPage + 1, 'dots', $lastPage];
+    }
+@endphp
 <nav aria-label="Pagination">
     <style>
         .mob-pager {
@@ -121,18 +136,13 @@
 
             <div class="mob-pager-pages">
                 {{-- Page numbers --}}
-                @foreach ($elements as $element)
-                    @if (is_string($element))
+                @foreach ($compactPages as $page)
+                    @if ($page === 'dots')
                         <span class="mob-page-dots">&hellip;</span>
-                    @endif
-                    @if (is_array($element))
-                        @foreach ($element as $page => $url)
-                            @if ($page == $paginator->currentPage())
-                                <span class="mob-page-btn active" aria-current="page">{{ $page }}</span>
-                            @else
-                                <a class="mob-page-btn" href="{{ $url }}">{{ $page }}</a>
-                            @endif
-                        @endforeach
+                    @elseif ($page == $currentPage)
+                        <span class="mob-page-btn active" aria-current="page">{{ $page }}</span>
+                    @else
+                        <a class="mob-page-btn" href="{{ $paginator->url($page) }}">{{ $page }}</a>
                     @endif
                 @endforeach
             </div>
