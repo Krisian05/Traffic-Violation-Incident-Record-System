@@ -713,37 +713,41 @@
 .about-platform-value { font-size: .78rem; font-weight: 700; color: #1e293b; }
 
 /* ── Developer panel ── */
-.dev-lead-banner {
-    display: flex; align-items: center; gap: 1rem;
-    padding: 1rem 1.1rem;
-    background: linear-gradient(135deg, #0f2460, #1e40af);
-    border-radius: 13px; margin-bottom: .85rem;
+.dev-lead-card {
+    background: linear-gradient(160deg, #0f2460, #1e40af);
+    border-radius: 14px; margin-bottom: .85rem;
     position: relative; overflow: hidden;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 1.5rem 1.25rem 1.1rem;
+    text-align: center;
 }
-.dev-lead-banner::before {
+.dev-lead-card::before {
     content: '';
     position: absolute; inset: 0;
-    background: radial-gradient(ellipse at 100% 50%, rgba(96,165,250,.18) 0%, transparent 60%);
+    background: radial-gradient(ellipse at 50% -10%, rgba(96,165,250,.22) 0%, transparent 65%);
     pointer-events: none;
 }
+.dev-lead-photo-wrap {
+    position: relative; margin-bottom: .85rem;
+}
 .dev-lead-photo {
-    width: 88px; height: 88px; flex-shrink: 0;
-    border-radius: 14px;
+    width: 120px; height: 130px;
+    border-radius: 16px;
     object-fit: cover; object-position: center 15%;
-    border: 2.5px solid rgba(255,255,255,.25);
-    box-shadow: 0 4px 16px rgba(0,0,0,.3);
+    border: 3px solid rgba(255,255,255,.3);
+    box-shadow: 0 8px 28px rgba(0,0,0,.4);
     cursor: pointer;
     transition: transform .2s, box-shadow .2s;
+    display: block;
 }
-.dev-lead-photo:hover { transform: scale(1.04); box-shadow: 0 6px 22px rgba(0,0,0,.45); }
-.dev-lead-info { flex: 1; min-width: 0; }
-.dev-lead-name { font-size: 1rem; font-weight: 800; color: #fff; line-height: 1.2; }
+.dev-lead-photo:hover { transform: scale(1.03); box-shadow: 0 12px 36px rgba(0,0,0,.5); }
+.dev-lead-name { font-size: 1.05rem; font-weight: 800; color: #fff; line-height: 1.2; }
 .dev-lead-role {
     font-size: .67rem; font-weight: 700; color: #93c5fd;
-    text-transform: uppercase; letter-spacing: .09em; margin: .2rem 0 .45rem;
+    text-transform: uppercase; letter-spacing: .09em; margin: .25rem 0 .5rem;
 }
-.dev-lead-desc { font-size: .77rem; color: rgba(255,255,255,.82); line-height: 1.6; margin: 0; }
-.dev-stack { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .55rem; }
+.dev-lead-desc { font-size: .78rem; color: rgba(255,255,255,.82); line-height: 1.65; margin: 0; max-width: 480px; }
+.dev-stack { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .65rem; justify-content: center; }
 .dev-tag {
     font-size: .63rem; font-weight: 600; padding: .15rem .45rem; border-radius: 5px;
     background: rgba(255,255,255,.12); color: #bfdbfe; border: 1px solid rgba(255,255,255,.2);
@@ -755,27 +759,30 @@
     margin-bottom: .85rem;
 }
 .dev-contrib-card {
-    display: flex; align-items: flex-start; gap: .75rem;
-    padding: .8rem .9rem;
-    background: #fff; border: 1px solid #e5e9f0; border-radius: 11px;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 1rem .9rem .85rem;
+    background: #fff; border: 1px solid #e5e9f0; border-radius: 12px;
+    text-align: center;
     transition: border-color .15s, box-shadow .15s;
 }
-.dev-contrib-card:hover { border-color: #c7d9f8; box-shadow: 0 2px 10px rgba(37,99,235,.07); }
+.dev-contrib-card:hover { border-color: #c7d9f8; box-shadow: 0 3px 14px rgba(37,99,235,.09); }
 .dev-contrib-photo {
-    width: 64px; height: 64px; flex-shrink: 0;
-    border-radius: 11px;
+    width: 90px; height: 100px;
+    border-radius: 12px;
     object-fit: cover; object-position: center 15%;
     border: 1.5px solid #e5e9f0;
+    margin-bottom: .65rem;
     cursor: pointer;
     transition: transform .2s, box-shadow .2s;
+    display: block;
 }
-.dev-contrib-photo:hover { transform: scale(1.04); box-shadow: 0 3px 12px rgba(0,0,0,.15); }
+.dev-contrib-photo:hover { transform: scale(1.04); box-shadow: 0 4px 14px rgba(0,0,0,.15); }
 .dev-contrib-name { font-size: .82rem; font-weight: 800; color: #1e293b; line-height: 1.2; margin-bottom: .15rem; }
 .dev-contrib-role {
     font-size: .63rem; font-weight: 700; color: #3b82f6;
-    text-transform: uppercase; letter-spacing: .07em; margin-bottom: .3rem;
+    text-transform: uppercase; letter-spacing: .07em; margin-bottom: .35rem;
 }
-.dev-contrib-desc { font-size: .72rem; color: #64748b; line-height: 1.5; margin: 0; }
+.dev-contrib-desc { font-size: .71rem; color: #64748b; line-height: 1.55; margin: 0; }
 
 .dev-quote {
     display: flex; gap: .6rem; align-items: flex-start;
@@ -843,18 +850,18 @@
     .about-platform-label { font-size: .56rem; }
     .about-platform-value { font-size: .73rem; }
 
-    /* Dev lead banner */
-    .dev-lead-banner { gap: .75rem; padding: .85rem .9rem; }
-    .dev-lead-photo { width: 72px; height: 72px; border-radius: 12px; }
-    .dev-lead-name { font-size: .92rem; }
-    .dev-lead-desc { font-size: .73rem; }
+    /* Dev lead card */
+    .dev-lead-card { padding: 1.1rem 1rem .9rem; }
+    .dev-lead-photo { width: 90px; height: 100px; border-radius: 13px; }
+    .dev-lead-name { font-size: .95rem; }
+    .dev-lead-desc { font-size: .74rem; }
 
     /* Contributors */
     .dev-contrib-grid { grid-template-columns: 1fr 1fr; gap: .5rem; }
-    .dev-contrib-card { padding: .65rem .7rem; gap: .6rem; }
-    .dev-contrib-photo { width: 52px; height: 52px; border-radius: 9px; }
+    .dev-contrib-card { padding: .8rem .7rem .7rem; }
+    .dev-contrib-photo { width: 72px; height: 80px; border-radius: 10px; }
     .dev-contrib-name { font-size: .77rem; }
-    .dev-contrib-desc { font-size: .68rem; }
+    .dev-contrib-desc { font-size: .67rem; }
 
     .dev-quote { font-size: .72rem; padding: .65rem .8rem; }
 
@@ -978,23 +985,23 @@
                 <div class="about-panel" id="about-panel-developer">
 
                     {{-- Lead developer --}}
-                    <div class="dev-lead-banner">
-                        <a href="{{ asset('images/team-kris.jpg') }}" target="_blank" rel="noopener">
-                            <img src="{{ asset('images/team-kris.jpg') }}" alt="Kris Ian Calida" class="dev-lead-photo">
-                        </a>
-                        <div class="dev-lead-info">
-                            <div class="dev-lead-name">Kris Ian Calida</div>
-                            <div class="dev-lead-role">Lead Developer &nbsp;·&nbsp; Full-Stack, Backend &amp; UI/UX</div>
-                            <p class="dev-lead-desc">
-                                Designed and built TVIRS end-to-end — crafting the UI/UX, frontend interfaces,
-                                backend logic, and database architecture — delivering a complete, production-ready
-                                system for the Balamban Municipal Police Station.
-                            </p>
-                            <div class="dev-stack">
-                                @foreach(['Laravel','PHP','MySQL','Bootstrap','JavaScript','DigitalOcean'] as $tech)
-                                <span class="dev-tag">{{ $tech }}</span>
-                                @endforeach
-                            </div>
+                    <div class="dev-lead-card">
+                        <div class="dev-lead-photo-wrap">
+                            <a href="{{ asset('images/team-kris.jpg') }}" target="_blank" rel="noopener">
+                                <img src="{{ asset('images/team-kris.jpg') }}" alt="Kris Ian Calida" class="dev-lead-photo">
+                            </a>
+                        </div>
+                        <div class="dev-lead-name">Kris Ian Calida</div>
+                        <div class="dev-lead-role">Lead Developer &nbsp;·&nbsp; Full-Stack, Backend &amp; UI/UX</div>
+                        <p class="dev-lead-desc">
+                            Designed and built TVIRS end-to-end — crafting the UI/UX, frontend interfaces,
+                            backend logic, and database architecture — delivering a complete, production-ready
+                            system for the Balamban Municipal Police Station.
+                        </p>
+                        <div class="dev-stack">
+                            @foreach(['Laravel','PHP','MySQL','Bootstrap','JavaScript','DigitalOcean'] as $tech)
+                            <span class="dev-tag">{{ $tech }}</span>
+                            @endforeach
                         </div>
                     </div>
 
@@ -1005,21 +1012,17 @@
                             <a href="{{ asset('images/team-alexies.jpg') }}" target="_blank" rel="noopener">
                                 <img src="{{ asset('images/team-alexies.jpg') }}" alt="Alexies Marie Ricafort" class="dev-contrib-photo" style="object-position:center 25%;">
                             </a>
-                            <div style="min-width:0;">
-                                <div class="dev-contrib-name">Alexies Marie Ricafort</div>
-                                <div class="dev-contrib-role">Frontend &amp; UI/UX</div>
-                                <p class="dev-contrib-desc">Assisted with frontend layout, visual design, and feature testing across the system.</p>
-                            </div>
+                            <div class="dev-contrib-name">Alexies Marie Ricafort</div>
+                            <div class="dev-contrib-role">Frontend &amp; UI/UX</div>
+                            <p class="dev-contrib-desc">Assisted with frontend layout, visual design, and feature testing across the system.</p>
                         </div>
                         <div class="dev-contrib-card">
                             <a href="{{ asset('images/team-mariz.jpg') }}" target="_blank" rel="noopener">
                                 <img src="{{ asset('images/team-mariz.jpg') }}" alt="Mariz Stela Tagalog" class="dev-contrib-photo" style="object-position:center 15%;">
                             </a>
-                            <div style="min-width:0;">
-                                <div class="dev-contrib-name">Mariz Stela Tagalog</div>
-                                <div class="dev-contrib-role">Frontend &amp; UI/UX</div>
-                                <p class="dev-contrib-desc">Contributed to interface design, user experience improvements, and additional feature support.</p>
-                            </div>
+                            <div class="dev-contrib-name">Mariz Stela Tagalog</div>
+                            <div class="dev-contrib-role">Frontend &amp; UI/UX</div>
+                            <p class="dev-contrib-desc">Contributed to interface design, user experience improvements, and additional feature support.</p>
                         </div>
                     </div>
 
