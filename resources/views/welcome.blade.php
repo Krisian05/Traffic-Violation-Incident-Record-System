@@ -792,6 +792,45 @@
 }
 .dev-quote i { font-size: 1.1rem; color: #c7d9f8; flex-shrink: 0; margin-top: .1rem; }
 
+/* ── Photo lightbox ── */
+.photo-lightbox {
+    display: none;
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,.85);
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    cursor: zoom-out;
+    animation: lbFadeIn .18s ease;
+}
+.photo-lightbox.open { display: flex; }
+@keyframes lbFadeIn { from { opacity:0; } to { opacity:1; } }
+.photo-lightbox img {
+    max-width: min(420px, 90vw);
+    max-height: 88vh;
+    border-radius: 16px;
+    box-shadow: 0 24px 80px rgba(0,0,0,.65);
+    object-fit: contain;
+    cursor: default;
+    animation: lbScaleIn .2s ease;
+}
+@keyframes lbScaleIn { from { transform:scale(.88); opacity:0; } to { transform:scale(1); opacity:1; } }
+.photo-lightbox-close {
+    position: absolute; top: 1rem; right: 1.25rem;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+    color: #fff; font-size: 1.1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+}
+.photo-lightbox-close:hover { background: rgba(255,255,255,.28); }
+.photo-lightbox-name {
+    position: absolute; bottom: 1.25rem; left: 50%; transform: translateX(-50%);
+    font-size: .8rem; font-weight: 600; color: rgba(255,255,255,.85);
+    background: rgba(0,0,0,.45); padding: .3rem .9rem; border-radius: 9999px;
+    white-space: nowrap;
+}
+
 /* ── Footer strip ── */
 .about-footer-strip {
     background: #f8fafc; border-top: 1px solid #eef2f8;
@@ -987,9 +1026,9 @@
                     {{-- Lead developer --}}
                     <div class="dev-lead-card">
                         <div class="dev-lead-photo-wrap">
-                            <a href="{{ asset('images/team-kris.jpg') }}" target="_blank" rel="noopener">
-                                <img src="{{ asset('images/team-kris.jpg') }}" alt="Kris Ian Calida" class="dev-lead-photo">
-                            </a>
+                            <img src="{{ asset('images/team-kris.jpg') }}" alt="Kris Ian Calida"
+                                 class="dev-lead-photo" data-lightbox="{{ asset('images/team-kris.jpg') }}"
+                                 data-lightbox-name="Kris Ian Calida">
                         </div>
                         <div class="dev-lead-name">Kris Ian Calida</div>
                         <div class="dev-lead-role">Lead Developer &nbsp;·&nbsp; Full-Stack, Backend &amp; UI/UX</div>
@@ -1009,17 +1048,19 @@
                     <div class="about-section-label">Contributors</div>
                     <div class="dev-contrib-grid">
                         <div class="dev-contrib-card">
-                            <a href="{{ asset('images/team-alexies.jpg') }}" target="_blank" rel="noopener">
-                                <img src="{{ asset('images/team-alexies.jpg') }}" alt="Alexies Marie Ricafort" class="dev-contrib-photo" style="object-position:center 25%;">
-                            </a>
+                            <img src="{{ asset('images/team-alexies.jpg') }}" alt="Alexies Marie Ricafort"
+                                 class="dev-contrib-photo" style="object-position:center 25%;"
+                                 data-lightbox="{{ asset('images/team-alexies.jpg') }}"
+                                 data-lightbox-name="Alexies Marie Ricafort">
                             <div class="dev-contrib-name">Alexies Marie Ricafort</div>
                             <div class="dev-contrib-role">Frontend &amp; UI/UX</div>
                             <p class="dev-contrib-desc">Assisted with frontend layout, visual design, and feature testing across the system.</p>
                         </div>
                         <div class="dev-contrib-card">
-                            <a href="{{ asset('images/team-mariz.jpg') }}" target="_blank" rel="noopener">
-                                <img src="{{ asset('images/team-mariz.jpg') }}" alt="Mariz Stela Tagalog" class="dev-contrib-photo" style="object-position:center 15%;">
-                            </a>
+                            <img src="{{ asset('images/team-mariz.jpg') }}" alt="Mariz Stela Tagalog"
+                                 class="dev-contrib-photo" style="object-position:center 15%;"
+                                 data-lightbox="{{ asset('images/team-mariz.jpg') }}"
+                                 data-lightbox-name="Mariz Stela Tagalog">
                             <div class="dev-contrib-name">Mariz Stela Tagalog</div>
                             <div class="dev-contrib-role">Frontend &amp; UI/UX</div>
                             <p class="dev-contrib-desc">Contributed to interface design, user experience improvements, and additional feature support.</p>
@@ -1044,7 +1085,45 @@
     </div>
 </div>
 
+{{-- Photo Lightbox --}}
+<div class="photo-lightbox" id="photoLightbox" role="dialog" aria-modal="true">
+    <button class="photo-lightbox-close" id="photoLightboxClose" aria-label="Close">
+        <i class="bi bi-x-lg"></i>
+    </button>
+    <img src="" alt="" id="photoLightboxImg">
+    <div class="photo-lightbox-name" id="photoLightboxName"></div>
+</div>
+
 <script>
+// Photo lightbox
+(function() {
+    var lb = document.getElementById('photoLightbox');
+    var lbImg = document.getElementById('photoLightboxImg');
+    var lbName = document.getElementById('photoLightboxName');
+    var lbClose = document.getElementById('photoLightboxClose');
+
+    function openLightbox(src, name) {
+        lbImg.src = src;
+        lbImg.alt = name;
+        lbName.textContent = name;
+        lb.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeLightbox() {
+        lb.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('[data-lightbox]').forEach(function(el) {
+        el.addEventListener('click', function() {
+            openLightbox(this.dataset.lightbox, this.dataset.lightboxName || '');
+        });
+    });
+    lbClose.addEventListener('click', closeLightbox);
+    lb.addEventListener('click', function(e) { if (e.target === lb) closeLightbox(); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeLightbox(); });
+})();
+
 document.querySelectorAll('.about-tab').forEach(function(tab) {
     tab.addEventListener('click', function() {
         document.querySelectorAll('.about-tab').forEach(t => t.classList.remove('active'));
