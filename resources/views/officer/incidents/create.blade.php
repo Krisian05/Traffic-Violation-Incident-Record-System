@@ -2,6 +2,21 @@
 @section('title', 'Record Incident')
 @section('back_url', route('officer.incidents.index'))
 
+@push('styles')
+@include('partials.motshow-styles')
+<style>
+.incident-row{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:.9rem}
+.incident-row+.incident-row{margin-top:.9rem}
+.incident-row-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.incident-row-badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#d97706,#b45309);color:#fff;font-size:.78rem;font-weight:800}
+.incident-chips{display:flex;flex-wrap:wrap;gap:.35rem}
+.incident-chip{display:inline-flex;align-items:center;gap:.32rem;padding:.28rem .58rem;border-radius:999px;border:1px solid #cbd5e1;background:#fff;font-size:.73rem;font-weight:700;color:#334155}
+.incident-media-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem;margin-top:.7rem}
+.incident-media-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:.6rem}
+.incident-media-card img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;margin-bottom:.45rem}
+</style>
+@endpush
+
 @section('content')
 @php
     $blankMotorist = [
@@ -50,18 +65,6 @@
     ]));
     $chargeTypesForJs = $chargeTypes->map(fn($type) => ['id' => $type->id, 'name' => $type->name])->values();
 @endphp
-
-<style>
-.incident-row{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:.9rem}
-.incident-row+.incident-row{margin-top:.9rem}
-.incident-row-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
-.incident-row-badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#d97706,#b45309);color:#fff;font-size:.78rem;font-weight:800}
-.incident-chips{display:flex;flex-wrap:wrap;gap:.35rem}
-.incident-chip{display:inline-flex;align-items:center;gap:.32rem;padding:.28rem .58rem;border-radius:999px;border:1px solid #cbd5e1;background:#fff;font-size:.73rem;font-weight:700;color:#334155}
-.incident-media-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem;margin-top:.7rem}
-.incident-media-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:.6rem}
-.incident-media-card img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;margin-bottom:.45rem}
-</style>
 
 <div class="mob-card">
     <div class="mob-card-body">

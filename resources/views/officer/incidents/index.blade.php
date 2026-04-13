@@ -2,6 +2,7 @@
 @section('title', 'Incidents')
 
 @push('styles')
+@include('partials.motshow-styles')
 <style>
 .inc-search-shell {
     background: #fff;
