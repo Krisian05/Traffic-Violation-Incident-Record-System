@@ -729,7 +729,7 @@
 .dev-lead-photo {
     width: 64px; height: 64px; flex-shrink: 0;
     border-radius: 14px;
-    object-fit: cover; object-position: center top;
+    object-fit: cover; object-position: center 15%;
     border: 2.5px solid rgba(255,255,255,.25);
     box-shadow: 0 4px 16px rgba(0,0,0,.3);
 }
@@ -761,7 +761,7 @@
 .dev-contrib-photo {
     width: 48px; height: 48px; flex-shrink: 0;
     border-radius: 11px;
-    object-fit: cover; object-position: center top;
+    object-fit: cover; object-position: center 15%;
     border: 1.5px solid #e5e9f0;
 }
 .dev-contrib-name { font-size: .82rem; font-weight: 800; color: #1e293b; line-height: 1.2; margin-bottom: .15rem; }
