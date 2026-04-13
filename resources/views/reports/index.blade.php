@@ -960,14 +960,14 @@
 <div class="rpt-print-signatures">
     <div class="rpt-sig-col">
         <div class="rpt-sig-label">Prepared by:</div>
-        <div class="rpt-sig-name">{{ Auth::user()->name ?? 'N/A' }}</div>
         <div class="rpt-sig-line"></div>
+        <div class="rpt-sig-name">{{ Auth::user()->name ?? 'N/A' }}</div>
         <div class="rpt-sig-title">Operation PNCO</div>
     </div>
     <div class="rpt-sig-col">
         <div class="rpt-sig-label">Noted by:</div>
-        <div class="rpt-sig-name">PLTCOL RUEL L BURLAT</div>
         <div class="rpt-sig-line"></div>
+        <div class="rpt-sig-name">PLTCOL RUEL L BURLAT</div>
         <div class="rpt-sig-title">Chief of Police</div>
     </div>
 </div>
@@ -1796,9 +1796,9 @@
         page-break-inside: avoid;
     }
     .rpt-sig-col { min-width: 180pt; }
-    .rpt-sig-label { font-size: 8.5pt; color: #111; margin-bottom: 18pt; }
+    .rpt-sig-label { font-size: 8.5pt; color: #111; margin-bottom: 26pt; }
     .rpt-sig-name  { font-size: 9pt; font-weight: 700; text-align: center; }
-    .rpt-sig-line  { border-bottom: 1pt solid #000; margin-top: 1pt; }
+    .rpt-sig-line  { border-bottom: 1pt solid #000; }
     .rpt-sig-title { font-size: 8pt; font-style: italic; text-align: center; margin-top: 2pt; color: #333; }
 }
 
