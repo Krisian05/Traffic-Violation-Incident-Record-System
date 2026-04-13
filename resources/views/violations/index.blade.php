@@ -172,7 +172,7 @@
                            title="View motorist profile">
                             {{ $v->violator->full_name }}
                         </a>
-                        <div style="font-size:.69rem;color:#a8a29e;margin-top:2px;">
+                        <div class="no-print" style="font-size:.69rem;color:#a8a29e;margin-top:2px;">
                             <i class="bi bi-eye me-1" style="font-size:.6rem;"></i>Click row to view violation
                         </div>
                         @else

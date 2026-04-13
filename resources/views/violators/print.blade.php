@@ -343,10 +343,6 @@
                 <span class="info-lbl">Email Address</span>
                 <span class="info-val {{ $violator->email ? '' : 'empty' }}">{{ $violator->email ?? 'N/A' }}</span>
             </div>
-            <div class="info-cell">
-                <span class="info-lbl">Valid ID</span>
-                <span class="info-val {{ $violator->valid_id ? '' : 'empty' }}">{{ $violator->valid_id ?? 'N/A' }}</span>
-            </div>
         </div>
         {{-- Addresses on full-width rows --}}
         <div class="info-grid cols-1" style="margin-top:4px;">
