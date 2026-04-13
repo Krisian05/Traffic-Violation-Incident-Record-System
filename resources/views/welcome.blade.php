@@ -568,154 +568,245 @@
 
 {{-- ABOUT MODAL --}}
 <style>
-.about-modal .modal-content { border:0;border-radius:20px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.35); }
+/* ── Modal shell ── */
+.about-modal .modal-content {
+    border: 0;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 32px 80px rgba(0,0,0,.4);
+}
 
-/* Hero banner */
+/* ── Hero banner ── */
 .about-hero {
-    background: linear-gradient(135deg, #05122e 0%, #0c2461 60%, #1a3a8f 100%);
-    padding: 2.5rem 2rem 2rem;
+    background: linear-gradient(160deg, #04111f 0%, #0b2255 55%, #163998 100%);
+    padding: 2.25rem 2rem 1.75rem;
     text-align: center;
     position: relative;
     overflow: hidden;
 }
 .about-hero::before {
-    content:'';
-    position:absolute;inset:0;
-    background: radial-gradient(ellipse at 50% -20%, rgba(96,165,250,.25) 0%, transparent 70%);
-    pointer-events:none;
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% -10%, rgba(96,165,250,.22) 0%, transparent 65%);
+    pointer-events: none;
 }
 .about-hero-logos {
-    display:flex;align-items:center;justify-content:center;gap:1.5rem;
-    margin-bottom:1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    margin-bottom: 1rem;
 }
 .about-hero-logo-wrap {
-    width:72px;height:72px;
-    display:flex;align-items:center;justify-content:center;
-    flex-shrink:0;
+    width: 68px; height: 68px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
 }
 .about-hero-logo-wrap img {
-    width:72px;height:72px;
-    object-fit:contain;
-    filter:drop-shadow(0 2px 12px rgba(0,0,0,.4));
+    width: 68px; height: 68px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 10px rgba(0,0,0,.45));
 }
-/* PNP image has extra transparent padding — scale it up to match */
-.about-hero-logo-wrap:first-child img {
-    transform: scale(1.35);
-}
-.about-hero-divider {
-    width:1px;height:50px;
-    background:linear-gradient(to bottom,transparent,rgba(255,255,255,.35),transparent);
+.about-hero-logo-wrap:first-child img { transform: scale(1.32); }
+.about-hero-sep {
+    width: 1px; height: 44px;
+    background: linear-gradient(to bottom, transparent, rgba(255,255,255,.3), transparent);
+    flex-shrink: 0;
 }
 .about-hero-title {
-    font-size:1.05rem;font-weight:800;color:#fff;
-    letter-spacing:.02em;line-height:1.3;margin-bottom:.3rem;
+    font-size: 1rem; font-weight: 800; color: #fff;
+    letter-spacing: .015em; line-height: 1.35; margin-bottom: .25rem;
 }
 .about-hero-sub {
-    font-size:.72rem;font-weight:500;
-    color:#93c5fd;letter-spacing:.08em;text-transform:uppercase;
+    font-size: .7rem; font-weight: 500;
+    color: #93c5fd; letter-spacing: .07em; text-transform: uppercase;
+    line-height: 1.6;
 }
-.about-hero-version {
-    display:inline-flex;align-items:center;gap:.35rem;
-    margin-top:.8rem;padding:.22rem .75rem;
-    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
-    border-radius:9999px;font-size:.68rem;color:#bfdbfe;
+.about-hero-badge {
+    display: inline-flex; align-items: center; gap: .3rem;
+    margin-top: .75rem; padding: .2rem .7rem;
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
+    border-radius: 9999px; font-size: .67rem; color: #bfdbfe;
 }
 
-/* Body */
-.about-body { background:#fff; }
+/* ── Body wrapper ── */
+.about-body { background: #fff; }
 
-/* Tabs */
+/* ── Tabs ── */
 .about-tabs {
-    display:flex;
-    border-bottom:1.5px solid #f1ede8;
-    background:#fafaf9;
+    display: flex;
+    background: #f8f9fb;
+    border-bottom: 1.5px solid #e8ecf2;
 }
 .about-tab {
-    flex:1;padding:.7rem 1rem;
-    font-size:.78rem;font-weight:600;color:#78716c;
-    border:0;background:transparent;cursor:pointer;
-    border-bottom:2.5px solid transparent;margin-bottom:-1.5px;
-    transition:all .18s;display:flex;align-items:center;justify-content:center;gap:.4rem;
+    flex: 1; padding: .65rem 1rem;
+    font-size: .78rem; font-weight: 600; color: #64748b;
+    border: 0; background: transparent; cursor: pointer;
+    border-bottom: 2.5px solid transparent; margin-bottom: -1.5px;
+    transition: color .15s, border-color .15s, background .15s;
+    display: flex; align-items: center; justify-content: center; gap: .4rem;
 }
-.about-tab:hover { color:#1c1917; }
-.about-tab.active { color:#1d4ed8;border-bottom-color:#1d4ed8;background:#fff; }
+.about-tab:hover { color: #1e293b; background: #f1f5fb; }
+.about-tab.active { color: #1d4ed8; border-bottom-color: #1d4ed8; background: #fff; }
 
-/* Tab panels */
-.about-panel { display:none;padding:1.75rem 1.75rem 1.5rem; }
-.about-panel.active { display:block; }
+/* ── Tab panels ── */
+.about-panel { display: none; padding: 1.5rem 1.75rem; }
+.about-panel.active { display: block; }
 
-/* System panel */
+/* ── System panel ── */
 .about-intro {
-    font-size:.84rem;color:#44403c;line-height:1.8;
-    padding:.9rem 1rem;
-    background:linear-gradient(135deg,#f8faff,#eff6ff);
-    border:1px solid #dbeafe;border-radius:12px;
-    margin-bottom:1.25rem;
+    font-size: .83rem; color: #374151; line-height: 1.8;
+    padding: .85rem 1rem;
+    background: linear-gradient(135deg, #f0f7ff, #e8f0fe);
+    border: 1px solid #c7d9f8; border-radius: 12px;
+    margin-bottom: 1.25rem;
 }
-.about-features-grid {
-    display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;
+.about-section-label {
+    font-size: .67rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .1em; color: #94a3b8; margin-bottom: .6rem;
 }
-@media(max-width:576px){ .about-features-grid { grid-template-columns:repeat(2,1fr); } }
-.about-feature-chip {
-    display:flex;align-items:center;gap:.5rem;
-    padding:.55rem .75rem;
-    background:#fafaf9;border:1px solid #e7e5e4;border-radius:10px;
-    font-size:.75rem;font-weight:600;color:#44403c;
-    transition:border-color .15s,background .15s;
+.about-caps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .55rem;
+    margin-bottom: 1.25rem;
 }
-.about-feature-chip:hover { background:#f5f5f4;border-color:#d6d3d1; }
-.about-feature-chip i { font-size:.8rem;flex-shrink:0; }
+@media (max-width: 576px) {
+    .about-caps-grid { grid-template-columns: repeat(2, 1fr); }
+    .about-panel { padding: 1.25rem 1.1rem; }
+}
+.about-cap-item {
+    display: flex; align-items: center; gap: .55rem;
+    padding: .6rem .75rem;
+    background: #fff;
+    border: 1px solid #e5e9f0;
+    border-radius: 10px;
+    font-size: .75rem; font-weight: 600; color: #334155;
+    transition: border-color .15s, background .15s, box-shadow .15s;
+}
+.about-cap-item:hover {
+    background: #f8faff;
+    border-color: #c7d9f8;
+    box-shadow: 0 2px 8px rgba(37,99,235,.07);
+}
+.about-cap-icon {
+    width: 28px; height: 28px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .8rem; flex-shrink: 0;
+}
+.about-meta-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: .55rem;
+}
+@media (max-width: 576px) { .about-meta-row { grid-template-columns: 1fr 1fr; } }
+.about-meta-cell {
+    padding: .65rem .8rem; border-radius: 10px;
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    text-align: center;
+}
+.about-meta-label {
+    font-size: .63rem; text-transform: uppercase; letter-spacing: .08em;
+    color: #94a3b8; font-weight: 700; margin-bottom: .2rem;
+}
+.about-meta-value { font-size: .8rem; font-weight: 700; color: #1e293b; }
 
-/* Info row */
-.about-info-row {
-    display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-top:1rem;
-}
-@media(max-width:576px){ .about-info-row { grid-template-columns:1fr 1fr; } }
-.about-info-cell {
-    padding:.65rem .8rem;border-radius:10px;
-    background:#f8fafc;border:1px solid #e2e8f0;text-align:center;
-}
-.about-info-cell-label { font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;font-weight:600;margin-bottom:.2rem; }
-.about-info-cell-value { font-size:.78rem;font-weight:700;color:#1e293b; }
-
-/* Developer panel */
+/* ── Developer panel ── */
 .dev-card {
-    display:flex;align-items:flex-start;gap:1.1rem;
-    padding:1.1rem 1.25rem;
-    background:linear-gradient(135deg,#f8faff,#eff6ff);
-    border:1px solid #dbeafe;border-radius:14px;
-    margin-bottom:1rem;
+    display: flex; align-items: flex-start; gap: 1rem;
+    padding: 1.1rem 1.2rem;
+    background: linear-gradient(135deg, #f0f7ff, #e8f0fe);
+    border: 1px solid #c7d9f8; border-radius: 14px;
+    margin-bottom: 1rem;
 }
 .dev-avatar {
-    width:58px;height:58px;flex-shrink:0;border-radius:14px;
-    background:linear-gradient(135deg,#1e4fb5,#2563eb);
-    display:flex;align-items:center;justify-content:center;
-    font-size:1.5rem;font-weight:900;color:#fff;
-    box-shadow:0 4px 16px rgba(37,99,235,.35);
-    letter-spacing:-.02em;
+    width: 54px; height: 54px; flex-shrink: 0; border-radius: 13px;
+    background: linear-gradient(135deg, #1e40af, #2563eb);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.45rem; font-weight: 900; color: #fff;
+    box-shadow: 0 4px 14px rgba(37,99,235,.32);
+    letter-spacing: -.02em;
 }
-.dev-name { font-size:1rem;font-weight:800;color:#1e293b;line-height:1.2; }
-.dev-role { font-size:.72rem;font-weight:600;color:#3b82f6;text-transform:uppercase;letter-spacing:.07em;margin-top:.15rem; }
-.dev-desc { font-size:.8rem;color:#57534e;line-height:1.7;margin-top:.55rem; }
-.dev-stack {
-    display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.85rem;
+.dev-name { font-size: .98rem; font-weight: 800; color: #1e293b; line-height: 1.2; }
+.dev-role {
+    font-size: .69rem; font-weight: 700; color: #2563eb;
+    text-transform: uppercase; letter-spacing: .08em; margin-top: .15rem;
 }
+.dev-desc { font-size: .79rem; color: #4b5563; line-height: 1.7; margin-top: .5rem; }
+.dev-stack { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .8rem; }
 .dev-tag {
-    font-size:.68rem;font-weight:600;padding:.2rem .55rem;border-radius:6px;
-    background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;
+    font-size: .67rem; font-weight: 600; padding: .18rem .5rem; border-radius: 6px;
+    background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;
+}
+.dev-quote {
+    display: flex; gap: .65rem; align-items: flex-start;
+    padding: .8rem 1rem;
+    background: #fafbfc; border: 1px solid #e8ecf2; border-radius: 10px;
+    font-size: .78rem; color: #64748b; line-height: 1.75;
+}
+.dev-quote i { font-size: 1.2rem; color: #c7d9f8; flex-shrink: 0; margin-top: .05rem; }
+
+/* ── Footer strip ── */
+.about-footer-strip {
+    background: #f8fafc; border-top: 1px solid #eef2f8;
+    padding: .6rem 1.75rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: .4rem;
+}
+.about-footer-strip span { font-size: .7rem; color: #94a3b8; }
+.about-footer-badge {
+    display: inline-flex; align-items: center; gap: .3rem;
+    font-size: .67rem; font-weight: 600; padding: .17rem .52rem;
+    background: #fef9c3; color: #854d0e; border: 1px solid #fde68a; border-radius: 6px;
 }
 
-/* Footer strip */
-.about-footer-strip {
-    background:#f8fafc;border-top:1px solid #f1f5f9;
-    padding:.65rem 1.75rem;
-    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;
-}
-.about-footer-strip span { font-size:.7rem;color:#94a3b8; }
-.about-footer-badge {
-    display:inline-flex;align-items:center;gap:.3rem;
-    font-size:.68rem;font-weight:600;padding:.18rem .55rem;
-    background:#fef9c3;color:#854d0e;border:1px solid #fde68a;border-radius:6px;
+/* ── Mobile ── */
+@media (max-width: 575.98px) {
+    .about-modal .modal-content { border-radius: 16px; }
+    .about-modal .modal-dialog { margin: .75rem; }
+
+    /* Hero — tighter */
+    .about-hero { padding: 1.75rem 1.25rem 1.4rem; }
+    .about-hero-logo-wrap { width: 54px; height: 54px; }
+    .about-hero-logo-wrap img { width: 54px; height: 54px; }
+    .about-hero-logo-wrap:first-child img { transform: scale(1.28); }
+    .about-hero-sep { height: 36px; }
+    .about-hero-logos { gap: 1rem; margin-bottom: .8rem; }
+    .about-hero-title { font-size: .92rem; }
+    .about-hero-sub {
+        font-size: .62rem; letter-spacing: .04em;
+        /* wrap "Cebu CPO · PRO-7" gracefully */
+        line-height: 1.7;
+    }
+    .about-hero-badge { font-size: .62rem; margin-top: .6rem; padding: .18rem .6rem; }
+
+    /* Tabs */
+    .about-tab { font-size: .73rem; padding: .55rem .5rem; gap: .3rem; }
+
+    /* Panels */
+    .about-panel { padding: 1.1rem 1rem 1rem; }
+    .about-intro { font-size: .79rem; line-height: 1.75; padding: .75rem .85rem; }
+    .about-section-label { font-size: .63rem; }
+
+    /* Caps grid — 2 col on mobile */
+    .about-caps-grid { grid-template-columns: 1fr 1fr; gap: .45rem; margin-bottom: 1rem; }
+    .about-cap-item { font-size: .72rem; padding: .5rem .6rem; gap: .45rem; }
+    .about-cap-icon { width: 24px; height: 24px; font-size: .72rem; border-radius: 6px; }
+
+    /* Meta row — 3 col stays, just tighter */
+    .about-meta-row { gap: .4rem; }
+    .about-meta-cell { padding: .55rem .5rem; }
+    .about-meta-label { font-size: .58rem; }
+    .about-meta-value { font-size: .75rem; }
+
+    /* Dev card — stack avatar + content */
+    .dev-card { flex-direction: column; align-items: center; text-align: center; gap: .75rem; padding: 1rem; }
+    .dev-avatar { width: 52px; height: 52px; font-size: 1.35rem; }
+    .dev-name { font-size: .93rem; }
+    .dev-desc { font-size: .76rem; }
+    .dev-stack { justify-content: center; }
+    .dev-quote { font-size: .74rem; padding: .65rem .8rem; }
+
+    /* Footer strip — stack vertically */
+    .about-footer-strip { flex-direction: column; align-items: flex-start; padding: .55rem 1rem; gap: .3rem; }
 }
 </style>
 
@@ -731,14 +822,16 @@
                     <div class="about-hero-logo-wrap">
                         <img src="{{ asset('images/PNP.png') }}" alt="PNP Logo">
                     </div>
-                    <div class="about-hero-divider"></div>
+                    <div class="about-hero-sep"></div>
                     <div class="about-hero-logo-wrap">
                         <img src="{{ asset('images/Balamban.png') }}" alt="Balamban Seal">
                     </div>
                 </div>
                 <div class="about-hero-title">Traffic Violation Incident Record System</div>
-                <div class="about-hero-sub">Balamban Municipal Police Station &nbsp;·&nbsp; Cebu Police Provincial Office &nbsp;·&nbsp; PRO-7</div>
-                <div class="about-hero-version">
+                <div class="about-hero-sub">
+                    Balamban Municipal Police Station &nbsp;·&nbsp; Cebu Police Provincial Office &nbsp;·&nbsp; PRO-7
+                </div>
+                <div class="about-hero-badge">
                     <i class="bi bi-patch-check-fill" style="color:#60a5fa;"></i>
                     Official Police Records Platform &nbsp;·&nbsp; v2.0
                 </div>
@@ -748,64 +841,77 @@
             <div class="about-body">
                 <div class="about-tabs" id="aboutTabs">
                     <button class="about-tab active" data-panel="system">
-                        <i class="bi bi-info-circle-fill"></i> About the System
+                        <i class="bi bi-info-circle-fill"></i>
+                        About the System
                     </button>
                     <button class="about-tab" data-panel="developer">
-                        <i class="bi bi-code-slash"></i> Developer
+                        <i class="bi bi-code-slash"></i>
+                        Developer
                     </button>
                 </div>
 
                 {{-- System Panel --}}
                 <div class="about-panel active" id="about-panel-system">
                     <div class="about-intro">
-                        The <strong>Traffic Violation Incident Record System (TVIRS)</strong> is a secure, web-based records management
-                        platform developed exclusively for the <strong>Balamban Municipal Police Station</strong>.
+                        The <strong>Traffic Violation Incident Record System (TVIRS)</strong> is a secure, web-based records
+                        management platform developed exclusively for the <strong>Balamban Municipal Police Station</strong>.
                         It digitizes and centralizes the recording, tracking, and reporting of traffic violations and road incidents —
                         replacing manual logbooks with a reliable, searchable, and auditable digital system.
                     </div>
 
-                    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#94a3b8;margin-bottom:.6rem;">
-                        System Capabilities
-                    </div>
-                    <div class="about-features-grid">
-                        <div class="about-feature-chip">
-                            <i class="bi bi-person-lines-fill" style="color:#3b82f6"></i>
+                    <div class="about-section-label">System Capabilities</div>
+                    <div class="about-caps-grid">
+                        <div class="about-cap-item">
+                            <div class="about-cap-icon" style="background:rgba(59,130,246,.12);">
+                                <i class="bi bi-person-lines-fill" style="color:#3b82f6;"></i>
+                            </div>
                             Motorist Profiling
                         </div>
-                        <div class="about-feature-chip">
-                            <i class="bi bi-exclamation-triangle-fill" style="color:#ef4444"></i>
+                        <div class="about-cap-item">
+                            <div class="about-cap-icon" style="background:rgba(239,68,68,.12);">
+                                <i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;"></i>
+                            </div>
                             Violation Management
                         </div>
-                        <div class="about-feature-chip">
-                            <i class="bi bi-flag-fill" style="color:#f59e0b"></i>
+                        <div class="about-cap-item">
+                            <div class="about-cap-icon" style="background:rgba(245,158,11,.12);">
+                                <i class="bi bi-flag-fill" style="color:#f59e0b;"></i>
+                            </div>
                             Incident Recording
                         </div>
-                        <div class="about-feature-chip">
-                            <i class="bi bi-car-front-fill" style="color:#eab308"></i>
+                        <div class="about-cap-item">
+                            <div class="about-cap-icon" style="background:rgba(234,179,8,.12);">
+                                <i class="bi bi-car-front-fill" style="color:#ca8a04;"></i>
+                            </div>
                             Vehicle Records
                         </div>
-                        <div class="about-feature-chip">
-                            <i class="bi bi-bar-chart-fill" style="color:#10b981"></i>
+                        <div class="about-cap-item">
+                            <div class="about-cap-icon" style="background:rgba(16,185,129,.12);">
+                                <i class="bi bi-bar-chart-fill" style="color:#10b981;"></i>
+                            </div>
                             Reports &amp; Analytics
                         </div>
-                        <div class="about-feature-chip">
-                            <i class="bi bi-shield-lock-fill" style="color:#8b5cf6"></i>
+                        <div class="about-cap-item">
+                            <div class="about-cap-icon" style="background:rgba(139,92,246,.12);">
+                                <i class="bi bi-shield-lock-fill" style="color:#8b5cf6;"></i>
+                            </div>
                             Role-Based Access
                         </div>
                     </div>
 
-                    <div class="about-info-row">
-                        <div class="about-info-cell">
-                            <div class="about-info-cell-label">Unit</div>
-                            <div class="about-info-cell-value">Balamban MPS</div>
+                    <div class="about-section-label">Unit Information</div>
+                    <div class="about-meta-row">
+                        <div class="about-meta-cell">
+                            <div class="about-meta-label">Unit</div>
+                            <div class="about-meta-value">Balamban MPS</div>
                         </div>
-                        <div class="about-info-cell">
-                            <div class="about-info-cell-label">Province</div>
-                            <div class="about-info-cell-value">Cebu CPO</div>
+                        <div class="about-meta-cell">
+                            <div class="about-meta-label">Province</div>
+                            <div class="about-meta-value">Cebu CPO</div>
                         </div>
-                        <div class="about-info-cell">
-                            <div class="about-info-cell-label">Region</div>
-                            <div class="about-info-cell-value">PRO-7</div>
+                        <div class="about-meta-cell">
+                            <div class="about-meta-label">Region</div>
+                            <div class="about-meta-value">PRO-7</div>
                         </div>
                     </div>
                 </div>
@@ -830,8 +936,8 @@
                         </div>
                     </div>
 
-                    <div style="font-size:.78rem;color:#78716c;line-height:1.75;padding:.6rem .1rem;">
-                        <i class="bi bi-quote" style="color:#cbd5e1;font-size:1rem;vertical-align:top;margin-right:.3rem;"></i>
+                    <div class="dev-quote">
+                        <i class="bi bi-quote"></i>
                         Built with a focus on accuracy, ease of use, and data integrity — ensuring that police personnel
                         can record, retrieve, and report enforcement data efficiently and reliably.
                     </div>
