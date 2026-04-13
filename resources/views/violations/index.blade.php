@@ -768,6 +768,7 @@ a.vio-page:hover {
     }
 
     .print-only { display: table-cell !important; }
+    .d-none.d-md-table-cell { display: table-cell !important; }
 
     .print-sig-footer {
         display: flex !important;
