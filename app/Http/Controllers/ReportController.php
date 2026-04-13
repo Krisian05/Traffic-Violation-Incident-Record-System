@@ -45,12 +45,12 @@ class ReportController extends Controller
         $repeatOffenders = Violator::withCount('violations')
             ->has('violations', '>', 1)
             ->orderByDesc('violations_count')
+            ->limit(100)
             ->get();
 
         $allTypes = ViolationType::orderBy('name')->get();
-        $minYear  = (int) (Violation::min('date_of_violation')
-                        ? substr(Violation::min('date_of_violation'), 0, 4)
-                        : now()->year);
+        $minDate  = Violation::min('date_of_violation');
+        $minYear  = (int) ($minDate ? substr($minDate, 0, 4) : now()->year);
 
         $overdueViolations = Violation::with(['violator', 'violationType', 'vehicle'])
             ->overdue()
@@ -100,25 +100,20 @@ class ReportController extends Controller
                                 ->select('location', DB::raw('COUNT(*) as total'))
                                 ->groupBy('location')->orderByDesc('total')->limit(7)->get();
 
-        $settledCount = Violation::whereYear('date_of_violation', $year)
-                            ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
-                            ->where('status', 'settled')
-                            ->count();
+        $aggCounts = Violation::whereYear('date_of_violation', $year)
+                        ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
+                        ->selectRaw("
+                            SUM(CASE WHEN status = 'settled' THEN 1 ELSE 0 END) as settled,
+                            SUM(CASE WHEN status = 'contested' THEN 1 ELSE 0 END) as contested,
+                            SUM(CASE WHEN status = 'pending' AND date_of_violation > ? THEN 1 ELSE 0 END) as pending_active,
+                            COUNT(DISTINCT violator_id) as total_violators
+                        ", [now()->subHours(72)->toDateString()])
+                        ->first();
 
-        $contestedCount = Violation::whereYear('date_of_violation', $year)
-                            ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
-                            ->where('status', 'contested')
-                            ->count();
-
-        $pendingActiveCount = Violation::whereYear('date_of_violation', $year)
-                            ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
-                            ->pendingActive()
-                            ->count();
-
-        $totalViolators = Violation::whereYear('date_of_violation', $year)
-                            ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
-                            ->distinct('violator_id')
-                            ->count('violator_id');
+        $settledCount       = (int) ($aggCounts->settled ?? 0);
+        $contestedCount     = (int) ($aggCounts->contested ?? 0);
+        $pendingActiveCount = (int) ($aggCounts->pending_active ?? 0);
+        $totalViolators     = (int) ($aggCounts->total_violators ?? 0);
 
         $overdueCount = $overdueViolations->count();
 
@@ -128,8 +123,9 @@ class ReportController extends Controller
             ->groupBy('violation_type_id')
             ->pluck('total', 'violation_type_id');
 
-        $violationsByType = $violationsByType->mapWithKeys(function ($total, $typeId) use ($allTypes) {
-            $typeName = $allTypes->firstWhere('id', $typeId)->name ?? 'Unknown';
+        $allTypesById = $allTypes->keyBy('id');
+        $violationsByType = $violationsByType->mapWithKeys(function ($total, $typeId) use ($allTypesById) {
+            $typeName = $allTypesById[$typeId]->name ?? 'Unknown';
             return [$typeName => $total];
         });
 
