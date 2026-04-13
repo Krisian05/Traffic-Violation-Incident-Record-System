@@ -765,8 +765,8 @@
             /* Content */
             .content { padding: .75rem; }
 
-            /* Toasts: full width on mobile */
-            #toastContainer { left: .6rem; right: .6rem; top: .6rem; }
+            /* Toasts: compact right-aligned on mobile */
+            #toastContainer { left: auto; right: .75rem; top: .75rem; width: min(calc(100vw - 1.5rem), 320px); }
             .app-toast { min-width: 0; width: 100%; }
 
             /* Filter card headers: wrap action buttons below label */
