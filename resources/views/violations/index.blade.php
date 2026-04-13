@@ -145,10 +145,13 @@
                         <span class="th-inner"><i class="bi bi-tag-fill me-1"></i>Violation Type</span>
                     </th>
                     <th class="text-center d-none d-md-table-cell">
-                        <span class="th-inner"><i class="bi bi-calendar-event-fill me-1"></i>Date</span>
+                        <span class="th-inner"><i class="bi bi-calendar-event-fill me-1"></i>Date Apprehended</span>
                     </th>
                     <th class="text-center d-none d-md-table-cell">
                         <span class="th-inner"><i class="bi bi-car-front-fill me-1"></i>Plate No.</span>
+                    </th>
+                    <th class="text-center print-only">
+                        <span class="th-inner">Penalty Amount</span>
                     </th>
                     <th class="text-center">
                         <span class="th-inner"><i class="bi bi-activity me-1"></i>Status</span>
@@ -223,6 +226,15 @@
                             <i class="bi {{ $statusConf['icon'] }}"></i>
                             {{ ucfirst($displayStatus) }}
                         </span>
+                    </td>
+
+                    {{-- Penalty Amount (print only) --}}
+                    <td class="text-center print-only">
+                        @if($v->violationType?->fine_amount)
+                            <span style="font-weight:700;color:#b91c1c;">₱{{ number_format($v->violationType->fine_amount, 2) }}</span>
+                        @else
+                            <span style="color:#a8a29e;">—</span>
+                        @endif
                     </td>
 
                     {{-- Actions --}}
@@ -338,6 +350,26 @@
             <span class="vio-footer-count">{{ $violations->total() }} {{ Str::plural('record', $violations->total()) }} total</span>
         </div>
     @endif
+</div>
+
+{{-- ── PRINT SIGNATURE FOOTER (hidden on screen) ── --}}
+<div class="print-sig-footer">
+    <div class="print-sig-block">
+        <div class="print-sig-label">Prepared by:</div>
+        <div class="print-sig-line"></div>
+        <div class="print-sig-name">{{ Auth::user()->name ?? 'N/A' }}</div>
+        <div class="print-sig-title">Operation PNCO</div>
+    </div>
+    <div class="print-sig-block">
+        <div class="print-sig-label">Noted by:</div>
+        <div class="print-sig-line"></div>
+        <div class="print-sig-name">PLTCOL RUEL L BURLAT</div>
+        <div class="print-sig-title">Chief of Police</div>
+    </div>
+</div>
+<div class="print-doc-footer" style="display:none;">
+    Generated: {{ now()->format('Y-m-d H:i:s') }} &nbsp;|&nbsp; {{ $violations->total() }} {{ Str::plural('record', $violations->total()) }} total<br>
+    This document is confidential and for official use only.
 </div>
 
 <style>
@@ -673,6 +705,12 @@ a.vio-page:hover {
     font-size: .85rem;
 }
 
+/* ─── Print-only columns ─── */
+.print-only { display: none; }
+
+/* ─── Print signature footer ─── */
+.print-sig-footer { display: none; }
+
 /* ─── Print button ─── */
 .vio-print-btn {
     display: inline-flex; align-items: center; gap: .4rem;
@@ -727,6 +765,30 @@ a.vio-page:hover {
         text-align: center; font-size: 9pt; font-weight: 900;
         text-transform: uppercase; letter-spacing: .1em; color: #b91c1c;
         border-bottom: 2px solid #b91c1c; padding: 3px 0 5px; margin-bottom: 10px;
+    }
+
+    .print-only { display: table-cell !important; }
+
+    .print-sig-footer {
+        display: flex !important;
+        justify-content: space-between;
+        margin-top: 40pt;
+        margin-bottom: 10pt;
+        padding: 0 4px;
+    }
+    .print-sig-block { text-align: center; }
+    .print-sig-label { font-size: 9pt; text-align: left; margin-bottom: 26pt; }
+    .print-sig-line  { border-bottom: 1.5pt solid #1c1917; width: 160pt; margin: 0 auto; }
+    .print-sig-name  { font-size: 10pt; font-weight: 700; margin-top: 3pt; }
+    .print-sig-title { font-size: 8.5pt; font-style: italic; color: #57534e; margin-top: 1pt; }
+
+    .print-doc-footer {
+        display: block !important;
+        border-top: 1px solid #d6d3d1;
+        padding-top: 6pt;
+        margin-top: 10pt;
+        font-size: 7.5pt;
+        color: #a8a29e;
     }
 
     @page { size: A4 portrait; margin: 8mm 10mm 12mm; }
