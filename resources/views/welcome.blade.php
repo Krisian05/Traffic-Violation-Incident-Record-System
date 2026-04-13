@@ -655,82 +655,62 @@
 
 /* ── System panel ── */
 .about-intro {
-    display: flex; gap: .85rem; align-items: flex-start;
-    padding: .9rem 1rem;
+    font-size: .82rem; color: #374151; line-height: 1.78;
+    padding: .8rem 1rem;
     background: linear-gradient(135deg, #f0f7ff, #e8f0fe);
-    border: 1px solid #c7d9f8; border-radius: 12px;
-    margin-bottom: 1.3rem;
-}
-.about-intro-icon {
-    width: 36px; height: 36px; flex-shrink: 0; border-radius: 9px;
-    background: linear-gradient(135deg, #1e40af, #3b82f6);
-    display: flex; align-items: center; justify-content: center;
-    font-size: .95rem; color: #fff;
-    box-shadow: 0 3px 10px rgba(37,99,235,.28);
-    margin-top: .1rem;
-}
-.about-intro-text {
-    font-size: .82rem; color: #374151; line-height: 1.78; flex: 1; min-width: 0;
+    border: 1px solid #c7d9f8; border-radius: 11px;
+    margin-bottom: 1.1rem;
 }
 .about-section-label {
-    font-size: .67rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .1em; color: #94a3b8; margin-bottom: .6rem;
+    font-size: .65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .1em; color: #94a3b8; margin-bottom: .55rem;
     display: flex; align-items: center; gap: .4rem;
 }
 .about-section-label::after {
     content: ''; flex: 1; height: 1px; background: #e8ecf2;
 }
 
-/* Capability cards */
+/* Capability chips — 3 col, compact */
 .about-caps-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: .55rem;
-    margin-bottom: 1.3rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .5rem;
+    margin-bottom: 1.1rem;
 }
-.about-cap-card {
-    display: flex; align-items: flex-start; gap: .65rem;
-    padding: .7rem .85rem;
-    background: #fff;
-    border: 1px solid #e5e9f0;
-    border-radius: 11px;
+.about-cap-chip {
+    display: flex; align-items: center; gap: .55rem;
+    padding: .6rem .75rem;
+    background: #fff; border: 1px solid #e5e9f0; border-radius: 10px;
     transition: border-color .15s, background .15s, box-shadow .15s;
+    cursor: default;
 }
-.about-cap-card:hover {
-    background: #f8faff;
-    border-color: #c7d9f8;
-    box-shadow: 0 2px 10px rgba(37,99,235,.07);
+.about-cap-chip:hover {
+    background: #f6f9ff; border-color: #c7d9f8;
+    box-shadow: 0 2px 8px rgba(37,99,235,.07);
 }
 .about-cap-icon {
-    width: 32px; height: 32px; border-radius: 8px;
+    width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-size: .88rem; flex-shrink: 0; margin-top: .05rem;
+    font-size: .82rem;
 }
-.about-cap-title {
-    font-size: .78rem; font-weight: 700; color: #1e293b; line-height: 1.2; margin-bottom: .18rem;
-}
-.about-cap-desc {
-    font-size: .71rem; color: #64748b; line-height: 1.5; margin: 0;
+.about-cap-name {
+    font-size: .75rem; font-weight: 600; color: #1e293b; line-height: 1.25;
 }
 
-/* Platform info row */
+/* Unit/platform row */
 .about-platform-row {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem;
-    margin-bottom: 1rem;
 }
 .about-platform-cell {
-    padding: .7rem .75rem; border-radius: 10px;
-    background: #fff; border: 1px solid #e5e9f0;
-    text-align: center;
+    padding: .65rem .75rem; border-radius: 10px;
+    background: #f8fafc; border: 1px solid #e2e8f0; text-align: center;
 }
-.about-platform-icon {
-    font-size: .95rem; margin-bottom: .3rem; display: block;
-}
+.about-platform-icon { font-size: .9rem; margin-bottom: .25rem; display: block; }
 .about-platform-label {
-    font-size: .6rem; text-transform: uppercase; letter-spacing: .08em;
-    color: #94a3b8; font-weight: 700; margin-bottom: .18rem;
+    font-size: .59rem; text-transform: uppercase; letter-spacing: .08em;
+    color: #94a3b8; font-weight: 700; margin-bottom: .15rem;
 }
-.about-platform-value { font-size: .79rem; font-weight: 700; color: #1e293b; }
+.about-platform-value { font-size: .78rem; font-weight: 700; color: #1e293b; }
 
 /* ── Developer panel ── */
 .dev-card {
@@ -809,23 +789,21 @@
     .about-intro { font-size: .79rem; line-height: 1.75; padding: .75rem .85rem; }
     .about-section-label { font-size: .63rem; }
 
-    /* Intro box */
-    .about-intro { gap: .65rem; padding: .75rem .85rem; }
-    .about-intro-icon { width: 30px; height: 30px; font-size: .82rem; border-radius: 8px; }
-    .about-intro-text { font-size: .77rem; }
+    /* Intro */
+    .about-intro { font-size: .77rem; padding: .7rem .85rem; }
 
-    /* Caps grid — 1 col on very small, 2 col on small */
-    .about-caps-grid { grid-template-columns: 1fr 1fr; gap: .4rem; margin-bottom: 1rem; }
-    .about-cap-card { padding: .6rem .7rem; gap: .5rem; }
-    .about-cap-icon { width: 28px; height: 28px; font-size: .78rem; border-radius: 7px; }
-    .about-cap-title { font-size: .73rem; }
-    .about-cap-desc { font-size: .67rem; }
+    /* Caps — 2 col on mobile */
+    .about-caps-grid { grid-template-columns: 1fr 1fr; gap: .4rem; margin-bottom: .9rem; }
+    .about-cap-chip { padding: .52rem .6rem; gap: .45rem; }
+    .about-cap-icon { width: 26px; height: 26px; font-size: .74rem; border-radius: 7px; }
+    .about-cap-name { font-size: .7rem; }
 
     /* Platform row */
     .about-platform-row { gap: .4rem; }
-    .about-platform-cell { padding: .6rem .5rem; }
-    .about-platform-label { font-size: .57rem; }
-    .about-platform-value { font-size: .74rem; }
+    .about-platform-cell { padding: .55rem .4rem; }
+    .about-platform-icon { font-size: .82rem; }
+    .about-platform-label { font-size: .56rem; }
+    .about-platform-value { font-size: .73rem; }
 
     /* Dev card — stack avatar + content */
     .dev-card { flex-direction: column; align-items: center; text-align: center; gap: .75rem; padding: 1rem; }
@@ -841,7 +819,7 @@
 </style>
 
 <div class="modal fade about-modal" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
 
             {{-- Hero Banner --}}
@@ -883,100 +861,67 @@
                 {{-- System Panel --}}
                 <div class="about-panel active" id="about-panel-system">
 
-                    {{-- Intro --}}
-                    <div class="about-intro">
-                        <div class="about-intro-icon">
-                            <i class="bi bi-shield-check"></i>
-                        </div>
-                        <p class="about-intro-text mb-0">
-                            The <strong>Traffic Violation Incident Record System (TVIRS)</strong> is a secure,
-                            web-based records management platform developed exclusively for the
-                            <strong>Balamban Municipal Police Station</strong> — digitizing and centralizing
-                            traffic violations and road incident records, replacing manual logbooks with a
-                            reliable, searchable, and auditable digital system.
-                        </p>
-                    </div>
+                    <p class="about-intro mb-0">
+                        The <strong>Traffic Violation Incident Record System (TVIRS)</strong> is a secure,
+                        web-based platform developed for the <strong>Balamban Municipal Police Station</strong> —
+                        digitizing traffic violations and road incidents, replacing manual logbooks with a
+                        reliable, searchable, and auditable digital system.
+                    </p>
 
-                    {{-- Capabilities --}}
-                    <div class="about-section-label">System Capabilities</div>
+                    <div class="about-section-label mt-3">System Capabilities</div>
                     <div class="about-caps-grid">
-                        <div class="about-cap-card">
+                        <div class="about-cap-chip">
                             <div class="about-cap-icon" style="background:rgba(59,130,246,.12);">
                                 <i class="bi bi-person-lines-fill" style="color:#3b82f6;"></i>
                             </div>
-                            <div>
-                                <div class="about-cap-title">Motorist Profiling</div>
-                                <p class="about-cap-desc">Complete motorist records with license info and full enforcement history.</p>
-                            </div>
+                            <span class="about-cap-name">Motorist Profiling</span>
                         </div>
-                        <div class="about-cap-card">
+                        <div class="about-cap-chip">
                             <div class="about-cap-icon" style="background:rgba(239,68,68,.12);">
                                 <i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;"></i>
                             </div>
-                            <div>
-                                <div class="about-cap-title">Violation Management</div>
-                                <p class="about-cap-desc">Record and track citations — pending, settled, contested, or overdue.</p>
-                            </div>
+                            <span class="about-cap-name">Violation Management</span>
                         </div>
-                        <div class="about-cap-card">
+                        <div class="about-cap-chip">
                             <div class="about-cap-icon" style="background:rgba(245,158,11,.12);">
                                 <i class="bi bi-flag-fill" style="color:#f59e0b;"></i>
                             </div>
-                            <div>
-                                <div class="about-cap-title">Incident Recording</div>
-                                <p class="about-cap-desc">Document road incidents with involved parties, charges, and evidence.</p>
-                            </div>
+                            <span class="about-cap-name">Incident Recording</span>
                         </div>
-                        <div class="about-cap-card">
+                        <div class="about-cap-chip">
                             <div class="about-cap-icon" style="background:rgba(202,138,4,.12);">
                                 <i class="bi bi-car-front-fill" style="color:#ca8a04;"></i>
                             </div>
-                            <div>
-                                <div class="about-cap-title">Vehicle Records</div>
-                                <p class="about-cap-desc">Register vehicles and motorcycles, linked to owners and enforcement history.</p>
-                            </div>
+                            <span class="about-cap-name">Vehicle Records</span>
                         </div>
-                        <div class="about-cap-card">
+                        <div class="about-cap-chip">
                             <div class="about-cap-icon" style="background:rgba(16,185,129,.12);">
                                 <i class="bi bi-bar-chart-fill" style="color:#10b981;"></i>
                             </div>
-                            <div>
-                                <div class="about-cap-title">Reports &amp; Analytics</div>
-                                <p class="about-cap-desc">Enforcement summaries, repeat offender tracking, and period statistics.</p>
-                            </div>
+                            <span class="about-cap-name">Reports &amp; Analytics</span>
                         </div>
-                        <div class="about-cap-card">
+                        <div class="about-cap-chip">
                             <div class="about-cap-icon" style="background:rgba(139,92,246,.12);">
                                 <i class="bi bi-shield-lock-fill" style="color:#8b5cf6;"></i>
                             </div>
-                            <div>
-                                <div class="about-cap-title">Role-Based Access</div>
-                                <p class="about-cap-desc">Operator and officer roles with controlled access to system functions.</p>
-                            </div>
+                            <span class="about-cap-name">Role-Based Access</span>
                         </div>
                     </div>
 
-                    {{-- Platform info --}}
                     <div class="about-section-label">Unit &amp; Platform</div>
                     <div class="about-platform-row">
                         <div class="about-platform-cell">
-                            <span class="about-platform-icon" style="color:#3b82f6;">
-                                <i class="bi bi-building"></i>
-                            </span>
+                            <span class="about-platform-icon" style="color:#3b82f6;"><i class="bi bi-building"></i></span>
                             <div class="about-platform-label">Unit</div>
                             <div class="about-platform-value">Balamban MPS</div>
                         </div>
                         <div class="about-platform-cell">
-                            <span class="about-platform-icon" style="color:#f59e0b;">
-                                <i class="bi bi-geo-alt-fill"></i>
-                            </span>
+                            <span class="about-platform-icon" style="color:#f59e0b;"><i class="bi bi-geo-alt-fill"></i></span>
                             <div class="about-platform-label">Province</div>
                             <div class="about-platform-value">Cebu CPO</div>
                         </div>
                         <div class="about-platform-cell">
-                            <span class="about-platform-icon" style="color:#10b981;">
-                                <i class="bi bi-map-fill"></i>
-                            </span>
+                            <span class="about-platform-icon" style="color:#10b981;"><i class="bi bi-map-fill"></i></span>
                             <div class="about-platform-label">Region</div>
                             <div class="about-platform-value">PRO-7</div>
                         </div>
