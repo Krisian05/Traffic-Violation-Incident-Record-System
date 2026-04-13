@@ -15,6 +15,9 @@
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
 
     <style>
+        /* ── Anti-FOUC: hide until CSS is ready ── */
+        body { visibility: hidden; }
+
         /* ── FLATPICKR CUSTOM THEME ── */
         .flatpickr-calendar {
             background: #fffdf9;
@@ -1398,5 +1401,6 @@ document.addEventListener('DOMContentLoaded', function () {
 })();
 </script>
 @stack('scripts')
+<script>document.body.style.visibility='visible';</script>
 </body>
 </html>
