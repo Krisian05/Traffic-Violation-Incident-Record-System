@@ -40,7 +40,7 @@ class ReportController extends Controller
         $year       = (int) $request->input('year', now()->year);
         $search     = trim($request->input('search', ''));
         $typeFilter = (string) ($request->input('type_filter') ?? '');
-        $showAll    = ($month == 0);
+        $showAll    = $month == 0;
 
         $repeatOffenders = Violator::withCount('violations')
             ->has('violations', '>', 1)
@@ -55,6 +55,7 @@ class ReportController extends Controller
         $overdueViolations = Violation::with(['violator', 'violationType', 'vehicle'])
             ->overdue()
             ->orderBy('created_at')
+            ->limit(100)
             ->get();
 
         $incBase = Incident::whereYear('date_of_incident', $year)

@@ -582,7 +582,7 @@
             </thead>
             <tbody>
                 @foreach($yearViolatorMatrix as $i => $row)
-                <tr class="rpt-mrow rpt-mrow--active align-top">
+                <tr class="rpt-mrow rpt-mrow--active align-top{{ $loop->index >= 20 ? ' rpt-show-more-row' : '' }}">
                     <td style="padding-left:.9rem;">
                         <a href="{{ route('violators.show', $row['violator']) }}"
                            class="rpt-violator-link">
@@ -637,6 +637,13 @@
             </tfoot>
         </table>
     </div>
+    @if(count($yearViolatorMatrix) > 20)
+    <div class="rpt-show-more-wrap rpt-no-print">
+        <button type="button" class="rpt-show-more-btn" onclick="rptToggleShowMore(this, {{ count($yearViolatorMatrix) - 20 }})">
+            Show {{ count($yearViolatorMatrix) - 20 }} more <i class="bi bi-chevron-down ms-1"></i>
+        </button>
+    </div>
+    @endif
     @endif
 </div>
 
@@ -733,7 +740,7 @@
             </thead>
             <tbody>
                 @foreach($monthlyOffenders as $i => $row)
-                <tr class="rpt-drow align-top">
+                <tr class="rpt-drow align-top{{ $loop->index >= 20 ? ' rpt-show-more-row' : '' }}">
                     <td style="padding-left:1.4rem;">
                         <a href="{{ route('violators.show', $row['violator']) }}" class="rpt-violator-link">
                             {{ $row['violator']->full_name }}
@@ -765,6 +772,13 @@
             </tbody>
         </table>
     </div>
+    @if($monthlyOffenders->count() > 20)
+    <div class="rpt-show-more-wrap rpt-no-print">
+        <button type="button" class="rpt-show-more-btn" onclick="rptToggleShowMore(this, {{ $monthlyOffenders->count() - 20 }})">
+            Show {{ $monthlyOffenders->count() - 20 }} more <i class="bi bi-chevron-down ms-1"></i>
+        </button>
+    </div>
+    @endif
     @endif
 </div>
 @endif
@@ -809,13 +823,14 @@
             </thead>
             <tbody>
                 @foreach($overdueViolations as $i => $ov)
+                @php $isExtra = $loop->index >= 20; @endphp
                 @php
                     $hoursOverdue = (int) $ov->date_of_violation->diffInHours(now());
                     $daysOverdue  = floor($hoursOverdue / 24);
                     $remHours     = $hoursOverdue % 24;
                     $overdueBadge = $hoursOverdue >= 168 ? 'rpt-cnt-red' : 'rpt-cnt-amber';
                 @endphp
-                <tr class="rpt-drow">
+                <tr class="rpt-drow{{ $isExtra ? ' rpt-show-more-row' : '' }}">
                     <td style="padding-left:1.4rem;color:#a8a29e;font-size:.75rem;font-weight:600;">{{ $i + 1 }}</td>
                     <td>
                         @if($ov->violator)
@@ -859,6 +874,13 @@
             </tbody>
         </table>
     </div>
+    @if($overdueViolations->count() > 20)
+    <div class="rpt-show-more-wrap rpt-no-print">
+        <button type="button" class="rpt-show-more-btn" onclick="rptToggleShowMore(this, {{ $overdueViolations->count() - 20 }})">
+            Show {{ $overdueViolations->count() - 20 }} more <i class="bi bi-chevron-down ms-1"></i>
+        </button>
+    </div>
+    @endif
     @endif
 </div>
 
@@ -894,7 +916,7 @@
             </thead>
             <tbody>
                 @foreach($repeatOffenders as $v)
-                <tr class="rpt-drow">
+                <tr class="rpt-drow{{ $loop->index >= 20 ? ' rpt-show-more-row' : '' }}">
                     <td style="padding-left:1.4rem;">
                         <a href="{{ route('violators.show', $v) }}" class="rpt-violator-link">
                             {{ $v->full_name }}
@@ -924,6 +946,13 @@
             </tbody>
         </table>
     </div>
+    @if($repeatOffenders->count() > 20)
+    <div class="rpt-show-more-wrap rpt-no-print">
+        <button type="button" class="rpt-show-more-btn" onclick="rptToggleShowMore(this, {{ $repeatOffenders->count() - 20 }})">
+            Show {{ $repeatOffenders->count() - 20 }} more <i class="bi bi-chevron-down ms-1"></i>
+        </button>
+    </div>
+    @endif
     @endif
 </div>
 
@@ -1771,6 +1800,26 @@
 
 /* Hidden on screen */
 .rpt-print-signatures { display: none; }
+
+/* Show-more rows */
+.rpt-show-more-row { display: none; }
+.rpt-show-more-wrap {
+    text-align: center;
+    padding: .6rem 1rem;
+    border-top: 1px solid #f0ebe3;
+}
+.rpt-show-more-btn {
+    background: none;
+    border: 1px solid #d6cfc4;
+    border-radius: .4rem;
+    padding: .35rem 1rem;
+    font-size: .78rem;
+    font-weight: 600;
+    color: #78716c;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+}
+.rpt-show-more-btn:hover { background: #f5f0ea; color: #44403c; }
 </style>
 
 <script>
@@ -1878,6 +1927,17 @@ function rptPrintSection(sectionKey) {
     };
 
     window.print();
+}
+
+function rptToggleShowMore(btn, hiddenCount) {
+    const card = btn.closest('.rpt-card');
+    const rows = card.querySelectorAll('.rpt-show-more-row');
+    const expanded = btn.dataset.expanded === '1';
+    rows.forEach(r => r.style.display = expanded ? '' : 'table-row');
+    btn.dataset.expanded = expanded ? '' : '1';
+    btn.innerHTML = expanded
+        ? 'Show ' + hiddenCount + ' more <i class="bi bi-chevron-down ms-1"></i>'
+        : 'Show less <i class="bi bi-chevron-up ms-1"></i>';
 }
 </script>
 
