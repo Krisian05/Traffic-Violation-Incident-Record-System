@@ -1550,6 +1550,7 @@
         box-shadow: none !important; background: transparent !important;
         overflow: visible !important; margin-bottom: 8pt !important;
     }
+    .table-responsive { overflow: visible !important; }
 
     /* ── Section heading: bold underlined title ── */
     .rpt-card-header {

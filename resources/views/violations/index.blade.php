@@ -770,6 +770,19 @@ a.vio-page:hover {
     .print-only { display: table-cell !important; }
     .d-none.d-md-table-cell { display: table-cell !important; }
 
+    /* Fix column widths so nothing overflows */
+    #violations-table { table-layout: fixed; width: 100%; }
+    #violations-table th, #violations-table td { word-wrap: break-word; }
+    #violations-table th:nth-child(1), #violations-table td:nth-child(1) { width: 18%; } /* Violator */
+    #violations-table th:nth-child(2), #violations-table td:nth-child(2) { width: 20%; } /* Violation Type */
+    #violations-table th:nth-child(3), #violations-table td:nth-child(3) { width: 14%; } /* Date Apprehended */
+    #violations-table th:nth-child(4), #violations-table td:nth-child(4) { width: 12%; } /* Plate No. */
+    #violations-table th:nth-child(5), #violations-table td:nth-child(5) { width: 14%; } /* Penalty Amount */
+    #violations-table th:nth-child(6), #violations-table td:nth-child(6) { width: 12%; } /* Status */
+
+    /* Hide icons in headers to save space */
+    #violations-table thead .bi { display: none !important; }
+
     .print-sig-footer {
         display: flex !important;
         justify-content: space-between;
@@ -792,7 +805,7 @@ a.vio-page:hover {
         color: #a8a29e;
     }
 
-    @page { size: A4 portrait; margin: 8mm 10mm 12mm; }
+    @page { size: A4 landscape; margin: 8mm 12mm 12mm; }
 }
 </style>
 
