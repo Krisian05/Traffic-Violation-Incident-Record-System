@@ -639,7 +639,7 @@
     </div>
     @if(count($yearViolatorMatrix) > 20)
     <div class="rpt-show-more-wrap rpt-no-print">
-        <button type="button" class="rpt-show-more-btn" onclick="rptToggleShowMore(this, {{ count($yearViolatorMatrix) - 20 }})">
+        <button type="button" class="rpt-show-more-btn" data-hidden="{{ count($yearViolatorMatrix) - 20 }}" onclick="rptToggleShowMore(this)">
             Show {{ count($yearViolatorMatrix) - 20 }} more <i class="bi bi-chevron-down ms-1"></i>
         </button>
     </div>
@@ -774,7 +774,7 @@
     </div>
     @if($monthlyOffenders->count() > 20)
     <div class="rpt-show-more-wrap rpt-no-print">
-        <button type="button" class="rpt-show-more-btn" onclick="rptToggleShowMore(this, {{ $monthlyOffenders->count() - 20 }})">
+        <button type="button" class="rpt-show-more-btn" data-hidden="{{ $monthlyOffenders->count() - 20 }}" onclick="rptToggleShowMore(this)">
             Show {{ $monthlyOffenders->count() - 20 }} more <i class="bi bi-chevron-down ms-1"></i>
         </button>
     </div>
@@ -876,7 +876,7 @@
     </div>
     @if($overdueViolations->count() > 20)
     <div class="rpt-show-more-wrap rpt-no-print">
-        <button type="button" class="rpt-show-more-btn" onclick="rptToggleShowMore(this, {{ $overdueViolations->count() - 20 }})">
+        <button type="button" class="rpt-show-more-btn" data-hidden="{{ $overdueViolations->count() - 20 }}" onclick="rptToggleShowMore(this)">
             Show {{ $overdueViolations->count() - 20 }} more <i class="bi bi-chevron-down ms-1"></i>
         </button>
     </div>
@@ -948,7 +948,7 @@
     </div>
     @if($repeatOffenders->count() > 20)
     <div class="rpt-show-more-wrap rpt-no-print">
-        <button type="button" class="rpt-show-more-btn" onclick="rptToggleShowMore(this, {{ $repeatOffenders->count() - 20 }})">
+        <button type="button" class="rpt-show-more-btn" data-hidden="{{ $repeatOffenders->count() - 20 }}" onclick="rptToggleShowMore(this)">
             Show {{ $repeatOffenders->count() - 20 }} more <i class="bi bi-chevron-down ms-1"></i>
         </button>
     </div>
@@ -1929,9 +1929,10 @@ function rptPrintSection(sectionKey) {
     window.print();
 }
 
-function rptToggleShowMore(btn, hiddenCount) {
+function rptToggleShowMore(btn) {
     const card = btn.closest('.rpt-card');
     const rows = card.querySelectorAll('.rpt-show-more-row');
+    const hiddenCount = btn.dataset.hidden;
     const expanded = btn.dataset.expanded === '1';
     rows.forEach(r => r.style.display = expanded ? '' : 'table-row');
     btn.dataset.expanded = expanded ? '' : '1';
