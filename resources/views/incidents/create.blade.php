@@ -51,9 +51,11 @@
     border: 1px solid #f0ebe3;
     border-radius: 14px;
     box-shadow: 0 4px 24px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.04);
-    overflow: hidden;
+    overflow: visible;
     margin-bottom: 1.5rem;
 }
+.inc-section-card .card-body { overflow: visible; }
+.inc-card-header { border-radius: 14px 14px 0 0; overflow: hidden; }
 .inc-card-header {
     display: flex; align-items: center; justify-content: space-between; gap: .75rem;
     padding: .9rem 1.25rem;
@@ -68,6 +70,9 @@
 .inc-section-title { font-size: .88rem; font-weight: 700; color: #1c1917; }
 .inc-section-sub   { font-size: .72rem; color: #a8a29e; margin-top: .05rem; }
 .inc-section-card .card-body { padding: 1.25rem; }
+
+/* ── Flatpickr calendar — escape overflow:hidden parents ── */
+.flatpickr-calendar { position: fixed !important; }
 
 /* ── Submit button ── */
 .inc-submit-btn {

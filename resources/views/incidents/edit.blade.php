@@ -34,11 +34,12 @@
 .inc-section-card {
     background: #fff; border: 1px solid #f0ebe3; border-radius: 14px;
     box-shadow: 0 4px 24px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.04);
-    overflow: hidden; margin-bottom: 1.5rem;
+    overflow: visible; margin-bottom: 1.5rem;
 }
 .inc-card-header {
     display: flex; align-items: center; justify-content: space-between; gap: .75rem;
     padding: .9rem 1.25rem; border-bottom: 1px solid #f0ebe3;
+    border-radius: 14px 14px 0 0; overflow: hidden;
 }
 .inc-card-header-left { display: flex; align-items: center; gap: .75rem; }
 .inc-section-icon {
@@ -48,7 +49,8 @@
 }
 .inc-section-title { font-size: .88rem; font-weight: 700; color: #1c1917; }
 .inc-section-sub   { font-size: .72rem; color: #a8a29e; margin-top: .05rem; }
-.inc-section-card .card-body { padding: 1.25rem; }
+.inc-section-card .card-body { padding: 1.25rem; overflow: visible; }
+.flatpickr-calendar { position: fixed !important; }
 .inc-submit-btn {
     display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
     padding: .55rem 1.5rem; border-radius: 10px;
