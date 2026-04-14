@@ -553,11 +553,14 @@ class IncidentController extends Controller
             return null;
         }
 
-        $existing = Vehicle::where('violator_id', $ownerViolatorId)
-            ->where('plate_number', $m['vehicle_plate'])
-            ->first();
+        // Plate numbers are globally unique — search across all owners
+        $existing = Vehicle::withTrashed()->where('plate_number', $m['vehicle_plate'])->first();
 
         if ($existing) {
+            // Restore soft-deleted vehicle if needed
+            if ($existing->trashed()) {
+                $existing->restore();
+            }
             return $existing->id;
         }
 
