@@ -10,7 +10,9 @@
 .incident-row-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
 .incident-row-badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#d97706,#b45309);color:#fff;font-size:.78rem;font-weight:800}
 .incident-chips{display:flex;flex-wrap:wrap;gap:.35rem}
-.incident-chip{display:inline-flex;align-items:center;gap:.32rem;padding:.28rem .58rem;border-radius:999px;border:1px solid #cbd5e1;background:#fff;font-size:.73rem;font-weight:700;color:#334155}
+.incident-chip{display:inline-flex;align-items:center;gap:.32rem;padding:.28rem .58rem;border-radius:999px;border:1.5px solid #fde68a;background:#fff;font-size:.73rem;font-weight:700;color:#92400e;cursor:pointer;user-select:none;transition:all .15s}
+.incident-chip input[type="checkbox"]{display:none}
+.incident-chip:has(input:checked){background:#ca8a04;color:#fff;border-color:#ca8a04;box-shadow:0 2px 6px rgba(202,138,4,.28)}
 .incident-media-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem;margin-top:.7rem}
 .incident-media-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:.6rem}
 .incident-media-card img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;margin-bottom:.45rem}
@@ -45,16 +47,17 @@
     ];
     $oldMotorists = old('motorists', [$blankMotorist, $blankMotorist]);
     $violatorsForJs = $violators->map(fn($v) => [
-        'id' => $v->id,
-        'label' => $v->last_name . ', ' . $v->first_name . ($v->license_number ? ' (' . $v->license_number . ')' : ''),
-        'name' => $v->full_name,
-        'license' => $v->license_number,
-        'type' => $v->license_type,
-        'expiry' => $v->license_expiry_date?->format('Y-m-d'),
+        'id'           => $v->id,
+        'label'        => $v->last_name . ', ' . $v->first_name . ($v->license_number ? ' (' . $v->license_number . ')' : ''),
+        'name'         => $v->full_name,
+        'license'      => $v->license_number,
+        'type'         => $v->license_type,
+        'expiry'       => $v->license_expiry_date?->format('Y-m-d'),
         'restrictions' => $v->license_restriction ? array_values(array_filter(array_map('trim', explode(',', $v->license_restriction)))) : [],
-        'contact' => $v->contact_number,
-        'address' => $v->temporary_address ?: $v->permanent_address,
+        'contact'      => $v->contact_number,
+        'address'      => $v->temporary_address ?: $v->permanent_address,
     ])->values();
+
     $vehiclesForJs = $vehiclesByOwner->map(fn($group) => $group->values()->map(fn($vehicle) => [
         'id' => $vehicle->id,
         'plate' => $vehicle->plate_number,
@@ -258,8 +261,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
 
                 <div class="mb-3">
-                    <label class="mob-label d-block mb-2">Restriction Codes</label>
+                    <label class="mob-label d-block mb-1">Restriction Codes</label>
                     <div class="incident-chips">${restrictionHtml(index, values.license_restriction || [])}</div>
+                    <div style="font-size:.7rem;color:#a8a29e;margin-top:.3rem;"><i class="ph ph-info" style="font-size:.72rem;margin-right:.2rem;"></i>Tap to select all codes printed on the license.</div>
                 </div>
 
                 <div class="mob-form-divider"><span class="mob-form-divider-text">Vehicle</span><span class="mob-form-divider-line"></span></div>
@@ -287,23 +291,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="mb-3" style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:.65rem .75rem;">
                     <div class="form-check form-switch mb-0">
                         <input class="form-check-input owner-not-driver-check" type="checkbox" role="switch"
-                            name="motorists[${index}][driver_is_not_owner]" id="owner-not-driver-${index}"
-                            onchange="toggleOwnerSection(this)">
+                            id="owner-not-driver-${index}" onchange="toggleOwnerSection(this)">
                         <label class="form-check-label" for="owner-not-driver-${index}" style="font-size:.8rem;font-weight:700;color:#92400e;">
                             <i class="ph-fill ph-user-minus" style="color:#dc2626;margin-right:.25rem;"></i>Driver is <strong>NOT</strong> the vehicle owner
                         </label>
                     </div>
                     <div class="owner-section mt-2" style="display:none;">
-                        <div style="font-size:.7rem;color:#78716c;margin-bottom:.5rem;">Enter the vehicle owner's details below.</div>
+                        <div style="font-size:.7rem;color:#78716c;margin-bottom:.5rem;">If the owner is already registered, select them. Otherwise enter name and contact manually.</div>
                         <div class="mb-2">
-                            <label class="mob-label">Owner Name</label>
-                            <input type="text" name="motorists[${index}][vehicle_owner_name]" value="${escapeHtml(values.vehicle_owner_name || '')}" class="form-control mob-input" placeholder="Full name of vehicle owner">
+                            <label class="mob-label">Registered Owner (if in system)</label>
+                            <select name="motorists[${index}][vehicle_owner_violator_id]" class="form-select mob-select owner-violator-select">
+                                <option value="">— Search registered owner —</option>
+                                ${optionHtml(violators, values.vehicle_owner_violator_id || '', (v, sel) => '<option value="' + escapeHtml(v.id) + '"' + (sel ? ' selected' : '') + '>' + escapeHtml(v.label) + '</option>')}
+                            </select>
+                            <div style="font-size:.7rem;color:#a8a29e;margin-top:.25rem;">Leave blank to enter owner name/contact manually below.</div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="mob-label">Owner Full Name</label>
+                            <input type="text" name="motorists[${index}][vehicle_owner_name]" value="${escapeHtml(values.vehicle_owner_name || '')}" class="form-control mob-input" placeholder="If not registered above">
                         </div>
                         <div>
                             <label class="mob-label">Owner Contact</label>
                             <input type="text" name="motorists[${index}][vehicle_owner_contact]" value="${escapeHtml(values.vehicle_owner_contact || '')}" class="form-control mob-input" placeholder="09XX-XXX-XXXX">
                         </div>
-                        <input type="hidden" name="motorists[${index}][vehicle_owner_violator_id]" value="${escapeHtml(values.vehicle_owner_violator_id || '')}">
                     </div>
                 </div>
 
