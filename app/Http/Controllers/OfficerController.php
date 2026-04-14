@@ -735,32 +735,35 @@ class OfficerController extends Controller
             'description'                         => 'nullable|string|max:2000',
             'incident_photos'                     => 'nullable|array|max:6',
             'incident_photos.*'                   => 'image|mimes:jpg,jpeg,png|max:20480',
-            'motorists'                           => 'required|array|min:2|max:10',
-            'motorists.*.violator_id'             => 'nullable|exists:violators,id',
-            'motorists.*.motorist_name'           => 'nullable|string|max:200',
-            'motorists.*.motorist_license'        => 'nullable|string|max:100',
-            'motorist_photos'                     => 'nullable|array',
-            'motorist_photos.*'                   => 'nullable|array|max:4',
-            'motorist_photos.*.*'                 => 'nullable|file|mimes:jpg,jpeg,png|max:20480',
-            'motorist_id_photos'                  => 'nullable|array',
-            'motorist_id_photos.*'                => 'nullable|file|mimes:jpg,jpeg,png|max:20480',
-            'motorists.*.license_type'            => 'nullable|string|max:50',
-            'motorists.*.license_restriction'     => 'nullable|array',
-            'motorists.*.license_restriction.*'   => 'nullable|string|max:10',
-            'motorists.*.license_expiry_date'     => 'nullable|date',
-            'motorists.*.motorist_contact'        => 'nullable|string|max:30',
-            'motorists.*.motorist_address'        => 'nullable|string|max:300',
-            'motorists.*.vehicle_id'              => 'nullable|exists:vehicles,id',
-            'motorists.*.vehicle_plate'           => 'nullable|string|max:30',
-            'motorists.*.vehicle_type_manual'     => 'nullable|string|max:10',
-            'motorists.*.vehicle_make'            => 'nullable|string|max:100',
-            'motorists.*.vehicle_model'           => 'nullable|string|max:100',
-            'motorists.*.vehicle_color'           => 'nullable|string|max:50',
-            'motorists.*.vehicle_or_number'       => 'nullable|string|max:50',
-            'motorists.*.vehicle_cr_number'       => 'nullable|string|max:50',
-            'motorists.*.vehicle_chassis'         => 'nullable|string|max:100',
-            'motorists.*.incident_charge_type_id' => 'nullable|exists:incident_charge_types,id',
-            'motorists.*.notes'                   => 'nullable|string|max:500',
+            'motorists'                                => 'required|array|min:1|max:10',
+            'motorists.*.violator_id'                  => 'nullable|exists:violators,id',
+            'motorists.*.motorist_name'                => 'nullable|string|max:200',
+            'motorists.*.motorist_license'             => 'nullable|string|max:100',
+            'motorist_photos'                          => 'nullable|array',
+            'motorist_photos.*'                        => 'nullable|array|max:4',
+            'motorist_photos.*.*'                      => 'nullable|file|mimes:jpg,jpeg,png|max:20480',
+            'motorist_id_photos'                       => 'nullable|array',
+            'motorist_id_photos.*'                     => 'nullable|file|mimes:jpg,jpeg,png|max:20480',
+            'motorists.*.license_type'                 => 'nullable|string|max:50',
+            'motorists.*.license_restriction'          => 'nullable|array',
+            'motorists.*.license_restriction.*'        => 'nullable|string|max:10',
+            'motorists.*.license_expiry_date'          => 'nullable|date',
+            'motorists.*.motorist_contact'             => 'nullable|string|max:30',
+            'motorists.*.motorist_address'             => 'nullable|string|max:300',
+            'motorists.*.vehicle_id'                   => 'nullable|exists:vehicles,id',
+            'motorists.*.vehicle_plate'                => 'nullable|string|max:30',
+            'motorists.*.vehicle_type_manual'          => 'nullable|string|max:10',
+            'motorists.*.vehicle_make'                 => 'nullable|string|max:100',
+            'motorists.*.vehicle_model'                => 'nullable|string|max:100',
+            'motorists.*.vehicle_color'                => 'nullable|string|max:50',
+            'motorists.*.vehicle_or_number'            => 'nullable|string|max:50',
+            'motorists.*.vehicle_cr_number'            => 'nullable|string|max:50',
+            'motorists.*.vehicle_chassis'              => 'nullable|string|max:100',
+            'motorists.*.vehicle_owner_violator_id'    => 'nullable|exists:violators,id',
+            'motorists.*.vehicle_owner_name'           => 'nullable|string|max:200',
+            'motorists.*.vehicle_owner_contact'        => 'nullable|string|max:100',
+            'motorists.*.incident_charge_type_id'      => 'nullable|exists:incident_charge_types,id',
+            'motorists.*.notes'                        => 'nullable|string|max:500',
             'media'                               => 'nullable|array|max:20',
             'media.*'                             => 'file|mimes:jpg,jpeg,png,pdf|max:20480',
             'media_types'                         => 'nullable|array',
@@ -787,7 +790,7 @@ class OfficerController extends Controller
                 'recorded_by'      => Auth::id(),
             ]);
 
-            $vehiclePhotos = $request->file('motorist_photos') ? [$request->file('motorist_photos')] : [];
+            $vehiclePhotos    = $request->file('motorist_photos', []);
             $motoristIdPhotos = $request->file('motorist_id_photos', []);
 
             if ($request->hasFile('incident_photos')) {
@@ -822,29 +825,41 @@ class OfficerController extends Controller
                     [$m['violator_id'], $m['vehicle_id']] = $this->autoRegisterOfficerMotorist($m);
                 }
 
-                $incident->motorists()->create([
-                    'violator_id'             => $m['violator_id'] ?? null,
-                    'motorist_name'           => $m['motorist_name'] ?? null,
-                    'motorist_license'        => $m['motorist_license'] ?? null,
-                    'motorist_photo'          => $idPhotoPath,
-                    'motorist_contact'        => $m['motorist_contact'] ?? null,
-                    'motorist_address'        => $m['motorist_address'] ?? null,
-                    'license_type'            => $m['license_type'] ?? null,
-                    'license_restriction'     => !empty($m['license_restriction']) ? implode(',', (array) $m['license_restriction']) : null,
-                    'license_expiry_date'     => $m['license_expiry_date'] ?? null,
-                    'vehicle_id'              => !empty($m['vehicle_id']) ? $m['vehicle_id'] : null,
-                    'vehicle_plate'           => $m['vehicle_plate'] ?? null,
-                    'vehicle_type_manual'     => $m['vehicle_type_manual'] ?? null,
-                    'vehicle_make'            => $m['vehicle_make'] ?? null,
-                    'vehicle_model'           => $m['vehicle_model'] ?? null,
-                    'vehicle_color'           => $m['vehicle_color'] ?? null,
-                    'vehicle_or_number'       => $m['vehicle_or_number'] ?? null,
-                    'vehicle_cr_number'       => $m['vehicle_cr_number'] ?? null,
-                    'vehicle_chassis'         => $m['vehicle_chassis'] ?? null,
-                    'vehicle_photo'           => !empty($vehiclePathArr) ? $vehiclePathArr : null,
-                    'incident_charge_type_id' => $m['incident_charge_type_id'] ?? null,
-                    'notes'                   => $m['notes'] ?? null,
+                $motorist = $incident->motorists()->create([
+                    'violator_id'                => $m['violator_id'] ?? null,
+                    'motorist_name'              => $m['motorist_name'] ?? null,
+                    'motorist_license'           => $m['motorist_license'] ?? null,
+                    'motorist_photo'             => $idPhotoPath,
+                    'motorist_contact'           => $m['motorist_contact'] ?? null,
+                    'motorist_address'           => $m['motorist_address'] ?? null,
+                    'license_type'               => $m['license_type'] ?? null,
+                    'license_restriction'        => !empty($m['license_restriction']) ? implode(',', (array) $m['license_restriction']) : null,
+                    'license_expiry_date'        => $m['license_expiry_date'] ?? null,
+                    'vehicle_id'                 => !empty($m['vehicle_id']) ? $m['vehicle_id'] : null,
+                    'vehicle_plate'              => $m['vehicle_plate'] ?? null,
+                    'vehicle_type_manual'        => $m['vehicle_type_manual'] ?? null,
+                    'vehicle_make'               => $m['vehicle_make'] ?? null,
+                    'vehicle_model'              => $m['vehicle_model'] ?? null,
+                    'vehicle_color'              => $m['vehicle_color'] ?? null,
+                    'vehicle_or_number'          => $m['vehicle_or_number'] ?? null,
+                    'vehicle_cr_number'          => $m['vehicle_cr_number'] ?? null,
+                    'vehicle_chassis'            => $m['vehicle_chassis'] ?? null,
+                    'vehicle_photo'              => !empty($vehiclePathArr) ? $vehiclePathArr : null,
+                    'vehicle_owner_violator_id'  => $m['vehicle_owner_violator_id'] ?? null,
+                    'vehicle_owner_name'         => $m['vehicle_owner_name'] ?? null,
+                    'vehicle_owner_contact'      => $m['vehicle_owner_contact'] ?? null,
+                    'incident_charge_type_id'    => $m['incident_charge_type_id'] ?? null,
+                    'notes'                      => $m['notes'] ?? null,
                 ]);
+
+                // Sync vehicle photos to vehicle_photos table so they appear on the vehicle profile
+                if (!empty($motorist->vehicle_id) && !empty($vehiclePathArr)) {
+                    foreach ($vehiclePathArr as $path) {
+                        VehiclePhoto::firstOrCreate(
+                            ['vehicle_id' => $motorist->vehicle_id, 'photo' => $path]
+                        );
+                    }
+                }
             }
 
             if ($request->hasFile('media')) {
