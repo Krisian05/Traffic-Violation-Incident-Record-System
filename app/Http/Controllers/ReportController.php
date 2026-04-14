@@ -43,8 +43,12 @@ class ReportController extends Controller
         $municipality  = trim($request->input('municipality', ''));
         $showAll       = $month == 0;
 
-        $repeatOffenders = Violator::withCount('violations')
-            ->has('violations', '>', 1)
+        $repeatOffenders = Violator::withCount(['violations' => fn($q) =>
+                $q->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ])
+            ->whereHas('violations', fn($q) =>
+                $q->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            , '>', 1)
             ->orderByDesc('violations_count')
             ->get();
 
@@ -54,6 +58,7 @@ class ReportController extends Controller
 
         $overdueViolations = Violation::with(['violator', 'violationType', 'vehicle'])
             ->overdue()
+            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
             ->orderBy('created_at')
             ->get();
 
