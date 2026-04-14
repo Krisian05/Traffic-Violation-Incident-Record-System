@@ -721,8 +721,8 @@ function addMotoristRow(prefill) {
 function removeMotoristRow(btn) {
     const row = btn.closest('.motorist-row');
     const container = document.getElementById('motorists-container');
-    if (container.querySelectorAll('.motorist-row').length <= 2) {
-        alert('An incident must have at least 2 motorists.');
+    if (container.querySelectorAll('.motorist-row').length <= 1) {
+        alert('An incident must have at least 1 motorist.');
         return;
     }
     row.remove();
@@ -855,8 +855,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Ensure at least 2 rows
-    while (document.querySelectorAll('#motorists-container .motorist-row').length < 2) {
+    // Ensure at least 1 row
+    while (document.querySelectorAll('#motorists-container .motorist-row').length < 1) {
         addMotoristRow(null);
     }
 

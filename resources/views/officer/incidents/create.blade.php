@@ -45,7 +45,7 @@
         'incident_charge_type_id' => '',
         'notes' => '',
     ];
-    $oldMotorists = old('motorists', [$blankMotorist, $blankMotorist]);
+    $oldMotorists = old('motorists', [$blankMotorist]);
     $violatorsForJs = $violators->map(fn($v) => [
         'id'           => $v->id,
         'label'        => $v->last_name . ', ' . $v->first_name . ($v->license_number ? ' (' . $v->license_number . ')' : ''),
@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <span class="incident-row-badge">${rowNumber}</span>
                         <div class="incident-row-title" style="font-size:.76rem;font-weight:800;color:#0f172a;text-transform:uppercase;letter-spacing:.06em;">Motorist #${rowNumber}</div>
                     </div>
-                    <button type="button" class="remove-motorist" style="border:none;background:none;color:#dc2626;font-size:.76rem;font-weight:700;${rowNumber <= 2 ? 'display:none;' : ''}">
+                    <button type="button" class="remove-motorist" style="border:none;background:none;color:#dc2626;font-size:.76rem;font-weight:700;${rowNumber <= 1 ? 'display:none;' : ''}">
                         <i class="ph ph-x-circle me-1"></i>Remove
                     </button>
                 </div>
@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function () {
             row.querySelector('.incident-row-badge').textContent = index + 1;
             row.querySelector('.incident-row-title').textContent = 'Motorist #' + (index + 1);
             const btn = row.querySelector('.remove-motorist');
-            btn.style.display = index < 2 ? 'none' : '';
+            btn.style.display = index < 1 ? 'none' : '';
         });
     }
 
@@ -402,8 +402,8 @@ document.addEventListener('DOMContentLoaded', function () {
     container.addEventListener('click', function (event) {
         const btn = event.target.closest('.remove-motorist');
         if (!btn) return;
-        if (container.querySelectorAll('.incident-row').length <= 2) {
-            alert('An incident must have at least 2 motorists.');
+        if (container.querySelectorAll('.incident-row').length <= 1) {
+            alert('An incident must have at least 1 motorist.');
             return;
         }
         btn.closest('.incident-row').remove();

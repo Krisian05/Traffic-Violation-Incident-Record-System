@@ -197,7 +197,7 @@
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge rounded-pill" style="background:#fef3c7;color:#92400e;font-size:.72rem;" id="motorist-count">2</span>
+                    <span class="badge rounded-pill" style="background:#fef3c7;color:#92400e;font-size:.72rem;" id="motorist-count">1</span>
                     <button type="button" onclick="addMotoristRow()"
                         style="display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .9rem;border-radius:8px;font-size:.8rem;font-weight:600;background:linear-gradient(135deg,#d97706,#b45309);color:#fff;border:none;box-shadow:0 2px 6px rgba(180,83,9,.3);cursor:pointer;transition:all .15s;"
                         onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
@@ -257,7 +257,7 @@
             <div class="card-body" style="padding:1rem 1.25rem;">
                 <ul class="mb-0 ps-3" style="font-size:.78rem;color:#374151;line-height:1.8;">
                     <li>Fill in the incident date, time, and location first.</li>
-                    <li>Add <strong>at least 2 motorists</strong> involved.</li>
+                    <li>Add <strong>at least 1 motorist</strong> involved.</li>
                     <li>Search by name for registered motorists.</li>
                     <li>For unregistered, enter name and license manually.</li>
                     <li>Assign a criminal charge per motorist if applicable.</li>
@@ -557,8 +557,8 @@ function addMotoristRow() {
 function removeMotoristRow(btn) {
     const row = btn.closest('.motorist-row');
     const container = document.getElementById('motorists-container');
-    if (container.querySelectorAll('.motorist-row').length <= 2) {
-        alert('An incident must have at least 2 motorists.');
+    if (container.querySelectorAll('.motorist-row').length <= 1) {
+        alert('An incident must have at least 1 motorist.');
         return;
     }
     row.remove();
@@ -695,7 +695,6 @@ document.addEventListener('DOMContentLoaded', function () {
     flatpickr('#date_of_incident', { dateFormat: 'Y-m-d', maxDate: 'today', allowInput: true });
     flatpickr('#time_of_incident', { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: false, altInput: true, altFormat: 'h:i K', allowInput: true });
 
-    addMotoristRow();
     addMotoristRow();
 
     // Warn before leaving with unsaved changes
