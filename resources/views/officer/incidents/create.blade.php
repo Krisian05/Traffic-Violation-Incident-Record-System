@@ -37,6 +37,9 @@
         'vehicle_or_number' => '',
         'vehicle_cr_number' => '',
         'vehicle_chassis' => '',
+        'vehicle_owner_violator_id' => '',
+        'vehicle_owner_name' => '',
+        'vehicle_owner_contact' => '',
         'incident_charge_type_id' => '',
         'notes' => '',
     ];
@@ -276,14 +279,31 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="col-6"><label class="mob-label">Chassis No.</label><input type="text" name="motorists[${index}][vehicle_chassis]" value="${escapeHtml(values.vehicle_chassis || '')}" class="form-control mob-input vehicle-chassis-field" placeholder="Frame / chassis number"></div>
                 </div>
 
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <label class="mob-label">ID / License Photo</label>
-                        <div id="picker-id-${index}" class="picker-placeholder" data-name="motorist_id_photos[${index}]" data-multiple="false"></div>
+                <div class="mb-3">
+                    <label class="mob-label">Vehicle Photos</label>
+                    <div id="picker-vp-${index}" class="picker-placeholder" data-name="motorist_photos[${index}][]" data-multiple="true"></div>
+                </div>
+
+                <div class="mb-3" style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:.65rem .75rem;">
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input owner-not-driver-check" type="checkbox" role="switch"
+                            name="motorists[${index}][driver_is_not_owner]" id="owner-not-driver-${index}"
+                            onchange="toggleOwnerSection(this)">
+                        <label class="form-check-label" for="owner-not-driver-${index}" style="font-size:.8rem;font-weight:700;color:#92400e;">
+                            <i class="ph-fill ph-user-minus" style="color:#dc2626;margin-right:.25rem;"></i>Driver is <strong>NOT</strong> the vehicle owner
+                        </label>
                     </div>
-                    <div class="col-6">
-                        <label class="mob-label">Vehicle Photos</label>
-                        <div id="picker-vp-${index}" class="picker-placeholder" data-name="motorist_photos[${index}][]" data-multiple="true"></div>
+                    <div class="owner-section mt-2" style="display:none;">
+                        <div style="font-size:.7rem;color:#78716c;margin-bottom:.5rem;">Enter the vehicle owner's details below.</div>
+                        <div class="mb-2">
+                            <label class="mob-label">Owner Name</label>
+                            <input type="text" name="motorists[${index}][vehicle_owner_name]" value="${escapeHtml(values.vehicle_owner_name || '')}" class="form-control mob-input" placeholder="Full name of vehicle owner">
+                        </div>
+                        <div>
+                            <label class="mob-label">Owner Contact</label>
+                            <input type="text" name="motorists[${index}][vehicle_owner_contact]" value="${escapeHtml(values.vehicle_owner_contact || '')}" class="form-control mob-input" placeholder="09XX-XXX-XXXX">
+                        </div>
+                        <input type="hidden" name="motorists[${index}][vehicle_owner_violator_id]" value="${escapeHtml(values.vehicle_owner_violator_id || '')}">
                     </div>
                 </div>
 
@@ -362,9 +382,8 @@ document.addEventListener('DOMContentLoaded', function () {
         container.appendChild(row);
         attachRow(row);
         renumberRows();
-        // Init photo pickers for this row
-        initPhotoPicker('picker-id-' + idx, 'motorist_id_photos[' + idx + ']',   { multiple: false });
-        initPhotoPicker('picker-vp-' + idx, 'motorist_photos[' + idx + '][]',     { multiple: true  });
+        // Init photo picker for vehicle photos
+        initPhotoPicker('picker-vp-' + idx, 'motorist_photos[' + idx + '][]', { multiple: true });
     }
 
     oldMotorists.forEach((motorist) => addRow(motorist));
@@ -398,6 +417,12 @@ document.addEventListener('DOMContentLoaded', function () {
             preview.appendChild(card);
         });
     });
+
+    function toggleOwnerSection(checkbox) {
+        const section = checkbox.closest('.mb-3').querySelector('.owner-section');
+        if (section) section.style.display = checkbox.checked ? '' : 'none';
+    }
+    window.toggleOwnerSection = toggleOwnerSection;
 
     document.getElementById('incidentForm').addEventListener('submit', function () {
         const btn = document.getElementById('submitBtn');
