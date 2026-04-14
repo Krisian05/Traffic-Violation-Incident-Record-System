@@ -133,7 +133,7 @@
                             <input type="text" name="time_of_incident" id="time_of_incident"
                                 class="form-control @error('time_of_incident') is-invalid @enderror"
                                 value="{{ old('time_of_incident', $incident->time_of_incident ? substr($incident->time_of_incident, 0, 5) : '') }}"
-                                placeholder="HH:MM">
+                                placeholder="hh:mm AM/PM">
                             @error('time_of_incident')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
@@ -846,7 +846,7 @@ function checkExpiryWarning(input) {
 
 document.addEventListener('DOMContentLoaded', function () {
     flatpickr('#date_of_incident', { dateFormat: 'Y-m-d', maxDate: 'today', allowInput: true });
-    flatpickr('#time_of_incident', { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: true, allowInput: true });
+    flatpickr('#time_of_incident', { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: false, altInput: true, altFormat: 'h:i K', allowInput: true });
 
     // Pre-populate existing motorists (with null guard — M8)
     if (Array.isArray(existingMotorists)) {
