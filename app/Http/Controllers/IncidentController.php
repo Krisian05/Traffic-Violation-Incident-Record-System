@@ -83,7 +83,10 @@ class IncidentController extends Controller
             'motorists.*.motorist_name'         => 'nullable|string|max:200',
             'motorists.*.motorist_license'      => 'nullable|string|max:100',
             'motorists.*.incident_charge_type_id' => 'nullable|exists:incident_charge_types,id',
-            'motorists.*.notes'                   => 'nullable|string|max:500',
+            'motorists.*.notes'                        => 'nullable|string|max:500',
+            'motorists.*.vehicle_owner_violator_id'    => 'nullable|exists:violators,id',
+            'motorists.*.vehicle_owner_name'           => 'nullable|string|max:200',
+            'motorists.*.vehicle_owner_contact'        => 'nullable|string|max:100',
             'motorist_photos'                     => 'nullable|array',
             'motorist_photos.*'                   => 'nullable|array|max:4',
             'motorist_photos.*.*'                 => 'nullable|file|mimes:jpg,jpeg,png|max:20480',
@@ -138,27 +141,30 @@ class IncidentController extends Controller
                 }
 
                 $incident->motorists()->create([
-                    'violator_id'             => $m['violator_id'] ?? null,
-                    'motorist_name'           => $m['motorist_name'] ?? null,
-                    'motorist_license'        => $m['motorist_license'] ?? null,
-                    'motorist_photo'          => $idPhotoPath,
-                    'motorist_contact'        => $m['motorist_contact'] ?? null,
-                    'motorist_address'        => $m['motorist_address'] ?? null,
-                    'license_type'            => $m['license_type'] ?? null,
-                    'license_restriction'     => !empty($m['license_restriction']) ? implode(',', (array) $m['license_restriction']) : null,
-                    'license_expiry_date'     => $m['license_expiry_date'] ?? null,
-                    'vehicle_id'              => !empty($m['vehicle_id']) ? $m['vehicle_id'] : null,
-                    'vehicle_plate'           => $m['vehicle_plate'] ?? null,
-                    'vehicle_type_manual'     => $m['vehicle_type_manual'] ?? null,
-                    'vehicle_make'            => $m['vehicle_make'] ?? null,
-                    'vehicle_model'           => $m['vehicle_model'] ?? null,
-                    'vehicle_color'           => $m['vehicle_color'] ?? null,
-                    'vehicle_or_number'       => $m['vehicle_or_number'] ?? null,
-                    'vehicle_cr_number'       => $m['vehicle_cr_number'] ?? null,
-                    'vehicle_chassis'         => $m['vehicle_chassis'] ?? null,
-                    'vehicle_photo'           => !empty($vehiclePathArr) ? $vehiclePathArr : null,
-                    'incident_charge_type_id' => $m['incident_charge_type_id'] ?? null,
-                    'notes'                   => $m['notes'] ?? null,
+                    'violator_id'                  => $m['violator_id'] ?? null,
+                    'motorist_name'                => $m['motorist_name'] ?? null,
+                    'motorist_license'             => $m['motorist_license'] ?? null,
+                    'motorist_photo'               => $idPhotoPath,
+                    'motorist_contact'             => $m['motorist_contact'] ?? null,
+                    'motorist_address'             => $m['motorist_address'] ?? null,
+                    'license_type'                 => $m['license_type'] ?? null,
+                    'license_restriction'          => !empty($m['license_restriction']) ? implode(',', (array) $m['license_restriction']) : null,
+                    'license_expiry_date'          => $m['license_expiry_date'] ?? null,
+                    'vehicle_id'                   => !empty($m['vehicle_id']) ? $m['vehicle_id'] : null,
+                    'vehicle_plate'                => $m['vehicle_plate'] ?? null,
+                    'vehicle_type_manual'          => $m['vehicle_type_manual'] ?? null,
+                    'vehicle_make'                 => $m['vehicle_make'] ?? null,
+                    'vehicle_model'                => $m['vehicle_model'] ?? null,
+                    'vehicle_color'                => $m['vehicle_color'] ?? null,
+                    'vehicle_or_number'            => $m['vehicle_or_number'] ?? null,
+                    'vehicle_cr_number'            => $m['vehicle_cr_number'] ?? null,
+                    'vehicle_chassis'              => $m['vehicle_chassis'] ?? null,
+                    'vehicle_photo'                => !empty($vehiclePathArr) ? $vehiclePathArr : null,
+                    'vehicle_owner_violator_id'    => !empty($m['vehicle_owner_violator_id']) ? $m['vehicle_owner_violator_id'] : null,
+                    'vehicle_owner_name'           => $m['vehicle_owner_name'] ?? null,
+                    'vehicle_owner_contact'        => $m['vehicle_owner_contact'] ?? null,
+                    'incident_charge_type_id'      => $m['incident_charge_type_id'] ?? null,
+                    'notes'                        => $m['notes'] ?? null,
                 ]);
             }
 
@@ -185,7 +191,7 @@ class IncidentController extends Controller
 
     public function show(Incident $incident): View
     {
-        $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'media', 'recorder']);
+        $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'motorists.ownerViolator', 'media', 'recorder']);
 
         return view('incidents.show', compact('incident'));
     }
@@ -218,7 +224,10 @@ class IncidentController extends Controller
             'motorists.*.motorist_name'     => 'nullable|string|max:200',
             'motorists.*.motorist_license'  => 'nullable|string|max:100',
             'motorists.*.incident_charge_type_id' => 'nullable|exists:incident_charge_types,id',
-            'motorists.*.notes'                   => 'nullable|string|max:500',
+            'motorists.*.notes'                        => 'nullable|string|max:500',
+            'motorists.*.vehicle_owner_violator_id'    => 'nullable|exists:violators,id',
+            'motorists.*.vehicle_owner_name'           => 'nullable|string|max:200',
+            'motorists.*.vehicle_owner_contact'        => 'nullable|string|max:100',
             'motorists.*.license_type'          => 'nullable|string|max:50',
             'motorists.*.license_restriction'   => 'nullable|array',
             'motorists.*.license_restriction.*' => 'nullable|string|max:10',
@@ -303,27 +312,30 @@ class IncidentController extends Controller
                 }
 
                 $motoristData = [
-                    'violator_id'             => $m['violator_id'] ?? null,
-                    'motorist_name'           => $m['motorist_name'] ?? null,
-                    'motorist_license'        => $m['motorist_license'] ?? null,
-                    'motorist_photo'          => $idPhotoPath,
-                    'motorist_contact'        => $m['motorist_contact'] ?? null,
-                    'motorist_address'        => $m['motorist_address'] ?? null,
-                    'license_type'            => $m['license_type'] ?? null,
-                    'license_restriction'     => !empty($m['license_restriction']) ? implode(',', (array) $m['license_restriction']) : null,
-                    'license_expiry_date'     => $m['license_expiry_date'] ?? null,
-                    'vehicle_id'              => !empty($m['vehicle_id']) ? $m['vehicle_id'] : null,
-                    'vehicle_plate'           => $m['vehicle_plate'] ?? null,
-                    'vehicle_type_manual'     => $m['vehicle_type_manual'] ?? null,
-                    'vehicle_make'            => $m['vehicle_make'] ?? null,
-                    'vehicle_model'           => $m['vehicle_model'] ?? null,
-                    'vehicle_color'           => $m['vehicle_color'] ?? null,
-                    'vehicle_or_number'       => $m['vehicle_or_number'] ?? null,
-                    'vehicle_cr_number'       => $m['vehicle_cr_number'] ?? null,
-                    'vehicle_chassis'         => $m['vehicle_chassis'] ?? null,
-                    'vehicle_photo'           => !empty($vehiclePathArr) ? $vehiclePathArr : null,
-                    'incident_charge_type_id' => $m['incident_charge_type_id'] ?? null,
-                    'notes'                   => $m['notes'] ?? null,
+                    'violator_id'                  => $m['violator_id'] ?? null,
+                    'motorist_name'                => $m['motorist_name'] ?? null,
+                    'motorist_license'             => $m['motorist_license'] ?? null,
+                    'motorist_photo'               => $idPhotoPath,
+                    'motorist_contact'             => $m['motorist_contact'] ?? null,
+                    'motorist_address'             => $m['motorist_address'] ?? null,
+                    'license_type'                 => $m['license_type'] ?? null,
+                    'license_restriction'          => !empty($m['license_restriction']) ? implode(',', (array) $m['license_restriction']) : null,
+                    'license_expiry_date'          => $m['license_expiry_date'] ?? null,
+                    'vehicle_id'                   => !empty($m['vehicle_id']) ? $m['vehicle_id'] : null,
+                    'vehicle_plate'                => $m['vehicle_plate'] ?? null,
+                    'vehicle_type_manual'          => $m['vehicle_type_manual'] ?? null,
+                    'vehicle_make'                 => $m['vehicle_make'] ?? null,
+                    'vehicle_model'                => $m['vehicle_model'] ?? null,
+                    'vehicle_color'                => $m['vehicle_color'] ?? null,
+                    'vehicle_or_number'            => $m['vehicle_or_number'] ?? null,
+                    'vehicle_cr_number'            => $m['vehicle_cr_number'] ?? null,
+                    'vehicle_chassis'              => $m['vehicle_chassis'] ?? null,
+                    'vehicle_photo'                => !empty($vehiclePathArr) ? $vehiclePathArr : null,
+                    'vehicle_owner_violator_id'    => !empty($m['vehicle_owner_violator_id']) ? $m['vehicle_owner_violator_id'] : null,
+                    'vehicle_owner_name'           => $m['vehicle_owner_name'] ?? null,
+                    'vehicle_owner_contact'        => $m['vehicle_owner_contact'] ?? null,
+                    'incident_charge_type_id'      => $m['incident_charge_type_id'] ?? null,
+                    'notes'                        => $m['notes'] ?? null,
                 ];
 
                 if (!empty($m['motorist_id'])) {
@@ -428,7 +440,7 @@ class IncidentController extends Controller
 
     public function printRecord(Incident $incident): View
     {
-        $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'media', 'recorder']);
+        $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'motorists.ownerViolator', 'media', 'recorder']);
 
         return view('incidents.print', compact('incident'));
     }

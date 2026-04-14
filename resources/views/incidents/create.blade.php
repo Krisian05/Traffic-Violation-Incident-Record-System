@@ -411,6 +411,42 @@
                     <label class="form-label fw-500 mb-1" style="font-size:.8rem;"><i class="bi bi-hash me-1" style="color:#374151;"></i>Chassis No.</label>
                     <input type="text" name="motorists[__IDX__][vehicle_chassis]" class="form-control form-control-sm" placeholder="Chassis number">
                 </div>
+                {{-- Vehicle Owner toggle --}}
+                <div class="col-12 mt-1">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input owner-not-driver-check" type="checkbox" role="switch"
+                            id="owner-not-driver-__IDX__" onchange="toggleOwnerSection(this)">
+                        <label class="form-check-label fw-500" for="owner-not-driver-__IDX__" style="font-size:.8rem;color:#374151;">
+                            <i class="bi bi-person-x-fill me-1 text-danger"></i>Driver is <strong>NOT</strong> the vehicle owner
+                        </label>
+                    </div>
+                </div>
+                {{-- Owner section (hidden by default) --}}
+                <div class="col-12 owner-section" style="display:none;">
+                    <div class="p-2 rounded-3" style="background:#fff7ed;border:1.5px solid #fed7aa;">
+                        <div class="fw-600 mb-2" style="font-size:.78rem;color:#c2410c;"><i class="bi bi-person-badge-fill me-1"></i>Vehicle Owner Details</div>
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <label class="form-label fw-500 mb-1" style="font-size:.78rem;">Registered Owner (if in system)</label>
+                                <select name="motorists[__IDX__][vehicle_owner_violator_id]" class="form-select form-select-sm owner-violator-select">
+                                    <option value="">— Search registered owner —</option>
+                                    @foreach($violators as $v)
+                                        <option value="{{ $v->id }}">{{ $v->last_name }}, {{ $v->first_name }}{{ $v->middle_name ? ' '.$v->middle_name : '' }}</option>
+                                    @endforeach
+                                </select>
+                                <small class="text-muted" style="font-size:.72rem;">Leave blank to enter owner manually below.</small>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label fw-500 mb-1" style="font-size:.78rem;"><i class="bi bi-person-fill me-1"></i>Owner Full Name</label>
+                                <input type="text" name="motorists[__IDX__][vehicle_owner_name]" class="form-control form-control-sm" placeholder="If not registered above">
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label fw-500 mb-1" style="font-size:.78rem;"><i class="bi bi-telephone-fill me-1"></i>Owner Contact</label>
+                                <input type="text" name="motorists[__IDX__][vehicle_owner_contact]" class="form-control form-control-sm" placeholder="09XX-XXX-XXXX">
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="col-sm-6">
                     <label class="form-label fw-500 mb-1" style="font-size:.8rem;"><i class="bi bi-telephone-fill me-1" style="color:#16a34a;"></i>Contact No.</label>
                     <input type="text" name="motorists[__IDX__][motorist_contact]" class="form-control form-control-sm" placeholder="09XX-XXX-XXXX">
@@ -509,6 +545,12 @@ function addMotoristRow() {
         });
     }
 
+    // Init Tom Select on owner violator select
+    const ownerSel = row.querySelector('.owner-violator-select');
+    if (ownerSel && window.TomSelect) {
+        new TomSelect(ownerSel, { maxOptions: 200, allowEmptyOption: true });
+    }
+
     updateMotoristCount();
 }
 
@@ -536,6 +578,21 @@ function renumberRows() {
 function updateMotoristCount() {
     const count = document.querySelectorAll('#motorists-container .motorist-row').length;
     document.getElementById('motorist-count').textContent = count;
+}
+
+function toggleOwnerSection(checkbox) {
+    const row = checkbox.closest('.motorist-row');
+    const section = row.querySelector('.owner-section');
+    if (section) section.style.display = checkbox.checked ? '' : 'none';
+    if (!checkbox.checked) {
+        // Clear owner fields when toggled off
+        const ownerViolatorSel = row.querySelector('.owner-violator-select');
+        if (ownerViolatorSel && ownerViolatorSel.tomselect) ownerViolatorSel.tomselect.clear();
+        const ownerNameInput = row.querySelector('[name*="vehicle_owner_name"]');
+        if (ownerNameInput) ownerNameInput.value = '';
+        const ownerContactInput = row.querySelector('[name*="vehicle_owner_contact"]');
+        if (ownerContactInput) ownerContactInput.value = '';
+    }
 }
 
 function toggleMotoristMode(radio) {

@@ -28,6 +28,9 @@ class IncidentMotorist extends Model
         'vehicle_cr_number',
         'vehicle_chassis',
         'vehicle_photo',
+        'vehicle_owner_violator_id',
+        'vehicle_owner_name',
+        'vehicle_owner_contact',
         'incident_charge_type_id',
         'notes',
     ];
@@ -55,6 +58,11 @@ class IncidentMotorist extends Model
     public function chargeType(): BelongsTo
     {
         return $this->belongsTo(IncidentChargeType::class);
+    }
+
+    public function ownerViolator(): BelongsTo
+    {
+        return $this->belongsTo(Violator::class, 'vehicle_owner_violator_id');
     }
 
     public function getDisplayNameAttribute(): string

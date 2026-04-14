@@ -447,6 +447,42 @@
                     <label class="form-label fw-500 mb-1" style="font-size:.8rem;"><i class="bi bi-hash me-1" style="color:#374151;"></i>Chassis No.</label>
                     <input type="text" name="motorists[__IDX__][vehicle_chassis]" class="form-control form-control-sm" placeholder="Chassis number">
                 </div>
+                {{-- Vehicle Owner toggle --}}
+                <div class="col-12 mt-1">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input owner-not-driver-check" type="checkbox" role="switch"
+                            id="owner-not-driver-__IDX__" onchange="toggleOwnerSection(this)">
+                        <label class="form-check-label fw-500" for="owner-not-driver-__IDX__" style="font-size:.8rem;color:#374151;">
+                            <i class="bi bi-person-x-fill me-1 text-danger"></i>Driver is <strong>NOT</strong> the vehicle owner
+                        </label>
+                    </div>
+                </div>
+                {{-- Owner section (hidden by default, populated by JS when editing) --}}
+                <div class="col-12 owner-section" style="display:none;">
+                    <div class="p-2 rounded-3" style="background:#fff7ed;border:1.5px solid #fed7aa;">
+                        <div class="fw-600 mb-2" style="font-size:.78rem;color:#c2410c;"><i class="bi bi-person-badge-fill me-1"></i>Vehicle Owner Details</div>
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <label class="form-label fw-500 mb-1" style="font-size:.78rem;">Registered Owner (if in system)</label>
+                                <select name="motorists[__IDX__][vehicle_owner_violator_id]" class="form-select form-select-sm owner-violator-select">
+                                    <option value="">— Search registered owner —</option>
+                                    @foreach($violators as $v)
+                                        <option value="{{ $v->id }}">{{ $v->last_name }}, {{ $v->first_name }}{{ $v->middle_name ? ' '.$v->middle_name : '' }}</option>
+                                    @endforeach
+                                </select>
+                                <small class="text-muted" style="font-size:.72rem;">Leave blank to enter owner manually below.</small>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label fw-500 mb-1" style="font-size:.78rem;"><i class="bi bi-person-fill me-1"></i>Owner Full Name</label>
+                                <input type="text" name="motorists[__IDX__][vehicle_owner_name]" class="form-control form-control-sm" placeholder="If not registered above">
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label fw-500 mb-1" style="font-size:.78rem;"><i class="bi bi-telephone-fill me-1"></i>Owner Contact</label>
+                                <input type="text" name="motorists[__IDX__][vehicle_owner_contact]" class="form-control form-control-sm" placeholder="09XX-XXX-XXXX">
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="col-sm-6">
                     <label class="form-label fw-500 mb-1" style="font-size:.8rem;"><i class="bi bi-telephone-fill me-1" style="color:#16a34a;"></i>Contact No.</label>
                     <input type="text" name="motorists[__IDX__][motorist_contact]" class="form-control form-control-sm" placeholder="09XX-XXX-XXXX">
@@ -510,10 +546,13 @@ $existingMotoristsData = $incident->motorists->map(fn($m) => [
     'vehicle_color'            => $m->vehicle_color,
     'vehicle_or_number'        => $m->vehicle_or_number,
     'vehicle_cr_number'        => $m->vehicle_cr_number,
-    'vehicle_chassis'          => $m->vehicle_chassis,
-    'vehicle_photo'            => $m->vehicle_photo,
-    'incident_charge_type_id'  => $m->incident_charge_type_id,
-    'notes'                    => $m->notes,
+    'vehicle_chassis'              => $m->vehicle_chassis,
+    'vehicle_photo'                => $m->vehicle_photo,
+    'vehicle_owner_violator_id'    => $m->vehicle_owner_violator_id,
+    'vehicle_owner_name'           => $m->vehicle_owner_name,
+    'vehicle_owner_contact'        => $m->vehicle_owner_contact,
+    'incident_charge_type_id'      => $m->incident_charge_type_id,
+    'notes'                        => $m->notes,
 ]);
 @endphp
 <script type="application/json" id="existing-motorists">@json($existingMotoristsData)</script>
@@ -569,6 +608,12 @@ function addMotoristRow(prefill) {
                 populateVehicles(row, value, null);
             },
         });
+    }
+
+    // Init Tom Select on owner violator select
+    const ownerSel = row.querySelector('.owner-violator-select');
+    if (ownerSel && window.TomSelect) {
+        new TomSelect(ownerSel, { maxOptions: 200, allowEmptyOption: true });
     }
 
     // Set motorist DB ID for selective update (C2 fix)
@@ -644,6 +689,21 @@ function addMotoristRow(prefill) {
                 }
             }
         }
+        // Prefill vehicle owner
+        if (prefill.vehicle_owner_violator_id || prefill.vehicle_owner_name || prefill.vehicle_owner_contact) {
+            const ownerCheck = row.querySelector('.owner-not-driver-check');
+            if (ownerCheck) { ownerCheck.checked = true; toggleOwnerSection(ownerCheck); }
+            const ownerViolSel = row.querySelector('.owner-violator-select');
+            if (ownerViolSel && prefill.vehicle_owner_violator_id) {
+                if (ownerViolSel.tomselect) ownerViolSel.tomselect.setValue(String(prefill.vehicle_owner_violator_id));
+                else ownerViolSel.value = prefill.vehicle_owner_violator_id;
+            }
+            const ownerNameInput = row.querySelector('input[name$="[vehicle_owner_name]"]');
+            if (ownerNameInput && prefill.vehicle_owner_name) ownerNameInput.value = prefill.vehicle_owner_name;
+            const ownerContactInput = row.querySelector('input[name$="[vehicle_owner_contact]"]');
+            if (ownerContactInput && prefill.vehicle_owner_contact) ownerContactInput.value = prefill.vehicle_owner_contact;
+        }
+
         const ctSel = row.querySelector('.charge-type-select');
         if (ctSel && prefill.incident_charge_type_id) ctSel.value = prefill.incident_charge_type_id;
         const notesInput = row.querySelector('input[name$="[notes]"]');
@@ -694,6 +754,20 @@ function renumberRows() {
 function updateMotoristCount() {
     const count = document.querySelectorAll('#motorists-container .motorist-row').length;
     document.getElementById('motorist-count').textContent = count;
+}
+
+function toggleOwnerSection(checkbox) {
+    const row = checkbox.closest('.motorist-row');
+    const section = row.querySelector('.owner-section');
+    if (section) section.style.display = checkbox.checked ? '' : 'none';
+    if (!checkbox.checked) {
+        const ownerViolatorSel = row.querySelector('.owner-violator-select');
+        if (ownerViolatorSel && ownerViolatorSel.tomselect) ownerViolatorSel.tomselect.clear();
+        const ownerNameInput = row.querySelector('[name*="vehicle_owner_name"]');
+        if (ownerNameInput) ownerNameInput.value = '';
+        const ownerContactInput = row.querySelector('[name*="vehicle_owner_contact"]');
+        if (ownerContactInput) ownerContactInput.value = '';
+    }
 }
 
 function toggleMotoristMode(radio) {

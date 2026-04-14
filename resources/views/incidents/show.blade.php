@@ -162,6 +162,8 @@
                     $vOR    = $m->vehicle ? $m->vehicle->or_number    : $m->vehicle_or_number;
                     $vCR    = $m->vehicle ? $m->vehicle->cr_number    : $m->vehicle_cr_number;
                     $vCha   = $m->vehicle ? $m->vehicle->chassis_number : $m->vehicle_chassis;
+                    $vOwner = $m->ownerViolator ? $m->ownerViolator->full_name : $m->vehicle_owner_name;
+                    $vOwnerContact = $m->ownerViolator ? ($m->ownerViolator->contact_number ?? null) : $m->vehicle_owner_contact;
                 @endphp
                 <div class="{{ !$loop->last ? 'mot-separator' : '' }}">
 
@@ -282,6 +284,22 @@
                         <div class="d-flex align-items-start gap-3 px-4 py-3" style="border-bottom:1px solid #f5f0e8;">
                             <div style="width:130px;flex-shrink:0;font-size:.8rem;color:#a8a29e;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">Chassis No.</div>
                             <div class="font-monospace" style="color:#292524;font-size:.88rem;">{{ $vCha }}</div>
+                        </div>
+                        @endif
+                        @if($vOwner)
+                        <div class="d-flex align-items-start gap-3 px-4 py-3" style="border-bottom:1px solid #f5f0e8;background:#fff7ed;">
+                            <div style="width:130px;flex-shrink:0;font-size:.8rem;color:#c2410c;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">Vehicle Owner</div>
+                            <div>
+                                @if($m->ownerViolator)
+                                    <a href="{{ route('violators.show', $m->ownerViolator) }}" class="fw-700" style="color:#c2410c;">{{ $vOwner }}</a>
+                                    <span class="ms-1 badge" style="background:#fed7aa;color:#c2410c;font-size:.68rem;">Registered</span>
+                                @else
+                                    <span class="fw-700" style="color:#c2410c;">{{ $vOwner }}</span>
+                                @endif
+                                @if($vOwnerContact)
+                                    <div style="font-size:.75rem;color:#78716c;margin-top:.15rem;"><i class="bi bi-telephone-fill me-1"></i>{{ $vOwnerContact }}</div>
+                                @endif
+                            </div>
                         </div>
                         @endif
                         @if($m->vehicle_photo && count($m->vehicle_photo))
