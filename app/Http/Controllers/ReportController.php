@@ -36,11 +36,12 @@ class ReportController extends Controller
 
     public function index(Request $request): View
     {
-        $month      = $request->input('month', 0);
-        $year       = (int) $request->input('year', now()->year);
-        $search     = trim($request->input('search', ''));
-        $typeFilter = (string) ($request->input('type_filter') ?? '');
-        $showAll    = $month == 0;
+        $month         = $request->input('month', 0);
+        $year          = (int) $request->input('year', now()->year);
+        $search        = trim($request->input('search', ''));
+        $typeFilter    = (string) ($request->input('type_filter') ?? '');
+        $municipality  = trim($request->input('municipality', ''));
+        $showAll       = $month == 0;
 
         $repeatOffenders = Violator::withCount('violations')
             ->has('violations', '>', 1)
@@ -59,11 +60,11 @@ class ReportController extends Controller
         $incBase = Incident::whereYear('date_of_incident', $year)
             ->when(!$showAll, fn($q) => $q->whereMonth('date_of_incident', $month));
 
-        $commonData = $this->gatherCommonReportData($year, $month, $showAll, $allTypes, $incBase, $overdueViolations);
+        $commonData = $this->gatherCommonReportData($year, $month, $showAll, $allTypes, $incBase, $overdueViolations, $municipality);
 
         $data = $showAll
-            ? $this->buildYearlyData($year, $search, $typeFilter, $allTypes)
-            : $this->buildMonthlyData((int) $month, $year, $search, $typeFilter);
+            ? $this->buildYearlyData($year, $search, $typeFilter, $allTypes, $municipality)
+            : $this->buildMonthlyData((int) $month, $year, $search, $typeFilter, $municipality);
 
         $topViolators = collect($data['yearViolatorMatrix'] ?? [])->take(8)->mapWithKeys(function ($item) {
             return [$item['violator']->full_name ?? 'Unknown' => $item['total'] ?? 0];
@@ -75,6 +76,7 @@ class ReportController extends Controller
             'year' => $year,
             'search' => $search,
             'typeFilter' => $typeFilter,
+            'municipality' => $municipality,
             'showAll' => $showAll,
             'allTypes' => $allTypes,
             'minYear' => $minYear,
@@ -83,7 +85,7 @@ class ReportController extends Controller
         ], $commonData, $data));
     }
 
-    private function gatherCommonReportData(int $year, int $month, bool $showAll, $allTypes, $incBase, $overdueViolations): array
+    private function gatherCommonReportData(int $year, int $month, bool $showAll, $allTypes, $incBase, $overdueViolations, string $municipality = ''): array
     {
         $totalIncidents     = $incBase->count();
         $incidentsByStatus  = (clone $incBase)->select('status', DB::raw('COUNT(*) as total'))
@@ -95,12 +97,14 @@ class ReportController extends Controller
 
         $violationHotspots  = Violation::whereYear('date_of_violation', $year)
                                 ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
+                                ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
                                 ->whereNotNull('location')->where('location', '!=', '')
                                 ->select('location', DB::raw('COUNT(*) as total'))
                                 ->groupBy('location')->orderByDesc('total')->limit(7)->get();
 
         $aggCounts = Violation::whereYear('date_of_violation', $year)
                         ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
+                        ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
                         ->selectRaw("
                             SUM(CASE WHEN status = 'settled' THEN 1 ELSE 0 END) as settled,
                             SUM(CASE WHEN status = 'contested' THEN 1 ELSE 0 END) as contested,
@@ -118,6 +122,7 @@ class ReportController extends Controller
 
         $violationsByType = Violation::whereYear('date_of_violation', $year)
             ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
+            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
             ->select('violation_type_id', DB::raw('COUNT(*) as total'))
             ->groupBy('violation_type_id')
             ->pluck('total', 'violation_type_id');
@@ -130,6 +135,7 @@ class ReportController extends Controller
 
         $violationStatusCounts = Violation::whereYear('date_of_violation', $year)
             ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
+            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
             ->select('status', DB::raw('COUNT(*) as total'))
             ->groupBy('status')
             ->pluck('total', 'status');
@@ -153,14 +159,15 @@ class ReportController extends Controller
         );
     }
 
-    private function buildYearlyData(int $year, string $search, string $typeFilter, Collection $allTypes): array
+    private function buildYearlyData(int $year, string $search, string $typeFilter, Collection $allTypes, string $municipality = ''): array
     {
         $yearViolations = Violation::with([
                 'violator:id,first_name,middle_name,last_name',
                 'violationType:id,name',
             ])
             ->whereYear('date_of_violation', $year)
-            ->get(['id', 'violator_id', 'violation_type_id', 'date_of_violation']);
+            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->get(['id', 'violator_id', 'violation_type_id', 'date_of_violation', 'location']);
 
         // Single pass: build month×type matrix AND group by violator simultaneously
         $yearMatrix  = [];
@@ -238,12 +245,13 @@ class ReportController extends Controller
         ];
     }
 
-    private function buildMonthlyData(int $month, int $year, string $search, string $typeFilter): array
+    private function buildMonthlyData(int $month, int $year, string $search, string $typeFilter, string $municipality = ''): array
     {
         $monthViolations = Violation::with(['violator', 'violationType'])
             ->whereMonth('date_of_violation', $month)
             ->whereYear('date_of_violation', $year)
             ->when($typeFilter, fn($q) => $q->where('violation_type_id', $typeFilter))
+            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
             ->get();
 
         if ($search !== '') {

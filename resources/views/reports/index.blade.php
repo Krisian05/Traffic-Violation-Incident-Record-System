@@ -81,6 +81,15 @@
                 </select>
             </div>
 
+            <div style="flex:2;min-width:0;">
+                <label class="rpt-flabel">Municipality</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text rpt-ig"><i class="bi bi-geo-alt-fill"></i></span>
+                    <input type="text" name="municipality" class="form-control rpt-finput"
+                           placeholder="e.g. Balamban" value="{{ $municipality }}" autocomplete="off">
+                </div>
+            </div>
+
             <div style="flex:1.5;min-width:0;">
                 <label class="rpt-flabel">Month</label>
                 <select name="month" class="form-select form-select-sm rpt-finput">
