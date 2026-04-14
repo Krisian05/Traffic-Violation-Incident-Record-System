@@ -169,9 +169,8 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     initPhotoPicker('picker-incident-photos', 'incident_photos[]', { multiple: true });
-});
 
-(function () {
+    (function () {
     const pageData = document.getElementById('incident-page-data');
     const oldMotorists = JSON.parse(pageData.dataset.oldMotorists || '[]');
     const violators = JSON.parse(pageData.dataset.violators || '[]');
@@ -439,6 +438,7 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.disabled = true;
         btn.innerHTML = '<i class="ph ph-hourglass"></i> Saving…';
     });
-})();
+    })();
+});
 </script>
 @endpush
