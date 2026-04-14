@@ -7,6 +7,7 @@ use App\Models\IncidentMedia;
 use App\Models\IncidentMotorist;
 use App\Models\IncidentChargeType;
 use App\Models\Vehicle;
+use App\Models\VehiclePhoto;
 use App\Models\Violator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -164,6 +165,13 @@ class IncidentController extends Controller
                     'incident_charge_type_id'      => $m['incident_charge_type_id'] ?? null,
                     'notes'                        => $m['notes'] ?? null,
                 ]);
+
+                // Sync vehicle photos to the vehicle_photos table so they appear in the vehicle profile
+                if (!empty($m['vehicle_id']) && !empty($vehiclePathArr)) {
+                    foreach ($vehiclePathArr as $path) {
+                        VehiclePhoto::create(['vehicle_id' => $m['vehicle_id'], 'photo' => $path]);
+                    }
+                }
             }
 
             if ($request->hasFile('media')) {
@@ -363,8 +371,21 @@ class IncidentController extends Controller
                             Storage::disk(uploads_disk())->delete($motorist->motorist_photo);
                         }
                         $motorist->update($motoristData);
+
+                        // Sync any newly uploaded vehicle photos to the vehicle_photos table
+                        $vehicleId = $motoristData['vehicle_id'] ?? $motorist->vehicle_id;
+                        if ($vehicleId && !empty($newVehiclePathArr)) {
+                            foreach ($newVehiclePathArr as $path) {
+                                VehiclePhoto::create(['vehicle_id' => $vehicleId, 'photo' => $path]);
+                            }
+                        }
                     } else {
-                        $incident->motorists()->create($motoristData);
+                        $newMotorist = $incident->motorists()->create($motoristData);
+                        if (!empty($motoristData['vehicle_id']) && !empty($newVehiclePathArr)) {
+                            foreach ($newVehiclePathArr as $path) {
+                                VehiclePhoto::create(['vehicle_id' => $motoristData['vehicle_id'], 'photo' => $path]);
+                            }
+                        }
                     }
                 } else {
                     // Resolve driver, owner, and vehicle for new motorist row
@@ -377,6 +398,13 @@ class IncidentController extends Controller
                         }
                     }
                     $incident->motorists()->create($motoristData);
+
+                    // Sync vehicle photos to vehicle_photos table
+                    if (!empty($motoristData['vehicle_id']) && !empty($vehiclePathArr)) {
+                        foreach ($vehiclePathArr as $path) {
+                            VehiclePhoto::create(['vehicle_id' => $motoristData['vehicle_id'], 'photo' => $path]);
+                        }
+                    }
                 }
             }
 
