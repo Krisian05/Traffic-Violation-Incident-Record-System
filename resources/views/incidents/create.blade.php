@@ -376,21 +376,6 @@
                     <div class="expiry-warning" style="display:none;font-size:.71rem;color:#dc2626;margin-top:.2rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>This license is already expired.</div>
                 </div>
                 <div class="col-sm-6">
-                    <label class="form-label fw-500 mb-1" style="font-size:.8rem;"><i class="bi bi-person-bounding-box me-1" style="color:#1d4ed8;"></i>ID / License Photo</label>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text"><i class="bi bi-camera-fill" style="color:#1d4ed8;font-size:.8rem;"></i></span>
-                        <input type="file" name="motorist_id_photos[__IDX__]" class="form-control form-control-sm motorist-id-photo-input"
-                            accept="image/jpg,image/jpeg,image/png" onchange="previewIdPhoto(this)">
-                    </div>
-                    <div class="motorist-id-photo-preview mt-1" style="display:none;">
-                        <img src="" alt="ID photo" class="rounded-circle border" style="height:60px;width:60px;object-fit:cover;">
-                        <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-1" style="font-size:.72rem;" onclick="clearIdPhoto(this)">
-                            <i class="bi bi-x-circle-fill"></i>
-                        </button>
-                    </div>
-                    <small style="display:block;margin-top:.3rem;font-size:.71rem;color:#a8a29e;"><i class="bi bi-info-circle" style="font-size:.68rem;margin-right:.2rem;"></i>JPG or PNG, max 20 MB.</small>
-                </div>
-                <div class="col-sm-6">
                     <label class="form-label fw-500 mb-1" style="font-size:.8rem;"><i class="bi bi-car-front-fill me-1 text-secondary"></i>Plate No.</label>
                     <input type="text" name="motorists[__IDX__][vehicle_plate]" class="form-control form-control-sm" placeholder="e.g. ABC 1234">
                 </div>
