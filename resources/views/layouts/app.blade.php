@@ -116,6 +116,9 @@
         .numInputWrapper span:after { border-top-color: #fff; border-bottom-color: #fff; }
 
         /* ── BASE ── */
+        html {
+            scrollbar-gutter: stable;
+        }
         body {
             font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
             background: #f5f0e8;
