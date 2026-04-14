@@ -808,8 +808,9 @@ class OfficerController extends Controller
                 $m = $this->normalizeOfficerIncidentMotorist($m);
 
                 $vehiclePathArr = [];
-                if (!empty($vehiclePhotos[$i]) && is_array($vehiclePhotos[$i])) {
-                    foreach (array_slice($vehiclePhotos[$i], 0, 4) as $photo) {
+                $motoristPhotoGroup = is_array($vehiclePhotos[$i] ?? null) ? $vehiclePhotos[$i] : [];
+                if (!empty($motoristPhotoGroup)) {
+                    foreach (array_slice($motoristPhotoGroup, 0, 4) as $photo) {
                         if ($photo && $photo->isValid()) {
                             $vehiclePathArr[] = $photo->store('motorist-photos', uploads_disk());
                         }
