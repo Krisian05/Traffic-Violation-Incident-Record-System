@@ -11,16 +11,13 @@
 <style>
 /* ── Chip widget ── */
 .restr-box {
-    display: flex; flex-wrap: wrap; overflow-x: auto;
-    align-items: center; gap: .35rem; padding: .4rem .5rem;
-    min-height: 38px; height: auto; scrollbar-width: none;
+    display: flex; flex-wrap: nowrap; overflow-x: auto;
+    align-items: center; gap: .35rem; padding: 0 .5rem;
+    height: calc(1.5em + .75rem + 2px); scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 .restr-box::-webkit-scrollbar { display: none; }
-@media (max-width: 767px) {
-    .restr-box { gap: .3rem; padding: .35rem .4rem; }
-    .restr-chip span { font-size: .7rem; padding: .2rem .5rem; }
-}
-.restr-chip { cursor: pointer; display: inline-block; }
+.restr-chip { cursor: pointer; display: inline-block; flex-shrink: 0; }
 .restr-chip input[type="checkbox"],
 .restr-chip input[type="radio"] { display: none; }
 .restr-chip span {
@@ -33,6 +30,19 @@
 .restr-chip input[type="radio"]:checked + span {
     background: #ca8a04; color: #fff; border-color: #ca8a04;
     box-shadow: 0 2px 6px rgba(202,138,4,.28);
+}
+/* ── ID photo styled file input ── */
+.id-photo-label {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .3rem .85rem; border-radius: 8px; cursor: pointer;
+    background: #eff6ff; color: #1d4ed8;
+    border: 1.5px solid #bfdbfe; font-size: .78rem; font-weight: 600;
+    transition: all .15s; white-space: nowrap;
+}
+.id-photo-label:hover { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+.id-photo-filename {
+    font-size: .78rem; color: #78716c;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px;
 }
 
 /* ── Section cards ── */
@@ -358,6 +368,7 @@
                         @endforeach
                         </div>
                     </div>
+                    <small style="display:block;margin-top:.3rem;font-size:.71rem;color:#a8a29e;"><i class="bi bi-info-circle" style="font-size:.68rem;margin-right:.2rem;"></i>Tap to select all codes printed on the license.</small>
                 </div>
                 <div class="col-sm-6">
                     <label class="form-label fw-500 mb-1" style="font-size:.8rem;"><i class="bi bi-calendar-x-fill me-1 text-danger"></i>License Expiry</label>
@@ -365,15 +376,19 @@
                     <div class="expiry-warning" style="display:none;font-size:.71rem;color:#dc2626;margin-top:.2rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>This license is already expired.</div>
                 </div>
                 <div class="col-sm-6">
-                    <label class="form-label fw-500 mb-1" style="font-size:.8rem;"><i class="bi bi-person-bounding-box me-1 text-secondary"></i>ID / License Photo</label>
-                    <input type="file" name="motorist_id_photos[__IDX__]" class="form-control form-control-sm motorist-id-photo-input"
-                        accept="image/jpg,image/jpeg,image/png" onchange="previewIdPhoto(this)">
+                    <label class="form-label fw-500 mb-1" style="font-size:.8rem;"><i class="bi bi-person-bounding-box me-1" style="color:#1d4ed8;"></i>ID / License Photo</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-camera-fill" style="color:#1d4ed8;font-size:.8rem;"></i></span>
+                        <input type="file" name="motorist_id_photos[__IDX__]" class="form-control form-control-sm motorist-id-photo-input"
+                            accept="image/jpg,image/jpeg,image/png" onchange="previewIdPhoto(this)">
+                    </div>
                     <div class="motorist-id-photo-preview mt-1" style="display:none;">
                         <img src="" alt="ID photo" class="rounded-circle border" style="height:60px;width:60px;object-fit:cover;">
                         <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-1" style="font-size:.72rem;" onclick="clearIdPhoto(this)">
                             <i class="bi bi-x-circle-fill"></i>
                         </button>
                     </div>
+                    <small style="display:block;margin-top:.3rem;font-size:.71rem;color:#a8a29e;"><i class="bi bi-info-circle" style="font-size:.68rem;margin-right:.2rem;"></i>JPG or PNG, max 20 MB.</small>
                 </div>
                 <div class="col-sm-6">
                     <label class="form-label fw-500 mb-1" style="font-size:.8rem;"><i class="bi bi-car-front-fill me-1 text-secondary"></i>Plate No.</label>
