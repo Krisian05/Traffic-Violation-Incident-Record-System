@@ -135,10 +135,8 @@ class IncidentController extends Controller
                     }
                 }
                 $idPhotoPath = !empty($motoristIdPhotos[$i]) ? $motoristIdPhotos[$i]->store('motorist-id-photos', uploads_disk()) : null;
-                // Auto-register manual motorist (and vehicle) into the Violators table
-                if (empty($m['violator_id']) && !empty($m['motorist_name'])) {
-                    [$m['violator_id'], $m['vehicle_id']] = $this->autoRegisterMotorist($m);
-                }
+                // Resolve driver, owner, and vehicle — each linked to the correct Violator record
+                $m = $this->resolveIncidentMotorist($m);
 
                 $incident->motorists()->create([
                     'violator_id'                  => $m['violator_id'] ?? null,
@@ -345,11 +343,13 @@ class IncidentController extends Controller
                         ->first();
 
                     if ($motorist) {
-                        // Auto-register existing manual motorist if not yet linked to a violator
+                        // Resolve driver, owner, and vehicle for existing motorist row
                         if (empty($motoristData['violator_id']) && !empty($m['motorist_name'])) {
-                            [$motoristData['violator_id'], $autoVehicleId] = $this->autoRegisterMotorist($m);
-                            if (empty($motoristData['vehicle_id']) && $autoVehicleId) {
-                                $motoristData['vehicle_id'] = $autoVehicleId;
+                            $resolved = $this->resolveIncidentMotorist($m);
+                            $motoristData['violator_id']             = $resolved['violator_id'] ?? null;
+                            $motoristData['vehicle_owner_violator_id'] = $resolved['vehicle_owner_violator_id'] ?? null;
+                            if (empty($motoristData['vehicle_id'])) {
+                                $motoristData['vehicle_id'] = $resolved['vehicle_id'] ?? null;
                             }
                         }
                         // Delete vehicle photos that were removed by user
@@ -367,11 +367,13 @@ class IncidentController extends Controller
                         $incident->motorists()->create($motoristData);
                     }
                 } else {
-                    // Auto-register new manual motorist (and vehicle) into the Violators table
+                    // Resolve driver, owner, and vehicle for new motorist row
                     if (empty($motoristData['violator_id']) && !empty($m['motorist_name'])) {
-                        [$motoristData['violator_id'], $autoVehicleId] = $this->autoRegisterMotorist($m);
-                        if (empty($motoristData['vehicle_id']) && $autoVehicleId) {
-                            $motoristData['vehicle_id'] = $autoVehicleId;
+                        $resolved = $this->resolveIncidentMotorist($m);
+                        $motoristData['violator_id']               = $resolved['violator_id'] ?? null;
+                        $motoristData['vehicle_owner_violator_id'] = $resolved['vehicle_owner_violator_id'] ?? null;
+                        if (empty($motoristData['vehicle_id'])) {
+                            $motoristData['vehicle_id'] = $resolved['vehicle_id'] ?? null;
                         }
                     }
                     $incident->motorists()->create($motoristData);
@@ -446,17 +448,57 @@ class IncidentController extends Controller
     }
 
     /**
-     * Find an existing Violator by license number, or create a new one from incident motorist data.
-     * Also auto-creates a Vehicle record if a plate number is provided.
-     * Returns [violator_id, vehicle_id|null].
+     * Resolve all auto-registration for one motorist entry.
+     *
+     * Rules:
+     *   1. Auto-register the DRIVER as a Violator if entered manually.
+     *   2. Determine the VEHICLE OWNER (may be the driver, or a different person).
+     *   3. Auto-register the owner as a Violator if only a name was provided.
+     *   4. Register the vehicle under the OWNER's Violator record.
+     *
+     * Returns the updated $m array with violator_id, vehicle_owner_violator_id,
+     * and vehicle_id filled in.
      */
-    private function autoRegisterMotorist(array $m): array
+    private function resolveIncidentMotorist(array $m): array
     {
-        // Match by license number to avoid duplicates
+        // ── Step 1: Auto-register driver ──────────────────────────────────────
+        if (empty($m['violator_id']) && !empty($m['motorist_name'])) {
+            $m['violator_id'] = $this->autoRegisterDriver($m);
+        }
+
+        // ── Step 2: Determine owner Violator ID ───────────────────────────────
+        if (!empty($m['vehicle_owner_violator_id'])) {
+            // Owner is already a registered violator — nothing to create
+            $ownerViolatorId = (int) $m['vehicle_owner_violator_id'];
+        } elseif (!empty($m['vehicle_owner_name'])) {
+            // Owner entered manually — register them as a Violator (no incident link)
+            $ownerViolatorId = $this->autoRegisterOwner($m);
+            $m['vehicle_owner_violator_id'] = $ownerViolatorId;
+        } else {
+            // Driver is also the owner
+            $ownerViolatorId = !empty($m['violator_id']) ? (int) $m['violator_id'] : null;
+        }
+
+        // ── Step 3: Register vehicle under the OWNER ──────────────────────────
+        if ($ownerViolatorId && empty($m['vehicle_id'])) {
+            $vehicleId = $this->autoRegisterVehicle($m, $ownerViolatorId);
+            if ($vehicleId) {
+                $m['vehicle_id'] = $vehicleId;
+            }
+        }
+
+        return $m;
+    }
+
+    /**
+     * Find or create a Violator for the DRIVER.
+     * Matches by license number to avoid duplicates, fills in missing fields if found.
+     */
+    private function autoRegisterDriver(array $m): int
+    {
         if (!empty($m['motorist_license'])) {
             $existing = Violator::where('license_number', $m['motorist_license'])->first();
             if ($existing) {
-                // Fill in any license fields that are missing on the violator profile
                 $fill = [];
                 if (empty($existing->license_type)        && !empty($m['license_type']))        $fill['license_type']        = $m['license_type'];
                 if (empty($existing->license_restriction) && !empty($m['license_restriction'])) $fill['license_restriction']  = is_array($m['license_restriction']) ? implode(',', $m['license_restriction']) : $m['license_restriction'];
@@ -464,18 +506,15 @@ class IncidentController extends Controller
                 if (empty($existing->contact_number)      && !empty($m['motorist_contact']))    $fill['contact_number']       = $m['motorist_contact'];
                 if (empty($existing->temporary_address)   && !empty($m['motorist_address']))    $fill['temporary_address']    = $m['motorist_address'];
                 if ($fill) $existing->update($fill);
-
-                $vehicleId = $this->autoRegisterVehicle($m, $existing->id);
-                return [$existing->id, $vehicleId];
+                return $existing->id;
             }
         }
 
-        // Split full name: last word = last name, rest = first name
         $parts     = preg_split('/\s+/', trim($m['motorist_name'] ?? ''), -1, PREG_SPLIT_NO_EMPTY);
         $lastName  = count($parts) > 1 ? array_pop($parts) : ($parts[0] ?? '');
         $firstName = implode(' ', $parts);
 
-        $violator = Violator::create([
+        return Violator::create([
             'first_name'          => $firstName,
             'last_name'           => $lastName,
             'license_number'      => !empty($m['motorist_license']) ? $m['motorist_license'] : null,
@@ -484,25 +523,37 @@ class IncidentController extends Controller
             'license_expiry_date' => $m['license_expiry_date'] ?? null,
             'contact_number'      => $m['motorist_contact'] ?? null,
             'temporary_address'   => $m['motorist_address'] ?? null,
-        ]);
-
-        $vehicleId = $this->autoRegisterVehicle($m, $violator->id);
-
-        return [$violator->id, $vehicleId];
+        ])->id;
     }
 
     /**
-     * Find or create a Vehicle record from incident motorist data.
+     * Find or create a Violator for the VEHICLE OWNER (not the driver).
+     * The owner has no incident link — they are only associated via their vehicle.
+     */
+    private function autoRegisterOwner(array $m): int
+    {
+        $parts     = preg_split('/\s+/', trim($m['vehicle_owner_name'] ?? ''), -1, PREG_SPLIT_NO_EMPTY);
+        $lastName  = count($parts) > 1 ? array_pop($parts) : ($parts[0] ?? '');
+        $firstName = implode(' ', $parts);
+
+        return Violator::create([
+            'first_name'     => $firstName,
+            'last_name'      => $lastName,
+            'contact_number' => $m['vehicle_owner_contact'] ?? null,
+        ])->id;
+    }
+
+    /**
+     * Find or create a Vehicle record under the given OWNER Violator.
      * Returns the vehicle id, or null if no plate number provided.
      */
-    private function autoRegisterVehicle(array $m, int $violatorId): ?int
+    private function autoRegisterVehicle(array $m, int $ownerViolatorId): ?int
     {
         if (empty($m['vehicle_plate'])) {
             return null;
         }
 
-        // Find existing vehicle with this plate under the same violator
-        $existing = Vehicle::where('violator_id', $violatorId)
+        $existing = Vehicle::where('violator_id', $ownerViolatorId)
             ->where('plate_number', $m['vehicle_plate'])
             ->first();
 
@@ -511,7 +562,7 @@ class IncidentController extends Controller
         }
 
         return Vehicle::create([
-            'violator_id'    => $violatorId,
+            'violator_id'    => $ownerViolatorId,
             'plate_number'   => $m['vehicle_plate'],
             'vehicle_type'   => $m['vehicle_type_manual'] ?? null,
             'make'           => $m['vehicle_make'] ?? null,
