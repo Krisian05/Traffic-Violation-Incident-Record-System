@@ -41,6 +41,7 @@
 .incident-flatpickr-theme .flatpickr-day.today { border-color:#fca5a5 !important; color:#dc2626 !important; font-weight:700; }
 .incident-flatpickr-theme .flatpickr-day.today:hover { background:#fff1f2 !important; }
 .incident-flatpickr-theme .flatpickr-day.flatpickr-disabled,.incident-flatpickr-theme .flatpickr-day.flatpickr-disabled:hover { color:#d1d5db !important; background:transparent !important; }
+.incident-flatpickr-theme .flatpickr-day.nextMonthDay,.incident-flatpickr-theme .flatpickr-day.prevMonthDay { color:transparent !important; pointer-events:none !important; }
 
     /* Vehicle photo thumbnails: responsive on mobile */
     @media (max-width: 767px) {
