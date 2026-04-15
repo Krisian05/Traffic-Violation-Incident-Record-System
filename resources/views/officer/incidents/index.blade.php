@@ -208,6 +208,61 @@
     color: #94a3b8;
     margin-top: .2rem;
 }
+
+/* ── Pagination (matches violations page exactly) ── */
+.inc-pager-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .55rem;
+    padding: .75rem 0 5rem;
+}
+.inc-pager-count {
+    font-size: .75rem;
+    color: #78716c;
+    font-weight: 600;
+}
+.inc-pager {
+    display: flex; align-items: center; gap: .25rem;
+    list-style: none; margin: 0; padding: 0;
+}
+.inc-page {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 32px; height: 32px; padding: 0 .55rem;
+    border-radius: 8px;
+    font-size: .78rem; font-weight: 600;
+    border: 1.5px solid #e7dfd5;
+    color: #57534e;
+    background: #fff;
+    text-decoration: none;
+    transition: all .15s;
+    cursor: pointer;
+}
+a.inc-page:hover {
+    background: #fff7f7;
+    border-color: #dc2626;
+    color: #dc2626;
+}
+.inc-page-active {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    border-color: #dc2626;
+    color: #fff !important;
+    box-shadow: 0 2px 8px rgba(220,38,38,.3);
+    cursor: default;
+}
+.inc-page-disabled {
+    color: #d6d3d1;
+    border-color: #f0ebe3;
+    background: #fafaf9;
+    cursor: default;
+}
+.inc-page-ellipsis {
+    border-color: transparent;
+    background: transparent;
+    color: #a8a29e;
+    cursor: default;
+    font-size: .85rem;
+}
 </style>
 @endpush
 
@@ -346,7 +401,50 @@
     @endforeach
 
     @if($incidents->hasPages())
-        {{ $incidents->links('vendor.pagination.bootstrap-5') }}
+    @php
+        $cur  = $incidents->currentPage();
+        $last = $incidents->lastPage();
+        $pages = collect();
+        for ($p = 1; $p <= $last; $p++) {
+            if ($p === 1 || $p === $last || abs($p - $cur) <= 2) {
+                $pages->push($p);
+            }
+        }
+        $pages = $pages->unique()->sort()->values();
+    @endphp
+    <div class="inc-pager-wrap">
+        <div class="inc-pager-count">
+            Showing <strong>{{ $incidents->firstItem() }}</strong>–<strong>{{ $incidents->lastItem() }}</strong> of <strong>{{ $incidents->total() }}</strong> results
+        </div>
+        <ul class="inc-pager">
+            <li>
+                @if($incidents->onFirstPage())
+                    <span class="inc-page inc-page-disabled"><i class="bi bi-chevron-left"></i></span>
+                @else
+                    <a class="inc-page" href="{{ $incidents->previousPageUrl() }}"><i class="bi bi-chevron-left"></i></a>
+                @endif
+            </li>
+            @foreach($pages as $i => $p)
+                @if($i > 0 && $p - $pages[$i - 1] > 1)
+                    <li><span class="inc-page inc-page-ellipsis">…</span></li>
+                @endif
+                <li>
+                    @if($p === $cur)
+                        <span class="inc-page inc-page-active">{{ $p }}</span>
+                    @else
+                        <a class="inc-page" href="{{ $incidents->url($p) }}">{{ $p }}</a>
+                    @endif
+                </li>
+            @endforeach
+            <li>
+                @if($incidents->hasMorePages())
+                    <a class="inc-page" href="{{ $incidents->nextPageUrl() }}"><i class="bi bi-chevron-right"></i></a>
+                @else
+                    <span class="inc-page inc-page-disabled"><i class="bi bi-chevron-right"></i></span>
+                @endif
+            </li>
+        </ul>
+    </div>
     @endif
 @endif
 
