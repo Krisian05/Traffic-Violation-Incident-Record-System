@@ -1202,9 +1202,7 @@
     /* ── Incident analytics: portrait A4, 2 charts per page ── */
     body[data-print-section="incident-analytics"] { margin: 0; }
     body[data-print-section="incident-analytics"] .rpt-filter-card,
-    body[data-print-section="incident-analytics"] .rpt-printable:not([data-rpt-section="incident-analytics"]),
-    body[data-print-section="incident-analytics"] .print-header,
-    body[data-print-section="incident-analytics"] .print-report-title-block { display: none !important; }
+    body[data-print-section="incident-analytics"] .rpt-printable:not([data-rpt-section="incident-analytics"]) { display: none !important; }
     body[data-print-section="incident-analytics"] #incAnalyticsSection { margin: 0 !important; }
     body[data-print-section="incident-analytics"] #incAnalyticsSection .rpt-card { box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
     body[data-print-section="incident-analytics"] #incAnalyticsSection .rpt-card-header { display: none !important; }
