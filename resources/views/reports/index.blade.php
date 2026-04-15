@@ -1252,7 +1252,7 @@
 }
 .inc-chart-wrap {
     position: relative;
-    height: 210px;
+    height: 340px;
 }
 .inc-print-btn {
     display: inline-flex; align-items: center; gap: .35rem;
