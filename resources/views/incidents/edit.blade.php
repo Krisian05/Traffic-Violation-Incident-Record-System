@@ -79,6 +79,55 @@ span.flatpickr-weekday { color: #b91c1c !important; font-weight: 700; font-size:
 .flatpickr-day.flatpickr-disabled, .flatpickr-day.flatpickr-disabled:hover { color: #d1d5db !important; background: transparent !important; }
 .flatpickr-time input, .flatpickr-time .flatpickr-am-pm { color: #1c1917 !important; font-weight: 600; }
 .flatpickr-time input:focus { background: #fff1f2 !important; }
+
+/* Scoped overrides for incident date pickers to avoid theme collisions */
+.incident-flatpickr-theme.flatpickr-calendar {
+    width: 284px !important;
+    overflow: hidden;
+}
+.incident-flatpickr-theme .flatpickr-rContainer,
+.incident-flatpickr-theme .flatpickr-days {
+    width: 100% !important;
+}
+.incident-flatpickr-theme .dayContainer {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    padding: .35rem;
+}
+.incident-flatpickr-theme .flatpickr-months {
+    background: linear-gradient(135deg,#dc2626,#b91c1c) !important;
+    align-items: center;
+}
+.incident-flatpickr-theme .flatpickr-months .flatpickr-month {
+    background: transparent !important;
+    color: #fff !important;
+    min-height: 38px;
+}
+.incident-flatpickr-theme .flatpickr-months .flatpickr-prev-month,
+.incident-flatpickr-theme .flatpickr-months .flatpickr-next-month {
+    color: #fff !important;
+    fill: #fff !important;
+    min-height: 38px;
+}
+.incident-flatpickr-theme .flatpickr-current-month {
+    color: #fff !important;
+    font-size: .92rem !important;
+    font-weight: 700;
+}
+.incident-flatpickr-theme .flatpickr-current-month .cur-month,
+.incident-flatpickr-theme .flatpickr-current-month .flatpickr-monthDropdown-months {
+    color: #fff !important;
+    background: transparent !important;
+    font-weight: 700;
+}
+.incident-flatpickr-theme .flatpickr-current-month .numInputWrapper { width: 4.2ch; }
+.incident-flatpickr-theme .flatpickr-current-month input.cur-year { color: #fff !important; font-weight: 700; }
+.incident-flatpickr-theme .flatpickr-weekdays { background: #fff7f7 !important; border-bottom: 1px solid #fecaca; }
+.incident-flatpickr-theme span.flatpickr-weekday {
+    background: #fff7f7 !important;
+    color: #b91c1c !important;
+}
 .inc-submit-btn {
     display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
     padding: .55rem 1.5rem; border-radius: 10px;
@@ -610,9 +659,7 @@ function addMotoristRow(prefill) {
 
     // Init flatpickr on expiry date field
     const expiryInput = row.querySelector('.motorist-expiry-picker');
-    if (expiryInput && window.flatpickr) {
-        flatpickr(expiryInput, { dateFormat: 'Y-m-d', allowInput: true, appendTo: document.body });
-    }
+    initIncidentDatePicker(expiryInput);
 
     const sel = row.querySelector('.violator-select');
     let ts;
@@ -874,8 +921,33 @@ function checkExpiryWarning(input) {
     }
 }
 
+function attachIncidentFlatpickrTheme(instance) {
+    if (instance && instance.calendarContainer) {
+        instance.calendarContainer.classList.add('incident-flatpickr-theme');
+    }
+}
+
+function initIncidentDatePicker(target, options) {
+    if (!target || !window.flatpickr) return null;
+    const extraOptions = options || {};
+    const originalOnReady = extraOptions.onReady;
+
+    return flatpickr(target, Object.assign({
+        dateFormat: 'Y-m-d',
+        allowInput: true,
+        appendTo: document.body,
+        monthSelectorType: 'static',
+        onReady: function (selectedDates, dateStr, instance) {
+            attachIncidentFlatpickrTheme(instance);
+            if (typeof originalOnReady === 'function') {
+                originalOnReady.call(this, selectedDates, dateStr, instance);
+            }
+        }
+    }, extraOptions));
+}
+
 document.addEventListener('DOMContentLoaded', function () {
-    flatpickr('#date_of_incident', { dateFormat: 'Y-m-d', maxDate: 'today', allowInput: true, appendTo: document.body });
+    initIncidentDatePicker('#date_of_incident', { maxDate: 'today' });
     flatpickr('#time_of_incident', { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: false, altInput: true, altFormat: 'h:i K', allowInput: true, appendTo: document.body });
 
     // Pre-populate existing motorists (with null guard — M8)
