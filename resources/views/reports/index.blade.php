@@ -1208,23 +1208,33 @@
     body[data-print-section="violators"]           .rpt-printable[data-rpt-section="violators"]           { display: block !important; }
     body[data-print-section="overdue"]             .rpt-printable[data-rpt-section="overdue"]             { display: block !important; }
     body[data-print-section="offenders"]           .rpt-printable[data-rpt-section="offenders"]           { display: block !important; }
-    /* ── Incident analytics: landscape, fit 4 charts on 1 page ── */
-    @page { size: A4 landscape; margin: 1cm; }
+    /* ── Incident analytics: portrait, 2 charts per page ── */
+    @page { size: A4 portrait; margin: 1.2cm; }
     body[data-print-section="incident-analytics"] .rpt-filter-card,
     body[data-print-section="incident-analytics"] .rpt-printable:not([data-rpt-section="incident-analytics"]),
     body[data-print-section="incident-analytics"] .print-header { display: none !important; }
-    body[data-print-section="incident-analytics"] #incAnalyticsSection .rpt-card { box-shadow: none !important; border: none !important; }
+    body[data-print-section="incident-analytics"] #incAnalyticsSection .rpt-card { box-shadow: none !important; border: none !important; padding: 0 !important; }
     body[data-print-section="incident-analytics"] #incAnalyticsSection .rpt-card-header { padding-bottom: .25rem !important; }
-    body[data-print-section="incident-analytics"] #incAnalyticsSection .inc-charts-grid {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1fr 1fr;
-        gap: .5rem;
-        height: 16cm;
+    /* 2-column row, each row fills one page */
+    body[data-print-section="incident-analytics"] .inc-charts-grid {
+        display: flex !important;
+        flex-wrap: wrap;
     }
-    body[data-print-section="incident-analytics"] .inc-chart-wrap { height: 100% !important; }
+    body[data-print-section="incident-analytics"] .inc-charts-grid > div {
+        width: 50% !important;
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        height: 11cm !important;
+        box-sizing: border-box;
+        padding: .3rem !important;
+    }
+    /* Page break after the 2nd chart (end of row 1) */
+    body[data-print-section="incident-analytics"] .inc-charts-grid > div:nth-child(2) {
+        break-after: page;
+    }
+    body[data-print-section="incident-analytics"] .inc-chart-wrap { height: calc(11cm - 2rem) !important; }
     body[data-print-section="incident-analytics"] .inc-chart-panel { padding: .4rem !important; height: 100%; box-sizing: border-box; }
-    body[data-print-section="incident-analytics"] .inc-chart-label { font-size: .65rem !important; margin-bottom: .2rem !important; }
+    body[data-print-section="incident-analytics"] .inc-chart-label { font-size: .68rem !important; margin-bottom: .2rem !important; }
     /* Print header block */
     body[data-print-section="incident-analytics"] .inc-print-header { display: flex !important; }
 }
