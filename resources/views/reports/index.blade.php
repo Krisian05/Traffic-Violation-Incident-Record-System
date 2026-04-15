@@ -353,27 +353,27 @@
                     <div class="rpt-card-sub" id="incAnalyticsPeriodLabel">Loading…</div>
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-2 ms-auto flex-wrap d-print-none">
-                <div id="incWeekNav" class="d-flex align-items-center gap-1" style="display:none!important;">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" id="incPrevWeek"><i class="bi bi-chevron-left"></i></button>
-                    <span id="incWeekLabel" style="font-size:.75rem;font-weight:600;color:#292524;min-width:130px;text-align:center;"></span>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" id="incNextWeek"><i class="bi bi-chevron-right"></i></button>
-                </div>
-                <div class="btn-group btn-group-sm" role="group" aria-label="Period">
-                    <button type="button" class="btn btn-outline-secondary inc-period-btn" id="incBtnWeek" data-period="week">Week</button>
-                    <button type="button" class="btn btn-outline-secondary inc-period-btn inc-period-active" id="incBtnMonth" data-period="month">Month</button>
-                </div>
-                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="rptPrintSection('incident-analytics')" title="Print Incident Analytics">
-                    <i class="bi bi-printer"></i>
+            <div class="d-flex align-items-center gap-2 ms-auto d-print-none">
+                <button type="button" class="inc-print-btn" onclick="rptPrintSection('incident-analytics')" title="Print Incident Analytics">
+                    <i class="bi bi-printer-fill"></i> Print
                 </button>
             </div>
         </div>
         <div class="card-body p-3">
+            {{-- Print-only header (hidden on screen) --}}
+            <div class="inc-print-header">
+                <div>
+                    <div class="inc-print-header-title">Traffic Related Incidents</div>
+                    <div class="inc-print-header-sub" id="incAnalyticsPrintSub"></div>
+                </div>
+                <div style="font-size:.72rem;color:#57534e;">{{ now()->format('F d, Y') }}</div>
+            </div>
+
             <div id="incAnalyticsNoData" style="display:none;text-align:center;padding:2rem;color:#a8a29e;font-style:italic;font-size:.85rem;">
                 No incident data for this period.
             </div>
             <div id="incAnalyticsCharts">
-                <div class="row g-3">
+                <div class="row g-3 inc-charts-grid">
                     <div class="col-lg-6">
                         <div class="inc-chart-panel">
                             <div class="inc-chart-label">Crime Clock</div>
@@ -1197,9 +1197,25 @@
     body[data-print-section="violators"]           .rpt-printable[data-rpt-section="violators"]           { display: block !important; }
     body[data-print-section="overdue"]             .rpt-printable[data-rpt-section="overdue"]             { display: block !important; }
     body[data-print-section="offenders"]           .rpt-printable[data-rpt-section="offenders"]           { display: block !important; }
-    /* Charts: force fixed height so they render during print */
-    .inc-chart-wrap { height: 160px !important; }
-    .inc-period-btn, #incWeekNav { display: none !important; }
+    /* ── Incident analytics: landscape, fit 4 charts on 1 page ── */
+    @page { size: A4 landscape; margin: 1cm; }
+    body[data-print-section="incident-analytics"] .rpt-filter-card,
+    body[data-print-section="incident-analytics"] .rpt-printable:not([data-rpt-section="incident-analytics"]),
+    body[data-print-section="incident-analytics"] .print-header { display: none !important; }
+    body[data-print-section="incident-analytics"] #incAnalyticsSection .rpt-card { box-shadow: none !important; border: none !important; }
+    body[data-print-section="incident-analytics"] #incAnalyticsSection .rpt-card-header { padding-bottom: .25rem !important; }
+    body[data-print-section="incident-analytics"] #incAnalyticsSection .inc-charts-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: .5rem;
+        height: 16cm;
+    }
+    body[data-print-section="incident-analytics"] .inc-chart-wrap { height: 100% !important; }
+    body[data-print-section="incident-analytics"] .inc-chart-panel { padding: .4rem !important; height: 100%; box-sizing: border-box; }
+    body[data-print-section="incident-analytics"] .inc-chart-label { font-size: .65rem !important; margin-bottom: .2rem !important; }
+    /* Print header block */
+    body[data-print-section="incident-analytics"] .inc-print-header { display: flex !important; }
 }
 
 /* ─── Incident Analytics Charts ─── */
@@ -1222,11 +1238,28 @@
     position: relative;
     height: 210px;
 }
-.inc-period-active {
-    background: #0d9488 !important;
-    border-color: #0d9488 !important;
-    color: #fff !important;
+.inc-print-btn {
+    display: inline-flex; align-items: center; gap: .35rem;
+    padding: .32rem .85rem;
+    border-radius: 8px; font-size: .78rem; font-weight: 700;
+    background: linear-gradient(135deg, #0d9488, #0f766e);
+    color: #fff; border: none;
+    box-shadow: 0 2px 8px rgba(13,148,136,.3);
+    cursor: pointer; transition: all .15s;
 }
+.inc-print-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(13,148,136,.4); }
+.inc-print-header {
+    display: none;
+    align-items: center; justify-content: space-between;
+    border-bottom: 2px solid #0d9488;
+    padding-bottom: .4rem;
+    margin-bottom: .6rem;
+}
+.inc-print-header-title {
+    font-size: 1.1rem; font-weight: 800; color: #0f766e; text-transform: uppercase; letter-spacing: .06em;
+}
+.inc-print-header-sub { font-size: .78rem; color: #57534e; margin-top: .1rem; }
+.inc-charts-grid { display: contents; }
 
 /* ─── KPI CARDS — dashboard-style ─── */
 .rpt-kpi-link {
@@ -2063,8 +2096,6 @@ function rptToggleShowMore(btn) {
 (function () {
     // ── State ──────────────────────────────────────────────────────────────────
     var _cfg       = document.getElementById('incAnalyticsCfg').dataset;
-    var _period    = 'month';
-    var _weekStart = null; // YYYY-MM-DD (Sunday)
     var _pageYear  = parseInt(_cfg.year);
     var _pageMonth = parseInt(_cfg.month) || (new Date().getMonth() + 1);
 
@@ -2085,27 +2116,6 @@ function rptToggleShowMore(btn) {
         '4 PM','5 PM','6 PM','7 PM','8 PM','9 PM','10 PM','11 PM'
     ];
     var DAY_LABELS  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-
-    // ── Helpers ────────────────────────────────────────────────────────────────
-    function formatWeekStart(dateStr) {
-        // dateStr = YYYY-MM-DD (Sunday)
-        var d = new Date(dateStr + 'T00:00:00');
-        var end = new Date(d); end.setDate(end.getDate() + 6);
-        var opts = { month: 'short', day: 'numeric' };
-        return d.toLocaleDateString('en-US', opts) + '–' + end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    }
-
-    function todaySundayStr() {
-        var d = new Date();
-        d.setDate(d.getDate() - d.getDay()); // go to Sunday
-        return d.toISOString().slice(0, 10);
-    }
-
-    function addWeeks(dateStr, n) {
-        var d = new Date(dateStr + 'T00:00:00');
-        d.setDate(d.getDate() + n * 7);
-        return d.toISOString().slice(0, 10);
-    }
 
     // ── Chart factory helpers ──────────────────────────────────────────────────
     function makeLineChart(ctx, labels, data) {
@@ -2185,7 +2195,10 @@ function rptToggleShowMore(btn) {
     // ── Render / update ────────────────────────────────────────────────────────
     function renderCharts(data) {
         window._incAnalyticsPeriodLabel = data.label;
-        document.getElementById('incAnalyticsPeriodLabel').textContent = data.label + ' — ' + data.total + ' incident' + (data.total !== 1 ? 's' : '');
+        var periodText = data.label + ' — ' + data.total + ' incident' + (data.total !== 1 ? 's' : '');
+        document.getElementById('incAnalyticsPeriodLabel').textContent = periodText;
+        var printSub = document.getElementById('incAnalyticsPrintSub');
+        if (printSub) printSub.textContent = periodText;
 
         var noData  = document.getElementById('incAnalyticsNoData');
         var chartsEl = document.getElementById('incAnalyticsCharts');
@@ -2218,55 +2231,15 @@ function rptToggleShowMore(btn) {
         else               { _statusChart  = makeBarChart(document.getElementById('incStatusChart'), statusLabels, statusData, CYAN); }
     }
 
-    // ── Fetch ──────────────────────────────────────────────────────────────────
+    // ── Fetch (month only, driven by page filter) ──────────────────────────────
     function fetchStats() {
-        var url = '{{ route("reports.incidentStats") }}?';
-        if (_period === 'week') {
-            url += 'period=week&date=' + encodeURIComponent(_weekStart);
-        } else {
-            url += 'period=month&year=' + _pageYear + '&month=' + _pageMonth;
-        }
+        var url = '{{ route("reports.incidentStats") }}?period=month&year=' + _pageYear + '&month=' + _pageMonth;
         document.getElementById('incAnalyticsPeriodLabel').textContent = 'Loading…';
         fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function (r) { return r.json(); })
             .then(function (data) { renderCharts(data); })
             .catch(function () { document.getElementById('incAnalyticsPeriodLabel').textContent = 'Error loading data.'; });
     }
-
-    // ── Week nav UI ────────────────────────────────────────────────────────────
-    function updateWeekNav() {
-        var nav = document.getElementById('incWeekNav');
-        if (_period === 'week') {
-            nav.style.removeProperty('display');
-            document.getElementById('incWeekLabel').textContent = formatWeekStart(_weekStart);
-        } else {
-            nav.style.setProperty('display', 'none', 'important');
-        }
-    }
-
-    // ── Toggle buttons ─────────────────────────────────────────────────────────
-    document.querySelectorAll('.inc-period-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            _period = this.dataset.period;
-            if (_period === 'week' && !_weekStart) _weekStart = todaySundayStr();
-            document.querySelectorAll('.inc-period-btn').forEach(function (b) { b.classList.remove('inc-period-active'); });
-            this.classList.add('inc-period-active');
-            updateWeekNav();
-            fetchStats();
-        });
-    });
-
-    document.getElementById('incPrevWeek').addEventListener('click', function () {
-        _weekStart = addWeeks(_weekStart, -1);
-        document.getElementById('incWeekLabel').textContent = formatWeekStart(_weekStart);
-        fetchStats();
-    });
-
-    document.getElementById('incNextWeek').addEventListener('click', function () {
-        _weekStart = addWeeks(_weekStart, 1);
-        document.getElementById('incWeekLabel').textContent = formatWeekStart(_weekStart);
-        fetchStats();
-    });
 
     // ── Init ───────────────────────────────────────────────────────────────────
     fetchStats();
