@@ -371,15 +371,6 @@
             </div>
         </div>
         <div class="card-body p-3">
-            {{-- Print-only header (hidden on screen) --}}
-            <div class="inc-print-header">
-                <div>
-                    <div class="inc-print-header-title">Traffic Related Incidents</div>
-                    <div class="inc-print-header-sub" id="incAnalyticsPrintSub"></div>
-                </div>
-                <div style="font-size:.72rem;color:#57534e;">{{ now()->format('F d, Y') }}</div>
-            </div>
-
             <div id="incAnalyticsNoData" style="display:none;text-align:center;padding:2rem;color:#a8a29e;font-style:italic;font-size:.85rem;">
                 No incident data for this period.
             </div>
@@ -1208,14 +1199,17 @@
     body[data-print-section="violators"]           .rpt-printable[data-rpt-section="violators"]           { display: block !important; }
     body[data-print-section="overdue"]             .rpt-printable[data-rpt-section="overdue"]             { display: block !important; }
     body[data-print-section="offenders"]           .rpt-printable[data-rpt-section="offenders"]           { display: block !important; }
-    /* ── Incident analytics: portrait, 2 charts per page ── */
-    @page { size: A4 portrait; margin: 1.2cm; }
+    /* ── Incident analytics: portrait A4, 2 charts per page ── */
+    body[data-print-section="incident-analytics"] { margin: 0; }
     body[data-print-section="incident-analytics"] .rpt-filter-card,
     body[data-print-section="incident-analytics"] .rpt-printable:not([data-rpt-section="incident-analytics"]),
-    body[data-print-section="incident-analytics"] .print-header { display: none !important; }
-    body[data-print-section="incident-analytics"] #incAnalyticsSection .rpt-card { box-shadow: none !important; border: none !important; padding: 0 !important; }
-    body[data-print-section="incident-analytics"] #incAnalyticsSection .rpt-card-header { padding-bottom: .25rem !important; }
-    /* 2-column row, each row fills one page */
+    body[data-print-section="incident-analytics"] .print-header,
+    body[data-print-section="incident-analytics"] .print-report-title-block { display: none !important; }
+    body[data-print-section="incident-analytics"] #incAnalyticsSection { margin: 0 !important; }
+    body[data-print-section="incident-analytics"] #incAnalyticsSection .rpt-card { box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
+    body[data-print-section="incident-analytics"] #incAnalyticsSection .rpt-card-header { display: none !important; }
+    body[data-print-section="incident-analytics"] #incAnalyticsSection .card-body { padding: 0 !important; }
+    /* 2 charts per page side by side */
     body[data-print-section="incident-analytics"] .inc-charts-grid {
         display: flex !important;
         flex-wrap: wrap;
@@ -1224,19 +1218,22 @@
         width: 50% !important;
         flex: 0 0 50% !important;
         max-width: 50% !important;
-        height: 13cm !important;
+        height: 50vh !important;
         box-sizing: border-box;
-        padding: .3rem !important;
+        padding: .4rem !important;
     }
-    /* Page break after the 2nd chart (end of row 1) */
+    /* Force page break after 2nd chart */
     body[data-print-section="incident-analytics"] .inc-charts-grid > div:nth-child(2) {
         break-after: page;
     }
-    body[data-print-section="incident-analytics"] .inc-chart-panel { padding: .4rem !important; height: 100%; box-sizing: border-box; }
-    body[data-print-section="incident-analytics"] .inc-chart-wrap { height: calc(13cm - 2.2rem) !important; }
-    body[data-print-section="incident-analytics"] .inc-chart-label { font-size: .68rem !important; margin-bottom: .2rem !important; }
-    /* Print header block */
-    body[data-print-section="incident-analytics"] .inc-print-header { display: flex !important; }
+    body[data-print-section="incident-analytics"] .inc-chart-panel {
+        padding: .5rem !important;
+        height: 100%;
+        box-sizing: border-box;
+        border-radius: 6px !important;
+    }
+    body[data-print-section="incident-analytics"] .inc-chart-wrap { height: calc(100% - 1.4rem) !important; }
+    body[data-print-section="incident-analytics"] .inc-chart-label { font-size: .7rem !important; margin-bottom: .2rem !important; }
 }
 
 /* ─── Incident Analytics Charts ─── */
@@ -1269,17 +1266,6 @@
     cursor: pointer; transition: all .15s;
 }
 .inc-print-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(13,148,136,.4); }
-.inc-print-header {
-    display: none;
-    align-items: center; justify-content: space-between;
-    border-bottom: 2px solid #0d9488;
-    padding-bottom: .4rem;
-    margin-bottom: .6rem;
-}
-.inc-print-header-title {
-    font-size: 1.1rem; font-weight: 800; color: #0f766e; text-transform: uppercase; letter-spacing: .06em;
-}
-.inc-print-header-sub { font-size: .78rem; color: #57534e; margin-top: .1rem; }
 .inc-charts-grid { display: flex; flex-wrap: wrap; }
 
 /* ─── KPI CARDS — dashboard-style ─── */
@@ -2218,8 +2204,6 @@ function rptToggleShowMore(btn) {
         window._incAnalyticsPeriodLabel = data.label;
         var periodText = data.label + ' — ' + data.total + ' incident' + (data.total !== 1 ? 's' : '');
         document.getElementById('incAnalyticsPeriodLabel').textContent = periodText;
-        var printSub = document.getElementById('incAnalyticsPrintSub');
-        if (printSub) printSub.textContent = periodText;
 
         var noData  = document.getElementById('incAnalyticsNoData');
         var chartsEl = document.getElementById('incAnalyticsCharts');
