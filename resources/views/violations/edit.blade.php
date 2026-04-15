@@ -21,6 +21,27 @@
     .ts-wrapper .ts-control .item { color:#292524; }
     .ts-wrapper .clear-button { color:#78716c; }
 
+/* ── Flatpickr red calendar theme (incidents/create style) ── */
+.incident-flatpickr-theme.flatpickr-calendar { width:284px !important; border-radius:14px !important; box-shadow:0 8px 32px rgba(0,0,0,.14),0 2px 8px rgba(0,0,0,.08) !important; border:1px solid #f0ebe3 !important; font-family:inherit !important; overflow:hidden; }
+.incident-flatpickr-theme .flatpickr-rContainer,.incident-flatpickr-theme .flatpickr-days { width:100% !important; }
+.incident-flatpickr-theme .dayContainer { width:100% !important; min-width:100% !important; max-width:100% !important; padding:.35rem; }
+.incident-flatpickr-theme .flatpickr-months { background:linear-gradient(135deg,#dc2626,#b91c1c) !important; border-radius:14px 14px 0 0; align-items:center; }
+.incident-flatpickr-theme .flatpickr-months .flatpickr-month { background:transparent !important; color:#fff !important; min-height:38px; }
+.incident-flatpickr-theme .flatpickr-months .flatpickr-prev-month,.incident-flatpickr-theme .flatpickr-months .flatpickr-next-month { color:#fff !important; fill:#fff !important; min-height:38px; }
+.incident-flatpickr-theme .flatpickr-prev-month:hover svg,.incident-flatpickr-theme .flatpickr-next-month:hover svg { fill:#fde68a !important; }
+.incident-flatpickr-theme .flatpickr-current-month { color:#fff !important; font-size:.92rem !important; font-weight:700; }
+.incident-flatpickr-theme .flatpickr-current-month .cur-month,.incident-flatpickr-theme .flatpickr-current-month .flatpickr-monthDropdown-months { color:#fff !important; background:transparent !important; font-weight:700; }
+.incident-flatpickr-theme .flatpickr-current-month .numInputWrapper { width:4.2ch; }
+.incident-flatpickr-theme .flatpickr-current-month input.cur-year { color:#fff !important; font-weight:700; }
+.incident-flatpickr-theme .flatpickr-weekdays { background:#fff7f7 !important; border-bottom:1px solid #fecaca; }
+.incident-flatpickr-theme span.flatpickr-weekday { background:#fff7f7 !important; color:#b91c1c !important; font-weight:700; font-size:.72rem; }
+.incident-flatpickr-theme .flatpickr-day { border-radius:8px !important; font-size:.82rem; font-weight:500; color:#1c1917; transition:all .12s; }
+.incident-flatpickr-theme .flatpickr-day:hover { background:#fff1f2 !important; border-color:#fecaca !important; color:#dc2626 !important; }
+.incident-flatpickr-theme .flatpickr-day.selected,.incident-flatpickr-theme .flatpickr-day.selected:hover { background:linear-gradient(135deg,#dc2626,#b91c1c) !important; border-color:#b91c1c !important; color:#fff !important; box-shadow:0 2px 8px rgba(185,28,28,.35) !important; font-weight:700; }
+.incident-flatpickr-theme .flatpickr-day.today { border-color:#fca5a5 !important; color:#dc2626 !important; font-weight:700; }
+.incident-flatpickr-theme .flatpickr-day.today:hover { background:#fff1f2 !important; }
+.incident-flatpickr-theme .flatpickr-day.flatpickr-disabled,.incident-flatpickr-theme .flatpickr-day.flatpickr-disabled:hover { color:#d1d5db !important; background:transparent !important; }
+
     /* Vehicle photo thumbnails: responsive on mobile */
     @media (max-width: 767px) {
         .d-flex.flex-wrap img[style*="height:100px"] {
@@ -131,10 +152,10 @@
                         </label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-calendar-event" style="color:#d97706;font-size:.85rem;"></i></span>
-                            <input type="date" name="date_of_violation" id="dp-violation-date"
+                            <input type="text" name="date_of_violation" id="dp-violation-date"
                                 class="form-control @error('date_of_violation') is-invalid @enderror"
                                 value="{{ old('date_of_violation', $violation->date_of_violation->format('Y-m-d')) }}"
-                                max="{{ date('Y-m-d') }}" required>
+                                placeholder="YYYY-MM-DD" required>
                             @error('date_of_violation')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -647,6 +668,19 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script>
+    function attachIncidentFlatpickrTheme(inst) {
+        if (inst && inst.calendarContainer) inst.calendarContainer.classList.add('incident-flatpickr-theme');
+    }
+    function initIncidentDatePicker(target, opts) {
+        if (!target || !window.flatpickr) return null;
+        const extra = opts || {}, origReady = extra.onReady;
+        return flatpickr(target, Object.assign({ dateFormat:'Y-m-d', allowInput:true, appendTo:document.body, monthSelectorType:'static',
+            onReady: function(d,s,inst) { attachIncidentFlatpickrTheme(inst); if (typeof origReady==='function') origReady.call(this,d,s,inst); }
+        }, extra));
+    }
+    initIncidentDatePicker('#dp-violation-date', { maxDate:'today', defaultDate: document.getElementById('dp-violation-date').value || null });
+</script>
 <script>
     // Show/hide settlement card based on status
     const statusSelect = document.querySelector('select[name="status"]');

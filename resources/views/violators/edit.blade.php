@@ -7,6 +7,31 @@
     <li class="breadcrumb-item active" aria-current="page" style="color:#44403c;">Edit</li>
 @endsection
 
+@push('styles')
+<style>
+/* ── Flatpickr red calendar theme (incidents/create style) ── */
+.incident-flatpickr-theme.flatpickr-calendar { width:284px !important; border-radius:14px !important; box-shadow:0 8px 32px rgba(0,0,0,.14),0 2px 8px rgba(0,0,0,.08) !important; border:1px solid #f0ebe3 !important; font-family:inherit !important; overflow:hidden; }
+.incident-flatpickr-theme .flatpickr-rContainer,.incident-flatpickr-theme .flatpickr-days { width:100% !important; }
+.incident-flatpickr-theme .dayContainer { width:100% !important; min-width:100% !important; max-width:100% !important; padding:.35rem; }
+.incident-flatpickr-theme .flatpickr-months { background:linear-gradient(135deg,#dc2626,#b91c1c) !important; border-radius:14px 14px 0 0; align-items:center; }
+.incident-flatpickr-theme .flatpickr-months .flatpickr-month { background:transparent !important; color:#fff !important; min-height:38px; }
+.incident-flatpickr-theme .flatpickr-months .flatpickr-prev-month,.incident-flatpickr-theme .flatpickr-months .flatpickr-next-month { color:#fff !important; fill:#fff !important; min-height:38px; }
+.incident-flatpickr-theme .flatpickr-prev-month:hover svg,.incident-flatpickr-theme .flatpickr-next-month:hover svg { fill:#fde68a !important; }
+.incident-flatpickr-theme .flatpickr-current-month { color:#fff !important; font-size:.92rem !important; font-weight:700; }
+.incident-flatpickr-theme .flatpickr-current-month .cur-month,.incident-flatpickr-theme .flatpickr-current-month .flatpickr-monthDropdown-months { color:#fff !important; background:transparent !important; font-weight:700; }
+.incident-flatpickr-theme .flatpickr-current-month .numInputWrapper { width:4.2ch; }
+.incident-flatpickr-theme .flatpickr-current-month input.cur-year { color:#fff !important; font-weight:700; }
+.incident-flatpickr-theme .flatpickr-weekdays { background:#fff7f7 !important; border-bottom:1px solid #fecaca; }
+.incident-flatpickr-theme span.flatpickr-weekday { background:#fff7f7 !important; color:#b91c1c !important; font-weight:700; font-size:.72rem; }
+.incident-flatpickr-theme .flatpickr-day { border-radius:8px !important; font-size:.82rem; font-weight:500; color:#1c1917; transition:all .12s; }
+.incident-flatpickr-theme .flatpickr-day:hover { background:#fff1f2 !important; border-color:#fecaca !important; color:#dc2626 !important; }
+.incident-flatpickr-theme .flatpickr-day.selected,.incident-flatpickr-theme .flatpickr-day.selected:hover { background:linear-gradient(135deg,#dc2626,#b91c1c) !important; border-color:#b91c1c !important; color:#fff !important; box-shadow:0 2px 8px rgba(185,28,28,.35) !important; font-weight:700; }
+.incident-flatpickr-theme .flatpickr-day.today { border-color:#fca5a5 !important; color:#dc2626 !important; font-weight:700; }
+.incident-flatpickr-theme .flatpickr-day.today:hover { background:#fff1f2 !important; }
+.incident-flatpickr-theme .flatpickr-day.flatpickr-disabled,.incident-flatpickr-theme .flatpickr-day.flatpickr-disabled:hover { color:#d1d5db !important; background:transparent !important; }
+</style>
+@endpush
+
 @section('content')
 
 {{-- Page Header --}}
@@ -107,10 +132,10 @@
                 <label class="form-label">Date of Birth</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-calendar-event-fill" style="color:#d97706;font-size:.8rem;"></i></span>
-                    <input type="date" name="date_of_birth" id="dp-dob"
+                    <input type="text" name="date_of_birth" id="dp-dob"
                         class="form-control @error('date_of_birth') is-invalid @enderror"
                         value="{{ old('date_of_birth', $violator->date_of_birth?->format('Y-m-d')) }}"
-                        max="{{ date('Y-m-d') }}">
+                        placeholder="YYYY-MM-DD">
                     @error('date_of_birth')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <small class="vlt-hint"><i class="bi bi-info-circle"></i> Click to pick date. Must be a past date.</small>
@@ -330,10 +355,10 @@
                 <label class="form-label">Date Issued</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-calendar-check-fill" style="color:#16a34a;font-size:.8rem;"></i></span>
-                    <input type="date" name="license_issued_date" id="dp-issued"
+                    <input type="text" name="license_issued_date" id="dp-issued"
                         class="form-control @error('license_issued_date') is-invalid @enderror"
                         value="{{ old('license_issued_date', $violator->license_issued_date?->format('Y-m-d')) }}"
-                        max="{{ date('Y-m-d') }}">
+                        placeholder="YYYY-MM-DD">
                     @error('license_issued_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <small class="vlt-hint"><i class="bi bi-info-circle"></i> Date printed on the license card. Must be a past date.</small>
@@ -344,9 +369,10 @@
                 <label class="form-label">Expiry Date</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-calendar-x-fill" style="color:#dc2626;font-size:.8rem;"></i></span>
-                    <input type="date" name="license_expiry_date" id="dp-expiry"
+                    <input type="text" name="license_expiry_date" id="dp-expiry"
                         class="form-control @error('license_expiry_date') is-invalid @enderror"
-                        value="{{ old('license_expiry_date', $violator->license_expiry_date?->format('Y-m-d')) }}">
+                        value="{{ old('license_expiry_date', $violator->license_expiry_date?->format('Y-m-d')) }}"
+                        placeholder="YYYY-MM-DD">
                     @error('license_expiry_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <small class="vlt-hint" id="expiry-hint"><i class="bi bi-info-circle"></i> Expiration date on the license. Can be a future date.</small>
@@ -465,6 +491,21 @@
 @endsection
 
 @push('scripts')
+<script>
+    function attachIncidentFlatpickrTheme(inst) {
+        if (inst && inst.calendarContainer) inst.calendarContainer.classList.add('incident-flatpickr-theme');
+    }
+    function initIncidentDatePicker(target, opts) {
+        if (!target || !window.flatpickr) return null;
+        const extra = opts || {}, origReady = extra.onReady;
+        return flatpickr(target, Object.assign({ dateFormat:'Y-m-d', allowInput:true, appendTo:document.body, monthSelectorType:'static',
+            onReady: function(d,s,inst) { attachIncidentFlatpickrTheme(inst); if (typeof origReady==='function') origReady.call(this,d,s,inst); }
+        }, extra));
+    }
+    initIncidentDatePicker('#dp-dob',    { maxDate:'today', defaultDate: document.getElementById('dp-dob').value || null });
+    initIncidentDatePicker('#dp-issued', { maxDate:'today', defaultDate: document.getElementById('dp-issued').value || null });
+    initIncidentDatePicker('#dp-expiry', {                  defaultDate: document.getElementById('dp-expiry').value || null });
+</script>
 <script>
 (function () {
     function setOk(input, hintEl, msg) {
