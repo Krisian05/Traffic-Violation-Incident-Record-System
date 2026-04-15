@@ -21,8 +21,8 @@ return [
     */
 
     'driver' => $isProduction
-        ? env('PRODUCTION_SESSION_DRIVER', 'cookie')
-        : env('SESSION_DRIVER', 'database'),
+        ? env('PRODUCTION_SESSION_DRIVER', 'database')
+        : env('SESSION_DRIVER', 'file'),
 
     /*
     |--------------------------------------------------------------------------
