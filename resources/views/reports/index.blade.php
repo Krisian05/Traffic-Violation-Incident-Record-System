@@ -2057,17 +2057,16 @@ function rptToggleShowMore(btn) {
 </script>
 
 {{-- Chart.js CDN --}}
+<div id="incAnalyticsCfg" data-year="{{ (int)$year }}" data-month="{{ (int)$month }}" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<script>
-window._incCfg = @json(['year' => (int)$year, 'month' => (int)$month]);
-</script>
 <script>
 (function () {
     // ── State ──────────────────────────────────────────────────────────────────
+    var _cfg       = document.getElementById('incAnalyticsCfg').dataset;
     var _period    = 'month';
     var _weekStart = null; // YYYY-MM-DD (Sunday)
-    var _pageYear  = window._incCfg.year;
-    var _pageMonth = window._incCfg.month || (new Date().getMonth() + 1);
+    var _pageYear  = parseInt(_cfg.year);
+    var _pageMonth = parseInt(_cfg.month) || (new Date().getMonth() + 1);
 
     // ── Chart instances ────────────────────────────────────────────────────────
     var _clockChart   = null;
