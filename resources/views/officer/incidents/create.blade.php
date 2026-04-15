@@ -9,10 +9,16 @@
 .incident-row+.incident-row{margin-top:.9rem}
 .incident-row-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
 .incident-row-badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#d97706,#b45309);color:#fff;font-size:.78rem;font-weight:800}
-.incident-chips{display:flex;flex-wrap:wrap;gap:.35rem}
-.incident-chip{display:inline-flex;align-items:center;gap:.32rem;padding:.28rem .58rem;border-radius:999px;border:1.5px solid #fde68a;background:#fff;font-size:.73rem;font-weight:700;color:#92400e;cursor:pointer;user-select:none;transition:all .15s}
-.incident-chip input[type="checkbox"]{display:none}
-.incident-chip:has(input:checked){background:#ca8a04;color:#fff;border-color:#ca8a04;box-shadow:0 2px 6px rgba(202,138,4,.28)}
+/* ── Restriction code chips (matches motorist form) ── */
+.rc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}
+.rc-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.18rem;padding:.55rem .4rem;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;cursor:pointer;user-select:none;transition:all .18s;-webkit-tap-highlight-color:transparent}
+.rc-chip input[type=checkbox]{display:none}
+.rc-chip-icon{width:28px;height:28px;border-radius:8px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:#94a3b8;transition:all .18s}
+.rc-chip-label{font-size:.72rem;font-weight:800;color:#64748b;letter-spacing:.03em;transition:color .18s}
+.rc-chip.checked{border-color:#2563eb;background:#eff6ff}
+.rc-chip.checked .rc-chip-icon{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;box-shadow:0 2px 6px rgba(37,99,235,.35)}
+.rc-chip.checked .rc-chip-label{color:#1d4ed8}
+.rc-chip:active{transform:scale(.94)}
 .incident-media-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem;margin-top:.7rem}
 .incident-media-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:.6rem}
 .incident-media-card img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;margin-bottom:.45rem}
@@ -221,9 +227,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function restrictionHtml(index, selectedValues) {
         const selected = new Set((selectedValues || []).map(String));
-        return restrictions.map((code) =>
-            '<label class="incident-chip"><input type="checkbox" name="motorists[' + index + '][license_restriction][]" value="' + code + '"' + (selected.has(code) ? ' checked' : '') + '>' + code + '</label>'
-        ).join('');
+        return restrictions.map((code) => {
+            const on = selected.has(code);
+            return '<label class="rc-chip' + (on ? ' checked' : '') + '">' +
+                '<input type="checkbox" name="motorists[' + index + '][license_restriction][]" value="' + code + '"' + (on ? ' checked' : '') + '>' +
+                '<span class="rc-chip-icon"><i class="ph ' + (on ? 'ph-fill ph-check' : 'ph ph-car') + '"></i></span>' +
+                '<span class="rc-chip-label">' + code + '</span>' +
+                '</label>';
+        }).join('');
     }
 
     function vehicleSelectHtml(index, violatorId, selectedVehicleId) {
@@ -294,9 +305,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
 
                 <div class="mb-3">
-                    <label class="mob-label d-block mb-1">Restriction Codes</label>
-                    <div class="incident-chips">${restrictionHtml(index, values.license_restriction || [])}</div>
-                    <div style="font-size:.7rem;color:#a8a29e;margin-top:.3rem;"><i class="ph ph-info" style="font-size:.72rem;margin-right:.2rem;"></i>Tap to select all codes printed on the license.</div>
+                    <label class="mob-label" style="margin-bottom:.55rem;">Restriction Codes</label>
+                    <div class="rc-grid">${restrictionHtml(index, values.license_restriction || [])}</div>
+                    <div style="font-size:.7rem;color:#a8a29e;margin-top:.5rem;"><i class="ph ph-info" style="font-size:.72rem;margin-right:.2rem;"></i>Select all applicable restriction codes from the license card.</div>
                 </div>
 
                 <div class="mob-form-divider"><span class="mob-form-divider-text">Vehicle</span><span class="mob-form-divider-line"></span></div>
@@ -436,6 +447,15 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         row.querySelector('.vehicle-select').addEventListener('change', function () {
             applyVehicleData(row, this.options[this.selectedIndex]);
+        });
+        row.querySelectorAll('.rc-chip').forEach(function (chip) {
+            chip.addEventListener('click', function () {
+                const cb  = chip.querySelector('input[type=checkbox]');
+                const ico = chip.querySelector('.rc-chip-icon i');
+                const on  = cb.checked;
+                chip.classList.toggle('checked', on);
+                ico.className = on ? 'ph ph-fill ph-check' : 'ph ph-car';
+            });
         });
         const chargeSelect = row.querySelector('.violation-charge-select');
         if (chargeSelect) {
