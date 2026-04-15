@@ -36,13 +36,43 @@ class ReportController extends Controller
 
     public function index(Request $request): View
     {
-        $month         = $request->input('month', 0);
-        $year          = (int) $request->input('year', now()->year);
-        $search        = trim($request->input('search', ''));
-        $typeFilter    = (string) ($request->input('type_filter') ?? '');
-        $municipality  = trim($request->input('municipality', ''));
-        $showAll       = $month == 0;
+        $month        = $request->input('month', 0);
+        $year         = (int) $request->input('year', now()->year);
+        $search       = trim($request->input('search', ''));
+        $typeFilter   = (string) ($request->input('type_filter') ?? '');
+        $municipality = trim($request->input('municipality', ''));
+        $showAll      = $month == 0;
 
+        $baseData   = $this->loadBaseData($municipality);
+        $allTypes   = $baseData['allTypes'];
+        $incBase    = Incident::whereYear('date_of_incident', $year)
+                        ->when(!$showAll, fn($q) => $q->whereMonth('date_of_incident', $month));
+        $commonData = $this->gatherCommonReportData($year, $month, $showAll, $allTypes, $incBase, $baseData['overdueViolations'], $municipality);
+        $data       = $showAll
+                        ? $this->buildYearlyData($year, $search, $typeFilter, $allTypes, $municipality)
+                        : $this->buildMonthlyData((int) $month, $year, $search, $typeFilter, $municipality);
+
+        $topViolators = collect($data['yearViolatorMatrix'] ?? [])->take(8)->mapWithKeys(
+            fn($item) => [$item['violator']->full_name ?? 'Unknown' => $item['total'] ?? 0]
+        );
+
+        return view('reports.index', array_merge([
+            'repeatOffenders'  => $baseData['repeatOffenders'],
+            'month'            => $month,
+            'year'             => $year,
+            'search'           => $search,
+            'typeFilter'       => $typeFilter,
+            'municipality'     => $municipality,
+            'showAll'          => $showAll,
+            'allTypes'         => $allTypes,
+            'minYear'          => $baseData['minYear'],
+            'overdueViolations'=> $baseData['overdueViolations'],
+            'topViolators'     => $topViolators,
+        ], $commonData, $data));
+    }
+
+    private function loadBaseData(string $municipality): array
+    {
         $repeatOffenders = Violator::withCount(['violations' => fn($q) =>
                 $q->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
             ])
@@ -62,32 +92,7 @@ class ReportController extends Controller
             ->orderBy('created_at')
             ->get();
 
-        $incBase = Incident::whereYear('date_of_incident', $year)
-            ->when(!$showAll, fn($q) => $q->whereMonth('date_of_incident', $month));
-
-        $commonData = $this->gatherCommonReportData($year, $month, $showAll, $allTypes, $incBase, $overdueViolations, $municipality);
-
-        $data = $showAll
-            ? $this->buildYearlyData($year, $search, $typeFilter, $allTypes, $municipality)
-            : $this->buildMonthlyData((int) $month, $year, $search, $typeFilter, $municipality);
-
-        $topViolators = collect($data['yearViolatorMatrix'] ?? [])->take(8)->mapWithKeys(function ($item) {
-            return [$item['violator']->full_name ?? 'Unknown' => $item['total'] ?? 0];
-        });
-
-        return view('reports.index', array_merge([
-            'repeatOffenders' => $repeatOffenders,
-            'month' => $month,
-            'year' => $year,
-            'search' => $search,
-            'typeFilter' => $typeFilter,
-            'municipality' => $municipality,
-            'showAll' => $showAll,
-            'allTypes' => $allTypes,
-            'minYear' => $minYear,
-            'overdueViolations' => $overdueViolations,
-            'topViolators' => $topViolators,
-        ], $commonData, $data));
+        return compact('repeatOffenders', 'allTypes', 'minYear', 'overdueViolations');
     }
 
     private function gatherCommonReportData(int $year, int $month, bool $showAll, $allTypes, $incBase, $overdueViolations, string $municipality = ''): array
