@@ -27,7 +27,7 @@
 
 <div class="mob-card">
     <div class="mob-card-body">
-        <form method="POST" action="{{ route('officer.incidents.update', $incident) }}" enctype="multipart/form-data" data-offline-sync="true" data-offline-label="Incident Update">
+        <form method="POST" action="{{ route('officer.incidents.update', $incident) }}" enctype="multipart/form-data" data-offline-sync="true" data-offline-record-type="incident-edit" data-offline-label="Incident Update">
             @csrf
             @method('PUT')
 
@@ -91,7 +91,7 @@
                     </div>
                     <div>
                         <div style="font-size:.82rem;font-weight:700;color:#0f172a;">{{ $m->violator?->full_name ?? $m->motorist_name ?? 'Unknown' }}</div>
-                        @if($m->vehicle_plate || ($m->vehicle && $m->vehicle->plate_number))
+                        @if($m->vehicle_plate || $m->vehicle && $m->vehicle->plate_number)
                         <div style="font-size:.7rem;color:#64748b;font-family:ui-monospace,monospace;">{{ $m->vehicle?->plate_number ?? $m->vehicle_plate }}</div>
                         @endif
                     </div>

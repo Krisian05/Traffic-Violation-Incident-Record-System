@@ -1007,7 +1007,7 @@ class OfficerController extends Controller
     public function editIncident(Incident $incident): View
     {
         $this->authorize('update', $incident);
-        $incident->load(['motorists.vehicle', 'media']);
+        $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'media']);
         $chargeTypes = Cache::remember('incident_charge_types', 600, fn() => IncidentChargeType::orderBy('name')->get());
 
         return view('officer.incidents.edit', compact('incident', 'chargeTypes'));
