@@ -2059,12 +2059,15 @@ function rptToggleShowMore(btn) {
 {{-- Chart.js CDN --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script>
+window._incCfg = @json(['year' => (int)$year, 'month' => (int)$month]);
+</script>
+<script>
 (function () {
     // ── State ──────────────────────────────────────────────────────────────────
     var _period    = 'month';
     var _weekStart = null; // YYYY-MM-DD (Sunday)
-    var _pageYear  = {{ (int)$year }};
-    var _pageMonth = {{ ($month > 0 ? (int)$month : 'new Date().getMonth()+1') }};
+    var _pageYear  = window._incCfg.year;
+    var _pageMonth = window._incCfg.month || (new Date().getMonth() + 1);
 
     // ── Chart instances ────────────────────────────────────────────────────────
     var _clockChart   = null;
