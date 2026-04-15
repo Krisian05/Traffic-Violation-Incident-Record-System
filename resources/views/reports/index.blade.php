@@ -1271,7 +1271,7 @@
     font-size: 1.1rem; font-weight: 800; color: #0f766e; text-transform: uppercase; letter-spacing: .06em;
 }
 .inc-print-header-sub { font-size: .78rem; color: #57534e; margin-top: .1rem; }
-.inc-charts-grid { display: contents; }
+.inc-charts-grid { display: flex; flex-wrap: wrap; }
 
 /* ─── KPI CARDS — dashboard-style ─── */
 .rpt-kpi-link {
