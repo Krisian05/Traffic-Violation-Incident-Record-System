@@ -107,10 +107,10 @@
                 <label class="form-label">Date of Birth</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-calendar-event-fill" style="color:#d97706;font-size:.8rem;"></i></span>
-                    <input type="text" name="date_of_birth" id="dp-dob"
+                    <input type="date" name="date_of_birth" id="dp-dob"
                         class="form-control @error('date_of_birth') is-invalid @enderror"
                         value="{{ old('date_of_birth', $violator->date_of_birth?->format('Y-m-d')) }}"
-                        placeholder="YYYY-MM-DD">
+                        max="{{ date('Y-m-d') }}">
                     @error('date_of_birth')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <small class="vlt-hint"><i class="bi bi-info-circle"></i> Click to pick date. Must be a past date.</small>
@@ -330,10 +330,10 @@
                 <label class="form-label">Date Issued</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-calendar-check-fill" style="color:#16a34a;font-size:.8rem;"></i></span>
-                    <input type="text" name="license_issued_date" id="dp-issued"
+                    <input type="date" name="license_issued_date" id="dp-issued"
                         class="form-control @error('license_issued_date') is-invalid @enderror"
                         value="{{ old('license_issued_date', $violator->license_issued_date?->format('Y-m-d')) }}"
-                        placeholder="YYYY-MM-DD">
+                        max="{{ date('Y-m-d') }}">
                     @error('license_issued_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <small class="vlt-hint"><i class="bi bi-info-circle"></i> Date printed on the license card. Must be a past date.</small>
@@ -344,10 +344,9 @@
                 <label class="form-label">Expiry Date</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-calendar-x-fill" style="color:#dc2626;font-size:.8rem;"></i></span>
-                    <input type="text" name="license_expiry_date" id="dp-expiry"
+                    <input type="date" name="license_expiry_date" id="dp-expiry"
                         class="form-control @error('license_expiry_date') is-invalid @enderror"
-                        value="{{ old('license_expiry_date', $violator->license_expiry_date?->format('Y-m-d')) }}"
-                        placeholder="YYYY-MM-DD">
+                        value="{{ old('license_expiry_date', $violator->license_expiry_date?->format('Y-m-d')) }}">
                     @error('license_expiry_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <small class="vlt-hint" id="expiry-hint"><i class="bi bi-info-circle"></i> Expiration date on the license. Can be a future date.</small>
@@ -588,27 +587,6 @@
         }
     });
 
-    /* ── Flatpickr ── */
-    flatpickr('#dp-dob', {
-        dateFormat: 'Y-m-d', maxDate: 'today',
-        defaultDate: document.getElementById('dp-dob').value || null,
-        allowInput: true, disableMobile: true,
-    });
-    applyDateMask(document.getElementById('dp-dob'));
-
-    flatpickr('#dp-issued', {
-        dateFormat: 'Y-m-d', maxDate: 'today',
-        defaultDate: document.getElementById('dp-issued').value || null,
-        allowInput: true, disableMobile: true,
-    });
-    applyDateMask(document.getElementById('dp-issued'));
-
-    flatpickr('#dp-expiry', {
-        dateFormat: 'Y-m-d',
-        defaultDate: document.getElementById('dp-expiry').value || null,
-        allowInput: true, disableMobile: true,
-    });
-    applyDateMask(document.getElementById('dp-expiry'));
 
     /* ── Trigger expiry check on load if value already set ── */
     var expiryInput = document.querySelector('[name="license_expiry_date"]');

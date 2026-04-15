@@ -131,10 +131,10 @@
                         </label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-calendar-event" style="color:#d97706;font-size:.85rem;"></i></span>
-                            <input type="text" name="date_of_violation" id="dp-violation-date"
+                            <input type="date" name="date_of_violation" id="dp-violation-date"
                                 class="form-control @error('date_of_violation') is-invalid @enderror"
                                 value="{{ old('date_of_violation', $violation->date_of_violation->format('Y-m-d')) }}"
-                                placeholder="YYYY-MM-DD" required>
+                                max="{{ date('Y-m-d') }}" required>
                             @error('date_of_violation')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -655,14 +655,6 @@
         settlementCard.classList.toggle('d-none', this.value !== 'settled');
     });
 
-    flatpickr('#dp-violation-date', {
-        dateFormat: 'Y-m-d',
-        maxDate: 'today',
-        defaultDate: document.getElementById('dp-violation-date').value || null,
-        allowInput: true,
-        disableMobile: true,
-    });
-    applyDateMask(document.getElementById('dp-violation-date'));
 
     // Searchable vehicle dropdown
     let tsVehicle = new TomSelect('#vehicle_id', {
