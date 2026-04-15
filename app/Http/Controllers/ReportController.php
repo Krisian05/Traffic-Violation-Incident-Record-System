@@ -250,7 +250,7 @@ class ReportController extends Controller
         ];
     }
 
-    public function incidentStats(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
+    public function incidentStats(Request $request): \Illuminate\Http\JsonResponse
     {
         $period = $request->input('period', 'month');
         $year   = (int) $request->input('year', now()->year);
