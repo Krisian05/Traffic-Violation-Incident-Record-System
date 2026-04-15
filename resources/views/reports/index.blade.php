@@ -2102,7 +2102,7 @@ function rptToggleShowMore(btn) {
     // ── State ──────────────────────────────────────────────────────────────────
     var _cfg       = document.getElementById('incAnalyticsCfg').dataset;
     var _pageYear  = parseInt(_cfg.year);
-    var _pageMonth = parseInt(_cfg.month) || (new Date().getMonth() + 1);
+    var _pageMonth = parseInt(_cfg.month); // 0 = All Months (year view)
 
     // ── Chart instances ────────────────────────────────────────────────────────
     var _clockChart   = null;
