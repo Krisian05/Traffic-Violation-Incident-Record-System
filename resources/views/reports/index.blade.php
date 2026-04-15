@@ -159,6 +159,11 @@
                             <span>KPI Summary: Violations &amp; Incidents</span>
                             <i class="bi bi-printer rpt-qi-arr"></i>
                         </button>
+                        <button type="button" class="rpt-qitem rpt-qitem--print" onclick="rptPrintSection('incident-analytics')">
+                            <span class="rpt-qitem-icon rpt-qi-slate"><i class="bi bi-graph-up"></i></span>
+                            <span>Incident Analytics (Charts)</span>
+                            <i class="bi bi-printer rpt-qi-arr"></i>
+                        </button>
                         <button type="button" class="rpt-qitem rpt-qitem--print" onclick="rptPrintSection('incidents')">
                             <span class="rpt-qitem-icon rpt-qi-slate"><i class="bi bi-flag-fill"></i></span>
                             <span>Incident Summary &amp; Hotspots</span>
@@ -333,6 +338,70 @@
         </div>
     </div>
 
+</div>
+
+{{-- ── INCIDENT ANALYTICS (Charts) ── --}}
+<div class="mb-4 rpt-printable" data-rpt-section="incident-analytics" id="incAnalyticsSection">
+    <div class="rpt-card">
+        <div class="rpt-card-header" style="flex-wrap:wrap;gap:.5rem;">
+            <div class="d-flex align-items-center gap-3">
+                <span class="rpt-card-icon" style="background:linear-gradient(135deg,#0d9488,#0f766e);box-shadow:0 3px 10px rgba(13,148,136,.3);">
+                    <i class="bi bi-graph-up" style="color:#fff;"></i>
+                </span>
+                <div>
+                    <div class="rpt-card-title">Traffic Related Incidents</div>
+                    <div class="rpt-card-sub" id="incAnalyticsPeriodLabel">Loading…</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 ms-auto flex-wrap d-print-none">
+                <div id="incWeekNav" class="d-flex align-items-center gap-1" style="display:none!important;">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="incPrevWeek"><i class="bi bi-chevron-left"></i></button>
+                    <span id="incWeekLabel" style="font-size:.75rem;font-weight:600;color:#292524;min-width:130px;text-align:center;"></span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="incNextWeek"><i class="bi bi-chevron-right"></i></button>
+                </div>
+                <div class="btn-group btn-group-sm" role="group" aria-label="Period">
+                    <button type="button" class="btn btn-outline-secondary inc-period-btn" id="incBtnWeek" data-period="week">Week</button>
+                    <button type="button" class="btn btn-outline-secondary inc-period-btn inc-period-active" id="incBtnMonth" data-period="month">Month</button>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="rptPrintSection('incident-analytics')" title="Print Incident Analytics">
+                    <i class="bi bi-printer"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-3">
+            <div id="incAnalyticsNoData" style="display:none;text-align:center;padding:2rem;color:#a8a29e;font-style:italic;font-size:.85rem;">
+                No incident data for this period.
+            </div>
+            <div id="incAnalyticsCharts">
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <div class="inc-chart-panel">
+                            <div class="inc-chart-label">Crime Clock</div>
+                            <div class="inc-chart-wrap"><canvas id="incClockChart"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="inc-chart-panel">
+                            <div class="inc-chart-label">Offense</div>
+                            <div class="inc-chart-wrap"><canvas id="incOffenseChart"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="inc-chart-panel">
+                            <div class="inc-chart-label">Crime Days</div>
+                            <div class="inc-chart-wrap"><canvas id="incDaysChart"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="inc-chart-panel">
+                            <div class="inc-chart-label">Case Status</div>
+                            <div class="inc-chart-wrap"><canvas id="incStatusChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 {{-- ── INCIDENT SUMMARY + HOTSPOTS ── --}}
@@ -1121,12 +1190,42 @@
     /* When a specific section is chosen, hide every printable block … */
     body[data-print-section] .rpt-printable { display: none !important; }
     /* … then reveal only the targeted one */
-    body[data-print-section="kpi"]        .rpt-printable[data-rpt-section="kpi"]        { display: flex  !important; }
-    body[data-print-section="incidents"]  .rpt-printable[data-rpt-section="incidents"]  { display: flex  !important; }
-    body[data-print-section="violations"] .rpt-printable[data-rpt-section="violations"] { display: block !important; }
-    body[data-print-section="violators"]  .rpt-printable[data-rpt-section="violators"]  { display: block !important; }
-    body[data-print-section="overdue"]    .rpt-printable[data-rpt-section="overdue"]    { display: block !important; }
-    body[data-print-section="offenders"]  .rpt-printable[data-rpt-section="offenders"]  { display: block !important; }
+    body[data-print-section="kpi"]                 .rpt-printable[data-rpt-section="kpi"]                 { display: flex  !important; }
+    body[data-print-section="incidents"]           .rpt-printable[data-rpt-section="incidents"]           { display: flex  !important; }
+    body[data-print-section="incident-analytics"]  .rpt-printable[data-rpt-section="incident-analytics"]  { display: block !important; }
+    body[data-print-section="violations"]          .rpt-printable[data-rpt-section="violations"]          { display: block !important; }
+    body[data-print-section="violators"]           .rpt-printable[data-rpt-section="violators"]           { display: block !important; }
+    body[data-print-section="overdue"]             .rpt-printable[data-rpt-section="overdue"]             { display: block !important; }
+    body[data-print-section="offenders"]           .rpt-printable[data-rpt-section="offenders"]           { display: block !important; }
+    /* Charts: force fixed height so they render during print */
+    .inc-chart-wrap { height: 160px !important; }
+    .inc-period-btn, #incWeekNav { display: none !important; }
+}
+
+/* ─── Incident Analytics Charts ─── */
+.inc-chart-panel {
+    background: #f8fffe;
+    border: 1px solid #ccfbf1;
+    border-radius: 10px;
+    padding: .9rem .9rem .6rem;
+}
+.inc-chart-label {
+    font-size: .77rem;
+    font-weight: 700;
+    color: #0f766e;
+    text-align: center;
+    margin-bottom: .4rem;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+.inc-chart-wrap {
+    position: relative;
+    height: 210px;
+}
+.inc-period-active {
+    background: #0d9488 !important;
+    border-color: #0d9488 !important;
+    color: #fff !important;
 }
 
 /* ─── KPI CARDS — dashboard-style ─── */
@@ -1902,21 +2001,23 @@ function rptPrintSection(sectionKey) {
     var periodLabel = '{{ $periodLabel }}';
 
     var sectionTitles = {
-        'kpi':        'KPI Summary Report',
-        'incidents':  'Incident Summary Report',
-        'violations': 'Violation Data Report',
-        'violators':  'Violator Recap Report',
-        'overdue':    '72-Hour Overdue Violations Report',
-        'offenders':  'Repeat Offenders Report'
+        'kpi':                 'KPI Summary Report',
+        'incident-analytics':  'Traffic Related Incidents — Analytics',
+        'incidents':           'Incident Summary Report',
+        'violations':          'Violation Data Report',
+        'violators':           'Violator Recap Report',
+        'overdue':             '72-Hour Overdue Violations Report',
+        'offenders':           'Repeat Offenders Report'
     };
 
     var sectionNotes = {
-        'kpi':        'Violations, Incidents, Settled & Overdue counts — ' + periodLabel,
-        'incidents':  'Incident status breakdown and top locations — ' + periodLabel,
-        'violations': 'Violation data by type — ' + periodLabel,
-        'violators':  'Individual violator breakdown — ' + periodLabel,
-        'overdue':    'Overdue violations filed more than 72 hours ago — as of {{ now()->format("F d, Y") }}',
-        'offenders':  'Motorists with 2 or more violations on record — all time'
+        'kpi':                 'Violations, Incidents, Settled & Overdue counts — ' + periodLabel,
+        'incident-analytics':  'Crime Clock, Offense, Crime Days & Case Status charts — ' + (window._incAnalyticsPeriodLabel || periodLabel),
+        'incidents':           'Incident status breakdown and top locations — ' + periodLabel,
+        'violations':          'Violation data by type — ' + periodLabel,
+        'violators':           'Individual violator breakdown — ' + periodLabel,
+        'overdue':             'Overdue violations filed more than 72 hours ago — as of {{ now()->format("F d, Y") }}',
+        'offenders':           'Motorists with 2 or more violations on record — all time'
     };
 
     // Update print title
@@ -1953,6 +2054,221 @@ function rptToggleShowMore(btn) {
         ? 'Show ' + hiddenCount + ' more <i class="bi bi-chevron-down ms-1"></i>'
         : 'Show less <i class="bi bi-chevron-up ms-1"></i>';
 }
+</script>
+
+{{-- Chart.js CDN --}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    // ── State ──────────────────────────────────────────────────────────────────
+    var _period    = 'month';
+    var _weekStart = null; // YYYY-MM-DD (Sunday)
+    var _pageYear  = {{ (int)$year }};
+    var _pageMonth = {{ ($month > 0 ? (int)$month : 'new Date().getMonth()+1') }};
+
+    // ── Chart instances ────────────────────────────────────────────────────────
+    var _clockChart   = null;
+    var _offenseChart = null;
+    var _daysChart    = null;
+    var _statusChart  = null;
+
+    var TEAL        = 'rgba(13,148,136,0.85)';
+    var TEAL_BORDER = 'rgba(13,148,136,1)';
+    var TEAL_FILL   = 'rgba(13,148,136,0.15)';
+    var CYAN        = 'rgba(6,182,212,0.85)';
+
+    var HOUR_LABELS = [
+        '12 AM','1 AM','2 AM','3 AM','4 AM','5 AM','6 AM','7 AM',
+        '8 AM','9 AM','10 AM','11 AM','12 PM','1 PM','2 PM','3 PM',
+        '4 PM','5 PM','6 PM','7 PM','8 PM','9 PM','10 PM','11 PM'
+    ];
+    var DAY_LABELS  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+    function formatWeekStart(dateStr) {
+        // dateStr = YYYY-MM-DD (Sunday)
+        var d = new Date(dateStr + 'T00:00:00');
+        var end = new Date(d); end.setDate(end.getDate() + 6);
+        var opts = { month: 'short', day: 'numeric' };
+        return d.toLocaleDateString('en-US', opts) + '–' + end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function todaySundayStr() {
+        var d = new Date();
+        d.setDate(d.getDate() - d.getDay()); // go to Sunday
+        return d.toISOString().slice(0, 10);
+    }
+
+    function addWeeks(dateStr, n) {
+        var d = new Date(dateStr + 'T00:00:00');
+        d.setDate(d.getDate() + n * 7);
+        return d.toISOString().slice(0, 10);
+    }
+
+    // ── Chart factory helpers ──────────────────────────────────────────────────
+    function makeLineChart(ctx, labels, data) {
+        return new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    borderColor: TEAL_BORDER,
+                    backgroundColor: TEAL_FILL,
+                    borderWidth: 2,
+                    pointRadius: 2,
+                    fill: true,
+                    tension: 0.35
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { font: { size: 9 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 12 }, grid: { color: '#f1f5f9' } },
+                    y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 9 } }, grid: { color: '#f1f5f9' } }
+                }
+            }
+        });
+    }
+
+    function makeBarChart(ctx, labels, data, color) {
+        color = color || TEAL;
+        return new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: color,
+                    borderColor: 'transparent',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { font: { size: 9 }, maxRotation: 30, autoSkip: false }, grid: { color: '#f1f5f9' } },
+                    y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 9 } }, grid: { color: '#f1f5f9' } }
+                }
+            }
+        });
+    }
+
+    function makeHBarChart(ctx, labels, data) {
+        return new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: CYAN,
+                    borderColor: 'transparent',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 9 } }, grid: { color: '#f1f5f9' } },
+                    y: { ticks: { font: { size: 9 } }, grid: { color: '#f1f5f9' } }
+                }
+            }
+        });
+    }
+
+    // ── Render / update ────────────────────────────────────────────────────────
+    function renderCharts(data) {
+        window._incAnalyticsPeriodLabel = data.label;
+        document.getElementById('incAnalyticsPeriodLabel').textContent = data.label + ' — ' + data.total + ' incident' + (data.total !== 1 ? 's' : '');
+
+        var noData  = document.getElementById('incAnalyticsNoData');
+        var chartsEl = document.getElementById('incAnalyticsCharts');
+
+        if (data.total === 0) {
+            noData.style.display  = '';
+            chartsEl.style.display = 'none';
+            return;
+        }
+        noData.style.display  = 'none';
+        chartsEl.style.display = '';
+
+        // Offense labels (wrap long names)
+        var offenseLabels = Object.keys(data.byChargeType);
+        var offenseData   = Object.values(data.byChargeType);
+
+        var statusLabels = ['Open', 'Under Review', 'Closed'];
+        var statusData   = [data.byStatus.open || 0, data.byStatus.under_review || 0, data.byStatus.closed || 0];
+
+        if (_clockChart)   { _clockChart.data.datasets[0].data   = data.byHour; _clockChart.update(); }
+        else               { _clockChart   = makeLineChart(document.getElementById('incClockChart'),   HOUR_LABELS, data.byHour); }
+
+        if (_offenseChart) { _offenseChart.data.labels = offenseLabels; _offenseChart.data.datasets[0].data = offenseData; _offenseChart.update(); }
+        else               { _offenseChart = offenseLabels.length ? makeHBarChart(document.getElementById('incOffenseChart'), offenseLabels, offenseData) : makeBarChart(document.getElementById('incOffenseChart'), ['No data'], [0]); }
+
+        if (_daysChart)    { _daysChart.data.datasets[0].data    = data.byDay;  _daysChart.update(); }
+        else               { _daysChart    = makeBarChart(document.getElementById('incDaysChart'),   DAY_LABELS, data.byDay, TEAL); }
+
+        if (_statusChart)  { _statusChart.data.datasets[0].data  = statusData;  _statusChart.update(); }
+        else               { _statusChart  = makeBarChart(document.getElementById('incStatusChart'), statusLabels, statusData, CYAN); }
+    }
+
+    // ── Fetch ──────────────────────────────────────────────────────────────────
+    function fetchStats() {
+        var url = '{{ route("reports.incidentStats") }}?';
+        if (_period === 'week') {
+            url += 'period=week&date=' + encodeURIComponent(_weekStart);
+        } else {
+            url += 'period=month&year=' + _pageYear + '&month=' + _pageMonth;
+        }
+        document.getElementById('incAnalyticsPeriodLabel').textContent = 'Loading…';
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) { renderCharts(data); })
+            .catch(function () { document.getElementById('incAnalyticsPeriodLabel').textContent = 'Error loading data.'; });
+    }
+
+    // ── Week nav UI ────────────────────────────────────────────────────────────
+    function updateWeekNav() {
+        var nav = document.getElementById('incWeekNav');
+        if (_period === 'week') {
+            nav.style.removeProperty('display');
+            document.getElementById('incWeekLabel').textContent = formatWeekStart(_weekStart);
+        } else {
+            nav.style.setProperty('display', 'none', 'important');
+        }
+    }
+
+    // ── Toggle buttons ─────────────────────────────────────────────────────────
+    document.querySelectorAll('.inc-period-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            _period = this.dataset.period;
+            if (_period === 'week' && !_weekStart) _weekStart = todaySundayStr();
+            document.querySelectorAll('.inc-period-btn').forEach(function (b) { b.classList.remove('inc-period-active'); });
+            this.classList.add('inc-period-active');
+            updateWeekNav();
+            fetchStats();
+        });
+    });
+
+    document.getElementById('incPrevWeek').addEventListener('click', function () {
+        _weekStart = addWeeks(_weekStart, -1);
+        document.getElementById('incWeekLabel').textContent = formatWeekStart(_weekStart);
+        fetchStats();
+    });
+
+    document.getElementById('incNextWeek').addEventListener('click', function () {
+        _weekStart = addWeeks(_weekStart, 1);
+        document.getElementById('incWeekLabel').textContent = formatWeekStart(_weekStart);
+        fetchStats();
+    });
+
+    // ── Init ───────────────────────────────────────────────────────────────────
+    fetchStats();
+})();
 </script>
 
 @endsection

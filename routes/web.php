@@ -123,6 +123,7 @@ Route::middleware('auth')->group(function () {
 
     // ── REPORTS ───────────────────────────────────────────────────────────────
     Route::get('/reports/violator-suggestions', [ReportController::class, 'suggestions'])->name('reports.suggestions')->middleware('throttle:30,1');
+    Route::get('/reports/incident-stats', [ReportController::class, 'incidentStats'])->name('reports.incidentStats');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
     // ── USERS (operator only) ─────────────────────────────────────────────────

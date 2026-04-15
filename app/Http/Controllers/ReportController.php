@@ -250,6 +250,77 @@ class ReportController extends Controller
         ];
     }
 
+    public function incidentStats(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
+    {
+        $period = $request->input('period', 'month');
+        $year   = (int) $request->input('year', now()->year);
+        $month  = (int) $request->input('month', now()->month);
+        $date   = $request->input('date', now()->toDateString());
+
+        if ($period === 'week') {
+            $parsed    = \Carbon\Carbon::parse($date);
+            $dow       = (int) $parsed->dayOfWeek; // 0=Sun
+            $weekStart = $parsed->copy()->subDays($dow);
+            $weekEnd   = $weekStart->copy()->addDays(6);
+            $from  = $weekStart->toDateString();
+            $to    = $weekEnd->toDateString();
+            $label = $weekStart->format('M j') . '–' . $weekEnd->format('M j, Y');
+        } else {
+            $from  = $year . '-' . str_pad($month, 2, '0', STR_PAD_LEFT) . '-01';
+            $to    = date('Y-m-t', mktime(0, 0, 0, $month, 1, $year));
+            $label = date('F Y', mktime(0, 0, 0, $month, 1, $year));
+            $from  = $from;
+        }
+
+        $incidents = Incident::with(['motorists.chargeType'])
+            ->whereBetween('date_of_incident', [$from, $to])
+            ->get(['id', 'date_of_incident', 'time_of_incident', 'status', 'location']);
+
+        $byHour       = array_fill(0, 24, 0);
+        $byDay        = array_fill(0, 7, 0);
+        $byStatus     = ['open' => 0, 'under_review' => 0, 'closed' => 0];
+        $byChargeType = [];
+        $byLocation   = [];
+
+        foreach ($incidents as $inc) {
+            if ($inc->time_of_incident) {
+                $hour = (int) substr($inc->time_of_incident, 0, 2);
+                if ($hour >= 0 && $hour <= 23) $byHour[$hour]++;
+            }
+            $dow = (int) $inc->date_of_incident->dayOfWeek;
+            $byDay[$dow]++;
+
+            $key = $inc->status ?? 'open';
+            if (array_key_exists($key, $byStatus)) $byStatus[$key]++;
+
+            if ($inc->location) {
+                $byLocation[$inc->location] = ($byLocation[$inc->location] ?? 0) + 1;
+            }
+
+            foreach ($inc->motorists as $motorist) {
+                $name = $motorist->chargeType?->name ?? null;
+                if ($name) {
+                    $short = preg_replace('/^Reckless Imprudence Resulting in /', 'RIR ', $name);
+                    $byChargeType[$short] = ($byChargeType[$short] ?? 0) + 1;
+                }
+            }
+        }
+
+        arsort($byChargeType);
+        arsort($byLocation);
+
+        return response()->json([
+            'label'        => $label,
+            'total'        => $incidents->count(),
+            'byHour'       => array_values($byHour),
+            'byDay'        => array_values($byDay),
+            'byStatus'     => $byStatus,
+            'byChargeType' => $byChargeType,
+            'byLocation'   => array_slice($byLocation, 0, 7, true),
+            'weekStart'    => $period === 'week' ? $from : null,
+        ]);
+    }
+
     private function buildMonthlyData(int $month, int $year, string $search, string $typeFilter, string $municipality = ''): array
     {
         $monthViolations = Violation::with(['violator', 'violationType'])
