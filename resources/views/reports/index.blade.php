@@ -359,8 +359,8 @@
                     <span class="input-group-text" style="background:#f0fdfa;border-color:#99f6e4;color:#0d9488;font-size:.75rem;font-weight:600;">
                         <i class="bi bi-calendar-week me-1"></i>Week
                     </span>
-                    <input type="date" id="incWeekDateInput" class="form-control form-control-sm"
-                           style="max-width:145px;border-color:#99f6e4;">
+                    <input type="week" id="incWeekDateInput" class="form-control form-control-sm"
+                           style="max-width:165px;border-color:#99f6e4;">
                     <button type="button" class="btn btn-sm" id="incWeekClear"
                             style="display:none;background:#f0fdfa;border:1px solid #99f6e4;border-left:0;color:#0d9488;"
                             title="Clear week filter"><i class="bi bi-x"></i></button>

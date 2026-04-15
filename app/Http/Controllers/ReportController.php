@@ -263,10 +263,16 @@ class ReportController extends Controller
         $date   = $request->input('date', now()->toDateString());
 
         if ($period === 'week') {
-            $parsed    = \Carbon\Carbon::parse($date);
-            $dow       = (int) $parsed->dayOfWeek;
-            $weekStart = $parsed->copy()->subDays($dow);
-            $weekEnd   = $weekStart->copy()->addDays(6);
+            // $date is either YYYY-Www (from type="week" input) or a plain date string
+            if (preg_match('/^(\d{4})-W(\d{2})$/', $date, $m)) {
+                // ISO week: Monday start — use Carbon's setISODate
+                $weekStart = \Carbon\Carbon::now()->setISODate((int)$m[1], (int)$m[2], 1); // Monday
+                $weekEnd   = $weekStart->copy()->addDays(6); // Sunday
+            } else {
+                $parsed    = \Carbon\Carbon::parse($date);
+                $weekStart = $parsed->copy()->startOfWeek(\Carbon\Carbon::MONDAY);
+                $weekEnd   = $weekStart->copy()->addDays(6);
+            }
             $from  = $weekStart->toDateString();
             $to    = $weekEnd->toDateString();
             $label = $weekStart->format('M j') . '–' . $weekEnd->format('M j, Y');
@@ -299,7 +305,7 @@ class ReportController extends Controller
             $byDay[$dow]++;
 
             $key = $inc->status ?? 'open';
-            if (array_key_exists($key, $byStatus)) $byStatus[$key]++;
+            if (\array_key_exists($key, $byStatus)) $byStatus[$key]++;
 
             if ($inc->location) {
                 $byLocation[$inc->location] = ($byLocation[$inc->location] ?? 0) + 1;
@@ -324,7 +330,7 @@ class ReportController extends Controller
             'byDay'        => array_values($byDay),
             'byStatus'     => $byStatus,
             'byChargeType' => $byChargeType,
-            'byLocation'   => array_slice($byLocation, 0, 7, true),
+            'byLocation'   => \array_slice($byLocation, 0, 7, true),
             'weekStart'    => $period === 'week' ? $from : null,
         ]);
     }
