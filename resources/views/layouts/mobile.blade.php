@@ -1936,5 +1936,15 @@ function initPhotoPicker(wrapperId, inputName, options) {
 }
 </script>
 <script src="{{ asset('mobile-offline.js') }}?v={{ $mobileOfflineVersion }}"></script>
+<script>
+// iOS Safari bfcache fix: when a page is restored from back-forward cache,
+// the HTML (including @csrf token) is stale. Force a reload so the server
+// issues a fresh token — preventing 419 on the next form submission.
+window.addEventListener('pageshow', function (e) {
+    if (e.persisted) {
+        window.location.reload();
+    }
+});
+</script>
 </body>
 </html>

@@ -1405,5 +1405,10 @@ document.querySelectorAll('.about-tab').forEach(function(tab) {
     flex-shrink: 0;
 }
 </style>
+<script>
+window.addEventListener('pageshow', function (e) {
+    if (e.persisted) { window.location.reload(); }
+});
+</script>
 </body>
 </html>
