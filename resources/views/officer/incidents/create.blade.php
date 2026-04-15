@@ -16,6 +16,37 @@
 .incident-media-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem;margin-top:.7rem}
 .incident-media-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:.6rem}
 .incident-media-card img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;margin-bottom:.45rem}
+
+/* ── Motorist row header ── */
+.incident-row-head { background:linear-gradient(135deg,#fef3c7,#fef9ee); border-radius:10px; padding:.55rem .65rem; margin:-0.9rem -0.9rem .85rem; }
+.incident-row-title { font-size:.76rem; font-weight:800; color:#0f172a; text-transform:uppercase; letter-spacing:.06em; }
+
+/* ── Violation / Charge section ── */
+.inc-violation-wrap {
+    background: linear-gradient(135deg,#fdf4ff,#f5f3ff);
+    border: 1.5px solid #e9d5ff;
+    border-radius: 12px;
+    padding: .75rem .8rem;
+    margin-top: .2rem;
+}
+.inc-violation-hdr {
+    display: flex; align-items: center; gap: .38rem;
+    font-size: .68rem; font-weight: 800; color: #6d28d9;
+    text-transform: uppercase; letter-spacing: .07em;
+    margin-bottom: .65rem;
+}
+.inc-violation-badge {
+    display: none;
+    align-items: center; gap: .28rem;
+    background: #f3e8ff; color: #6d28d9;
+    border: 1px solid #e9d5ff;
+    border-radius: 20px;
+    font-size: .68rem; font-weight: 700;
+    padding: .18rem .6rem;
+    margin-top: .45rem;
+    width: fit-content;
+}
+.inc-violation-badge.active { display: inline-flex; }
 </style>
 @endpush
 
@@ -238,10 +269,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="incident-row-head">
                     <div style="display:flex;align-items:center;gap:.65rem;">
                         <span class="incident-row-badge">${rowNumber}</span>
-                        <div class="incident-row-title" style="font-size:.76rem;font-weight:800;color:#0f172a;text-transform:uppercase;letter-spacing:.06em;">Motorist #${rowNumber}</div>
+                        <div>
+                            <div class="incident-row-title">Motorist #${rowNumber}</div>
+                            <div style="font-size:.62rem;color:#92400e;font-weight:600;margin-top:.05rem;">Fill in motorist &amp; vehicle details below</div>
+                        </div>
                     </div>
                     <button type="button" class="remove-motorist" style="border:none;background:none;color:#dc2626;font-size:.76rem;font-weight:700;${rowNumber <= 1 ? 'display:none;' : ''}">
-                        <i class="ph ph-x-circle me-1"></i>Remove
+                        <i class="ph ph-trash me-1"></i>Remove
                     </button>
                 </div>
 
@@ -316,9 +350,22 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 </div>
 
-                <div class="row g-2">
-                    <div class="col-6"><label class="mob-label">Charge / Offense</label><select name="motorists[${index}][incident_charge_type_id]" class="form-select mob-select">${chargeOptions}</select></div>
-                    <div class="col-6"><label class="mob-label">Notes</label><input type="text" name="motorists[${index}][notes]" value="${escapeHtml(values.notes || '')}" class="form-control mob-input" placeholder="Optional remarks"></div>
+                <div class="inc-violation-wrap">
+                    <div class="inc-violation-hdr">
+                        <i class="ph-fill ph-shield-warning" style="font-size:.85rem;"></i> Violation / Charge
+                    </div>
+                    <div class="mb-2">
+                        <label class="mob-label">Charge / Offense</label>
+                        <select name="motorists[${index}][incident_charge_type_id]" class="form-select mob-select violation-charge-select">${chargeOptions}</select>
+                        <div class="inc-violation-badge${values.incident_charge_type_id ? ' active' : ''}" id="vbadge-${index}">
+                            <i class="ph-fill ph-shield-warning" style="font-size:.7rem;"></i>
+                            <span>${values.incident_charge_type_id ? escapeHtml(chargeTypes.find(c => String(c.id) === String(values.incident_charge_type_id))?.name || '') : ''}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="mob-label">Notes / Remarks</label>
+                        <textarea name="motorists[${index}][notes]" rows="2" class="form-control mob-input" style="min-height:auto;resize:none;" placeholder="e.g. Driver refused to stop, ran red light…">${escapeHtml(values.notes || '')}</textarea>
+                    </div>
                 </div>
             </div>`;
     }
@@ -370,6 +417,19 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function updateViolationBadge(select) {
+        const row = select.closest('.incident-row');
+        if (!row) return;
+        const badge = row.querySelector('.inc-violation-badge');
+        if (!badge) return;
+        if (select.value) {
+            badge.querySelector('span').textContent = select.options[select.selectedIndex].text;
+            badge.classList.add('active');
+        } else {
+            badge.classList.remove('active');
+        }
+    }
+
     function attachRow(row) {
         row.querySelector('.violator-select').addEventListener('change', function () {
             applyViolatorData(row, this.options[this.selectedIndex]);
@@ -377,6 +437,11 @@ document.addEventListener('DOMContentLoaded', function () {
         row.querySelector('.vehicle-select').addEventListener('change', function () {
             applyVehicleData(row, this.options[this.selectedIndex]);
         });
+        const chargeSelect = row.querySelector('.violation-charge-select');
+        if (chargeSelect) {
+            chargeSelect.addEventListener('change', function () { updateViolationBadge(this); });
+            if (chargeSelect.value) updateViolationBadge(chargeSelect);
+        }
         const selectedViolator = row.querySelector('.violator-select');
         if (selectedViolator.value) applyViolatorData(row, selectedViolator.options[selectedViolator.selectedIndex]);
         const selectedVehicle = row.querySelector('.vehicle-select');
