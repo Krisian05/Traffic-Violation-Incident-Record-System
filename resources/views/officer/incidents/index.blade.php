@@ -346,9 +346,7 @@
     @endforeach
 
     @if($incidents->hasPages())
-        <div class="d-flex justify-content-center mb-4">
-            {{ $incidents->links() }}
-        </div>
+        {{ $incidents->links('vendor.pagination.bootstrap-5') }}
     @endif
 @endif
 
