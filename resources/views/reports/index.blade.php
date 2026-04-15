@@ -2250,6 +2250,8 @@ function rptToggleShowMore(btn) {
         var url;
         if (weekVal) {
             url = '{{ route("reports.incidentStats") }}?period=week&date=' + encodeURIComponent(weekVal);
+        } else if (_pageMonth === 0) {
+            url = '{{ route("reports.incidentStats") }}?period=year&year=' + _pageYear;
         } else {
             url = '{{ route("reports.incidentStats") }}?period=month&year=' + _pageYear + '&month=' + _pageMonth;
         }

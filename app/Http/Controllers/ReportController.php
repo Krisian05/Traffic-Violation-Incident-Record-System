@@ -259,17 +259,20 @@ class ReportController extends Controller
 
         if ($period === 'week') {
             $parsed    = \Carbon\Carbon::parse($date);
-            $dow       = (int) $parsed->dayOfWeek; // 0=Sun
+            $dow       = (int) $parsed->dayOfWeek;
             $weekStart = $parsed->copy()->subDays($dow);
             $weekEnd   = $weekStart->copy()->addDays(6);
             $from  = $weekStart->toDateString();
             $to    = $weekEnd->toDateString();
             $label = $weekStart->format('M j') . '–' . $weekEnd->format('M j, Y');
+        } elseif ($period === 'year' || $month === 0) {
+            $from  = $year . '-01-01';
+            $to    = $year . '-12-31';
+            $label = 'Year ' . $year;
         } else {
             $from  = $year . '-' . str_pad($month, 2, '0', STR_PAD_LEFT) . '-01';
             $to    = date('Y-m-t', mktime(0, 0, 0, $month, 1, $year));
             $label = date('F Y', mktime(0, 0, 0, $month, 1, $year));
-            $from  = $from;
         }
 
         $incidents = Incident::with(['motorists.chargeType'])
