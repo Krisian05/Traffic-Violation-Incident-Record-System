@@ -149,6 +149,8 @@ span.flatpickr-weekday { color: #b91c1c !important; font-weight: 700; font-size:
     background: #fff7f7 !important;
     color: #b91c1c !important;
 }
+.incident-flatpickr-theme .flatpickr-day.nextMonthDay,
+.incident-flatpickr-theme .flatpickr-day.prevMonthDay { color: transparent !important; pointer-events: none !important; }
 
 /* ── Submit button ── */
 .inc-submit-btn {
