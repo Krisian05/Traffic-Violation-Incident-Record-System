@@ -100,13 +100,25 @@
                 </select>
             </div>
 
-            <div style="flex:.9;min-width:0;">
+            <div style="flex:1.2;min-width:70px;">
                 <label class="rpt-flabel">Year</label>
                 <select name="year" class="form-select form-select-sm rpt-finput">
                     @for($y = date('Y'); $y >= $minYear; $y--)
                         <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
                     @endfor
                 </select>
+            </div>
+
+            <div style="flex:1.5;min-width:0;">
+                <label class="rpt-flabel" title="Filters the Incident Analytics charts only">Week <span style="font-size:.68rem;color:#a8a29e;font-weight:400;">(Chart)</span></label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text rpt-ig"><i class="bi bi-calendar-week"></i></span>
+                    <input type="date" id="incWeekDateInput" class="form-control rpt-finput"
+                           title="Pick any day — chart will show that full week">
+                    <button type="button" class="btn btn-sm rpt-ig" id="incWeekClear" title="Clear week filter" style="display:none;border:1px solid #e2e8f0;border-left:0;">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
             </div>
 
             <div style="flex-shrink:0;" class="d-flex gap-2 align-items-end">
@@ -2231,14 +2243,38 @@ function rptToggleShowMore(btn) {
         else               { _statusChart  = makeBarChart(document.getElementById('incStatusChart'), statusLabels, statusData, CYAN); }
     }
 
-    // ── Fetch (month only, driven by page filter) ──────────────────────────────
+    // ── Fetch ─────────────────────────────────────────────────────────────────
     function fetchStats() {
-        var url = '{{ route("reports.incidentStats") }}?period=month&year=' + _pageYear + '&month=' + _pageMonth;
+        var weekInput = document.getElementById('incWeekDateInput');
+        var weekVal   = weekInput ? weekInput.value : '';
+        var url;
+        if (weekVal) {
+            url = '{{ route("reports.incidentStats") }}?period=week&date=' + encodeURIComponent(weekVal);
+        } else {
+            url = '{{ route("reports.incidentStats") }}?period=month&year=' + _pageYear + '&month=' + _pageMonth;
+        }
         document.getElementById('incAnalyticsPeriodLabel').textContent = 'Loading…';
         fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function (r) { return r.json(); })
             .then(function (data) { renderCharts(data); })
             .catch(function () { document.getElementById('incAnalyticsPeriodLabel').textContent = 'Error loading data.'; });
+    }
+
+    // ── Week input listener ────────────────────────────────────────────────────
+    var _weekInput = document.getElementById('incWeekDateInput');
+    var _weekClear = document.getElementById('incWeekClear');
+    if (_weekInput) {
+        _weekInput.addEventListener('change', function () {
+            if (_weekClear) _weekClear.style.display = this.value ? '' : 'none';
+            fetchStats();
+        });
+    }
+    if (_weekClear) {
+        _weekClear.addEventListener('click', function () {
+            if (_weekInput) _weekInput.value = '';
+            this.style.display = 'none';
+            fetchStats();
+        });
     }
 
     // ── Init ───────────────────────────────────────────────────────────────────
