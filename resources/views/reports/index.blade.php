@@ -109,17 +109,6 @@
                 </select>
             </div>
 
-            <div style="flex:1.5;min-width:0;">
-                <label class="rpt-flabel" title="Filters the Incident Analytics charts only">Week <span style="font-size:.68rem;color:#a8a29e;font-weight:400;">(Chart)</span></label>
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text rpt-ig"><i class="bi bi-calendar-week"></i></span>
-                    <input type="date" id="incWeekDateInput" class="form-control rpt-finput"
-                           title="Pick any day — chart will show that full week">
-                    <button type="button" class="btn btn-sm rpt-ig" id="incWeekClear" title="Clear week filter" style="display:none;border:1px solid #e2e8f0;border-left:0;">
-                        <i class="bi bi-x"></i>
-                    </button>
-                </div>
-            </div>
 
             <div style="flex-shrink:0;" class="d-flex gap-2 align-items-end">
                 <button type="submit" class="rpt-filter-btn">
@@ -366,6 +355,16 @@
                 </div>
             </div>
             <div class="d-flex align-items-center gap-2 ms-auto d-print-none">
+                <div class="input-group input-group-sm" style="width:auto;" title="Filter chart by week — pick any day">
+                    <span class="input-group-text" style="background:#f0fdfa;border-color:#99f6e4;color:#0d9488;font-size:.75rem;font-weight:600;">
+                        <i class="bi bi-calendar-week me-1"></i>Week
+                    </span>
+                    <input type="date" id="incWeekDateInput" class="form-control form-control-sm"
+                           style="max-width:145px;border-color:#99f6e4;">
+                    <button type="button" class="btn btn-sm" id="incWeekClear"
+                            style="display:none;background:#f0fdfa;border:1px solid #99f6e4;border-left:0;color:#0d9488;"
+                            title="Clear week filter"><i class="bi bi-x"></i></button>
+                </div>
                 <button type="button" class="inc-print-btn" onclick="rptPrintSection('incident-analytics')" title="Print Incident Analytics">
                     <i class="bi bi-printer-fill"></i> Print
                 </button>
