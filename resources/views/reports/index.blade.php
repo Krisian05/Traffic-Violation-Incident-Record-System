@@ -1224,7 +1224,7 @@
         width: 50% !important;
         flex: 0 0 50% !important;
         max-width: 50% !important;
-        height: 11cm !important;
+        height: 13cm !important;
         box-sizing: border-box;
         padding: .3rem !important;
     }
@@ -1232,8 +1232,8 @@
     body[data-print-section="incident-analytics"] .inc-charts-grid > div:nth-child(2) {
         break-after: page;
     }
-    body[data-print-section="incident-analytics"] .inc-chart-wrap { height: calc(11cm - 2rem) !important; }
     body[data-print-section="incident-analytics"] .inc-chart-panel { padding: .4rem !important; height: 100%; box-sizing: border-box; }
+    body[data-print-section="incident-analytics"] .inc-chart-wrap { height: calc(13cm - 2.2rem) !important; }
     body[data-print-section="incident-analytics"] .inc-chart-label { font-size: .68rem !important; margin-bottom: .2rem !important; }
     /* Print header block */
     body[data-print-section="incident-analytics"] .inc-print-header { display: flex !important; }
