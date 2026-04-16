@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/app-icon-32.png') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/app-icon-180.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/app-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/app-icon.png') }}">
     <title>Motorist Record — {{ $violator->full_name }}</title>
     <style>
         /* ─── RESET & BASE ─── */

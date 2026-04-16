@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Traffic Violation Incident Record System</title>
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/app-icon-32.png') }}">
-    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/app-icon-192.png') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/app-icon-180.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/app-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/app-icon.png') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />

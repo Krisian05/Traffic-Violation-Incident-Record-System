@@ -11,9 +11,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/app-icon-32.png') }}">
-    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/app-icon-192.png') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/app-icon-180.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/app-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/app-icon.png') }}">
     <title>@yield('title', 'TVIRS Officer') - TVIRS</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
