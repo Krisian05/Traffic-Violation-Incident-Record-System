@@ -34,8 +34,12 @@ class OfficerController extends Controller
         $incidentCount      = Incident::count();
         $openIncidentCount  = Incident::where('status', 'under_investigation')->count();
         $overdueCount       = Violation::overdue()->count();
+        $overdueViolations  = Violation::overdue()
+            ->with(['violator', 'violationType', 'vehicle'])
+            ->orderByDesc('date_of_violation')
+            ->get();
 
-        return view('officer.dashboard', compact('motoristCount', 'violationCount', 'incidentCount', 'openIncidentCount', 'overdueCount'));
+        return view('officer.dashboard', compact('motoristCount', 'violationCount', 'incidentCount', 'openIncidentCount', 'overdueCount', 'overdueViolations'));
     }
 
     // ─────────────────────────────────────────────

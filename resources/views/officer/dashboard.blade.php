@@ -173,6 +173,22 @@
 .db-action-btn:active { transform: scale(.97); color: #fff; }
 .db-action-btn:hover  { color: #fff; }
 
+/* ── Overdue modal bottom-sheet ── */
+#overdueModal .modal-dialog {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+    max-width: 100%;
+    transform: translateY(100%);
+    transition: transform .3s cubic-bezier(.32,.72,0,1);
+}
+#overdueModal.show .modal-dialog {
+    transform: translateY(0);
+}
+#overdueModal .modal-backdrop { backdrop-filter: blur(2px); }
+
 /* ── Overdue alert ── */
 .db-overdue {
     background: linear-gradient(135deg,#fff7ed,#fff);
@@ -248,7 +264,7 @@
      OVERDUE ALERT
 ══════════════════════════════ --}}
 @if($overdueCount > 0)
-<a href="{{ route('officer.violations.index', ['status' => 'overdue']) }}" class="db-overdue" aria-label="View overdue violations">
+<button type="button" class="db-overdue w-100 text-start border-0" data-bs-toggle="modal" data-bs-target="#overdueModal" aria-label="View overdue violations">
     <div class="db-overdue-icon">
         <i class="ph-fill ph-clock-countdown" style="font-size:1.15rem;color:#f97316;"></i>
     </div>
@@ -257,7 +273,75 @@
         <div style="font-size:.72rem;color:#c2410c;margin-top:.1rem;">Pending payment for more than 72 hours.</div>
     </div>
     <i class="ph ph-warning-circle" style="font-size:1.2rem;color:#f97316;flex-shrink:0;"></i>
-</a>
+</button>
+
+{{-- ── Overdue Modal ── --}}
+<div class="modal fade" id="overdueModal" tabindex="-1" aria-labelledby="overdueModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" style="margin:0 auto;max-width:100%;width:100%;align-items:flex-end;">
+        <div class="modal-content" style="border-radius:24px 24px 0 0;border:none;max-height:88vh;">
+
+            {{-- Header --}}
+            <div class="modal-header border-0 pb-0" style="padding:1.1rem 1.1rem .6rem;">
+                <div style="display:flex;align-items:center;gap:.7rem;flex:1;min-width:0;">
+                    <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#ea580c,#c2410c);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(234,88,12,.3);">
+                        <i class="ph-fill ph-clock-countdown" style="font-size:1.1rem;color:#fff;"></i>
+                    </div>
+                    <div>
+                        <div id="overdueModalLabel" style="font-size:.95rem;font-weight:800;color:#0f172a;line-height:1.2;">Overdue Violations</div>
+                        <div style="font-size:.68rem;color:#c2410c;font-weight:600;">{{ $overdueCount }} record{{ $overdueCount > 1 ? 's' : '' }} past the 72-hour window</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin:0;"></button>
+            </div>
+
+            {{-- Body --}}
+            <div class="modal-body" style="padding:.75rem 1rem 1.25rem;">
+                @foreach($overdueViolations as $ov)
+                    @php
+                        $ovName  = $ov->violator?->full_name ?? $ov->vehicle_owner_name ?? 'Unknown Motorist';
+                        $ovPlate = $ov->vehicle?->plate_number ?? $ov->vehicle_plate;
+                        $hoursAgo = (int) now()->diffInHours($ov->date_of_violation);
+                    @endphp
+                    <a href="{{ route('officer.violations.show', $ov) }}?from_status=overdue"
+                       style="display:flex;align-items:center;gap:.8rem;background:#fff;border-radius:16px;padding:.85rem .9rem;text-decoration:none;color:inherit;margin-bottom:.6rem;border:1px solid #fee2e2;box-shadow:0 2px 10px rgba(220,38,38,.07);position:relative;overflow:hidden;"
+                       data-bs-dismiss="modal">
+                        {{-- red left bar --}}
+                        <span style="position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,#dc2626,#b91c1c);border-radius:4px 0 0 4px;"></span>
+                        <div style="width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#dc2626,#b91c1c);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 10px rgba(220,38,38,.28);">
+                            <i class="ph-fill ph-warning-octagon" style="font-size:1.1rem;color:#fff;"></i>
+                        </div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:.86rem;font-weight:800;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                {{ $ov->violationType?->name ?? 'Violation Record' }}
+                            </div>
+                            <div style="font-size:.71rem;color:#64748b;margin-top:.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                <strong>{{ $ovName }}</strong>
+                                @if($ovPlate) · Plate {{ $ovPlate }} @endif
+                            </div>
+                            <div style="margin-top:.3rem;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
+                                <span style="display:inline-flex;align-items:center;gap:.22rem;background:#fef2f2;border:1px solid #fca5a5;border-radius:999px;padding:.12rem .48rem;font-size:.6rem;font-weight:800;color:#b91c1c;">
+                                    <i class="ph-fill ph-warning-octagon"></i> Overdue
+                                </span>
+                                <span style="font-size:.62rem;color:#94a3b8;font-weight:600;">{{ $hoursAgo }}h ago</span>
+                                @if($ov->ticket_number)
+                                    <span style="font-size:.62rem;color:#94a3b8;">· #{{ $ov->ticket_number }}</span>
+                                @endif
+                            </div>
+                        </div>
+                        <i class="ph ph-caret-right" style="color:#cbd5e1;font-size:.85rem;flex-shrink:0;"></i>
+                    </a>
+                @endforeach
+
+                <a href="{{ route('officer.violations.index', ['status' => 'overdue']) }}"
+                   style="display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.75rem;border-radius:14px;background:#fff7ed;border:1.5px solid #fed7aa;text-decoration:none;color:#c2410c;font-size:.82rem;font-weight:800;margin-top:.25rem;">
+                    <i class="ph ph-list" style="font-size:1rem;"></i>
+                    View Full Overdue List
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
 @endif
 
 {{-- ══════════════════════════════
