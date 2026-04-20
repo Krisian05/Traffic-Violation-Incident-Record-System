@@ -871,9 +871,9 @@
             white-space: nowrap;
         }
 
-        .mob-badge-open      { background:#f0fdf4;color:#15803d;border-color:#86efac; }
-        .mob-badge-review    { background:#eff6ff;color:#1d4ed8;border-color:#93c5fd; }
-        .mob-badge-closed    { background:#f5f3f0;color:#57534e;border-color:#d6d3d1; }
+        .mob-badge-open      { background:#fef2f2;color:#b91c1c;border-color:#fca5a5; } /* Under Investigation — red */
+        .mob-badge-review    { background:#fffbeb;color:#92400e;border-color:#fde68a; } /* Cleared — amber */
+        .mob-badge-closed    { background:#f0fdf4;color:#15803d;border-color:#86efac; } /* Solved — green */
         .mob-badge-pending   { background:#fffbeb;color:#92400e;border-color:#fde68a; }
         .mob-badge-settled   { background:#f0fdf4;color:#15803d;border-color:#86efac; }
         .mob-badge-overdue   { background:#fef2f2;color:#b91c1c;border-color:#fca5a5; }
