@@ -187,7 +187,7 @@
 
 @section('content')
 @php
-    $statusDisplay = ['pending' => 'Pending', 'settled' => 'Settled', 'contested' => 'Contested'][$status] ?? '';
+    $statusDisplay = ['pending' => 'Pending', 'settled' => 'Settled', 'contested' => 'Contested'][(string) $status] ?? '';
 @endphp
 
 <div class="motshow-section">
