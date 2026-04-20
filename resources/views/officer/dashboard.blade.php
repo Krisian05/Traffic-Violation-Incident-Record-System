@@ -294,8 +294,23 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin:0;"></button>
             </div>
 
+            {{-- Search --}}
+            <div style="padding:.25rem 1rem .5rem;">
+                <div style="display:flex;align-items:center;gap:.55rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:.3rem .3rem .3rem .8rem;">
+                    <i class="ph ph-magnifying-glass" style="color:#94a3b8;font-size:.95rem;flex-shrink:0;"></i>
+                    <input id="overdueSearch" type="text" placeholder="Name, plate, ticket, violation…"
+                           style="border:none;background:transparent;outline:none;font-size:.84rem;color:#0f172a;flex:1;min-width:0;min-height:36px;"
+                           oninput="filterOverdue(this.value)">
+                    <button type="button" onclick="document.getElementById('overdueSearch').value='';filterOverdue('');"
+                            style="border:none;background:transparent;padding:.2rem .5rem;color:#94a3b8;font-size:.85rem;flex-shrink:0;display:none;" id="overdueSearchClear">
+                        <i class="ph ph-x-circle"></i>
+                    </button>
+                </div>
+                <div id="overdueNoResults" style="display:none;text-align:center;padding:.75rem 0;font-size:.78rem;color:#94a3b8;font-weight:600;">No results found</div>
+            </div>
+
             {{-- Body --}}
-            <div class="modal-body" style="padding:.75rem 1rem 1.25rem;">
+            <div class="modal-body" style="padding:.25rem 1rem 1.25rem;">
                 @foreach($overdueViolations as $ov)
                     @php
                         $ovName  = $ov->violator?->full_name ?? $ov->vehicle_owner_name ?? 'Unknown Motorist';
@@ -303,6 +318,8 @@
                         $hoursAgo = (int) now()->diffInHours($ov->date_of_violation);
                     @endphp
                     <a href="{{ route('officer.violations.show', $ov) }}?from_status=overdue"
+                       class="overdue-row"
+                       data-search="{{ strtolower($ovName . ' ' . ($ovPlate ?? '') . ' ' . ($ov->ticket_number ?? '') . ' ' . ($ov->violationType?->name ?? '')) }}"
                        style="display:flex;align-items:center;gap:.8rem;background:#fff;border-radius:16px;padding:.85rem .9rem;text-decoration:none;color:inherit;margin-bottom:.6rem;border:1px solid #fee2e2;box-shadow:0 2px 10px rgba(220,38,38,.07);position:relative;overflow:hidden;"
                        data-bs-dismiss="modal">
                         {{-- red left bar --}}
@@ -381,5 +398,28 @@
         <span>Record Incident</span>
     </a>
 </div>
+
+@push('scripts')
+<script>
+function filterOverdue(q) {
+    const term = q.trim().toLowerCase();
+    const rows = document.querySelectorAll('.overdue-row');
+    let visible = 0;
+    rows.forEach(row => {
+        const match = !term || row.dataset.search.includes(term);
+        row.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+    document.getElementById('overdueNoResults').style.display = visible === 0 ? '' : 'none';
+    document.getElementById('overdueSearchClear').style.display = term ? '' : 'none';
+}
+
+document.getElementById('overdueModal').addEventListener('hidden.bs.modal', function () {
+    const input = document.getElementById('overdueSearch');
+    input.value = '';
+    filterOverdue('');
+});
+</script>
+@endpush
 
 @endsection
