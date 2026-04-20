@@ -808,7 +808,7 @@ class OfficerController extends Controller
                 $m = $this->normalizeOfficerIncidentMotorist($m);
 
                 $vehiclePathArr = [];
-                $motoristPhotoGroup = is_array($vehiclePhotos[$i] ?? null) ? $vehiclePhotos[$i] : [];
+                $motoristPhotoGroup = is_array($vehiclePhotos[$i] ?? null) ? (array) $vehiclePhotos[$i] : [];
                 if (!empty($motoristPhotoGroup)) {
                     foreach (array_slice($motoristPhotoGroup, 0, 4) as $photo) {
                         if ($photo && $photo->isValid()) {
