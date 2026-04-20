@@ -253,7 +253,7 @@ span.flatpickr-weekday { color: #b91c1c !important; font-weight: 700; font-size:
                             'label'     => 'Location',
                         ])
                     </div>
-                    <div class="col-12">
+                    <div class="col-md-8">
                         <label class="form-label fw-500" style="font-size:.84rem;">Description / Narrative</label>
                         <div class="input-group input-group-sm align-items-start">
                             <span class="input-group-text"><i class="bi bi-chat-text-fill" style="color:#78716c;font-size:.8rem;"></i></span>
@@ -262,6 +262,15 @@ span.flatpickr-weekday { color: #b91c1c !important; font-weight: 700; font-size:
                                 placeholder="Brief narrative of what happened...">{{ old('description') }}</textarea>
                             @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-500" style="font-size:.84rem;"><i class="bi bi-circle-fill me-1" style="font-size:.65rem;color:#6b7280;"></i>Status <span class="text-danger">*</span></label>
+                        <select name="status" class="form-select form-select-sm @error('status') is-invalid @enderror">
+                            <option value="under_investigation" {{ old('status', 'under_investigation') === 'under_investigation' ? 'selected' : '' }}>Under Investigation</option>
+                            <option value="cleared"            {{ old('status') === 'cleared'            ? 'selected' : '' }}>Cleared</option>
+                            <option value="solved"             {{ old('status') === 'solved'             ? 'selected' : '' }}>Solved</option>
+                        </select>
+                        @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                 </div>
             </div>

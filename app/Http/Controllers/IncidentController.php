@@ -79,6 +79,7 @@ class IncidentController extends Controller
             'time_of_incident'                  => 'nullable|date_format:H:i',
             'location'                          => 'required|string|max:255',
             'description'                       => 'nullable|string|max:2000',
+            'status'                            => 'required|in:cleared,under_investigation,solved',
             'motorists'                         => 'required|array|min:1|max:10',
             'motorists.*.violator_id'           => 'nullable|exists:violators,id',
             'motorists.*.motorist_name'         => 'nullable|string|max:200',
@@ -118,7 +119,7 @@ class IncidentController extends Controller
                 'time_of_incident' => $validated['time_of_incident'] ?? null,
                 'location'         => $validated['location'],
                 'description'      => $validated['description'] ?? null,
-                'status'           => 'under_investigation',
+                'status'           => $validated['status'],
                 'recorded_by'      => Auth::id(),
             ]);
 
