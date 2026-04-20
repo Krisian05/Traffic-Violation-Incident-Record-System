@@ -374,6 +374,74 @@ class OfficerController extends Controller
     //  VIOLATIONS
     // ─────────────────────────────────────────────
 
+    public function violations(Request $request): View
+    {
+        $search = trim((string) $request->input('search', ''));
+        $status = $request->filled('status') ? (string) $request->input('status') : '';
+
+        if (! in_array($status, ['pending', 'overdue', 'settled', 'contested'], true)) {
+            $status = '';
+        }
+
+        $query = Violation::with(['violator', 'violationType', 'vehicle']);
+
+        if ($search !== '') {
+            $lk = '%' . $search . '%';
+            $searchTerms = array_values(array_filter(
+                preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY) ?: []
+            ));
+
+            $query->where(function ($q) use ($lk, $searchTerms) {
+                $q->whereLike('ticket_number', $lk)
+                    ->orWhereLike('location', $lk)
+                    ->orWhereLike('vehicle_plate', $lk)
+                    ->orWhereLike('vehicle_owner_name', $lk)
+                    ->orWhereHas('vehicle', function ($vq) use ($lk) {
+                        $vq->whereLike('plate_number', $lk)
+                            ->orWhereLike('make', $lk)
+                            ->orWhereLike('model', $lk);
+                    })
+                    ->orWhereHas('violationType', fn($tq) => $tq->whereLike('name', $lk))
+                    ->orWhereHas('violator', function ($vq) use ($searchTerms, $lk) {
+                        if ($searchTerms === []) {
+                            $vq->whereLike('first_name', $lk)
+                                ->orWhereLike('middle_name', $lk)
+                                ->orWhereLike('last_name', $lk)
+                                ->orWhereLike('license_number', $lk);
+
+                            return;
+                        }
+
+                        foreach ($searchTerms as $term) {
+                            $termLike = '%' . $term . '%';
+
+                            $vq->where(function ($nameQ) use ($termLike) {
+                                $nameQ->whereLike('first_name', $termLike)
+                                    ->orWhereLike('middle_name', $termLike)
+                                    ->orWhereLike('last_name', $termLike)
+                                    ->orWhereLike('license_number', $termLike);
+                            });
+                        }
+                    });
+            });
+        }
+
+        if ($status === 'overdue') {
+            $query->overdue();
+        } elseif ($status === 'pending') {
+            $query->pendingActive();
+        } elseif ($status !== '') {
+            $query->where('status', $status);
+        }
+
+        $violations = $query->orderByDesc('date_of_violation')
+            ->orderByDesc('created_at')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('officer.violations.index', compact('violations', 'search', 'status'));
+    }
+
     public function createViolation(Violator $violator): View
     {
         $violationTypes = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());

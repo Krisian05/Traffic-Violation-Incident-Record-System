@@ -156,6 +156,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/vehicles/{vehicle}', [OfficerController::class, 'showVehicle'])->name('vehicles.show');
 
         // Violations (from motorist context)
+        Route::get('/violations', [OfficerController::class, 'violations'])->name('violations.index');
         Route::get('/motorists/{violator}/violations/create', [OfficerController::class, 'createViolation'])->name('violations.create');
         Route::post('/motorists/{violator}/violations', [OfficerController::class, 'storeViolation'])->name('violations.store');
         Route::get('/violations/{violation}', [OfficerController::class, 'showViolation'])->name('violations.show');

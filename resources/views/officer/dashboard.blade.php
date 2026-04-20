@@ -182,7 +182,13 @@
     padding: .85rem 1rem;
     margin-bottom: 1rem;
     display: flex; align-items: center; gap: .75rem;
+    text-decoration: none;
+    color: inherit;
+    transition: transform .12s, box-shadow .12s;
+    -webkit-tap-highlight-color: transparent;
 }
+.db-overdue:hover { color: inherit; box-shadow: 0 6px 18px rgba(249,115,22,.12); }
+.db-overdue:active { transform: scale(.985); color: inherit; }
 .db-overdue-icon {
     width: 40px; height: 40px;
     background: #fff7ed;
@@ -242,7 +248,7 @@
      OVERDUE ALERT
 ══════════════════════════════ --}}
 @if($overdueCount > 0)
-<div class="db-overdue">
+<a href="{{ route('officer.violations.index', ['status' => 'overdue']) }}" class="db-overdue" aria-label="View overdue violations">
     <div class="db-overdue-icon">
         <i class="ph-fill ph-clock-countdown" style="font-size:1.15rem;color:#f97316;"></i>
     </div>
@@ -251,7 +257,7 @@
         <div style="font-size:.72rem;color:#c2410c;margin-top:.1rem;">Pending payment for more than 72 hours.</div>
     </div>
     <i class="ph ph-warning-circle" style="font-size:1.2rem;color:#f97316;flex-shrink:0;"></i>
-</div>
+</a>
 @endif
 
 {{-- ══════════════════════════════
