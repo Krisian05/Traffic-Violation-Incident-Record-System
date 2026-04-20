@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Incident;
 use App\Models\IncidentMedia;
 use App\Models\IncidentMotorist;
@@ -21,33 +22,49 @@ class IncidentController extends Controller
 {
     public function index(Request $request): View
     {
-        $search    = trim($request->input('search', ''));
-        $dateFrom  = $request->input('date_from', '');
-        $dateTo    = $request->input('date_to', '');
-        $status    = $request->input('status', '');
+        $search    = trim((string) $request->input('search', ''));
+        $dateFrom  = $this->normalizeDateFilter($request->input('date_from'));
+        $dateTo    = $this->normalizeDateFilter($request->input('date_to'));
+        $status    = $this->normalizeStatusFilter($request->input('status'));
+
+        if ($dateFrom !== '' && $dateTo !== '' && $dateFrom > $dateTo) {
+            [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
+        }
 
         $query = Incident::with(['motorists.violator', 'media', 'recorder'])
             ->withCount(['motorists', 'media']);
 
         if ($search !== '') {
-            $lk = '%' . mb_strtolower($search) . '%';
-            $query->where(function ($q) use ($lk) {
-                $q->whereRaw('LOWER(location) LIKE ?', [$lk])
-                  ->orWhereRaw('LOWER(incident_number) LIKE ?', [$lk])
-                  ->orWhereHas('motorists', function ($mq) use ($lk) {
-                      $mq->whereRaw('LOWER(motorist_name) LIKE ?', [$lk])
-                         ->orWhereHas('violator', function ($vq) use ($lk) {
-                             $vq->whereRaw("LOWER(CONCAT(first_name,' ',last_name)) LIKE ?", [$lk]);
+            $lk = '%' . $search . '%';
+            $searchTerms = array_values(array_filter(
+                preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY) ?: []
+            ));
+
+            $query->where(function ($q) use ($lk, $searchTerms) {
+                $q->whereLike('location', $lk)
+                  ->orWhereLike('incident_number', $lk)
+                  ->orWhereHas('motorists', function ($mq) use ($lk, $searchTerms) {
+                      $mq->whereLike('motorist_name', $lk)
+                         ->orWhereHas('violator', function ($vq) use ($searchTerms) {
+                             foreach ($searchTerms as $term) {
+                                 $termLike = '%' . $term . '%';
+
+                                 $vq->where(function ($nameQ) use ($termLike) {
+                                     $nameQ->whereLike('first_name', $termLike)
+                                         ->orWhereLike('middle_name', $termLike)
+                                         ->orWhereLike('last_name', $termLike);
+                                 });
+                             }
                          });
                   });
             });
         }
 
         if ($dateFrom !== '') {
-            $query->where('date_of_incident', '>=', $dateFrom);
+            $query->whereDate('date_of_incident', '>=', $dateFrom);
         }
         if ($dateTo !== '') {
-            $query->where('date_of_incident', '<=', $dateTo);
+            $query->whereDate('date_of_incident', '<=', $dateTo);
         }
         if ($status !== '') {
             $query->where('status', $status);
@@ -604,5 +621,35 @@ class IncidentController extends Controller
             'cr_number'      => $m['vehicle_cr_number'] ?? null,
             'chassis_number' => $m['vehicle_chassis'] ?? null,
         ])->id;
+    }
+
+    private function normalizeDateFilter(mixed $value): string
+    {
+        if (! is_string($value)) {
+            return '';
+        }
+
+        $value = trim($value);
+
+        if ($value === '') {
+            return '';
+        }
+
+        try {
+            return Carbon::createFromFormat('Y-m-d', $value)->toDateString();
+        } catch (\Throwable) {
+            return '';
+        }
+    }
+
+    private function normalizeStatusFilter(mixed $value): string
+    {
+        if (! is_string($value)) {
+            return '';
+        }
+
+        return in_array($value, ['under_investigation', 'cleared', 'solved'], true)
+            ? $value
+            : '';
     }
 }

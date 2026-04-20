@@ -675,8 +675,8 @@ class OfficerController extends Controller
 
     public function incidents(Request $request): View
     {
-        $search = trim($request->input('search', ''));
-        $status = $request->input('status', '');
+        $search = trim((string) $request->input('search', ''));
+        $status = $request->filled('status') ? (string) $request->input('status') : '';
 
         $query = Incident::with('motorists')->withCount('motorists');
 
