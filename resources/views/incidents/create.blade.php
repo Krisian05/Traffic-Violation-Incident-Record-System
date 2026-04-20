@@ -71,37 +71,7 @@
 .inc-section-sub   { font-size: .72rem; color: #a8a29e; margin-top: .05rem; }
 .inc-section-card .card-body { padding: 1.25rem; }
 
-/* ── Flatpickr custom theme ── */
-.flatpickr-calendar {
-    border-radius: 14px !important;
-    box-shadow: 0 8px 32px rgba(0,0,0,.14), 0 2px 8px rgba(0,0,0,.08) !important;
-    border: 1px solid #f0ebe3 !important;
-    font-family: inherit !important;
-    overflow: hidden;
-}
-.flatpickr-months { background: linear-gradient(135deg,#dc2626,#b91c1c); border-radius: 14px 14px 0 0; padding: .3rem 0; }
-.flatpickr-month, .flatpickr-prev-month, .flatpickr-next-month { color: #fff !important; fill: #fff !important; }
-.flatpickr-prev-month:hover svg, .flatpickr-next-month:hover svg { fill: #fde68a !important; }
-.flatpickr-current-month { color: #fff !important; font-size: 1rem !important; font-weight: 700; }
-.flatpickr-current-month .flatpickr-monthDropdown-months { color: #fff; background: transparent; font-weight: 700; }
-.flatpickr-current-month input.cur-year { color: #fff !important; font-weight: 700; }
-.flatpickr-weekdays { background: #fff7f7; border-bottom: 1px solid #fecaca; }
-span.flatpickr-weekday { color: #b91c1c !important; font-weight: 700; font-size: .72rem; }
-.flatpickr-day { border-radius: 8px !important; font-size: .82rem; font-weight: 500; color: #1c1917; transition: all .12s; }
-.flatpickr-day:hover { background: #fff1f2 !important; border-color: #fecaca !important; color: #dc2626 !important; }
-.flatpickr-day.selected, .flatpickr-day.selected:hover {
-    background: linear-gradient(135deg,#dc2626,#b91c1c) !important;
-    border-color: #b91c1c !important; color: #fff !important;
-    box-shadow: 0 2px 8px rgba(185,28,28,.35) !important;
-    font-weight: 700;
-}
-.flatpickr-day.today { border-color: #fca5a5 !important; color: #dc2626 !important; font-weight: 700; }
-.flatpickr-day.today:hover { background: #fff1f2 !important; }
-.flatpickr-day.flatpickr-disabled, .flatpickr-day.flatpickr-disabled:hover { color: #d1d5db !important; background: transparent !important; }
-.flatpickr-time input, .flatpickr-time .flatpickr-am-pm { color: #1c1917 !important; font-weight: 600; }
-.flatpickr-time input:focus { background: #fff1f2 !important; }
-
-/* Scoped overrides for incident date pickers to avoid theme collisions */
+/* Scoped layout overrides for incident date pickers */
 .incident-flatpickr-theme.flatpickr-calendar {
     width: 284px !important;
     overflow: hidden;

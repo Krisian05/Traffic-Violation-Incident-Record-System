@@ -21,97 +21,93 @@
 
         /* ── FLATPICKR CUSTOM THEME ── */
         .flatpickr-calendar {
-            background: #fffdf9;
-            border: 1px solid #ddd0be;
-            border-radius: .5rem;
-            box-shadow: 0 6px 20px rgba(120,80,20,0.13);
+            border-radius: 14px !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,.14), 0 2px 8px rgba(0,0,0,.08) !important;
+            border: 1px solid #f0ebe3 !important;
             font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
             font-size: .8rem;
-            width: 252px !important;
-            padding: 0;
+            width: 284px !important;
+            overflow: hidden;
         }
-        .flatpickr-calendar.arrowTop:before { border-bottom-color: #ddd0be; }
-        .flatpickr-calendar.arrowTop:after  { border-bottom-color: #1d4ed8; }
+        .flatpickr-calendar.arrowTop:before { border-bottom-color: #f0ebe3; }
+        .flatpickr-calendar.arrowTop:after  { border-bottom-color: #dc2626; }
 
         /* Header */
         .flatpickr-months {
-            border-radius: .5rem .5rem 0 0;
+            border-radius: 14px 14px 0 0;
             overflow: hidden;
-            padding: 4px 2px;
-            background: #1d4ed8;
+            padding: .3rem 0;
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
             align-items: center;
         }
-        .flatpickr-months .flatpickr-month { background: #1d4ed8; color: #fff; height: 30px; }
+        .flatpickr-months .flatpickr-month { background: transparent; color: #fff !important; min-height: 38px; }
         .flatpickr-current-month {
-            font-size: .82rem;
-            font-weight: 600;
-            color: #fff;
-            padding-top: 4px;
+            font-size: .92rem;
+            font-weight: 700;
+            color: #fff !important;
         }
         .flatpickr-current-month .flatpickr-monthDropdown-months {
             background: transparent;
-            color: #fff;
-            font-weight: 600;
-            font-size: .82rem;
+            color: #fff !important;
+            font-weight: 700;
             border: none;
         }
         .flatpickr-current-month input.cur-year {
-            color: #fff;
+            color: #fff !important;
             font-weight: 700;
-            font-size: .82rem;
         }
         .flatpickr-months .flatpickr-prev-month,
         .flatpickr-months .flatpickr-next-month {
-            fill: #fff;
-            color: #fff;
-            padding: 4px 8px;
-            height: 30px;
-            line-height: 22px;
+            fill: #fff !important;
+            color: #fff !important;
+            min-height: 38px;
         }
         .flatpickr-prev-month svg, .flatpickr-next-month svg { fill: #fff !important; width: 11px; height: 11px; }
-        .flatpickr-prev-month:hover svg, .flatpickr-next-month:hover svg { fill: #bfdbfe !important; }
+        .flatpickr-prev-month:hover svg, .flatpickr-next-month:hover svg { fill: #fde68a !important; }
 
         /* Weekdays row */
-        .flatpickr-weekdays { background: #2563eb; padding: 2px 0; }
+        .flatpickr-weekdays { background: #fff7f7; padding: 2px 0; border-bottom: 1px solid #fecaca; }
         span.flatpickr-weekday {
-            background: #2563eb;
-            color: #bfdbfe;
-            font-size: .7rem;
+            background: #fff7f7;
+            color: #b91c1c !important;
+            font-size: .72rem;
             font-weight: 700;
         }
 
         /* Days grid */
-        .flatpickr-days { border-color: #ede8df; }
-        .dayContainer { padding: 4px; min-width: unset; max-width: unset; width: 100%; }
+        .flatpickr-days { border-color: #f0ebe3; }
+        .flatpickr-rContainer, .flatpickr-days { width: 100% !important; }
+        .dayContainer { padding: .35rem; min-width: 100% !important; max-width: 100% !important; width: 100% !important; }
         .flatpickr-day {
-            color: #44403c;
-            border-radius: .3rem;
-            height: 30px;
-            line-height: 30px;
-            max-width: 30px;
-            font-size: .78rem;
-            margin: 1px;
+            color: #1c1917;
+            border-radius: 8px !important;
+            font-size: .82rem;
+            font-weight: 500;
+            transition: all .12s;
         }
-        .flatpickr-day:hover { background: #fdf8f0; border-color: #ddd0be; }
+        .flatpickr-day:hover { background: #fff1f2 !important; border-color: #fecaca !important; color: #dc2626 !important; }
         .flatpickr-day.today {
-            border-color: #d97706;
+            border-color: #fca5a5 !important;
             font-weight: 700;
-            color: #92400e;
+            color: #dc2626 !important;
         }
-        .flatpickr-day.today:hover { background: #fef3c7; border-color: #d97706; color: #92400e; }
+        .flatpickr-day.today:hover { background: #fff1f2 !important; }
         .flatpickr-day.selected,
         .flatpickr-day.selected:hover {
-            background: #d97706;
-            border-color: #d97706;
-            color: #fff;
+            background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+            border-color: #b91c1c !important;
+            color: #fff !important;
             font-weight: 700;
+            box-shadow: 0 2px 8px rgba(185,28,28,.35) !important;
         }
         .flatpickr-day.flatpickr-disabled,
-        .flatpickr-day.flatpickr-disabled:hover { color: #d4c9b8; }
-        .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay { color: #c8b99a; }
+        .flatpickr-day.flatpickr-disabled:hover { color: #d1d5db !important; background: transparent !important; }
+        .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay { color: transparent !important; pointer-events: none !important; }
 
         /* Input styling */
         .flatpickr-input { cursor: text; }
+        .flatpickr-time input, .flatpickr-time .flatpickr-am-pm { color: #1c1917 !important; font-weight: 600; }
+        .flatpickr-time input:focus { background: #fff1f2 !important; }
         .numInputWrapper span { border-color: rgba(255,255,255,0.25); }
         .numInputWrapper span:after { border-top-color: #fff; border-bottom-color: #fff; }
 

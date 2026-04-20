@@ -6,31 +6,6 @@
     <li class="breadcrumb-item active" aria-current="page">Add Motorist</li>
 @endsection
 
-@push('styles')
-<style>
-/* ── Flatpickr red calendar theme (incidents/create style) ── */
-.incident-flatpickr-theme.flatpickr-calendar { width:284px !important; border-radius:14px !important; box-shadow:0 8px 32px rgba(0,0,0,.14),0 2px 8px rgba(0,0,0,.08) !important; border:1px solid #f0ebe3 !important; font-family:inherit !important; overflow:hidden; }
-.incident-flatpickr-theme .flatpickr-rContainer,.incident-flatpickr-theme .flatpickr-days { width:100% !important; }
-.incident-flatpickr-theme .dayContainer { width:100% !important; min-width:100% !important; max-width:100% !important; padding:.35rem; }
-.incident-flatpickr-theme .flatpickr-months { background:linear-gradient(135deg,#dc2626,#b91c1c) !important; border-radius:14px 14px 0 0; align-items:center; }
-.incident-flatpickr-theme .flatpickr-months .flatpickr-month { background:transparent !important; color:#fff !important; min-height:38px; }
-.incident-flatpickr-theme .flatpickr-months .flatpickr-prev-month,.incident-flatpickr-theme .flatpickr-months .flatpickr-next-month { color:#fff !important; fill:#fff !important; min-height:38px; }
-.incident-flatpickr-theme .flatpickr-prev-month:hover svg,.incident-flatpickr-theme .flatpickr-next-month:hover svg { fill:#fde68a !important; }
-.incident-flatpickr-theme .flatpickr-current-month { color:#fff !important; font-size:.92rem !important; font-weight:700; }
-.incident-flatpickr-theme .flatpickr-current-month .cur-month,.incident-flatpickr-theme .flatpickr-current-month .flatpickr-monthDropdown-months { color:#fff !important; background:transparent !important; font-weight:700; }
-.incident-flatpickr-theme .flatpickr-current-month .numInputWrapper { width:4.2ch; }
-.incident-flatpickr-theme .flatpickr-current-month input.cur-year { color:#fff !important; font-weight:700; }
-.incident-flatpickr-theme .flatpickr-weekdays { background:#fff7f7 !important; border-bottom:1px solid #fecaca; }
-.incident-flatpickr-theme span.flatpickr-weekday { background:#fff7f7 !important; color:#b91c1c !important; font-weight:700; font-size:.72rem; }
-.incident-flatpickr-theme .flatpickr-day { border-radius:8px !important; font-size:.82rem; font-weight:500; color:#1c1917; transition:all .12s; }
-.incident-flatpickr-theme .flatpickr-day:hover { background:#fff1f2 !important; border-color:#fecaca !important; color:#dc2626 !important; }
-.incident-flatpickr-theme .flatpickr-day.selected,.incident-flatpickr-theme .flatpickr-day.selected:hover { background:linear-gradient(135deg,#dc2626,#b91c1c) !important; border-color:#b91c1c !important; color:#fff !important; box-shadow:0 2px 8px rgba(185,28,28,.35) !important; font-weight:700; }
-.incident-flatpickr-theme .flatpickr-day.today { border-color:#fca5a5 !important; color:#dc2626 !important; font-weight:700; }
-.incident-flatpickr-theme .flatpickr-day.today:hover { background:#fff1f2 !important; }
-.incident-flatpickr-theme .flatpickr-day.flatpickr-disabled,.incident-flatpickr-theme .flatpickr-day.flatpickr-disabled:hover { color:#d1d5db !important; background:transparent !important; }
-.incident-flatpickr-theme .flatpickr-day.nextMonthDay,.incident-flatpickr-theme .flatpickr-day.prevMonthDay { color:transparent !important; pointer-events:none !important; }
-</style>
-@endpush
 
 @section('content')
 
