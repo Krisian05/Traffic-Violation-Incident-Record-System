@@ -383,7 +383,7 @@ class OfficerController extends Controller
         $search = trim((string) $request->input('search', ''));
         $status = $request->filled('status') ? (string) $request->input('status') : '';
 
-        if (! in_array($status, ['pending', 'overdue', 'settled', 'contested'], true)) {
+        if (! in_array($status, ['pending', 'settled', 'contested'], true)) {
             $status = '';
         }
 

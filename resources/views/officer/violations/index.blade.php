@@ -188,7 +188,6 @@
 @section('content')
 @php
     $statusDisplay = match($status) {
-        'overdue' => 'Overdue',
         'pending' => 'Pending',
         'settled' => 'Settled',
         'contested' => 'Contested',
@@ -197,8 +196,7 @@
 @endphp
 
 <div class="motshow-section">
-    @if($status === 'overdue') Overdue Violations
-    @elseif($status === 'pending') Pending Violations
+    @if($status === 'pending') Pending Violations
     @elseif($status === 'settled') Settled Violations
     @elseif($status === 'contested') Contested Violations
     @else Violation Search
@@ -221,7 +219,6 @@
     <div class="vio-filter-row">
         <select name="status" class="vio-filter-select" onchange="this.form.submit()">
             <option value="">All statuses</option>
-            <option value="overdue" {{ $status === 'overdue' ? 'selected' : '' }}>Overdue</option>
             <option value="pending" {{ $status === 'pending' ? 'selected' : '' }}>Pending</option>
             <option value="settled" {{ $status === 'settled' ? 'selected' : '' }}>Settled</option>
             <option value="contested" {{ $status === 'contested' ? 'selected' : '' }}>Contested</option>
