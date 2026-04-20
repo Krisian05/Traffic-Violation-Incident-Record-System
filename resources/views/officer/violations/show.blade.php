@@ -2,9 +2,11 @@
 @section('title', $violation->ticket_number ?? 'Violation Detail')
 @php
     $fromStatus = request('from_status');
-    $backUrl = $fromStatus
-        ? route('officer.violations.index', ['status' => $fromStatus])
-        : ($violation->violator ? route('officer.motorists.show', $violation->violator) : route('officer.motorists.index'));
+    $backUrl = $fromStatus === 'overdue'
+        ? route('officer.dashboard')
+        : ($fromStatus
+            ? route('officer.violations.index', ['status' => $fromStatus])
+            : ($violation->violator ? route('officer.motorists.show', $violation->violator) : route('officer.motorists.index')));
 @endphp
 @section('back_url', $backUrl)
 

@@ -332,11 +332,6 @@
                     </a>
                 @endforeach
 
-                <a href="{{ route('officer.violations.index', ['status' => 'overdue']) }}"
-                   style="display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.75rem;border-radius:14px;background:#fff7ed;border:1.5px solid #fed7aa;text-decoration:none;color:#c2410c;font-size:.82rem;font-weight:800;margin-top:.25rem;">
-                    <i class="ph ph-list" style="font-size:1rem;"></i>
-                    View Full Overdue List
-                </a>
             </div>
 
         </div>
