@@ -17,7 +17,7 @@ class IncidentPolicyTest extends TestCase
             'recorded_by'      => $recorder->id,
             'date_of_incident' => now()->toDateString(),
             'location'         => 'Test Location',
-            'status'           => 'open',
+            'status'           => 'under_investigation',
         ]);
     }
 

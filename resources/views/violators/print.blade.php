@@ -576,14 +576,14 @@
                         <td class="center">
                             @php
                                 $label = match($im->incident->status) {
-                                    'open'         => 'Open',
-                                    'under_review' => 'Under Review',
-                                    'closed'       => 'Closed',
-                                    default        => ucfirst($im->incident->status),
+                                    'under_investigation' => 'Under Investigation',
+                                    'cleared'             => 'Cleared',
+                                    'solved'              => 'Solved',
+                                    default               => ucfirst($im->incident->status),
                                 };
                             @endphp
                             <span class="status-dot">
-                                <span class="dot {{ $im->incident->status === 'closed' ? 'dot-settled' : ($im->incident->status === 'open' ? 'dot-pending' : 'dot-contested') }}"></span>
+                                <span class="dot {{ $im->incident->status === 'solved' ? 'dot-settled' : ($im->incident->status === 'under_investigation' ? 'dot-pending' : 'dot-contested') }}"></span>
                                 {{ $label }}
                             </span>
                         </td>

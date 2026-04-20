@@ -291,7 +291,7 @@ class DemoDataSeeder extends Seeder
                 'time'        => '14:30:00',
                 'location'    => 'EDSA cor. Ortigas Ave., Mandaluyong City',
                 'description' => 'Two-vehicle collision involving a sedan and a motorcycle. Sedan ran a red light causing the motorcycle rider to swerve and fall. Rider sustained minor injuries. Both vehicles have moderate damage.',
-                'status'      => 'closed',
+                'status'      => 'solved',
                 'motorists'   => [
                     [
                         'violator'   => 0,
@@ -312,7 +312,7 @@ class DemoDataSeeder extends Seeder
                 'time'        => '08:15:00',
                 'location'    => 'C5 Road cor. Kalayaan Ave., Makati City',
                 'description' => 'Hit-and-run incident. A pickup truck sideswiped a parked vehicle and fled the scene. Witness provided partial plate number. Suspect vehicle later identified and apprehended.',
-                'status'      => 'under_review',
+                'status'      => 'cleared',
                 'motorists'   => [
                     [
                         'violator'   => 2,
@@ -327,7 +327,7 @@ class DemoDataSeeder extends Seeder
                 'time'        => '22:45:00',
                 'location'    => 'Roxas Blvd., Pasay City',
                 'description' => 'Multi-vehicle collision involving three vehicles. Drunk driver rear-ended the first vehicle causing a chain reaction. Two persons injured, one seriously. Road was temporarily closed for 2 hours.',
-                'status'      => 'open',
+                'status'      => 'under_investigation',
                 'motorists'   => [
                     [
                         'violator'   => 6,
@@ -348,7 +348,7 @@ class DemoDataSeeder extends Seeder
                 'time'        => '07:30:00',
                 'location'    => 'Commonwealth Ave., Quezon City',
                 'description' => 'Motorcycle vs. jeepney sideswipe incident. Motorcycle rider was overtaking on the wrong side when a jeepney merged into the lane. Minor injuries to the motorcycle rider.',
-                'status'      => 'open',
+                'status'      => 'under_investigation',
                 'motorists'   => [
                     [
                         'violator'   => 7,
@@ -363,7 +363,7 @@ class DemoDataSeeder extends Seeder
                 'time'        => '11:00:00',
                 'location'    => 'España Blvd. cor. Lacson Ave., Manila',
                 'description' => 'Pedestrian struck by a vehicle while crossing at a non-pedestrian crossing. Driver claims the pedestrian suddenly appeared from between parked vehicles. Pedestrian rushed to UST Hospital.',
-                'status'      => 'open',
+                'status'      => 'under_investigation',
                 'motorists'   => [
                     [
                         'violator'   => 3,

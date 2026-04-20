@@ -1650,8 +1650,9 @@ a.dash-vtype-pill:hover { background: rgba(99,102,241,.22); }
 .dash-search-badge-overdue  { background: rgba(220,38,38,.12);  color: #dc2626; }
 .dash-search-badge-settled  { background: rgba(16,185,129,.12); color: #059669; }
 .dash-search-badge-contested{ background: rgba(99,102,241,.12); color: #4f46e5; }
-.dash-search-badge-open     { background: rgba(239,68,68,.12);  color: #dc2626; }
-.dash-search-badge-closed   { background: rgba(16,185,129,.12); color: #059669; }
+.dash-search-badge-under_investigation { background: rgba(239,68,68,.12);  color: #dc2626; }
+.dash-search-badge-cleared             { background: rgba(245,158,11,.12); color: #d97706; }
+.dash-search-badge-solved              { background: rgba(16,185,129,.12); color: #059669; }
 .dash-search-badge-resolved { background: rgba(99,102,241,.12); color: #4f46e5; }
 .dash-search-icon-motorist  { color: #3b82f6; }
 .dash-search-icon-vehicle   { color: #10b981; }
@@ -2015,8 +2016,9 @@ a.settlement-pill:hover { filter: brightness(.93); transform: translateY(-1px); 
                   : badge === 'pending'   ? 'dash-search-badge-pending'
                   : badge === 'settled'   ? 'dash-search-badge-settled'
                   : badge === 'contested' ? 'dash-search-badge-contested'
-                  : badge === 'open'      ? 'dash-search-badge-open'
-                  : badge === 'closed'    ? 'dash-search-badge-closed'
+                  : badge === 'under_investigation' ? 'dash-search-badge-under_investigation'
+                  : badge === 'cleared'           ? 'dash-search-badge-cleared'
+                  : badge === 'solved'            ? 'dash-search-badge-solved'
                   : badge === 'resolved'  ? 'dash-search-badge-resolved'
                   : 'dash-search-vcount';
         return '<span class="dash-search-badge ' + cls + '">' + escHtml(badge) + '</span>';

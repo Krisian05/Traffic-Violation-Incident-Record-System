@@ -53,10 +53,10 @@
 
 @php
     $sc = match($incident->status) {
-        'open'         => ['label' => 'Open',         'class' => 'motshow-status--danger', 'icon' => 'ph-flag'],
-        'under_review' => ['label' => 'Under Review', 'class' => 'motshow-status--info',   'icon' => 'ph-clock'],
-        'closed'       => ['label' => 'Closed',       'class' => 'motshow-status--safe',   'icon' => 'ph-check-circle'],
-        default        => ['label' => 'Open',         'class' => 'motshow-status--danger', 'icon' => 'ph-flag'],
+        'under_investigation' => ['label' => 'Under Investigation', 'class' => 'motshow-status--danger', 'icon' => 'ph-flag'],
+        'cleared'             => ['label' => 'Cleared',             'class' => 'motshow-status--info',   'icon' => 'ph-shield-check'],
+        'solved'              => ['label' => 'Solved',              'class' => 'motshow-status--safe',   'icon' => 'ph-check-circle'],
+        default               => ['label' => 'Under Investigation', 'class' => 'motshow-status--danger', 'icon' => 'ph-flag'],
     };
     $mediaLabels = ['scene' => 'Scene Photo', 'ticket' => 'Citation Ticket', 'document' => 'Document', 'other' => 'Other'];
     $restrDesc = [

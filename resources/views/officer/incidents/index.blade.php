@@ -269,9 +269,9 @@ a.inc-page:hover {
 @section('content')
 
 @php
-    $openCount = $incidents->getCollection()->where('status', 'open')->count();
-    $reviewCount = $incidents->getCollection()->where('status', 'under_review')->count();
-    $closedCount = $incidents->getCollection()->where('status', 'closed')->count();
+    $openCount = $incidents->getCollection()->where('status', 'under_investigation')->count();
+    $reviewCount = $incidents->getCollection()->where('status', 'cleared')->count();
+    $closedCount = $incidents->getCollection()->where('status', 'solved')->count();
 @endphp
 
 <div class="motshow-section">Search &amp; Filter</div>
@@ -293,9 +293,9 @@ a.inc-page:hover {
     <div class="inc-filter-row">
         <select name="status" class="form-select mob-select" style="font-size:.85rem;">
             <option value="">All statuses</option>
-            <option value="open" {{ $status === 'open' ? 'selected' : '' }}>Open</option>
-            <option value="under_review" {{ $status === 'under_review' ? 'selected' : '' }}>Under Review</option>
-            <option value="closed" {{ $status === 'closed' ? 'selected' : '' }}>Closed</option>
+            <option value="under_investigation" {{ $status === 'under_investigation' ? 'selected' : '' }}>Under Investigation</option>
+            <option value="cleared" {{ $status === 'cleared' ? 'selected' : '' }}>Cleared</option>
+            <option value="solved" {{ $status === 'solved' ? 'selected' : '' }}>Solved</option>
         </select>
         <button type="submit" class="inc-filter-btn">
             <i class="ph ph-funnel-simple me-1"></i> Apply
@@ -335,15 +335,15 @@ a.inc-page:hover {
 <div class="inc-stat-grid">
     <div class="inc-stat-card">
         <div class="inc-stat-num inc-stat-num--open">{{ $openCount }}</div>
-        <div class="inc-stat-lbl">Open</div>
+        <div class="inc-stat-lbl">Under Investigation</div>
     </div>
     <div class="inc-stat-card">
         <div class="inc-stat-num inc-stat-num--review">{{ $reviewCount }}</div>
-        <div class="inc-stat-lbl">Review</div>
+        <div class="inc-stat-lbl">Cleared</div>
     </div>
     <div class="inc-stat-card">
         <div class="inc-stat-num inc-stat-num--closed">{{ $closedCount }}</div>
-        <div class="inc-stat-lbl">Closed</div>
+        <div class="inc-stat-lbl">Solved</div>
     </div>
 </div>
 
@@ -365,14 +365,14 @@ a.inc-page:hover {
     @foreach($incidents as $inc)
         @php
             $variant = match($inc->status) {
-                'open' => 'open',
-                'under_review' => 'review',
-                default => 'closed',
+                'under_investigation' => 'open',
+                'cleared'             => 'review',
+                default               => 'closed',
             };
             $badgeClass = match($inc->status) {
-                'open' => 'mob-badge-open',
-                'under_review' => 'mob-badge-review',
-                default => 'mob-badge-closed',
+                'under_investigation' => 'mob-badge-open',
+                'cleared'             => 'mob-badge-review',
+                default               => 'mob-badge-closed',
             };
         @endphp
         <a href="{{ route('officer.incidents.show', $inc) }}" class="inc-list-card inc-list-card--{{ $variant }}">

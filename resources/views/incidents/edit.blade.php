@@ -238,9 +238,9 @@ span.flatpickr-weekday { color: #b91c1c !important; font-weight: 700; font-size:
                     <div class="col-md-6">
                         <label class="form-label fw-500" style="font-size:.84rem;"><i class="bi bi-circle-fill me-1" style="font-size:.65rem;color:#6b7280;"></i>Status <span class="text-danger">*</span></label>
                         <select name="status" class="form-select form-select-sm @error('status') is-invalid @enderror">
-                            <option value="open"         {{ old('status', $incident->status) === 'open'         ? 'selected' : '' }}>Open</option>
-                            <option value="under_review" {{ old('status', $incident->status) === 'under_review' ? 'selected' : '' }}>Under Review</option>
-                            <option value="closed"       {{ old('status', $incident->status) === 'closed'       ? 'selected' : '' }}>Closed</option>
+                            <option value="under_investigation" {{ old('status', $incident->status) === 'under_investigation' ? 'selected' : '' }}>Under Investigation</option>
+                            <option value="cleared"            {{ old('status', $incident->status) === 'cleared'            ? 'selected' : '' }}>Cleared</option>
+                            <option value="solved"             {{ old('status', $incident->status) === 'solved'             ? 'selected' : '' }}>Solved</option>
                         </select>
                         @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>

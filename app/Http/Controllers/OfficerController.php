@@ -32,7 +32,7 @@ class OfficerController extends Controller
         $motoristCount      = Violator::count();
         $violationCount     = Violation::count();
         $incidentCount      = Incident::count();
-        $openIncidentCount  = Incident::where('status', 'open')->count();
+        $openIncidentCount  = Incident::where('status', 'under_investigation')->count();
         $overdueCount       = Violation::overdue()->count();
 
         return view('officer.dashboard', compact('motoristCount', 'violationCount', 'incidentCount', 'openIncidentCount', 'overdueCount'));
@@ -786,7 +786,7 @@ class OfficerController extends Controller
                 'time_of_incident' => $request->input('time_of_incident'),
                 'location'         => $request->input('location'),
                 'description'      => $request->input('description'),
-                'status'           => 'open',
+                'status'           => 'under_investigation',
                 'recorded_by'      => Auth::id(),
             ]);
 

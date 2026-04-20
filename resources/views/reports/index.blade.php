@@ -427,9 +427,9 @@
                 @else
                     @php
                         $incStatusMap = [
-                            'open'         => ['label' => 'Open',         'bg' => '#eff6ff', 'color' => '#1d4ed8', 'icon' => 'bi-circle-fill'],
-                            'under_review' => ['label' => 'Under Review', 'bg' => '#fffbeb', 'color' => '#92400e', 'icon' => 'bi-hourglass-split'],
-                            'closed'       => ['label' => 'Closed',       'bg' => '#f0fdf4', 'color' => '#15803d', 'icon' => 'bi-check-circle-fill'],
+                            'under_investigation' => ['label' => 'Under Investigation', 'bg' => '#eff6ff', 'color' => '#1d4ed8', 'icon' => 'bi-search'],
+                            'cleared'             => ['label' => 'Cleared',             'bg' => '#fffbeb', 'color' => '#92400e', 'icon' => 'bi-shield-check'],
+                            'solved'              => ['label' => 'Solved',              'bg' => '#f0fdf4', 'color' => '#15803d', 'icon' => 'bi-check-circle-fill'],
                         ];
                     @endphp
                     <div class="d-flex flex-column gap-2">
@@ -1512,12 +1512,12 @@
 .rpt-card-sub   { font-size: .71rem; color: #a8a29e; margin-top: .05rem; }
 
 /* ─── Incident summary status row colors ─── */
-.inc-sum-open         { background: #eff6ff; border: 1px solid #eff6ff; }
-.inc-sum-open-fg      { color: #1d4ed8; }
-.inc-sum-under-review { background: #fffbeb; border: 1px solid #fffbeb; }
-.inc-sum-under-review-fg { color: #92400e; }
-.inc-sum-closed       { background: #f0fdf4; border: 1px solid #f0fdf4; }
-.inc-sum-closed-fg    { color: #15803d; }
+.inc-sum-under-investigation    { background: #eff6ff; border: 1px solid #eff6ff; }
+.inc-sum-under-investigation-fg { color: #1d4ed8; }
+.inc-sum-cleared                { background: #fffbeb; border: 1px solid #fffbeb; }
+.inc-sum-cleared-fg             { color: #92400e; }
+.inc-sum-solved                 { background: #f0fdf4; border: 1px solid #f0fdf4; }
+.inc-sum-solved-fg              { color: #15803d; }
 
 /* ─── Proportion bars ─── */
 .inc-bar-fill  { height: 4px; background: #1d4ed8; border-radius: 4px; width: 0; }
@@ -1814,11 +1814,11 @@
     }
     .rpt-inc-stat-row * { color: #000 !important; font-size: 9pt !important; white-space: normal !important; }
     .rpt-inc-stat-row .fw-bold, .rpt-inc-stat-row [style*="font-weight"] { font-weight: 700 !important; }
-    .inc-sum-open, .inc-sum-under-review, .inc-sum-closed {
+    .inc-sum-under-investigation, .inc-sum-cleared, .inc-sum-solved {
         background: transparent !important; border: none !important;
         border-bottom: 1pt solid #ddd !important;
     }
-    .inc-sum-open-fg, .inc-sum-under-review-fg, .inc-sum-closed-fg { color: #000 !important; }
+    .inc-sum-under-investigation-fg, .inc-sum-cleared-fg, .inc-sum-solved-fg { color: #000 !important; }
 
     /* Top locations: plain list ── */
     .rpt-hotspot-row {
@@ -2218,8 +2218,8 @@ function rptToggleShowMore(btn) {
         var offenseLabels = Object.keys(data.byChargeType);
         var offenseData   = Object.values(data.byChargeType);
 
-        var statusLabels = ['Open', 'Under Review', 'Closed'];
-        var statusData   = [data.byStatus.open || 0, data.byStatus.under_review || 0, data.byStatus.closed || 0];
+        var statusLabels = ['Under Investigation', 'Cleared', 'Solved'];
+        var statusData   = [data.byStatus.under_investigation || 0, data.byStatus.cleared || 0, data.byStatus.solved || 0];
 
         if (_clockChart)   { _clockChart.data.datasets[0].data   = data.byHour; _clockChart.update(); }
         else               { _clockChart   = makeLineChart(document.getElementById('incClockChart'),   HOUR_LABELS, data.byHour); }

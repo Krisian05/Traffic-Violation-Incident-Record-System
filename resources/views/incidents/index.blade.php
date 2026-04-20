@@ -3,10 +3,10 @@
 
 @push('styles')
 <style>
-.inc-status-open         { display:inline-block;padding:.1rem .5rem;border-radius:20px;font-size:.66rem;font-weight:700;background:#eff6ff;color:#1d4ed8; }
-.inc-status-under_review { display:inline-block;padding:.1rem .5rem;border-radius:20px;font-size:.66rem;font-weight:700;background:#fffbeb;color:#92400e; }
-.inc-status-closed       { display:inline-block;padding:.1rem .5rem;border-radius:20px;font-size:.66rem;font-weight:700;background:#f0fdf4;color:#15803d; }
-.inc-status-default      { display:inline-block;padding:.1rem .5rem;border-radius:20px;font-size:.66rem;font-weight:700;background:#f3f4f6;color:#374151; }
+.inc-status-under_investigation { display:inline-block;padding:.1rem .5rem;border-radius:20px;font-size:.66rem;font-weight:700;background:#eff6ff;color:#1d4ed8; }
+.inc-status-cleared             { display:inline-block;padding:.1rem .5rem;border-radius:20px;font-size:.66rem;font-weight:700;background:#fffbeb;color:#92400e; }
+.inc-status-solved              { display:inline-block;padding:.1rem .5rem;border-radius:20px;font-size:.66rem;font-weight:700;background:#f0fdf4;color:#15803d; }
+.inc-status-default             { display:inline-block;padding:.1rem .5rem;border-radius:20px;font-size:.66rem;font-weight:700;background:#f3f4f6;color:#374151; }
 </style>
 @endpush
 
@@ -20,10 +20,10 @@
         if ($dateTo)   $activeFilters[] = ['label' => 'To',       'value' => $dateTo];
         if ($status) {
             $statusDisplay = match((string)$status) {
-                'open'         => 'Open',
-                'under_review' => 'Under Review',
-                'closed'       => 'Closed',
-                default        => (string)$status,
+                'under_investigation' => 'Under Investigation',
+                'cleared'             => 'Cleared',
+                'solved'              => 'Solved',
+                default               => (string)$status,
             };
             $activeFilters[] = ['label' => 'Status', 'value' => $statusDisplay];
         }
@@ -85,9 +85,9 @@
                     <label class="filter-label"><i class="bi bi-circle-fill me-1"></i>Status</label>
                     <select name="status" class="form-select form-select-sm filt-input" onchange="this.form.submit()">
                         <option value="">All statuses</option>
-                        <option value="open"         {{ $status === 'open'         ? 'selected' : '' }}>Open</option>
-                        <option value="under_review" {{ $status === 'under_review' ? 'selected' : '' }}>Under Review</option>
-                        <option value="closed"       {{ $status === 'closed'       ? 'selected' : '' }}>Closed</option>
+                        <option value="under_investigation" {{ $status === 'under_investigation' ? 'selected' : '' }}>Under Investigation</option>
+                        <option value="cleared"            {{ $status === 'cleared'            ? 'selected' : '' }}>Cleared</option>
+                        <option value="solved"             {{ $status === 'solved'             ? 'selected' : '' }}>Solved</option>
                     </select>
                 </div>
 
@@ -175,8 +175,8 @@
                             </div>
                         @endif
                         @php
-                            $statusLabels = ['open' => 'Open', 'under_review' => 'Under Review', 'closed' => 'Closed'];
-                            $statusClass  = in_array($incident->status, ['open','under_review','closed'])
+                            $statusLabels = ['under_investigation' => 'Under Investigation', 'cleared' => 'Cleared', 'solved' => 'Solved'];
+                            $statusClass  = in_array($incident->status, ['under_investigation','cleared','solved'])
                                 ? 'inc-status-' . $incident->status
                                 : 'inc-status-default';
                         @endphp

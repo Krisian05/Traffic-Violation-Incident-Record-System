@@ -32,9 +32,9 @@ body { font-family: 'Arial', sans-serif; font-size: 12px; color: #111; backgroun
 
 /* Status badge */
 .status-badge { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border: 1px solid; }
-.status-open          { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
-.status-under_review  { background:#fffbeb; color:#92400e; border-color:#fde68a; }
-.status-closed        { background:#f0fdf4; color:#15803d; border-color:#bbf7d0; }
+.status-under_investigation { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
+.status-cleared             { background:#fffbeb; color:#92400e; border-color:#fde68a; }
+.status-solved              { background:#f0fdf4; color:#15803d; border-color:#bbf7d0; }
 
 /* Sections */
 .section { margin-bottom: 18px; }
@@ -118,7 +118,7 @@ tbody tr:nth-child(even) { background: #f9fafb; }
             <div class="rpt-number">{{ $incident->incident_number }}</div>
             <div style="margin-top:5px;">
                 @php
-                    $statusLabels = ['open' => 'Open', 'under_review' => 'Under Review', 'closed' => 'Closed'];
+                    $statusLabels = ['under_investigation' => 'Under Investigation', 'cleared' => 'Cleared', 'solved' => 'Solved'];
                 @endphp
                 <span class="status-badge status-{{ $incident->status }}">
                     {{ $statusLabels[$incident->status] ?? $incident->status }}
