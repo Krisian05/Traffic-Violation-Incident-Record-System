@@ -234,6 +234,8 @@ class ViolatorController extends Controller
 
     public function destroy(Violator $violator)
     {
+        $this->authorize('delete', $violator);
+
         if ($violator->photo) {
             Storage::disk(uploads_disk())->delete($violator->photo);
         }

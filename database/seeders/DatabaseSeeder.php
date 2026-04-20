@@ -14,12 +14,17 @@ class DatabaseSeeder extends Seeder
     {
         // Bootstrap operator account — only create if it doesn't exist yet,
         // so subsequent deploys never overwrite a changed password.
+        $adminPassword = env('DEFAULT_ADMIN_PASSWORD');
+        if (! $adminPassword) {
+            throw new \RuntimeException('DEFAULT_ADMIN_PASSWORD must be set in your .env before seeding.');
+        }
+
         User::firstOrCreate(
             ['username' => 'admin'],
             [
                 'name'     => 'Administrator',
                 'role'     => 'operator',
-                'password' => Hash::make(env('DEFAULT_ADMIN_PASSWORD', 'admin123')),
+                'password' => Hash::make($adminPassword),
             ]
         );
 

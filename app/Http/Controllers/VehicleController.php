@@ -194,6 +194,8 @@ class VehicleController extends Controller
 
     public function store(Request $request, Violator $violator)
     {
+        $this->authorize('create', Vehicle::class);
+
         $data = $request->validate([
             'plate_number' => ['required', 'string', 'max:20', 'unique:vehicles,plate_number'],
             'vehicle_type' => ['required', 'in:MV,MC'],
@@ -233,6 +235,8 @@ class VehicleController extends Controller
 
     public function update(Request $request, Vehicle $vehicle)
     {
+        $this->authorize('update', $vehicle);
+
         $data = $request->validate([
             'plate_number' => ['required', 'string', 'max:20', "unique:vehicles,plate_number,{$vehicle->id}"],
             'vehicle_type' => ['required', 'in:MV,MC'],
@@ -277,6 +281,8 @@ class VehicleController extends Controller
 
     public function destroy(Vehicle $vehicle)
     {
+        $this->authorize('delete', $vehicle);
+
         $violatorId = $vehicle->violator_id;
 
         foreach ($vehicle->photos as $photo) {
