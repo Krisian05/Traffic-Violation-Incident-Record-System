@@ -287,9 +287,6 @@
             ][$variant];
             $violatorName = $violation->violator?->full_name ?? $violation->vehicle_owner_name ?? 'Unknown Motorist';
             $plate = $violation->vehicle?->plate_number ?? $violation->vehicle_plate;
-            $hoursOverdue = ($isOverdue && $violation->date_of_violation)
-                ? max(1, now()->diffInHours($violation->date_of_violation) - 72)
-                : null;
         @endphp
 
         <a href="{{ route('officer.violations.show', $violation) }}" class="vio-list-card vio-list-card--{{ $variant }}">
@@ -331,8 +328,8 @@
                 <span class="vio-status-tag vio-status-tag--{{ $variant }}">
                     <i class="{{ $icon }}"></i>
                     {{ $statusLabel }}
-                    @if($hoursOverdue)
-                        <span>· {{ $hoursOverdue }}h late</span>
+                    @if($isOverdue)
+                        <span>· beyond 72h window</span>
                     @endif
                 </span>
             </div>
