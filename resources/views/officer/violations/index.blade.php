@@ -187,12 +187,7 @@
 
 @section('content')
 @php
-    $statusDisplay = match($status) {
-        'pending' => 'Pending',
-        'settled' => 'Settled',
-        'contested' => 'Contested',
-        default => '',
-    };
+    $statusDisplay = ['pending' => 'Pending', 'settled' => 'Settled', 'contested' => 'Contested'][$status] ?? '';
 @endphp
 
 <div class="motshow-section">
@@ -293,7 +288,7 @@
             $plate = $violation->vehicle?->plate_number ?? $violation->vehicle_plate;
         @endphp
 
-        <a href="{{ route('officer.violations.show', $violation) . ($status ? '?from_status='.$status : '') }}" class="vio-list-card vio-list-card--{{ $variant }}">
+        <a href="{{ route('officer.violations.show', $violation) }}" class="vio-list-card vio-list-card--{{ $variant }}">
             <div class="vio-list-icon vio-list-icon--{{ $variant }}">
                 <i class="{{ $icon }}"></i>
             </div>
