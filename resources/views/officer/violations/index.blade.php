@@ -196,7 +196,14 @@
     };
 @endphp
 
-<div class="motshow-section">Violation Search</div>
+<div class="motshow-section">
+    @if($status === 'overdue') Overdue Violations
+    @elseif($status === 'pending') Pending Violations
+    @elseif($status === 'settled') Settled Violations
+    @elseif($status === 'contested') Contested Violations
+    @else Violation Search
+    @endif
+</div>
 
 <form method="GET" action="{{ route('officer.violations.index') }}" class="vio-search-shell">
     <div class="vio-search-bar">
@@ -289,7 +296,7 @@
             $plate = $violation->vehicle?->plate_number ?? $violation->vehicle_plate;
         @endphp
 
-        <a href="{{ route('officer.violations.show', $violation) }}" class="vio-list-card vio-list-card--{{ $variant }}">
+        <a href="{{ route('officer.violations.show', $violation) . ($status ? '?from_status='.$status : '') }}" class="vio-list-card vio-list-card--{{ $variant }}">
             <div class="vio-list-icon vio-list-icon--{{ $variant }}">
                 <i class="{{ $icon }}"></i>
             </div>
