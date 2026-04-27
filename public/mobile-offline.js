@@ -625,7 +625,7 @@
         }
 
         if (recordType === 'offline-incident-create') {
-            var incidentSummary = record.summary || buildIncidentSummary(record.entries || []);
+            var incidentSummary = buildIncidentSummary(record.entries || []);
             if (JSON.stringify(record.summary || {}) !== JSON.stringify(incidentSummary)) {
                 record.summary = incidentSummary;
                 changed = true;
