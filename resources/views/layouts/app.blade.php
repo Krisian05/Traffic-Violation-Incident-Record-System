@@ -1026,7 +1026,7 @@
             <i class="bi bi-bar-chart-fill"></i> Reports
         </a>
 
-        @if(Auth::user()->isOperator())
+        @if(Auth::user()->isAdmin())
         <div class="nav-label">Administration</div>
         <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">
             <i class="bi bi-people-fill"></i> Users

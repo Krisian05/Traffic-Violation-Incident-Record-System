@@ -126,8 +126,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/incident-stats', [ReportController::class, 'incidentStats'])->name('reports.incidentStats');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
-    // ── USERS (operator only) ─────────────────────────────────────────────────
-    Route::middleware('role:operator')->group(function () {
+    // ── USERS (admin only) ───────────────────────────────────────────────────
+    Route::middleware('role:admin')->group(function () {
         Route::resource('users', UserController::class);
     });
 
