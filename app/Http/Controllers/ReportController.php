@@ -270,7 +270,7 @@ class ReportController extends Controller
                 $weekEnd   = $weekStart->copy()->addDays(6); // Sunday
             } else {
                 $parsed    = \Carbon\Carbon::parse($date);
-                $weekStart = $parsed->copy()->startOfWeek(\Carbon\Carbon::MONDAY);
+                $weekStart = $parsed->copy()->startOfWeek(\Carbon\CarbonInterface::MONDAY);
                 $weekEnd   = $weekStart->copy()->addDays(6);
             }
             $from  = $weekStart->toDateString();
