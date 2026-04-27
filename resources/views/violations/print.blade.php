@@ -480,8 +480,11 @@
         $allPhotos->push(['url' => uploaded_file_url($violation->citation_ticket_photo), 'label' => 'Citation Ticket', 'color' => 'red']);
     if ($violation->valid_id_photo)
         $allPhotos->push(['url' => uploaded_file_url($violation->valid_id_photo), 'label' => 'Valid ID', 'color' => 'purple']);
-    foreach ($violation->vehiclePhotos as $idx => $p)
-        $allPhotos->push(['url' => uploaded_file_url($p->photo), 'label' => 'Vehicle Photo ' . ($idx + 1), 'color' => 'blue']);
+    // Pick first vehicle photo from violation photos (manual entry) or registered vehicle photos
+    $firstVehiclePhoto = $violation->vehiclePhotos->first()?->photo
+        ?? $violation->vehicle?->photos->first()?->photo;
+    if ($firstVehiclePhoto)
+        $allPhotos->push(['url' => uploaded_file_url($firstVehiclePhoto), 'label' => 'Vehicle Photo', 'color' => 'blue']);
     if ($violation->receipt_photo)
         $allPhotos->push(['url' => uploaded_file_url($violation->receipt_photo), 'label' => 'Receipt', 'color' => 'green']);
 @endphp
