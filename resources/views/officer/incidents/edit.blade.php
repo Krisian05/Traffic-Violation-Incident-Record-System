@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function () {
     initPhotoPicker('picker-incident-photos', 'incident_photos[]', { multiple: true });
 
     // Pre-populate existing other involved parties
-    const existingOther = @json($incident->other_involved ?? []);
+    const existingOther = {!! json_encode($incident->other_involved ?? []) !!};
     if (existingOther && existingOther.length > 0) {
         existingOther.forEach(function(data) { addOtherParty(data); });
     }
