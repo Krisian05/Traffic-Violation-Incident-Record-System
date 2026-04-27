@@ -68,7 +68,7 @@ class IncidentMotorist extends Model
     public function getDisplayNameAttribute(): string
     {
         if ($this->violator) {
-            return $this->violator->full_name;
+            return $this->violator->full_name ?? '(Unknown)';
         }
         return $this->motorist_name ?? '(Unknown)';
     }
@@ -84,7 +84,7 @@ class IncidentMotorist extends Model
     public function getDisplayPlateAttribute(): string
     {
         if ($this->vehicle) {
-            return $this->vehicle->plate_number;
+            return $this->vehicle->plate_number ?? '—';
         }
         return $this->vehicle_plate ?? '—';
     }
@@ -92,7 +92,7 @@ class IncidentMotorist extends Model
     public function getDisplayVehicleTypeAttribute(): string
     {
         if ($this->vehicle) {
-            return $this->vehicle->vehicle_type;
+            return $this->vehicle->vehicle_type ?? '—';
         }
         return $this->vehicle_type_manual ?? '—';
     }
