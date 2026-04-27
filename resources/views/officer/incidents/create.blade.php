@@ -226,6 +226,7 @@
 @endsection
 
 @push('scripts')
+<script type="application/json" id="charge-types-data">{{ json_encode($chargeTypes->pluck('name')) }}</script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     initPhotoPicker('picker-incident-photos', 'incident_photos[]', { multiple: true });
@@ -552,7 +553,7 @@ document.addEventListener('DOMContentLoaded', function () {
 /* ── Other Involved Parties ── */
 let otherPartyCount = 0;
 const OTHER_TYPES = ['Pedestrian', 'Bicycle', 'Pedicab', 'Tricycle', 'Animal-drawn', 'Bystander', 'Other'];
-const OTHER_CHARGE_TYPES = @json($chargeTypes->pluck('name'));
+const OTHER_CHARGE_TYPES = JSON.parse(document.getElementById('charge-types-data').textContent);
 
 function addOtherParty(data) {
     const i = otherPartyCount++;

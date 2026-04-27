@@ -589,6 +589,7 @@
 
 @push('scripts')
 <script type="application/json" id="other-involved-data">{{ json_encode($incident->other_involved ?? []) }}</script>
+<script type="application/json" id="charge-types-data">{{ json_encode($chargeTypes->pluck('name')) }}</script>
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script type="application/json" id="vehicles-by-owner">@json($vehiclesByOwner)</script>
 @php
@@ -984,7 +985,7 @@ document.addEventListener('DOMContentLoaded', function () {
 /* ── Other Involved Parties ── */
 let otherPartyCount = 0;
 const OTHER_TYPES = ['Pedestrian', 'Bicycle', 'Pedicab', 'Tricycle', 'Animal-drawn', 'Bystander', 'Other'];
-const CHARGE_TYPES = @json($chargeTypes->pluck('name'));
+const CHARGE_TYPES = JSON.parse(document.getElementById('charge-types-data').textContent);
 
 function addOtherParty(data) {
     const i = otherPartyCount++;
