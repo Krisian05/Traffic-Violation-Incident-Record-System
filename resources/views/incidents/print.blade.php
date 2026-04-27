@@ -69,26 +69,50 @@ tbody tr:nth-child(even) { background: #f9fafb; }
 .sig-row { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
 .sig-box { border-top: 1px solid #111; padding-top: 4px; font-size: 9px; text-align: center; color: #374151; }
 
+/* ─── Photo page (page 2) ─── */
+.photo-page { page-break-before: always; max-width: 820px; margin: 0 auto; padding: 28px 32px; }
+.photo-page-title {
+    text-align: center; font-size: 11px; font-weight: 900;
+    text-transform: uppercase; letter-spacing: .12em; color: #b91c1c;
+    border-bottom: 2px solid #b91c1c; padding: 3px 0 5px; margin-bottom: 12px;
+}
+.photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+.photo-cell {
+    display: flex; flex-direction: column;
+    border: 1.5px solid #e7e2db; border-radius: 6px; overflow: hidden;
+    page-break-inside: avoid;
+}
+.photo-cell-label {
+    font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em;
+    color: #fff; background: #475569; padding: 3px 8px; text-align: center; flex-shrink: 0;
+}
+.photo-cell-label.scene    { background: #1d4ed8; }
+.photo-cell-label.ticket   { background: #b45309; }
+.photo-cell-label.document { background: #6d28d9; }
+.photo-cell-label.other    { background: #475569; }
+.photo-cell-img { height: 78mm; background: #f8fafc; display: flex; align-items: center; justify-content: center; }
+.photo-cell-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
 @media print {
     html, body { padding: 0 !important; margin: 0 !important; }
     body { font-size: 10px; }
     .no-print { display: none !important; }
-    .page { margin: 0 !important; padding: 0 !important; }
+    .page, .photo-page { margin: 0 !important; padding: 0 !important; }
+    .photo-cell-img { height: 78mm; }
 
-    /* 9-column motorists table — landscape + fixed layout */
     table { table-layout: fixed !important; width: 100% !important; }
-    thead th, tbody td { word-wrap: break-word; font-size: 9px !important; }
-    thead th:nth-child(1) { width: 4%;  } /* # */
-    thead th:nth-child(2) { width: 18%; } /* Name */
-    thead th:nth-child(3) { width: 12%; } /* License No. */
-    thead th:nth-child(4) { width: 8%;  } /* Lic. Type */
-    thead th:nth-child(5) { width: 10%; } /* Restriction */
-    thead th:nth-child(6) { width: 10%; } /* Plate No. */
-    thead th:nth-child(7) { width: 10%; } /* Vehicle */
-    thead th:nth-child(8) { width: 16%; } /* Charge */
-    thead th:nth-child(9) { width: 12%; } /* Notes */
+    thead th, tbody td { word-wrap: break-word; font-size: 8px !important; }
+    thead th:nth-child(1) { width: 4%;  }
+    thead th:nth-child(2) { width: 18%; }
+    thead th:nth-child(3) { width: 12%; }
+    thead th:nth-child(4) { width: 7%;  }
+    thead th:nth-child(5) { width: 9%;  }
+    thead th:nth-child(6) { width: 10%; }
+    thead th:nth-child(7) { width: 8%;  }
+    thead th:nth-child(8) { width: 16%; }
+    thead th:nth-child(9) { width: 16%; }
 
-    @page { size: A4 landscape; margin: 8mm 14mm 12mm; }
+    @page { size: A4 portrait; margin: 8mm 14mm 12mm; }
 }
 </style>
 </head>
@@ -257,6 +281,29 @@ tbody tr:nth-child(even) { background: #f9fafb; }
     </div>
 
 </div>
+
+{{-- ─── PAGE 2: EVIDENCE PHOTOS ─── --}}
+@php $imageMedia = $incident->media->filter(fn($m) => $m->isImage()); @endphp
+@if($imageMedia->isNotEmpty())
+<div class="photo-page">
+    <div class="photo-page-title">Evidence Photos — {{ $incident->incident_number }}</div>
+    <div class="photo-grid">
+        @foreach($imageMedia as $media)
+        <div class="photo-cell">
+            <div class="photo-cell-label {{ $media->media_type }}">
+                {{ ucfirst($media->media_type) }}@if($media->caption) — {{ $media->caption }}@endif
+            </div>
+            <div class="photo-cell-img">
+                <img src="{{ uploaded_file_url($media->file_path) }}" alt="{{ $media->caption ?: $media->media_type }}">
+            </div>
+        </div>
+        @endforeach
+    </div>
+    <div style="font-size:8.5px;color:#a8a29e;margin-top:8px;text-align:right;">
+        {{ $imageMedia->count() }} photo(s) &nbsp;|&nbsp; Generated: {{ now()->format('F d, Y  g:i A') }}
+    </div>
+</div>
+@endif
 
 <script>
 window.addEventListener('load', function () {
