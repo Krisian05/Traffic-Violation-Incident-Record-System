@@ -252,6 +252,11 @@
             </div>
 
             <div class="mb-3">
+                <label class="mob-label">Valid ID Photo</label>
+                <div id="picker-offline-valid-id"></div>
+            </div>
+
+            <div class="mb-3">
                 <label class="mob-label">Vehicle Photos <span style="font-size:.68rem;color:#94a3b8;">(up to 4)</span></label>
                 <div id="picker-offline-veh-photos"></div>
             </div>
@@ -276,8 +281,9 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    initPhotoPicker('picker-offline-citation', 'citation_ticket_photo', { multiple: false });
-    initPhotoPicker('picker-offline-veh-photos', 'photos', { multiple: true });
+    initPhotoPicker('picker-offline-citation',  'citation_ticket_photo', { multiple: false });
+    initPhotoPicker('picker-offline-valid-id',   'valid_id_photo',        { multiple: false });
+    initPhotoPicker('picker-offline-veh-photos', 'photos',                { multiple: true  });
 
     var form = document.getElementById('offlineViolationForm');
     var keyInput = document.getElementById('offline_motorist_key');
