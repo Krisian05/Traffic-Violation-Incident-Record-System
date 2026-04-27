@@ -400,17 +400,22 @@
                         @endif
                     @endif
 
-                        {{-- Vehicle photos — always shown regardless of vehicle source --}}
-                        @if($violation->vehiclePhotos->isNotEmpty())
+                        {{-- Vehicle photos — violation photos first, fall back to registered vehicle photos --}}
+                        @php
+                            $displayVehiclePhotos = $violation->vehiclePhotos->isNotEmpty()
+                                ? $violation->vehiclePhotos->map(fn($p) => $p->photo)
+                                : ($violation->vehicle?->photos->map(fn($p) => $p->photo) ?? collect());
+                        @endphp
+                        @if($displayVehiclePhotos->isNotEmpty())
                         <div class="d-flex align-items-start gap-3 px-4 py-3" style="border-top:1px solid #f5f0e8;">
                             <div style="width:120px;flex-shrink:0;font-size:.8rem;color:#a8a29e;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">Photos</div>
                             <div>
                                 <div class="d-flex flex-wrap gap-2 veh-photo-grid">
-                                    @foreach($violation->vehiclePhotos as $photo)
-                                    <img src="{{ uploaded_file_url($photo->photo) }}"
+                                    @foreach($displayVehiclePhotos as $photoPath)
+                                    <img src="{{ uploaded_file_url($photoPath) }}"
                                          alt="Vehicle photo"
-                                         data-lightbox="{{ uploaded_file_url($photo->photo) }}"
-                                         data-caption="Violation #{{ $violation->id }} — Vehicle Photo"
+                                         data-lightbox="{{ uploaded_file_url($photoPath) }}"
+                                         data-caption="Vehicle Photo — {{ $violation->vehicle?->plate_number ?? $violation->vehicle_plate }}"
                                          style="height:100px;width:140px;object-fit:cover;border-radius:8px;border:2px solid #fde68a;cursor:pointer;transition:transform .15s;"
                                          onmouseover="this.style.transform='scale(1.03)'"
                                          onmouseout="this.style.transform='scale(1)'">
