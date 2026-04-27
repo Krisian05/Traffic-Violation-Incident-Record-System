@@ -292,7 +292,7 @@ class ReportController extends Controller
 
         $byHour       = array_fill(0, 24, 0);
         $byDay        = array_fill(0, 7, 0);
-        $byStatus     = ['under_investigation' => 0, 'cleared' => 0, 'solved' => 0];
+        $byStatus     = ['under_investigation' => 0, 'cleared' => 0, 'solved' => 0, 'settled' => 0];
         $byChargeType = [];
         $byLocation   = [];
 
