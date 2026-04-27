@@ -170,6 +170,7 @@
 @endsection
 
 @push('scripts')
+<script type="application/json" id="charge-types-data">{{ json_encode($chargeTypes->pluck('name')) }}</script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     initPhotoPicker('picker-incident-photos', 'incident_photos[]', { multiple: true });
@@ -283,12 +284,16 @@ document.addEventListener('DOMContentLoaded', function () {
 /* ── Other Involved Parties ── */
 let otherPartyCount = 0;
 const OTHER_TYPES = ['Pedestrian', 'Bicycle', 'Pedicab', 'Tricycle', 'Animal-drawn', 'Bystander', 'Other'];
+const OTHER_CHARGE_TYPES = JSON.parse(document.getElementById('charge-types-data').textContent);
 
 function addOtherParty(data) {
     const i = otherPartyCount++;
     const list = document.getElementById('other-parties-list');
     const typeOptions = OTHER_TYPES.map(t =>
         `<option value="${t}"${data && data.type === t ? ' selected' : ''}>${t}</option>`
+    ).join('');
+    const chargeOptions = '<option value="">— None —</option>' + OTHER_CHARGE_TYPES.map(c =>
+        `<option value="${c}"${data && data.charge === c ? ' selected' : ''}>${c}</option>`
     ).join('');
     const div = document.createElement('div');
     div.id = `other-party-${i}`;
@@ -312,6 +317,12 @@ function addOtherParty(data) {
         <div class="mb-2">
             <label class="mob-label">Contact / Address</label>
             <input type="text" name="other_involved[${i}][contact]" class="form-control mob-input" placeholder="Contact or address" value="${data ? (data.contact || '') : ''}">
+        </div>
+        <div class="mb-2">
+            <label class="mob-label">Charge / Offense</label>
+            <select name="other_involved[${i}][charge]" class="form-select mob-select">
+                ${chargeOptions}
+            </select>
         </div>
         <div>
             <label class="mob-label">Notes</label>

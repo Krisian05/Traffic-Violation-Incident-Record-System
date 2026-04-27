@@ -406,7 +406,8 @@ class OfficerController extends Controller
 
     public function createOfflineIncident(): View
     {
-        return view('officer.incidents.offline-create');
+        $chargeTypes = Cache::remember('incident_charge_types', 600, fn() => IncidentChargeType::orderBy('name')->get());
+        return view('officer.incidents.offline-create', compact('chargeTypes'));
     }
 
     public function storeViolation(Request $request, Violator $violator): RedirectResponse
