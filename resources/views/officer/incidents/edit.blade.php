@@ -157,12 +157,13 @@
 @endsection
 
 @push('scripts')
+<script type="application/json" id="other-involved-data">{{ json_encode($incident->other_involved ?? []) }}</script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     initPhotoPicker('picker-incident-photos', 'incident_photos[]', { multiple: true });
 
     // Pre-populate existing other involved parties
-    const existingOther = {!! json_encode($incident->other_involved ?? []) !!};
+    const existingOther = JSON.parse(document.getElementById('other-involved-data').textContent);
     if (existingOther && existingOther.length > 0) {
         existingOther.forEach(function(data) { addOtherParty(data); });
     }

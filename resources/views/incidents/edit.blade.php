@@ -588,6 +588,7 @@
 @endsection
 
 @push('scripts')
+<script type="application/json" id="other-involved-data">{{ json_encode($incident->other_involved ?? []) }}</script>
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script type="application/json" id="vehicles-by-owner">@json($vehiclesByOwner)</script>
 @php
@@ -972,7 +973,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Pre-populate other involved parties
-    const existingOther = {!! json_encode($incident->other_involved ?? []) !!};
+    const existingOther = JSON.parse(document.getElementById('other-involved-data').textContent);
     if (existingOther && existingOther.length > 0) {
         existingOther.forEach(function(data) { addOtherParty(data); });
     } else {
