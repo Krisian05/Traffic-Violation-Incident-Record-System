@@ -33,7 +33,7 @@
         ? ['year' => $year, 'status' => 'settled']
         : ['year' => $year, 'month' => $month, 'status' => 'settled']);
 
-    $kpiOverdueUrl = route('violations.index', ['status' => 'pending']);
+    $kpiOverdueUrl = route('violations.index', ['status' => 'overdue']);
 
     $kpiContestedUrl = route('violations.index', $showAll
         ? ['year' => $year, 'status' => 'contested']
