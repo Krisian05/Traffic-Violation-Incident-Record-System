@@ -17,13 +17,14 @@ class VehicleController extends Controller
             ->withCount('violations');
 
         if ($search = $request->input('search')) {
-            $lk = '%' . mb_strtolower($search) . '%';
-            $query->where(function ($q) use ($lk) {
+            $lk     = '%' . mb_strtolower($search) . '%';
+            $plateLk = '%' . str_replace('-', '', mb_strtolower($search)) . '%';
+            $query->where(function ($q) use ($lk, $plateLk) {
                 $nameSearch = fn($vq) => $vq->whereRaw('LOWER(first_name) LIKE ?', [$lk])
                     ->orWhereRaw('LOWER(last_name) LIKE ?', [$lk])
                     ->orWhereRaw('LOWER(middle_name) LIKE ?', [$lk]);
 
-                $q->whereRaw('LOWER(plate_number) LIKE ?', [$lk])
+                $q->whereRaw("REPLACE(LOWER(plate_number), '-', '') LIKE ?", [$plateLk])
                   ->orWhereRaw('LOWER(make) LIKE ?', [$lk])
                   ->orWhereRaw('LOWER(model) LIKE ?', [$lk])
                   ->orWhereRaw('LOWER(color) LIKE ?', [$lk])
