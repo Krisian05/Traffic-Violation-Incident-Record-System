@@ -138,16 +138,52 @@
         .two-col { display: flex; gap: 12px; }
         .two-col > * { flex: 1; }
 
-        /* ─── PHOTO STRIP ─── */
-        .photo-strip {
-            display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;
+        /* ─── PHOTO PAGE ─── */
+        .photo-page {
+            page-break-before: always;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: #fff;
+            padding: 14mm 14mm 14mm 14mm;
+            box-shadow: 0 4px 24px rgba(0,0,0,.12);
         }
-        .photo-item {
-            width: 80px; height: 70px;
-            border: 1px solid #e7e2db; border-radius: 4px;
+        .photo-page-title {
+            font-size: 11px; font-weight: 900;
+            text-transform: uppercase; letter-spacing: .12em;
+            color: #b91c1c;
+            border-bottom: 2px solid #b91c1c;
+            padding: 3px 0 5px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .photo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10mm;
+        }
+        .photo-cell {
+            display: flex; flex-direction: column;
+            border: 1.5px solid #e7e2db; border-radius: 6px;
             overflow: hidden;
         }
-        .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-cell-label {
+            font-size: 9px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: .07em;
+            color: #fff; background: #475569;
+            padding: 3px 8px;
+            text-align: center;
+        }
+        .photo-cell-label.red   { background: #b91c1c; }
+        .photo-cell-label.blue  { background: #1d4ed8; }
+        .photo-cell-label.green { background: #15803d; }
+        .photo-cell-label.purple{ background: #6d28d9; }
+        .photo-cell-img {
+            flex: 1; height: 108mm;
+            background: #f8fafc;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .photo-cell-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
 
         /* ─── SIGNATURE FOOTER ─── */
         .doc-footer {
@@ -164,12 +200,13 @@
         @media print {
             html, body { background: #fff !important; padding: 0 !important; margin: 0 !important; }
             .no-print-toolbar { display: none !important; }
-            .page {
+            .page, .photo-page {
                 width: 100%; min-height: auto;
                 padding: 0 !important;
                 box-shadow: none; margin: 0;
             }
             .section { page-break-inside: avoid; }
+            .photo-cell-img { height: 108mm; }
         }
     </style>
 </head>
@@ -408,38 +445,6 @@
         </div>{{-- /RIGHT --}}
     </div>{{-- /two-col --}}
 
-    {{-- Photos Row --}}
-    @if($violation->citation_ticket_photo || $violation->valid_id_photo || $violation->vehiclePhotos->isNotEmpty() || $violation->receipt_photo)
-    <div class="section">
-        <div class="section-title slate">Attached Photos</div>
-        <div class="photo-strip">
-            @if($violation->citation_ticket_photo)
-                <div class="photo-item" title="Citation Ticket">
-                    <img src="{{ uploaded_file_url($violation->citation_ticket_photo) }}" alt="Citation Ticket">
-                </div>
-            @endif
-            @if($violation->valid_id_photo)
-                <div class="photo-item" title="Valid ID">
-                    <img src="{{ uploaded_file_url($violation->valid_id_photo) }}" alt="Valid ID">
-                </div>
-            @endif
-            @foreach($violation->vehiclePhotos as $p)
-                <div class="photo-item" title="Vehicle Photo">
-                    <img src="{{ uploaded_file_url($p->photo) }}" alt="Vehicle Photo">
-                </div>
-            @endforeach
-            @if($violation->receipt_photo)
-                <div class="photo-item" title="Receipt">
-                    <img src="{{ uploaded_file_url($violation->receipt_photo) }}" alt="Receipt">
-                </div>
-            @endif
-        </div>
-        <div style="font-size:8.5px;color:#a8a29e;margin-top:4px;">
-            {{ ($violation->citation_ticket_photo ? 1 : 0) + ($violation->valid_id_photo ? 1 : 0) + $violation->vehiclePhotos->count() + ($violation->receipt_photo ? 1 : 0) }} attached photo(s)
-        </div>
-    </div>
-    @endif
-
     {{-- Signatures --}}
     <div style="display: flex; justify-content: space-between; margin-top: 60pt; margin-bottom: 20pt;">
         <div>
@@ -465,6 +470,37 @@
     </div>
 
 </div>
+
+{{-- ─── PAGE 2: ATTACHED PHOTOS ─── --}}
+@php
+    $allPhotos = collect();
+    if ($violation->citation_ticket_photo)
+        $allPhotos->push(['url' => uploaded_file_url($violation->citation_ticket_photo), 'label' => 'Citation Ticket', 'color' => 'red']);
+    if ($violation->valid_id_photo)
+        $allPhotos->push(['url' => uploaded_file_url($violation->valid_id_photo), 'label' => 'Valid ID', 'color' => 'purple']);
+    foreach ($violation->vehiclePhotos as $idx => $p)
+        $allPhotos->push(['url' => uploaded_file_url($p->photo), 'label' => 'Vehicle Photo ' . ($idx + 1), 'color' => 'blue']);
+    if ($violation->receipt_photo)
+        $allPhotos->push(['url' => uploaded_file_url($violation->receipt_photo), 'label' => 'Receipt', 'color' => 'green']);
+@endphp
+@if($allPhotos->isNotEmpty())
+<div class="photo-page">
+    <div class="photo-page-title">Attached Photos — Violation #{{ $violation->id }}</div>
+    <div class="photo-grid">
+        @foreach($allPhotos as $photo)
+        <div class="photo-cell">
+            <div class="photo-cell-label {{ $photo['color'] }}">{{ $photo['label'] }}</div>
+            <div class="photo-cell-img">
+                <img src="{{ $photo['url'] }}" alt="{{ $photo['label'] }}">
+            </div>
+        </div>
+        @endforeach
+    </div>
+    <div style="font-size:8.5px;color:#a8a29e;margin-top:8px;text-align:right;">
+        {{ $allPhotos->count() }} attached photo(s) &nbsp;|&nbsp; Generated: {{ now()->format('F d, Y  g:i A') }}
+    </div>
+</div>
+@endif
 
 <script>
 
