@@ -48,7 +48,7 @@ class User extends Authenticatable
 
     public function isOperator(): bool
     {
-        return $this->role === 'operator';
+        return in_array($this->role, ['admin', 'operator']);
     }
 
     public function isTrafficOfficer(): bool
