@@ -160,12 +160,13 @@
         .photo-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10mm;
+            gap: 5mm;
         }
         .photo-cell {
             display: flex; flex-direction: column;
             border: 1.5px solid #e7e2db; border-radius: 6px;
             overflow: hidden;
+            page-break-inside: avoid;
         }
         .photo-cell-label {
             font-size: 9px; font-weight: 800;
@@ -173,13 +174,14 @@
             color: #fff; background: #475569;
             padding: 3px 8px;
             text-align: center;
+            flex-shrink: 0;
         }
         .photo-cell-label.red   { background: #b91c1c; }
         .photo-cell-label.blue  { background: #1d4ed8; }
         .photo-cell-label.green { background: #15803d; }
         .photo-cell-label.purple{ background: #6d28d9; }
         .photo-cell-img {
-            flex: 1; height: 108mm;
+            height: 78mm;
             background: #f8fafc;
             display: flex; align-items: center; justify-content: center;
         }
@@ -206,7 +208,7 @@
                 box-shadow: none; margin: 0;
             }
             .section { page-break-inside: avoid; }
-            .photo-cell-img { height: 108mm; }
+            .photo-cell-img { height: 78mm; }
         }
     </style>
 </head>
