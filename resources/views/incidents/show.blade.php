@@ -468,7 +468,7 @@
                 <ul class="mb-0 list-unstyled" style="font-size:.8rem;color:#57534e;line-height:2.2;">
                     <li>
                         <span style="color:#a8a29e;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">Recorded By</span>
-                        <span>{{ $incident->recorder->name ?? '—' }}</span>
+                        <span>{{ $incident->recorder?->name ?? '—' }}</span>
                     </li>
                     <li class="border-top pt-2 mt-1" style="border-color:#ede8df!important;">
                         <span style="color:#a8a29e;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">Recorded On</span>

@@ -197,7 +197,7 @@
         </div>
         <div>
             <div style="font-size:.6rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Recorded By</div>
-            <div style="font-size:.88rem;font-weight:600;color:#334155;">{{ $incident->recorder->name }}</div>
+            <div style="font-size:.88rem;font-weight:600;color:#334155;">{{ $incident->recorder?->name }}</div>
         </div>
     </div>
     @endif

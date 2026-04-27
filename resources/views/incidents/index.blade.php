@@ -214,7 +214,7 @@
 
                     {{-- Recorded By --}}
                     <td class="d-none d-md-table-cell">
-                        <span class="date-chip">{{ $incident->recorder->name ?? '—' }}</span>
+                        <span class="date-chip">{{ $incident->recorder?->name ?? '—' }}</span>
                     </td>
 
                     {{-- Actions (excluded from row-click) --}}
