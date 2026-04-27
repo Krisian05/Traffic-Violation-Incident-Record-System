@@ -474,6 +474,8 @@
 {{-- ─── PAGE 2: ATTACHED PHOTOS ─── --}}
 @php
     $allPhotos = collect();
+    if ($violation->violator?->photo)
+        $allPhotos->push(['url' => uploaded_file_url($violation->violator->photo), 'label' => 'Motorist Photo', 'color' => 'slate']);
     if ($violation->citation_ticket_photo)
         $allPhotos->push(['url' => uploaded_file_url($violation->citation_ticket_photo), 'label' => 'Citation Ticket', 'color' => 'red']);
     if ($violation->valid_id_photo)
