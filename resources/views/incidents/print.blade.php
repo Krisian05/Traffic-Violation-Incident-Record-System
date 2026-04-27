@@ -127,7 +127,7 @@ tbody tr:nth-child(even) { background: #f9fafb; }
             </div>
         </div>
         <div class="rpt-meta">
-            <div><strong>Recorded by:</strong> {{ $incident->recorder->name ?? '—' }}</div>
+            <div><strong>Recorded by:</strong> {{ $incident->recorder?->name ?? '—' }}</div>
             <div><strong>Date recorded:</strong> {{ $incident->created_at->format('M j, Y g:i A') }}</div>
             <div><strong>Printed:</strong> {{ now()->format('M j, Y g:i A') }}</div>
         </div>
@@ -239,7 +239,7 @@ tbody tr:nth-child(even) { background: #f9fafb; }
         <div>
             <div>Prepared by:</div>
             <div style="border-bottom: 1pt solid #000; width: 130pt; margin-top: 26pt; margin-left: 50pt;"></div>
-            <div style="font-size: 9pt; font-weight: 600; margin-top: 2pt; text-align: center; width: 130pt; margin-left: 50pt;">{{ $incident->recorder->name ?? 'N/A' }}</div>
+            <div style="font-size: 9pt; font-weight: 600; margin-top: 2pt; text-align: center; width: 130pt; margin-left: 50pt;">{{ $incident->recorder?->name ?? 'N/A' }}</div>
             <div style="font-size: 8pt; font-style: italic; margin-top: 2pt; text-align: center; width: 130pt; margin-left: 50pt;">Operation PNCO</div>
         </div>
         <div>
