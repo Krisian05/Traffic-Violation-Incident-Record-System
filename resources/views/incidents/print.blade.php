@@ -258,6 +258,33 @@ tbody tr:nth-child(even) { background: #f9fafb; }
     </div>
     @endif
 
+    {{-- Other Involved Parties --}}
+    @if(!empty($incident->other_involved))
+    <div class="section">
+        <div class="section-title" style="background:#ea580c;">Other Involved Parties</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:15%;">Type</th>
+                    <th style="width:30%;">Name</th>
+                    <th style="width:25%;">Contact / Address</th>
+                    <th style="width:30%;">Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($incident->other_involved as $party)
+                <tr>
+                    <td><strong>{{ $party['type'] }}</strong></td>
+                    <td>{{ $party['name'] ?? '—' }}</td>
+                    <td>{{ $party['contact'] ?? '—' }}</td>
+                    <td>{{ $party['notes'] ?? '—' }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @endif
+
     {{-- Signatures --}}
     <div style="display: flex; justify-content: space-between; margin-top: 60pt;">
         <div>

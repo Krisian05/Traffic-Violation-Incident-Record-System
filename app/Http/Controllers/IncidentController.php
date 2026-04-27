@@ -121,6 +121,11 @@ class IncidentController extends Controller
             'media_types.*'                     => 'in:scene,ticket,document,other',
             'captions'                          => 'nullable|array',
             'captions.*'                        => 'nullable|string|max:200',
+            'other_involved'                    => 'nullable|array|max:20',
+            'other_involved.*.type'             => 'required|string|max:50',
+            'other_involved.*.name'             => 'nullable|string|max:200',
+            'other_involved.*.contact'          => 'nullable|string|max:100',
+            'other_involved.*.notes'            => 'nullable|string|max:500',
         ]);
 
         // Ensure each motorist has a name or linked violator
@@ -130,12 +135,19 @@ class IncidentController extends Controller
             }
         }
 
-        $incident = DB::transaction(function () use ($request, $validated) {
+        // Build other_involved JSON (filter out empty rows)
+        $otherInvolved = collect($request->input('other_involved', []))
+            ->filter(fn($o) => !empty($o['type']))
+            ->values()
+            ->toArray();
+
+        $incident = DB::transaction(function () use ($request, $validated, $otherInvolved) {
             $incident = Incident::create([
                 'date_of_incident' => $validated['date_of_incident'],
                 'time_of_incident' => $validated['time_of_incident'] ?? null,
                 'location'         => $validated['location'],
                 'description'      => $validated['description'] ?? null,
+                'other_involved'   => !empty($otherInvolved) ? $otherInvolved : null,
                 'status'           => $validated['status'],
                 'recorded_by'      => Auth::id(),
             ]);
@@ -270,6 +282,11 @@ class IncidentController extends Controller
             'media_types.*'                   => 'in:scene,ticket,document,other',
             'captions'                        => 'nullable|array',
             'captions.*'                      => 'nullable|string|max:200',
+            'other_involved'                  => 'nullable|array|max:20',
+            'other_involved.*.type'           => 'required|string|max:50',
+            'other_involved.*.name'           => 'nullable|string|max:200',
+            'other_involved.*.contact'        => 'nullable|string|max:100',
+            'other_involved.*.notes'          => 'nullable|string|max:500',
         ]);
 
         foreach ($request->input('motorists', []) as $i => $m) {
@@ -278,12 +295,18 @@ class IncidentController extends Controller
             }
         }
 
-        DB::transaction(function () use ($request, $validated, $incident) {
+        $otherInvolved = collect($request->input('other_involved', []))
+            ->filter(fn($o) => !empty($o['type']))
+            ->values()
+            ->toArray();
+
+        DB::transaction(function () use ($request, $validated, $incident, $otherInvolved) {
             $incident->update([
                 'date_of_incident' => $validated['date_of_incident'],
                 'time_of_incident' => $validated['time_of_incident'] ?? null,
                 'location'         => $validated['location'],
                 'description'      => $validated['description'] ?? null,
+                'other_involved'   => !empty($otherInvolved) ? $otherInvolved : null,
                 'status'           => $validated['status'],
             ]);
 

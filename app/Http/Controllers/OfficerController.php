@@ -800,6 +800,11 @@ class OfficerController extends Controller
             'media_types.*'                       => 'in:scene,ticket,document,other',
             'captions'                            => 'nullable|array',
             'captions.*'                          => 'nullable|string|max:200',
+            'other_involved'                      => 'nullable|array|max:20',
+            'other_involved.*.type'               => 'required|string|max:50',
+            'other_involved.*.name'               => 'nullable|string|max:200',
+            'other_involved.*.contact'            => 'nullable|string|max:100',
+            'other_involved.*.notes'              => 'nullable|string|max:500',
         ]);
 
         foreach ($request->input('motorists', []) as $i => $m) {
@@ -810,12 +815,16 @@ class OfficerController extends Controller
             }
         }
 
-        $incident = DB::transaction(function () use ($request) {
+        $otherInvolved = collect($request->input('other_involved', []))
+            ->filter(fn($o) => !empty($o['type']))->values()->toArray();
+
+        $incident = DB::transaction(function () use ($request, $otherInvolved) {
             $incident = Incident::create([
                 'date_of_incident' => $request->input('date_of_incident'),
                 'time_of_incident' => $request->input('time_of_incident'),
                 'location'         => $request->input('location'),
                 'description'      => $request->input('description'),
+                'other_involved'   => !empty($otherInvolved) ? $otherInvolved : null,
                 'status'           => 'under_investigation',
                 'recorded_by'      => Auth::id(),
             ]);
@@ -1048,19 +1057,28 @@ class OfficerController extends Controller
         $this->authorize('update', $incident);
 
         $validated = $request->validate([
-            'date_of_incident' => 'required|date|before_or_equal:today',
-            'time_of_incident' => 'nullable|date_format:H:i',
-            'location'         => 'required|string|max:255',
-            'description'      => 'nullable|string|max:2000',
-            'incident_photos'  => 'nullable|array|max:6',
-            'incident_photos.*' => 'image|mimes:jpg,jpeg,png|max:20480',
+            'date_of_incident'      => 'required|date|before_or_equal:today',
+            'time_of_incident'      => 'nullable|date_format:H:i',
+            'location'              => 'required|string|max:255',
+            'description'           => 'nullable|string|max:2000',
+            'incident_photos'       => 'nullable|array|max:6',
+            'incident_photos.*'     => 'image|mimes:jpg,jpeg,png|max:20480',
+            'other_involved'        => 'nullable|array|max:20',
+            'other_involved.*.type' => 'required|string|max:50',
+            'other_involved.*.name' => 'nullable|string|max:200',
+            'other_involved.*.contact' => 'nullable|string|max:100',
+            'other_involved.*.notes'   => 'nullable|string|max:500',
         ]);
+
+        $otherInvolved = collect($request->input('other_involved', []))
+            ->filter(fn($o) => !empty($o['type']))->values()->toArray();
 
         $incident->update([
             'date_of_incident' => $validated['date_of_incident'],
             'time_of_incident' => $validated['time_of_incident'] ?? null,
             'location'         => $validated['location'],
             'description'      => $validated['description'] ?? null,
+            'other_involved'   => !empty($otherInvolved) ? $otherInvolved : null,
         ]);
 
         if ($request->hasFile('incident_photos')) {

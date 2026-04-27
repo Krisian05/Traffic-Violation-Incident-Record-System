@@ -132,6 +132,18 @@
                 @error('incident_photos')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
             </div>
 
+            {{-- Other Involved Parties --}}
+            <div class="mob-form-divider" style="margin:1.25rem 0 .75rem;">
+                <span class="mob-form-divider-line"></span>
+                <span class="mob-form-divider-text">Other Involved Parties</span>
+                <span class="mob-form-divider-line"></span>
+            </div>
+            <div class="mb-3" style="font-size:.78rem;color:#94a3b8;">Pedestrians, cyclists, pedicabs, bystanders, etc.</div>
+            <div id="other-parties-list"></div>
+            <button type="button" class="mob-btn-outline w-100 mb-4" onclick="addOtherParty()" style="border-color:#fed7aa;color:#ea580c;">
+                <i class="ph-bold ph-plus"></i> Add Other Involved Party
+            </button>
+
             <button type="submit" class="mob-btn-primary mob-btn-danger mb-2" id="incidentEditSubmitBtn">
                 <i class="ph-bold ph-check"></i> Save Changes
             </button>
@@ -149,11 +161,65 @@
 document.addEventListener('DOMContentLoaded', function () {
     initPhotoPicker('picker-incident-photos', 'incident_photos[]', { multiple: true });
 
+    // Pre-populate existing other involved parties
+    const existingOther = @json($incident->other_involved ?? []);
+    if (existingOther && existingOther.length > 0) {
+        existingOther.forEach(function(data) { addOtherParty(data); });
+    }
+
     document.querySelector('form').addEventListener('submit', function () {
         var btn = document.getElementById('incidentEditSubmitBtn');
         btn.disabled = true;
         btn.innerHTML = '<i class="ph ph-hourglass"></i> Saving…';
     });
 });
+
+/* ── Other Involved Parties ── */
+let otherPartyCount = 0;
+const OTHER_TYPES = ['Pedestrian', 'Bicycle', 'Pedicab', 'Tricycle', 'Animal-drawn', 'Bystander', 'Other'];
+
+function addOtherParty(data) {
+    const i = otherPartyCount++;
+    const list = document.getElementById('other-parties-list');
+    const typeOptions = OTHER_TYPES.map(t =>
+        `<option value="${t}"${data && data.type === t ? ' selected' : ''}>${t}</option>`
+    ).join('');
+    const div = document.createElement('div');
+    div.id = `other-party-${i}`;
+    div.style.cssText = 'border:1.5px solid #fed7aa;border-radius:10px;padding:.85rem 1rem;margin-bottom:.75rem;background:#fffbf5;position:relative;';
+    div.innerHTML = `
+        <button type="button" onclick="removeOtherParty(${i})"
+            style="position:absolute;top:.5rem;right:.5rem;background:#fee2e2;border:none;border-radius:6px;color:#dc2626;font-size:.75rem;padding:.2rem .5rem;cursor:pointer;font-weight:700;">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div class="mb-2">
+            <label class="mob-label">Type <span style="color:#dc2626;">*</span></label>
+            <select name="other_involved[${i}][type]" class="form-select mob-select" required>
+                <option value="">Select type...</option>
+                ${typeOptions}
+            </select>
+        </div>
+        <div class="mb-2">
+            <label class="mob-label">Name</label>
+            <input type="text" name="other_involved[${i}][name]" class="form-control mob-input"
+                placeholder="Full name (optional)" value="${data ? (data.name || '') : ''}">
+        </div>
+        <div class="mb-2">
+            <label class="mob-label">Contact / Address</label>
+            <input type="text" name="other_involved[${i}][contact]" class="form-control mob-input"
+                placeholder="Contact or address" value="${data ? (data.contact || '') : ''}">
+        </div>
+        <div>
+            <label class="mob-label">Notes</label>
+            <input type="text" name="other_involved[${i}][notes]" class="form-control mob-input"
+                placeholder="Injuries, condition, remarks..." value="${data ? (data.notes || '') : ''}">
+        </div>`;
+    list.appendChild(div);
+}
+
+function removeOtherParty(i) {
+    const el = document.getElementById(`other-party-${i}`);
+    if (el) el.remove();
+}
 </script>
 @endpush

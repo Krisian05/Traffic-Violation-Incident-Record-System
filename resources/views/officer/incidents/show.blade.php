@@ -410,4 +410,29 @@
 </div>
 @endif
 
+{{-- ── Other Involved Parties ── --}}
+@if(!empty($incident->other_involved))
+<div class="motshow-section">Other Involved Parties ({{ count($incident->other_involved) }})</div>
+<div class="motshow-card">
+    <div class="motshow-card-body">
+        @foreach($incident->other_involved as $party)
+        <div style="padding:.65rem 0;border-bottom:1px solid #f1f5f9;display:flex;align-items:flex-start;gap:.75rem;">
+            <span style="background:#fff7ed;color:#ea580c;border:1.5px solid #fed7aa;border-radius:6px;font-size:.72rem;font-weight:700;padding:.2rem .6rem;flex-shrink:0;">
+                {{ $party['type'] }}
+            </span>
+            <div>
+                <div style="font-size:.875rem;font-weight:600;color:#0f172a;">{{ $party['name'] ?? '(Name not provided)' }}</div>
+                @if(!empty($party['contact']))
+                <div style="font-size:.75rem;color:#64748b;margin-top:2px;">{{ $party['contact'] }}</div>
+                @endif
+                @if(!empty($party['notes']))
+                <div style="font-size:.75rem;color:#94a3b8;font-style:italic;margin-top:2px;">{{ $party['notes'] }}</div>
+                @endif
+            </div>
+        </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
 @endsection

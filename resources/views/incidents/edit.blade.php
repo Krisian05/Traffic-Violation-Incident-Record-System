@@ -321,6 +321,32 @@
             </div>
         </div>
 
+        {{-- Other Involved Parties (non-MV/MC) --}}
+        <div class="inc-section-card" id="other-involved-card">
+            <div class="inc-card-header" style="background:linear-gradient(135deg,#fff7ed 0%,#fff 100%);">
+                <div class="inc-card-header-left">
+                    <span class="inc-section-icon" style="background:linear-gradient(135deg,#ea580c,#c2410c);box-shadow:0 3px 10px rgba(234,88,12,.3);">
+                        <i class="bi bi-people-fill" style="color:#fff;font-size:.85rem;"></i>
+                    </span>
+                    <div>
+                        <div class="inc-section-title">Other Involved Parties</div>
+                        <div class="inc-section-sub">Pedestrians, cyclists, pedicabs, bystanders, etc.</div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm fw-600" id="addOtherPartyBtn"
+                    style="background:#fff7ed;color:#ea580c;border:1.5px solid #fed7aa;border-radius:8px;font-size:.78rem;padding:.3rem .85rem;"
+                    onclick="addOtherParty()">
+                    <i class="bi bi-plus-lg me-1"></i> Add Party
+                </button>
+            </div>
+            <div class="card-body" id="other-parties-container">
+                <div id="other-parties-list"></div>
+                <div id="other-parties-empty" style="font-size:.8rem;color:#a8a29e;font-style:italic;text-align:center;padding:.5rem 0;display:none;">
+                    No other involved parties. Click "Add Party" to add a pedestrian, cyclist, etc.
+                </div>
+            </div>
+        </div>
+
     </div>
 
     {{-- ── RIGHT COLUMN ── --}}
@@ -944,6 +970,71 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('beforeunload', function (e) {
         if (formDirty) { e.preventDefault(); e.returnValue = ''; }
     });
+
+    // Pre-populate other involved parties
+    const existingOther = @json($incident->other_involved ?? []);
+    if (existingOther && existingOther.length > 0) {
+        existingOther.forEach(function(data) { addOtherParty(data); });
+    } else {
+        document.getElementById('other-parties-empty').style.display = '';
+    }
 });
+
+/* ── Other Involved Parties ── */
+let otherPartyCount = 0;
+const OTHER_TYPES = ['Pedestrian', 'Bicycle', 'Pedicab', 'Tricycle', 'Animal-drawn', 'Bystander', 'Other'];
+
+function addOtherParty(data) {
+    const i = otherPartyCount++;
+    const list = document.getElementById('other-parties-list');
+    document.getElementById('other-parties-empty').style.display = 'none';
+
+    const typeOptions = OTHER_TYPES.map(t =>
+        `<option value="${t}"${data && data.type === t ? ' selected' : ''}>${t}</option>`
+    ).join('');
+
+    const div = document.createElement('div');
+    div.className = 'other-party-row';
+    div.id = `other-party-${i}`;
+    div.style.cssText = 'border:1.5px solid #fed7aa;border-radius:10px;padding:.85rem 1rem;margin-bottom:.75rem;background:#fffbf5;position:relative;';
+    div.innerHTML = `
+        <button type="button" onclick="removeOtherParty(${i})"
+            style="position:absolute;top:.5rem;right:.5rem;background:#fee2e2;border:none;border-radius:6px;color:#dc2626;font-size:.75rem;padding:.2rem .5rem;cursor:pointer;font-weight:700;">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div class="row g-2">
+            <div class="col-md-4">
+                <label style="font-size:.72rem;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.25rem;">Type <span class="text-danger">*</span></label>
+                <select name="other_involved[${i}][type]" class="form-select form-select-sm" required>
+                    <option value="">Select type...</option>
+                    ${typeOptions}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label style="font-size:.72rem;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.25rem;">Name</label>
+                <input type="text" name="other_involved[${i}][name]" class="form-control form-control-sm"
+                    placeholder="Full name (optional)" value="${data ? (data.name || '') : ''}">
+            </div>
+            <div class="col-md-4">
+                <label style="font-size:.72rem;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.25rem;">Contact / Address</label>
+                <input type="text" name="other_involved[${i}][contact]" class="form-control form-control-sm"
+                    placeholder="Contact or address" value="${data ? (data.contact || '') : ''}">
+            </div>
+            <div class="col-12">
+                <label style="font-size:.72rem;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.25rem;">Notes</label>
+                <input type="text" name="other_involved[${i}][notes]" class="form-control form-control-sm"
+                    placeholder="Injuries, condition, remarks..." value="${data ? (data.notes || '') : ''}">
+            </div>
+        </div>`;
+    list.appendChild(div);
+}
+
+function removeOtherParty(i) {
+    const el = document.getElementById(`other-party-${i}`);
+    if (el) el.remove();
+    if (!document.querySelector('.other-party-row')) {
+        document.getElementById('other-parties-empty').style.display = '';
+    }
+}
 </script>
 @endpush

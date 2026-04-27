@@ -29,12 +29,14 @@ class Incident extends Model
         'time_of_incident',
         'location',
         'description',
+        'other_involved',
         'status',
         'recorded_by',
     ];
 
     protected $casts = [
         'date_of_incident' => 'date',
+        'other_involved'   => 'array',
     ];
 
     protected static function boot(): void

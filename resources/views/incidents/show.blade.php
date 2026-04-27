@@ -341,6 +341,46 @@
             </div>
         </div>
 
+        {{-- Card 2b: Other Involved Parties --}}
+        @if(!empty($incident->other_involved))
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header d-flex align-items-center gap-2 py-3">
+                <span class="rounded d-flex align-items-center justify-content-center"
+                      style="width:28px;height:28px;background:#fff7ed;">
+                    <i class="bi bi-people-fill" style="font-size:.85rem;color:#ea580c;"></i>
+                </span>
+                <span class="fw-600" style="font-size:.925rem;color:#292524;">Other Involved Parties</span>
+                <span class="ms-auto badge" style="background:#fff7ed;color:#ea580c;font-size:.7rem;">
+                    {{ count($incident->other_involved) }} {{ count($incident->other_involved) != 1 ? 'parties' : 'party' }}
+                </span>
+            </div>
+            <div class="card-body p-0">
+                @foreach($incident->other_involved as $party)
+                <div class="d-flex align-items-start gap-3 px-4 py-3" style="border-bottom:1px solid #f5f0e8;">
+                    <span class="badge" style="background:#fff7ed;color:#ea580c;border:1.5px solid #fed7aa;font-size:.75rem;font-weight:700;flex-shrink:0;margin-top:2px;">
+                        {{ $party['type'] }}
+                    </span>
+                    <div>
+                        <div class="fw-600" style="font-size:.875rem;color:#1c1917;">
+                            {{ $party['name'] ?? '(Name not provided)' }}
+                        </div>
+                        @if(!empty($party['contact']))
+                        <div style="font-size:.78rem;color:#78716c;margin-top:2px;">
+                            <i class="bi bi-geo-alt me-1"></i>{{ $party['contact'] }}
+                        </div>
+                        @endif
+                        @if(!empty($party['notes']))
+                        <div style="font-size:.78rem;color:#57534e;margin-top:2px;font-style:italic;">
+                            {{ $party['notes'] }}
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
         {{-- Card 3: Evidence & Media --}}
         @if($incident->media->count())
         <div class="card border-0 shadow-sm mb-4">
