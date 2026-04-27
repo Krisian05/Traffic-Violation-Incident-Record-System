@@ -61,6 +61,7 @@
                     <select name="role" class="form-select usr-input @error('role') is-invalid @enderror" required>
                         <option value="traffic_officer" {{ old('role','traffic_officer') == 'traffic_officer' ? 'selected' : '' }}>Traffic Officer — Mobile</option>
                         <option value="operator"        {{ old('role') == 'operator'                         ? 'selected' : '' }}>Operator — Full Access</option>
+                        <option value="admin"           {{ old('role') == 'admin'                            ? 'selected' : '' }}>Admin — User Management</option>
                     </select>
                     @error('role')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>

@@ -24,7 +24,7 @@ class UserController extends Controller
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', 'unique:users,username', 'alpha_dash'],
-            'role'     => ['required', 'in:operator,traffic_officer'],
+            'role'     => ['required', 'in:admin,operator,traffic_officer'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
@@ -44,7 +44,7 @@ class UserController extends Controller
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', "unique:users,username,{$user->id}", 'alpha_dash'],
-            'role'     => ['required', 'in:operator,traffic_officer'],
+            'role'     => ['required', 'in:admin,operator,traffic_officer'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
 

@@ -60,7 +60,11 @@
                         <span class="usr-username">{{ $user->username }}</span>
                     </td>
                     <td>
-                        @if($user->isOperator())
+                        @if($user->isAdmin())
+                            <span class="usr-role-badge usr-role-admin">
+                                <i class="bi bi-person-fill-gear me-1"></i>Admin
+                            </span>
+                        @elseif($user->isOperator())
                             <span class="usr-role-badge usr-role-op">
                                 <i class="bi bi-shield-fill-check me-1"></i>Operator
                             </span>
@@ -218,6 +222,7 @@
     padding: .26rem .7rem; border-radius: 20px; border: 1.5px solid;
     font-size: .72rem; font-weight: 700;
 }
+.usr-role-admin { background:#fdf4ff;color:#7c3aed;border-color:#e9d5ff; }
 .usr-role-op { background:#fef2f2;color:#b91c1c;border-color:#fca5a5; }
 .usr-role-to { background:#f0fdf4;color:#15803d;border-color:#86efac; }
 

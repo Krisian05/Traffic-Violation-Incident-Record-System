@@ -19,14 +19,19 @@ class DatabaseSeeder extends Seeder
             throw new \RuntimeException('DEFAULT_ADMIN_PASSWORD must be set in your .env before seeding.');
         }
 
-        User::firstOrCreate(
+        $adminUser = User::firstOrCreate(
             ['username' => 'admin'],
             [
                 'name'     => 'Administrator',
-                'role'     => 'operator',
+                'role'     => 'admin',
                 'password' => Hash::make($adminPassword),
             ]
         );
+
+        // Ensure existing admin user has the admin role
+        if ($adminUser->role !== 'admin') {
+            $adminUser->update(['role' => 'admin']);
+        }
 
         // Seed common traffic violation types
         $violationTypes = [

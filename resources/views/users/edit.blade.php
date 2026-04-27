@@ -18,7 +18,9 @@
             <div class="usr-form-title">Edit User</div>
             <div class="usr-form-sub">{{ $user->username }}</div>
         </div>
-        @if($user->isOperator())
+        @if($user->isAdmin())
+            <span class="usr-role-chip usr-role-admin ms-auto"><i class="bi bi-person-fill-gear me-1"></i>Admin</span>
+        @elseif($user->isOperator())
             <span class="usr-role-chip usr-role-op ms-auto"><i class="bi bi-shield-fill-check me-1"></i>Operator</span>
         @else
             <span class="usr-role-chip usr-role-to ms-auto"><i class="bi bi-phone-fill me-1"></i>Traffic Officer</span>
@@ -64,6 +66,7 @@
                     <select name="role" class="form-select usr-input @error('role') is-invalid @enderror" required>
                         <option value="traffic_officer" {{ old('role', $user->role) == 'traffic_officer' ? 'selected' : '' }}>Traffic Officer — Mobile</option>
                         <option value="operator"        {{ old('role', $user->role) == 'operator'        ? 'selected' : '' }}>Operator — Full Access</option>
+                        <option value="admin"           {{ old('role', $user->role) == 'admin'           ? 'selected' : '' }}>Admin — User Management</option>
                     </select>
                     @error('role')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
@@ -147,6 +150,7 @@
     padding: .24rem .65rem; border-radius: 20px; border: 1.5px solid;
     font-size: .7rem; font-weight: 700; white-space: nowrap;
 }
+.usr-role-admin { background:#fdf4ff;color:#7c3aed;border-color:#e9d5ff; }
 .usr-role-op { background:#fef2f2;color:#b91c1c;border-color:#fca5a5; }
 .usr-role-to { background:#f0fdf4;color:#15803d;border-color:#86efac; }
 
