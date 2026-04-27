@@ -868,7 +868,12 @@ function addOtherParty(data) {
                 <input type="text" name="other_involved[${i}][contact]" class="form-control form-control-sm"
                     placeholder="Contact or address" value="${data ? (data.contact || '') : ''}">
             </div>
-            <div class="col-12">
+            <div class="col-md-6">
+                <label style="font-size:.72rem;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.25rem;">Charge / Offense</label>
+                <input type="text" name="other_involved[${i}][charge]" class="form-control form-control-sm"
+                    placeholder="e.g. Reckless driving, jaywalking..." value="${data ? (data.charge || '') : ''}">
+            </div>
+            <div class="col-md-6">
                 <label style="font-size:.72rem;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.25rem;">Notes</label>
                 <input type="text" name="other_involved[${i}][notes]" class="form-control form-control-sm"
                     placeholder="Injuries, condition, remarks..." value="${data ? (data.notes || '') : ''}">

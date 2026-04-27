@@ -125,6 +125,7 @@ class IncidentController extends Controller
             'other_involved.*.type'             => 'required|string|max:50',
             'other_involved.*.name'             => 'nullable|string|max:200',
             'other_involved.*.contact'          => 'nullable|string|max:100',
+            'other_involved.*.charge'           => 'nullable|string|max:200',
             'other_involved.*.notes'            => 'nullable|string|max:500',
         ]);
 
@@ -286,6 +287,7 @@ class IncidentController extends Controller
             'other_involved.*.type'           => 'required|string|max:50',
             'other_involved.*.name'           => 'nullable|string|max:200',
             'other_involved.*.contact'        => 'nullable|string|max:100',
+            'other_involved.*.charge'         => 'nullable|string|max:200',
             'other_involved.*.notes'          => 'nullable|string|max:500',
         ]);
 

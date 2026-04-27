@@ -369,6 +369,11 @@
                             <i class="bi bi-geo-alt me-1"></i>{{ $party['contact'] }}
                         </div>
                         @endif
+                        @if(!empty($party['charge']))
+                        <div style="font-size:.78rem;color:#dc2626;margin-top:2px;font-weight:600;">
+                            <i class="bi bi-exclamation-circle me-1"></i>{{ $party['charge'] }}
+                        </div>
+                        @endif
                         @if(!empty($party['notes']))
                         <div style="font-size:.78rem;color:#57534e;margin-top:2px;font-style:italic;">
                             {{ $party['notes'] }}

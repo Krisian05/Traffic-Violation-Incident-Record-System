@@ -265,10 +265,11 @@ tbody tr:nth-child(even) { background: #f9fafb; }
         <table>
             <thead>
                 <tr>
-                    <th style="width:15%;">Type</th>
-                    <th style="width:30%;">Name</th>
-                    <th style="width:25%;">Contact / Address</th>
-                    <th style="width:30%;">Notes</th>
+                    <th style="width:13%;">Type</th>
+                    <th style="width:25%;">Name</th>
+                    <th style="width:22%;">Contact / Address</th>
+                    <th style="width:22%;">Charge / Offense</th>
+                    <th style="width:18%;">Notes</th>
                 </tr>
             </thead>
             <tbody>
@@ -277,6 +278,7 @@ tbody tr:nth-child(even) { background: #f9fafb; }
                     <td><strong>{{ $party['type'] }}</strong></td>
                     <td>{{ $party['name'] ?? '—' }}</td>
                     <td>{{ $party['contact'] ?? '—' }}</td>
+                    <td>{{ $party['charge'] ?? '—' }}</td>
                     <td>{{ $party['notes'] ?? '—' }}</td>
                 </tr>
                 @endforeach

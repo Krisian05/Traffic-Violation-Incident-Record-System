@@ -809,6 +809,7 @@ class OfficerController extends Controller
             'other_involved.*.type'               => 'required|string|max:50',
             'other_involved.*.name'               => 'nullable|string|max:200',
             'other_involved.*.contact'            => 'nullable|string|max:100',
+            'other_involved.*.charge'             => 'nullable|string|max:200',
             'other_involved.*.notes'              => 'nullable|string|max:500',
         ]);
 
@@ -1068,10 +1069,11 @@ class OfficerController extends Controller
             'description'           => 'nullable|string|max:2000',
             'incident_photos'       => 'nullable|array|max:6',
             'incident_photos.*'     => 'image|mimes:jpg,jpeg,png|max:20480',
-            'other_involved'        => 'nullable|array|max:20',
-            'other_involved.*.type' => 'required|string|max:50',
-            'other_involved.*.name' => 'nullable|string|max:200',
+            'other_involved'           => 'nullable|array|max:20',
+            'other_involved.*.type'    => 'required|string|max:50',
+            'other_involved.*.name'    => 'nullable|string|max:200',
             'other_involved.*.contact' => 'nullable|string|max:100',
+            'other_involved.*.charge'  => 'nullable|string|max:200',
             'other_involved.*.notes'   => 'nullable|string|max:500',
         ]);
 
