@@ -984,6 +984,7 @@ document.addEventListener('DOMContentLoaded', function () {
 /* ── Other Involved Parties ── */
 let otherPartyCount = 0;
 const OTHER_TYPES = ['Pedestrian', 'Bicycle', 'Pedicab', 'Tricycle', 'Animal-drawn', 'Bystander', 'Other'];
+const CHARGE_TYPES = @json($chargeTypes->pluck('name'));
 
 function addOtherParty(data) {
     const i = otherPartyCount++;
@@ -992,6 +993,10 @@ function addOtherParty(data) {
 
     const typeOptions = OTHER_TYPES.map(t =>
         `<option value="${t}"${data && data.type === t ? ' selected' : ''}>${t}</option>`
+    ).join('');
+
+    const chargeOptions = '<option value="">— None —</option>' + CHARGE_TYPES.map(c =>
+        `<option value="${c}"${data && data.charge === c ? ' selected' : ''}>${c}</option>`
     ).join('');
 
     const div = document.createElement('div');
@@ -1023,8 +1028,9 @@ function addOtherParty(data) {
             </div>
             <div class="col-md-6">
                 <label style="font-size:.72rem;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.25rem;">Charge / Offense</label>
-                <input type="text" name="other_involved[${i}][charge]" class="form-control form-control-sm"
-                    placeholder="e.g. Reckless driving, jaywalking..." value="${data ? (data.charge || '') : ''}">
+                <select name="other_involved[${i}][charge]" class="form-select form-select-sm">
+                    ${chargeOptions}
+                </select>
             </div>
             <div class="col-md-6">
                 <label style="font-size:.72rem;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.25rem;">Notes</label>
