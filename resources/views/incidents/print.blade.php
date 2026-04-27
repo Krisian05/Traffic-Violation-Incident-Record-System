@@ -69,44 +69,11 @@ tbody tr:nth-child(even) { background: #f9fafb; }
 .sig-row { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
 .sig-box { border-top: 1px solid #111; padding-top: 4px; font-size: 9px; text-align: center; color: #374151; }
 
-/* ─── Photo page ─── */
-.photo-page {
-    page-break-before: always;
-    max-width: 820px; margin: 0 auto; padding: 28px 32px;
-}
-.photo-page-title {
-    text-align: center; font-size: 11px; font-weight: 900;
-    text-transform: uppercase; letter-spacing: .12em; color: #b91c1c;
-    border-bottom: 2px solid #b91c1c; padding: 3px 0 5px; margin-bottom: 12px;
-}
-.photo-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 10mm;
-}
-.photo-cell {
-    display: flex; flex-direction: column;
-    border: 1.5px solid #e7e2db; border-radius: 6px; overflow: hidden;
-    page-break-inside: avoid;
-}
-.photo-cell-label {
-    font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em;
-    color: #fff; background: #475569; padding: 3px 8px; text-align: center; flex-shrink: 0;
-}
-.photo-cell-label.scene    { background: #1d4ed8; }
-.photo-cell-label.ticket   { background: #b45309; }
-.photo-cell-label.document { background: #6d28d9; }
-.photo-cell-label.other    { background: #475569; }
-.photo-cell-img {
-    height: 78mm; background: #f8fafc;
-    display: flex; align-items: center; justify-content: center;
-}
-.photo-cell-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
-
 @media print {
     html, body { padding: 0 !important; margin: 0 !important; }
     body { font-size: 10px; }
     .no-print { display: none !important; }
-    .page, .photo-page { margin: 0 !important; padding: 0 !important; }
-    .photo-cell-img { height: 78mm; }
+    .page { margin: 0 !important; padding: 0 !important; }
 
     /* 9-column motorists table — landscape + fixed layout */
     table { table-layout: fixed !important; width: 100% !important; }
