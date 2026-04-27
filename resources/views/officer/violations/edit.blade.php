@@ -257,6 +257,24 @@
                 @error('citation_ticket_photo')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
             </div>
 
+            @if($violation->valid_id_photo)
+            <div class="mb-3">
+                <label class="mob-label">Current Valid ID</label>
+                <img src="{{ uploaded_file_url($violation->valid_id_photo) }}"
+                     style="max-width:100%;max-height:180px;border-radius:12px;object-fit:contain;border:1px solid #e2e8f0;"
+                     alt="Valid ID">
+                <label style="display:flex;align-items:center;gap:.45rem;font-size:.76rem;color:#dc2626;margin-top:.45rem;">
+                    <input type="checkbox" name="remove_valid_id_photo" value="1"> Remove current valid ID photo
+                </label>
+            </div>
+            @endif
+
+            <div class="mb-3">
+                <label class="mob-label">{{ $violation->valid_id_photo ? 'Replace' : 'Upload' }} Valid ID Photo</label>
+                <div id="picker-valid-id"></div>
+                @error('valid_id_photo')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
+            </div>
+
             <div id="settlement-fields" @if(old('status', $violation->status) !== 'settled') style="display:none;" @endif>
                 <div class="mob-form-divider">
                     <span class="mob-form-divider-text">Settlement</span>
@@ -322,6 +340,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     initPhotoPicker('picker-veh-photos', 'photos',                { multiple: true  });
     initPhotoPicker('picker-citation',   'citation_ticket_photo', { multiple: false });
+    initPhotoPicker('picker-valid-id',   'valid_id_photo',         { multiple: false });
     initPhotoPicker('picker-receipt',    'receipt_photo',         { multiple: false });
 });
 

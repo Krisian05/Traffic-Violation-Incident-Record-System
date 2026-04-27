@@ -409,13 +409,18 @@
     </div>{{-- /two-col --}}
 
     {{-- Photos Row --}}
-    @if($violation->citation_ticket_photo || $violation->vehiclePhotos->isNotEmpty() || $violation->receipt_photo)
+    @if($violation->citation_ticket_photo || $violation->valid_id_photo || $violation->vehiclePhotos->isNotEmpty() || $violation->receipt_photo)
     <div class="section">
         <div class="section-title slate">Attached Photos</div>
         <div class="photo-strip">
             @if($violation->citation_ticket_photo)
                 <div class="photo-item" title="Citation Ticket">
                     <img src="{{ uploaded_file_url($violation->citation_ticket_photo) }}" alt="Citation Ticket">
+                </div>
+            @endif
+            @if($violation->valid_id_photo)
+                <div class="photo-item" title="Valid ID">
+                    <img src="{{ uploaded_file_url($violation->valid_id_photo) }}" alt="Valid ID">
                 </div>
             @endif
             @foreach($violation->vehiclePhotos as $p)
@@ -430,7 +435,7 @@
             @endif
         </div>
         <div style="font-size:8.5px;color:#a8a29e;margin-top:4px;">
-            {{ ($violation->citation_ticket_photo ? 1 : 0) + $violation->vehiclePhotos->count() + ($violation->receipt_photo ? 1 : 0) }} attached photo(s)
+            {{ ($violation->citation_ticket_photo ? 1 : 0) + ($violation->valid_id_photo ? 1 : 0) + $violation->vehiclePhotos->count() + ($violation->receipt_photo ? 1 : 0) }} attached photo(s)
         </div>
     </div>
     @endif

@@ -229,6 +229,12 @@
             </div>
 
             <div class="mb-3">
+                <label class="mob-label">Valid ID Photo</label>
+                <div id="picker-valid-id"></div>
+                @error('valid_id_photo')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="mb-3">
                 <label class="mob-label">Vehicle Photos <span style="font-size:.68rem;color:#94a3b8;">(up to 4)</span></label>
                 <div id="picker-veh-photos"></div>
                 @error('photos')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
@@ -259,6 +265,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     initPhotoPicker('picker-citation',   'citation_ticket_photo', { multiple: false });
+    initPhotoPicker('picker-valid-id',   'valid_id_photo',         { multiple: false });
     initPhotoPicker('picker-veh-photos', 'photos',                { multiple: true  });
 });
 

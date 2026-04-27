@@ -101,6 +101,7 @@ class ViolationController extends Controller
             'location'           => ['nullable', 'string', 'max:255'],
             'ticket_number'           => ['nullable', 'string', 'max:50'],
             'citation_ticket_photo'   => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
+            'valid_id_photo'          => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
             'status'                  => ['required', 'in:pending,settled'],
             'notes'                   => ['nullable', 'string', 'max:1000'],
         ]);
@@ -141,6 +142,10 @@ class ViolationController extends Controller
 
         if ($request->hasFile('citation_ticket_photo')) {
             $data['citation_ticket_photo'] = $request->file('citation_ticket_photo')->store('citation-tickets', uploads_disk());
+        }
+
+        if ($request->hasFile('valid_id_photo')) {
+            $data['valid_id_photo'] = $request->file('valid_id_photo')->store('valid-id-photos', uploads_disk());
         }
 
         unset($data['photos']);
@@ -206,6 +211,7 @@ class ViolationController extends Controller
             'location'           => ['nullable', 'string', 'max:255'],
             'ticket_number'           => ['nullable', 'string', 'max:50'],
             'citation_ticket_photo'   => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
+            'valid_id_photo'          => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
             'status'       => ['required', 'in:pending,settled'],
             'notes'        => ['nullable', 'string', 'max:1000'],
             'or_number'    => ['nullable', 'string', 'max:50'],
@@ -243,6 +249,21 @@ class ViolationController extends Controller
             $data['citation_ticket_photo'] = $request->file('citation_ticket_photo')->store('citation-tickets', uploads_disk());
         } else {
             unset($data['citation_ticket_photo']);
+        }
+
+        // Valid ID photo: replace or remove
+        if ($request->boolean('remove_valid_id_photo') && !$request->hasFile('valid_id_photo')) {
+            if ($violation->valid_id_photo) {
+                Storage::disk(uploads_disk())->delete($violation->valid_id_photo);
+            }
+            $data['valid_id_photo'] = null;
+        } elseif ($request->hasFile('valid_id_photo')) {
+            if ($violation->valid_id_photo) {
+                Storage::disk(uploads_disk())->delete($violation->valid_id_photo);
+            }
+            $data['valid_id_photo'] = $request->file('valid_id_photo')->store('valid-id-photos', uploads_disk());
+        } else {
+            unset($data['valid_id_photo']);
         }
 
         // Receipt photo: replace or remove (only when settled)
@@ -364,6 +385,10 @@ class ViolationController extends Controller
 
         if ($violation->citation_ticket_photo) {
             Storage::disk(uploads_disk())->delete($violation->citation_ticket_photo);
+        }
+
+        if ($violation->valid_id_photo) {
+            Storage::disk(uploads_disk())->delete($violation->valid_id_photo);
         }
 
         if ($violation->receipt_photo) {

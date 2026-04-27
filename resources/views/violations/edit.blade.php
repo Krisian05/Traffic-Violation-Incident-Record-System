@@ -443,6 +443,36 @@
                         </div>
                     </div>
 
+                    <div class="col-md-6">
+                        <label class="form-label">Valid ID Photo</label>
+                        @if($violation->valid_id_photo)
+                            <div class="mb-2" id="currentValidIdWrap">
+                                <img src="{{ uploaded_file_url($violation->valid_id_photo) }}"
+                                     alt="Current valid ID"
+                                     style="max-width:100%;max-height:160px;object-fit:contain;border-radius:8px;border:2px solid #c4b5fd;">
+                                <div class="d-flex align-items-center gap-2 mt-1">
+                                    <span style="font-size:.72rem;color:#a8a29e;">Current photo — upload new to replace</span>
+                                    <label class="d-flex align-items-center gap-1 ms-auto" style="font-size:.75rem;color:#dc2626;cursor:pointer;">
+                                        <input type="checkbox" name="remove_valid_id_photo" value="1">
+                                        Remove
+                                    </label>
+                                </div>
+                            </div>
+                        @endif
+                        <input type="file" name="valid_id_photo" id="valid_id_photo"
+                            accept="image/jpeg,image/png"
+                            class="form-control @error('valid_id_photo') is-invalid @enderror"
+                            onchange="previewValidIdPhoto(event)">
+                        @error('valid_id_photo')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <div class="form-text">Optional. JPG/PNG, max 10 MB.</div>
+                        <div class="mt-2" id="validIdPhotoPreview" style="display:none;">
+                            <img id="validIdPhotoImg" src="" alt="Valid ID preview"
+                                 style="max-width:100%;max-height:160px;border-radius:8px;border:2px dashed #c4b5fd;object-fit:contain;">
+                        </div>
+                    </div>
+
                     <div class="col-12">
                         <label class="form-label">Notes / Remarks</label>
                         <textarea name="notes"
@@ -743,6 +773,17 @@
             input.value = '';
             document.getElementById('citationPhotoPreview').style.display = 'none';
         }
+    }
+
+    function previewValidIdPhoto(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('validIdPhotoImg').src = e.target.result;
+            document.getElementById('validIdPhotoPreview').style.display = '';
+        };
+        reader.readAsDataURL(file);
     }
 
     function previewReceiptPhoto(event) {

@@ -346,6 +346,22 @@
                         </div>
                     </div>
 
+                    <div class="col-md-6">
+                        <label class="form-label">Valid ID Photo</label>
+                        <input type="file" name="valid_id_photo" id="valid_id_photo"
+                            accept="image/jpeg,image/png"
+                            class="form-control @error('valid_id_photo') is-invalid @enderror"
+                            onchange="previewValidIdPhoto(event)">
+                        @error('valid_id_photo')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <div class="form-text">Optional. Photo of the motorist's valid ID. JPG/PNG, max 10 MB.</div>
+                        <div class="mt-2" id="validIdPhotoPreview" style="display:none;">
+                            <img id="validIdPhotoImg" src="" alt="Valid ID"
+                                 style="max-width:100%;max-height:220px;border-radius:8px;border:2px solid #c4b5fd;object-fit:contain;">
+                        </div>
+                    </div>
+
                     <div class="col-12">
                         <label class="form-label">Notes / Remarks</label>
                         <textarea name="notes"
@@ -510,6 +526,17 @@
         reader.onload = e => {
             document.getElementById('citationPhotoImg').src = e.target.result;
             document.getElementById('citationPhotoPreview').style.display = '';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function previewValidIdPhoto(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('validIdPhotoImg').src = e.target.result;
+            document.getElementById('validIdPhotoPreview').style.display = '';
         };
         reader.readAsDataURL(file);
     }

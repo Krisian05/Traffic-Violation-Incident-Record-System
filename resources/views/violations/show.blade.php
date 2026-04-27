@@ -236,6 +236,23 @@
                     </div>
                     @endif
 
+                    {{-- Valid ID Photo --}}
+                    @if($violation->valid_id_photo)
+                    <div class="d-flex align-items-start gap-3 px-4 py-3" style="border-bottom:1px solid #f5f0e8;">
+                        <div style="width:120px;flex-shrink:0;font-size:.8rem;color:#a8a29e;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">Valid ID</div>
+                        <div>
+                            <img src="{{ uploaded_file_url($violation->valid_id_photo) }}"
+                                 alt="Valid ID"
+                                 data-lightbox="{{ uploaded_file_url($violation->valid_id_photo) }}"
+                                 data-caption="Valid ID — Violation #{{ $violation->id }}"
+                                 style="max-width:260px;max-height:200px;object-fit:contain;border-radius:8px;border:2px solid #c4b5fd;cursor:zoom-in;transition:transform .15s;"
+                                 onmouseover="this.style.transform='scale(1.02)'"
+                                 onmouseout="this.style.transform='scale(1)'">
+                            <div style="font-size:.72rem;color:#a8a29e;margin-top:4px;"><i class="bi bi-zoom-in me-1"></i>Click to enlarge</div>
+                        </div>
+                    </div>
+                    @endif
+
                     {{-- Status --}}
                     <div class="d-flex align-items-start gap-3 px-4 py-3" style="border-bottom:1px solid #f5f0e8;">
                         <div style="width:120px;flex-shrink:0;font-size:.8rem;color:#a8a29e;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">Status</div>
