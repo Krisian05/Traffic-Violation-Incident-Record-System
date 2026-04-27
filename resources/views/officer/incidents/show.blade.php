@@ -56,6 +56,7 @@
         'under_investigation' => ['label' => 'Under Investigation', 'class' => 'motshow-status--danger', 'icon' => 'ph-flag'],
         'cleared'             => ['label' => 'Cleared',             'class' => 'motshow-status--info',   'icon' => 'ph-shield-check'],
         'solved'              => ['label' => 'Solved',              'class' => 'motshow-status--safe',   'icon' => 'ph-check-circle'],
+        'settled'             => ['label' => 'Settled',             'class' => 'motshow-status--safe',   'icon' => 'ph-handshake'],
         default               => ['label' => 'Under Investigation', 'class' => 'motshow-status--danger', 'icon' => 'ph-flag'],
     };
     $mediaLabels = ['scene' => 'Scene Photo', 'ticket' => 'Citation Ticket', 'document' => 'Document', 'other' => 'Other'];

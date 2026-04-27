@@ -14,11 +14,13 @@
 .inc-status-under_investigation { background:#eff6ff;color:#1d4ed8;border:1.5px solid #93c5fd; }
 .inc-status-cleared             { background:#fef3c7;color:#92400e;border:1.5px solid #fcd34d; }
 .inc-status-solved              { background:#f0fdf4;color:#15803d;border:1.5px solid #86efac; }
+.inc-status-settled             { background:#faf5ff;color:#6b21a8;border:1.5px solid #d8b4fe; }
 .inc-status-default             { background:#f8fafc;color:#475569;border:1.5px solid #cbd5e1; }
 .inc-status-dot { border-radius:50%;display:inline-block;flex-shrink:0; }
 .inc-status-under_investigation .inc-status-dot { background:#2563eb; }
 .inc-status-cleared             .inc-status-dot { background:#f59e0b; }
 .inc-status-solved              .inc-status-dot { background:#22c55e; }
+.inc-status-settled             .inc-status-dot { background:#9333ea; }
 .inc-status-default             .inc-status-dot { background:#94a3b8; }
 /* ── Motorist tag ── */
 .mot-tag { font-size:.64rem;font-weight:700;padding:.15rem .5rem;border-radius:10px;letter-spacing:.03em; }
@@ -44,8 +46,8 @@
 @section('content')
 
 @php
-    $statusLabels = ['under_investigation' => 'Under Investigation', 'cleared' => 'Cleared', 'solved' => 'Solved'];
-    $statusPill   = in_array($incident->status, ['under_investigation','cleared','solved'])
+    $statusLabels = ['under_investigation' => 'Under Investigation', 'cleared' => 'Cleared', 'solved' => 'Solved', 'settled' => 'Settled'];
+    $statusPill   = in_array($incident->status, ['under_investigation','cleared','solved','settled'])
                         ? 'inc-status-' . $incident->status : 'inc-status-default';
     $restrDesc    = ['A'=>'Motorcycle','A1'=>'MC w/ Sidecar','B'=>'Light Vehicle','B1'=>'Light Vehicle (Prof.)','B2'=>'Light Vehicle w/ Trailer','C'=>'Medium/Heavy Truck','D'=>'Bus','BE'=>'Light + Heavy Trailer','CE'=>'Large Truck + Trailer'];
     $mediaLabels  = ['scene'=>'Scene Photo','ticket'=>'Citation Ticket','document'=>'Document','other'=>'Other'];

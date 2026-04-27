@@ -96,7 +96,7 @@ class IncidentController extends Controller
             'time_of_incident'                  => 'nullable|date_format:H:i',
             'location'                          => 'required|string|max:255',
             'description'                       => 'nullable|string|max:2000',
-            'status'                            => 'required|in:cleared,under_investigation,solved',
+            'status'                            => 'required|in:cleared,under_investigation,solved,settled',
             'motorists'                         => 'required|array|min:1|max:10',
             'motorists.*.violator_id'           => 'nullable|exists:violators,id',
             'motorists.*.motorist_name'         => 'nullable|string|max:200',
@@ -241,7 +241,7 @@ class IncidentController extends Controller
             'time_of_incident'              => 'nullable|date_format:H:i',
             'location'                      => 'required|string|max:255',
             'description'                   => 'nullable|string|max:2000',
-            'status'                        => 'required|in:cleared,under_investigation,solved',
+            'status'                        => 'required|in:cleared,under_investigation,solved,settled',
             'motorists'                     => 'required|array|min:1|max:10',
             'motorists.*.motorist_id'       => 'nullable|integer|exists:incident_motorists,id',
             'motorists.*.violator_id'       => 'nullable|exists:violators,id',
@@ -648,7 +648,7 @@ class IncidentController extends Controller
             return '';
         }
 
-        return in_array($value, ['under_investigation', 'cleared', 'solved'], true)
+        return in_array($value, ['under_investigation', 'cleared', 'solved', 'settled'], true)
             ? $value
             : '';
     }

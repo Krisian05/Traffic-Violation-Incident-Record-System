@@ -35,6 +35,7 @@ body { font-family: 'Arial', sans-serif; font-size: 12px; color: #111; backgroun
 .status-under_investigation { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
 .status-cleared             { background:#fffbeb; color:#92400e; border-color:#fde68a; }
 .status-solved              { background:#f0fdf4; color:#15803d; border-color:#bbf7d0; }
+.status-settled             { background:#faf5ff; color:#6b21a8; border-color:#d8b4fe; }
 
 /* Sections */
 .section { margin-bottom: 18px; }
@@ -118,7 +119,7 @@ tbody tr:nth-child(even) { background: #f9fafb; }
             <div class="rpt-number">{{ $incident->incident_number }}</div>
             <div style="margin-top:5px;">
                 @php
-                    $statusLabels = ['under_investigation' => 'Under Investigation', 'cleared' => 'Cleared', 'solved' => 'Solved'];
+                    $statusLabels = ['under_investigation' => 'Under Investigation', 'cleared' => 'Cleared', 'solved' => 'Solved', 'settled' => 'Settled'];
                 @endphp
                 <span class="status-badge status-{{ $incident->status }}">
                     {{ $statusLabels[$incident->status] ?? $incident->status }}

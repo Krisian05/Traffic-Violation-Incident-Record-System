@@ -239,6 +239,7 @@
                             <option value="under_investigation" {{ old('status', 'under_investigation') === 'under_investigation' ? 'selected' : '' }}>Under Investigation</option>
                             <option value="cleared"            {{ old('status') === 'cleared'            ? 'selected' : '' }}>Cleared</option>
                             <option value="solved"             {{ old('status') === 'solved'             ? 'selected' : '' }}>Solved</option>
+                            <option value="settled"            {{ old('status') === 'settled'            ? 'selected' : '' }}>Settled</option>
                         </select>
                         @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>

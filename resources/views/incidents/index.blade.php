@@ -6,6 +6,7 @@
 .inc-status-under_investigation { display:inline-block;padding:.1rem .5rem;border-radius:20px;font-size:.66rem;font-weight:700;background:#eff6ff;color:#1d4ed8; }
 .inc-status-cleared             { display:inline-block;padding:.1rem .5rem;border-radius:20px;font-size:.66rem;font-weight:700;background:#fffbeb;color:#92400e; }
 .inc-status-solved              { display:inline-block;padding:.1rem .5rem;border-radius:20px;font-size:.66rem;font-weight:700;background:#f0fdf4;color:#15803d; }
+.inc-status-settled             { display:inline-block;padding:.1rem .5rem;border-radius:20px;font-size:.66rem;font-weight:700;background:#faf5ff;color:#6b21a8; }
 .inc-status-default             { display:inline-block;padding:.1rem .5rem;border-radius:20px;font-size:.66rem;font-weight:700;background:#f3f4f6;color:#374151; }
 </style>
 @endpush
@@ -23,6 +24,7 @@
                 'under_investigation' => 'Under Investigation',
                 'cleared'             => 'Cleared',
                 'solved'              => 'Solved',
+                'settled'             => 'Settled',
                 default               => (string)$status,
             };
             $activeFilters[] = ['label' => 'Status', 'value' => $statusDisplay];
@@ -88,6 +90,7 @@
                         <option value="under_investigation" {{ $status === 'under_investigation' ? 'selected' : '' }}>Under Investigation</option>
                         <option value="cleared"            {{ $status === 'cleared'            ? 'selected' : '' }}>Cleared</option>
                         <option value="solved"             {{ $status === 'solved'             ? 'selected' : '' }}>Solved</option>
+                        <option value="settled"            {{ $status === 'settled'            ? 'selected' : '' }}>Settled</option>
                     </select>
                 </div>
 
@@ -175,8 +178,8 @@
                             </div>
                         @endif
                         @php
-                            $statusLabels = ['under_investigation' => 'Under Investigation', 'cleared' => 'Cleared', 'solved' => 'Solved'];
-                            $statusClass  = in_array($incident->status, ['under_investigation','cleared','solved'])
+                            $statusLabels = ['under_investigation' => 'Under Investigation', 'cleared' => 'Cleared', 'solved' => 'Solved', 'settled' => 'Settled'];
+                            $statusClass  = in_array($incident->status, ['under_investigation','cleared','solved','settled'])
                                 ? 'inc-status-' . $incident->status
                                 : 'inc-status-default';
                         @endphp

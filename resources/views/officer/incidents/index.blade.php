@@ -271,7 +271,7 @@ a.inc-page:hover {
 @php
     $openCount = $incidents->getCollection()->where('status', 'under_investigation')->count();
     $reviewCount = $incidents->getCollection()->where('status', 'cleared')->count();
-    $closedCount = $incidents->getCollection()->where('status', 'solved')->count();
+    $closedCount = $incidents->getCollection()->whereIn('status', ['solved', 'settled'])->count();
 @endphp
 
 <div class="motshow-section">Search &amp; Filter</div>
@@ -296,6 +296,7 @@ a.inc-page:hover {
             <option value="under_investigation" {{ $status === 'under_investigation' ? 'selected' : '' }}>Under Investigation</option>
             <option value="cleared" {{ $status === 'cleared' ? 'selected' : '' }}>Cleared</option>
             <option value="solved" {{ $status === 'solved' ? 'selected' : '' }}>Solved</option>
+            <option value="settled" {{ $status === 'settled' ? 'selected' : '' }}>Settled</option>
         </select>
         <button type="submit" class="inc-filter-btn">
             <i class="ph ph-funnel-simple me-1"></i> Apply
@@ -372,6 +373,7 @@ a.inc-page:hover {
             $badgeClass = match($inc->status) {
                 'under_investigation' => 'mob-badge-open',
                 'cleared'             => 'mob-badge-review',
+                'settled'             => 'mob-badge-closed',
                 default               => 'mob-badge-closed',
             };
         @endphp
