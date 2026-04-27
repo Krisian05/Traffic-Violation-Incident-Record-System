@@ -172,17 +172,6 @@
                 <i class="ph ph-plus-circle"></i> Add Another Motorist
             </button>
 
-            <div class="mob-form-divider">
-                <span class="mob-form-divider-text">Scene Photos</span>
-                <span class="mob-form-divider-line"></span>
-            </div>
-
-            <div class="mb-3">
-                <label class="mob-label">Incident Photos <span style="font-size:.68rem;color:#94a3b8;">(up to 6)</span></label>
-                <div id="picker-incident-photos"></div>
-                @error('incident_photos')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
-            </div>
-
             {{-- Other Involved Parties --}}
             <div class="mob-form-divider">
                 <span class="mob-form-divider-line"></span>
@@ -194,6 +183,17 @@
             <button type="button" class="mob-btn-outline w-100 mb-4" onclick="addOtherParty()" style="border-color:#fed7aa;color:#ea580c;">
                 <i class="ph-bold ph-plus"></i> Add Other Involved Party
             </button>
+
+            <div class="mob-form-divider">
+                <span class="mob-form-divider-text">Scene Photos</span>
+                <span class="mob-form-divider-line"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="mob-label">Incident Photos <span style="font-size:.68rem;color:#94a3b8;">(up to 6)</span></label>
+                <div id="picker-incident-photos"></div>
+                @error('incident_photos')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
+            </div>
 
             <div class="mob-form-divider">
                 <span class="mob-form-divider-text">Additional Evidence</span>
