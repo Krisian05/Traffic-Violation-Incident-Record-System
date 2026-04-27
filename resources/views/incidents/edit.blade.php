@@ -297,30 +297,6 @@
         </div>
         @endif
 
-        {{-- Add New Media --}}
-        <div class="inc-section-card">
-            <div class="inc-card-header" style="background:linear-gradient(135deg,#eff6ff 0%,#fff 100%);">
-                <div class="inc-card-header-left">
-                    <span class="inc-section-icon" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);box-shadow:0 3px 10px rgba(29,78,216,.3);">
-                        <i class="bi bi-cloud-upload-fill" style="color:#fff;font-size:.85rem;"></i>
-                    </span>
-                    <div>
-                        <div class="inc-section-title">Add More Evidence</div>
-                        <div class="inc-section-sub">Photos &amp; documents (max 20MB each)</div>
-                    </div>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label fw-500" style="font-size:.84rem;"><i class="bi bi-paperclip me-1" style="color:#2563eb;"></i>Upload Files <small class="text-muted">(jpg, png, pdf)</small></label>
-                    <input type="file" name="media[]" id="media-upload" class="form-control form-control-sm"
-                        multiple accept="image/jpg,image/jpeg,image/png,application/pdf"
-                        onchange="handleMediaUpload(this)">
-                </div>
-                <div id="media-preview-container" class="row g-2"></div>
-            </div>
-        </div>
-
         {{-- Other Involved Parties (non-MV/MC) --}}
         <div class="inc-section-card" id="other-involved-card">
             <div class="inc-card-header" style="background:linear-gradient(135deg,#fff7ed 0%,#fff 100%);">
@@ -344,6 +320,30 @@
                 <div id="other-parties-empty" style="font-size:.8rem;color:#a8a29e;font-style:italic;text-align:center;padding:.5rem 0;display:none;">
                     No other involved parties. Click "Add Party" to add a pedestrian, cyclist, etc.
                 </div>
+            </div>
+        </div>
+
+        {{-- Add New Media --}}
+        <div class="inc-section-card">
+            <div class="inc-card-header" style="background:linear-gradient(135deg,#eff6ff 0%,#fff 100%);">
+                <div class="inc-card-header-left">
+                    <span class="inc-section-icon" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);box-shadow:0 3px 10px rgba(29,78,216,.3);">
+                        <i class="bi bi-cloud-upload-fill" style="color:#fff;font-size:.85rem;"></i>
+                    </span>
+                    <div>
+                        <div class="inc-section-title">Add More Evidence</div>
+                        <div class="inc-section-sub">Photos &amp; documents (max 20MB each)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label fw-500" style="font-size:.84rem;"><i class="bi bi-paperclip me-1" style="color:#2563eb;"></i>Upload Files <small class="text-muted">(jpg, png, pdf)</small></label>
+                    <input type="file" name="media[]" id="media-upload" class="form-control form-control-sm"
+                        multiple accept="image/jpg,image/jpeg,image/png,application/pdf"
+                        onchange="handleMediaUpload(this)">
+                </div>
+                <div id="media-preview-container" class="row g-2"></div>
             </div>
         </div>
 

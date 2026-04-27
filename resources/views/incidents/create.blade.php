@@ -276,30 +276,6 @@
             </div>
         </div>
 
-        {{-- Evidence & Documents --}}
-        <div class="inc-section-card">
-            <div class="inc-card-header" style="background:linear-gradient(135deg,#f0fdf4 0%,#fff 100%);">
-                <div class="inc-card-header-left">
-                    <span class="inc-section-icon" style="background:linear-gradient(135deg,#16a34a,#15803d);box-shadow:0 3px 10px rgba(21,128,61,.3);">
-                        <i class="bi bi-images" style="color:#fff;font-size:.85rem;"></i>
-                    </span>
-                    <div>
-                        <div class="inc-section-title">Evidence &amp; Documents</div>
-                        <div class="inc-section-sub">Photos, PDFs — max 20MB each, up to 20 files</div>
-                    </div>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="input-group input-group-sm mb-3">
-                    <span class="input-group-text"><i class="bi bi-cloud-upload-fill" style="color:#16a34a;font-size:.8rem;"></i></span>
-                    <input type="file" name="media[]" id="media-upload" class="form-control"
-                        multiple accept="image/jpg,image/jpeg,image/png,application/pdf"
-                        onchange="handleMediaUpload(this)">
-                </div>
-                <div id="media-preview-container" class="row g-2"></div>
-            </div>
-        </div>
-
         {{-- Other Involved Parties (non-MV/MC) --}}
         <div class="inc-section-card" id="other-involved-card">
             <div class="inc-card-header" style="background:linear-gradient(135deg,#fff7ed 0%,#fff 100%);">
@@ -323,6 +299,30 @@
                 <div id="other-parties-empty" style="font-size:.8rem;color:#a8a29e;font-style:italic;text-align:center;padding:.5rem 0;">
                     No other involved parties. Click "Add Party" to add a pedestrian, cyclist, etc.
                 </div>
+            </div>
+        </div>
+
+        {{-- Evidence & Documents --}}
+        <div class="inc-section-card">
+            <div class="inc-card-header" style="background:linear-gradient(135deg,#f0fdf4 0%,#fff 100%);">
+                <div class="inc-card-header-left">
+                    <span class="inc-section-icon" style="background:linear-gradient(135deg,#16a34a,#15803d);box-shadow:0 3px 10px rgba(21,128,61,.3);">
+                        <i class="bi bi-images" style="color:#fff;font-size:.85rem;"></i>
+                    </span>
+                    <div>
+                        <div class="inc-section-title">Evidence &amp; Documents</div>
+                        <div class="inc-section-sub">Photos, PDFs — max 20MB each, up to 20 files</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="input-group input-group-sm mb-3">
+                    <span class="input-group-text"><i class="bi bi-cloud-upload-fill" style="color:#16a34a;font-size:.8rem;"></i></span>
+                    <input type="file" name="media[]" id="media-upload" class="form-control"
+                        multiple accept="image/jpg,image/jpeg,image/png,application/pdf"
+                        onchange="handleMediaUpload(this)">
+                </div>
+                <div id="media-preview-container" class="row g-2"></div>
             </div>
         </div>
 

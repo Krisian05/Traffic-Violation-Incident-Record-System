@@ -104,6 +104,18 @@
             </div>
             @endif
 
+            {{-- Other Involved Parties --}}
+            <div class="mob-form-divider" style="margin:1.25rem 0 .75rem;">
+                <span class="mob-form-divider-line"></span>
+                <span class="mob-form-divider-text">Other Involved Parties</span>
+                <span class="mob-form-divider-line"></span>
+            </div>
+            <div class="mb-3" style="font-size:.78rem;color:#94a3b8;">Pedestrians, cyclists, pedicabs, bystanders, etc.</div>
+            <div id="other-parties-list"></div>
+            <button type="button" class="mob-btn-outline w-100 mb-3" onclick="addOtherParty()" style="border-color:#fed7aa;color:#ea580c;">
+                <i class="ph-bold ph-plus"></i> Add Other Involved Party
+            </button>
+
             {{-- Add scene photos --}}
             <div class="mob-form-divider">
                 <span class="mob-form-divider-text">Scene Photos</span>
@@ -131,18 +143,6 @@
                 <div id="picker-incident-photos"></div>
                 @error('incident_photos')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
             </div>
-
-            {{-- Other Involved Parties --}}
-            <div class="mob-form-divider" style="margin:1.25rem 0 .75rem;">
-                <span class="mob-form-divider-line"></span>
-                <span class="mob-form-divider-text">Other Involved Parties</span>
-                <span class="mob-form-divider-line"></span>
-            </div>
-            <div class="mb-3" style="font-size:.78rem;color:#94a3b8;">Pedestrians, cyclists, pedicabs, bystanders, etc.</div>
-            <div id="other-parties-list"></div>
-            <button type="button" class="mob-btn-outline w-100 mb-4" onclick="addOtherParty()" style="border-color:#fed7aa;color:#ea580c;">
-                <i class="ph-bold ph-plus"></i> Add Other Involved Party
-            </button>
 
             <button type="submit" class="mob-btn-primary mob-btn-danger mb-2" id="incidentEditSubmitBtn">
                 <i class="ph-bold ph-check"></i> Save Changes

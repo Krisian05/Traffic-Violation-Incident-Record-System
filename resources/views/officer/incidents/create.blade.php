@@ -183,18 +183,6 @@
                 @error('incident_photos')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
             </div>
 
-            <div class="mob-form-divider">
-                <span class="mob-form-divider-text">Additional Evidence</span>
-                <span class="mob-form-divider-line"></span>
-            </div>
-
-            <div class="mb-4">
-                <label class="mob-label">Media / Documents</label>
-                <input type="file" name="media[]" id="mediaInput" accept="image/jpg,image/jpeg,image/png,application/pdf" multiple class="form-control mob-input">
-                <div style="font-size:.72rem;color:#94a3b8;margin-top:.4rem;">Add tickets, documents, or extra evidence. Each selected file gets its own type and caption.</div>
-                <div id="media-preview-container" class="incident-media-grid"></div>
-            </div>
-
             {{-- Other Involved Parties --}}
             <div class="mob-form-divider">
                 <span class="mob-form-divider-line"></span>
@@ -206,6 +194,18 @@
             <button type="button" class="mob-btn-outline w-100 mb-4" onclick="addOtherParty()" style="border-color:#fed7aa;color:#ea580c;">
                 <i class="ph-bold ph-plus"></i> Add Other Involved Party
             </button>
+
+            <div class="mob-form-divider">
+                <span class="mob-form-divider-text">Additional Evidence</span>
+                <span class="mob-form-divider-line"></span>
+            </div>
+
+            <div class="mb-4">
+                <label class="mob-label">Media / Documents</label>
+                <input type="file" name="media[]" id="mediaInput" accept="image/jpg,image/jpeg,image/png,application/pdf" multiple class="form-control mob-input">
+                <div style="font-size:.72rem;color:#94a3b8;margin-top:.4rem;">Add tickets, documents, or extra evidence. Each selected file gets its own type and caption.</div>
+                <div id="media-preview-container" class="incident-media-grid"></div>
+            </div>
 
             <button type="submit" class="mob-btn-primary mob-btn-danger mb-2" id="submitBtn">
                 <i class="ph-bold ph-check"></i> Save Incident
