@@ -454,4 +454,27 @@ a.inc-page:hover {
     <i class="ph-bold ph-plus"></i>
 </a>
 
+{{-- Offline button (shown only when offline) --}}
+<a href="{{ route('officer.offline.incidents.create') }}" id="offlineIncidentBtn"
+   style="display:none;position:fixed;bottom:5.5rem;right:1.25rem;z-index:1050;
+          width:48px;height:48px;border-radius:50%;
+          background:linear-gradient(135deg,#ea580c,#c2410c);
+          color:#fff;text-decoration:none;
+          display:none;align-items:center;justify-content:center;
+          box-shadow:0 4px 14px rgba(234,88,12,.45);"
+   title="Record Incident Offline">
+    <i class="ph-fill ph-wifi-slash" style="font-size:1.2rem;"></i>
+</a>
+<script>
+(function () {
+    var btn = document.getElementById('offlineIncidentBtn');
+    function update() {
+        if (btn) btn.style.display = navigator.onLine ? 'none' : 'flex';
+    }
+    update();
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+})();
+</script>
+
 @endsection

@@ -138,6 +138,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/offline/violations/create', [OfficerController::class, 'createOfflineViolation'])->name('offline.violations.create');
         Route::get('/offline/vehicles/create', [OfficerController::class, 'createOfflineVehicle'])->name('offline.vehicles.create');
         Route::post('/offline/vehicles/create', [OfficerController::class, 'storeOfflineVehicle'])->name('offline.vehicles.store');
+        Route::get('/offline/incidents/create', [OfficerController::class, 'createOfflineIncident'])->name('offline.incidents.create');
 
         // Motorists
         Route::get('/motorists', [OfficerController::class, 'motorists'])->name('motorists.index');

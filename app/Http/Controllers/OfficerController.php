@@ -404,6 +404,11 @@ class OfficerController extends Controller
         return view('officer.violations.offline-create', compact('violationTypes'));
     }
 
+    public function createOfflineIncident(): View
+    {
+        return view('officer.incidents.offline-create');
+    }
+
     public function storeViolation(Request $request, Violator $violator): RedirectResponse
     {
         $data = $request->validate([

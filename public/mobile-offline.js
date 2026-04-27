@@ -13,6 +13,7 @@
     var SYNC_INTERVAL_MS = 30000;
     var OFFLINE_VIOLATION_CREATE_PATH = '/officer/offline/violations/create';
     var OFFLINE_VEHICLE_CREATE_PATH = '/officer/offline/vehicles/create';
+    var OFFLINE_INCIDENT_CREATE_PATH = '/officer/offline/incidents/create';
     var DUPLICATE_STATES = { pending: true, failed: true };
     var serviceWorkerVersion = cleanedString(document.body.dataset.officerSwVersion || '');
     var toastTimer = null;
@@ -556,6 +557,21 @@
         };
     }
 
+    function buildIncidentSummary(entries) {
+        var date = getLastEntryValue(entries, 'date_of_incident');
+        var location = getLastEntryValue(entries, 'location');
+        // Collect motorist names from motorists[*][motorist_name]
+        var motoristNames = (entries || []).filter(function (e) {
+            return e.kind === 'text' && /^motorists\[\d+\]\[motorist_name\]$/.test(e.name) && cleanedString(e.value);
+        }).map(function (e) { return cleanedString(e.value); });
+
+        return {
+            date: date,
+            location: location,
+            motoristNames: motoristNames
+        };
+    }
+
     function inferRecordType(record) {
         var explicitType = cleanedString(record && record.recordType);
         if (explicitType) {
@@ -574,6 +590,9 @@
         }
         if ((record && record.sourcePath) === OFFLINE_VEHICLE_CREATE_PATH || actionPath === OFFLINE_VEHICLE_CREATE_PATH) {
             return 'offline-vehicle-create';
+        }
+        if ((record && record.sourcePath) === OFFLINE_INCIDENT_CREATE_PATH || actionPath === OFFLINE_INCIDENT_CREATE_PATH) {
+            return 'offline-incident-create';
         }
 
         return '';
@@ -601,6 +620,14 @@
             var motoristSummary = buildMotoristSummary(record.entries || []);
             if (JSON.stringify(record.summary || {}) !== JSON.stringify(motoristSummary)) {
                 record.summary = motoristSummary;
+                changed = true;
+            }
+        }
+
+        if (recordType === 'offline-incident-create') {
+            var incidentSummary = record.summary || buildIncidentSummary(record.entries || []);
+            if (JSON.stringify(record.summary || {}) !== JSON.stringify(incidentSummary)) {
+                record.summary = incidentSummary;
                 changed = true;
             }
         }
@@ -709,6 +736,13 @@
                 recordType: recordType,
                 parentOfflineMotoristKey: cleanedString(form.dataset.offlineParentKey || getLastEntryValue(entries, 'offline_motorist_key')),
                 summary: buildVehicleSummary(form, entries)
+            };
+        }
+
+        if (recordType === 'offline-incident-create') {
+            return {
+                recordType: recordType,
+                summary: buildIncidentSummary(entries)
             };
         }
 
@@ -916,6 +950,16 @@
                 ? (cleanedString(linkedMotorist.initials) || initialsFromName(linkedName))
                 : initialsFromName(title);
             metaParts.push(violationType ? 'Violation: ' + violationType : 'Violation record');
+        } else if (type === 'offline-incident-create') {
+            var incidentDate = cleanedString(record.summary && record.summary.date);
+            var incidentLocation = cleanedString(record.summary && record.summary.location);
+            var incidentMotorists = (record.summary && record.summary.motoristNames) || [];
+
+            title = incidentDate ? 'Incident – ' + incidentDate : (cleanedString(record.label) || 'Queued incident');
+            initials = 'IN';
+            metaParts.push('Incident record');
+            if (incidentLocation) metaParts.push(incidentLocation);
+            if (incidentMotorists.length) metaParts.push(incidentMotorists.slice(0, 2).join(', ') + (incidentMotorists.length > 2 ? ' +' + (incidentMotorists.length - 2) + ' more' : ''));
         } else {
             initials = initialsFromName(title);
             metaParts.push('Officer mobile record');
@@ -1182,14 +1226,21 @@
 
     function formRequiresForcedQueue(form) {
         var recordType = forcedQueueRecordType(form);
-        return recordType === 'offline-violation-create' || recordType === 'offline-vehicle-create';
+        return recordType === 'offline-violation-create' || recordType === 'offline-vehicle-create' || recordType === 'offline-incident-create';
     }
 
     function forcedQueueRecordLabel(form) {
-        return forcedQueueRecordType(form) === 'offline-vehicle-create' ? 'vehicle' : 'violation';
+        var recordType = forcedQueueRecordType(form);
+        if (recordType === 'offline-vehicle-create') return 'vehicle';
+        if (recordType === 'offline-incident-create') return 'incident';
+        return 'violation';
     }
 
     function forcedQueueParentKey(form) {
+        // Incidents are standalone — no parent motorist required
+        if (forcedQueueRecordType(form) === 'offline-incident-create') {
+            return 'standalone';
+        }
         var linkedField = form.querySelector('[name="offline_motorist_key"]');
         return cleanedString(form.dataset.offlineParentKey || (linkedField ? linkedField.value : ''));
     }
