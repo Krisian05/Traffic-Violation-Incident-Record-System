@@ -56,6 +56,11 @@ class User extends Authenticatable
         return $this->role === 'traffic_officer';
     }
 
+    public function isProvinceAdmin(): bool
+    {
+        return $this->role === 'province_admin';
+    }
+
     public function recordedViolations()
     {
         return $this->hasMany(Violation::class, 'recorded_by');

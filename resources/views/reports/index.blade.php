@@ -117,7 +117,14 @@
                 <a href="{{ route('reports.index') }}" class="rpt-reset-btn" title="Clear filters (ESC)">
                     <i class="bi bi-arrow-counterclockwise"></i>
                 </a>
-                {{-- ── QUICK ACCESS DROPDOWN ── --}}
+                <a href="{{ route('reports.exportPdf', request()->only(['month','year','type_filter','municipality'])) }}"
+                   class="rpt-filter-btn" style="background:#b91c1c;color:#fff;text-decoration:none;border-color:#b91c1c;" title="Export PDF">
+                    <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+                </a>
+                <a href="{{ route('reports.exportExcel', request()->only(['month','year','search','type_filter','municipality'])) }}"
+                   class="rpt-filter-btn" style="background:#15803d;color:#fff;text-decoration:none;border-color:#15803d;" title="Export Excel">
+                    <i class="bi bi-file-earmark-spreadsheet-fill"></i> Excel
+                </a>
                 <div class="position-relative" id="rptQuickWrap">
                     <button type="button" class="rpt-quick-btn" id="rptQuickToggle"
                             onclick="rptToggleQuick()" aria-expanded="false">
@@ -541,6 +548,88 @@
     </div>
 
 </div>
+
+{{-- ── VIOLATION HEATMAP (B2) ── --}}
+@if($violationMapPoints->isNotEmpty())
+<div class="rpt-card mb-4 rpt-no-print" data-rpt-section="map">
+    <div class="rpt-card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <span class="rpt-card-icon" style="background:linear-gradient(135deg,#059669,#10b981);box-shadow:0 3px 10px rgba(16,185,129,.3);">
+                <i class="bi bi-map-fill" style="color:#fff;"></i>
+            </span>
+            <div>
+                <div class="rpt-card-title">Violation Map</div>
+                <div class="rpt-card-sub">Geographic distribution of violations with GPS data</div>
+            </div>
+        </div>
+        <span class="badge" style="background:#ecfdf5;color:#059669;">{{ $violationMapPoints->count() }} Points</span>
+    </div>
+    <div class="card-body p-0">
+        <div id="violationMap" style="height:450px;width:100%;border-radius:0 0 14px 14px;z-index:1;"></div>
+    </div>
+</div>
+
+@push('scripts')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var mapPoints = @json($violationMapPoints);
+    if(mapPoints.length === 0) return;
+    
+    // Default center (Balamban, Cebu roughly) if no points
+    var centerLat = 10.5012345;
+    var centerLng = 123.7654321;
+    
+    // Calculate average center from data
+    if(mapPoints.length > 0) {
+        var sumLat = 0, sumLng = 0;
+        mapPoints.forEach(function(p) { sumLat += parseFloat(p.gps_lat); sumLng += parseFloat(p.gps_lng); });
+        centerLat = sumLat / mapPoints.length;
+        centerLng = sumLng / mapPoints.length;
+    }
+
+    var map = L.map('violationMap').setView([centerLat, centerLng], 14);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+    }).addTo(map);
+
+    var markers = [];
+    mapPoints.forEach(function(point) {
+        if(point.gps_lat && point.gps_lng) {
+            var date = new Date(point.date_of_violation).toLocaleDateString();
+            var typeName = point.violation_type ? point.violation_type.name : 'Unknown Violation';
+            var popupContent = '<div style="font-size:12px;">' +
+                               '<b style="color:#d97706;display:block;margin-bottom:3px;">' + typeName + '</b>' +
+                               'Date: ' + date + '<br/>' +
+                               'Location: ' + (point.location || 'N/A') + '<br/>' +
+                               '<a href="/officer/violations/' + point.id + '" target="_blank" style="margin-top:5px;display:inline-block;font-weight:bold;">View Details</a>' +
+                               '</div>';
+            
+            var marker = L.circleMarker([point.gps_lat, point.gps_lng], {
+                radius: 6,
+                fillColor: "#ef4444",
+                color: "#fff",
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).bindPopup(popupContent).addTo(map);
+            
+            markers.push(marker);
+        }
+    });
+
+    if(markers.length > 0) {
+        var group = new L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.1));
+    }
+});
+</script>
+@endpush
+@endif
 
 @if($showAll)
 {{-- ════════════════════════════════════════════
@@ -1036,6 +1125,74 @@
     @endif
     @endif
 </div>
+
+{{-- ── OFFICER PERFORMANCE ── --}}
+@if($officerPerformance->isNotEmpty())
+<div class="card border-0 shadow-sm mb-4" style="border-radius:14px;overflow:hidden;border:1px solid #e7e2db;">
+    <div class="card-header border-0 d-flex align-items-center gap-2" style="background:linear-gradient(135deg,#1e40af,#3b82f6);padding:.85rem 1.15rem;">
+        <i class="bi bi-person-badge-fill text-white" style="font-size:1.1rem;"></i>
+        <span class="fw-700 text-white" style="font-size:.925rem;">Officer Performance Report</span>
+        <span class="ms-auto badge" style="background:rgba(255,255,255,.2);color:#fff;font-size:.72rem;">{{ $periodLabel }}</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size:.84rem;">
+                <thead>
+                    <tr>
+                        <th style="padding:.7rem 1rem;">#</th>
+                        <th style="padding:.7rem .5rem;">Officer</th>
+                        <th style="padding:.7rem .5rem;">Role</th>
+                        <th style="padding:.7rem .5rem;text-align:center;">Issued</th>
+                        <th style="padding:.7rem .5rem;text-align:center;">Settled</th>
+                        <th style="padding:.7rem .5rem;text-align:center;">Pending</th>
+                        <th style="padding:.7rem .5rem;text-align:center;">Contested</th>
+                        <th style="padding:.7rem .5rem;min-width:120px;">Settled Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($officerPerformance as $i => $officer)
+                    @php
+                        $settledRate = $officer->total_issued > 0 ? round(($officer->total_settled / $officer->total_issued) * 100) : 0;
+                        $barColor = $settledRate >= 70 ? '#22c55e' : ($settledRate >= 40 ? '#f59e0b' : '#ef4444');
+                    @endphp
+                    <tr>
+                        <td style="padding:.6rem 1rem;color:#a8a29e;font-weight:700;">{{ $i + 1 }}</td>
+                        <td style="padding:.6rem .5rem;">
+                            <span class="fw-700" style="color:#1c1917;">{{ $officer->officer_name }}</span>
+                        </td>
+                        <td style="padding:.6rem .5rem;">
+                            @php
+                                $roleBadge = match($officer->officer_role) {
+                                    'admin' => 'background:#1d4ed8;color:#fff;',
+                                    'operator' => 'background:#7c3aed;color:#fff;',
+                                    'traffic_officer' => 'background:#0369a1;color:#fff;',
+                                    default => 'background:#e5e7eb;color:#374151;',
+                                };
+                            @endphp
+                            <span class="badge" style="font-size:.68rem;font-weight:600;padding:.25rem .55rem;border-radius:4px;{{ $roleBadge }}">
+                                {{ ucfirst(str_replace('_', ' ', $officer->officer_role)) }}
+                            </span>
+                        </td>
+                        <td style="padding:.6rem .5rem;text-align:center;font-weight:700;color:#1c1917;">{{ $officer->total_issued }}</td>
+                        <td style="padding:.6rem .5rem;text-align:center;font-weight:700;color:#15803d;">{{ $officer->total_settled }}</td>
+                        <td style="padding:.6rem .5rem;text-align:center;font-weight:700;color:#b45309;">{{ $officer->total_pending }}</td>
+                        <td style="padding:.6rem .5rem;text-align:center;font-weight:700;color:#64748b;">{{ $officer->total_contested }}</td>
+                        <td style="padding:.6rem .5rem;">
+                            <div style="display:flex;align-items:center;gap:.5rem;">
+                                <div style="flex:1;height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden;">
+                                    <div style="height:100%;width:{{ $settledRate }}%;background:{{ $barColor }};border-radius:3px;transition:width .3s;"></div>
+                                </div>
+                                <span style="font-size:.72rem;font-weight:700;color:{{ $barColor }};min-width:32px;">{{ $settledRate }}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@endif
 
 {{-- Signature block — print only --}}
 <div class="rpt-print-signatures">

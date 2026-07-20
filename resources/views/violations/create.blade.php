@@ -136,6 +136,31 @@
                         ])
                     </div>
 
+                    {{-- GPS Coordinates --}}
+                    <div class="col-12">
+                        <div class="d-flex align-items-end gap-2">
+                            <div style="flex:1;">
+                                <label class="form-label" style="font-size:.82rem;">GPS Latitude</label>
+                                <input type="number" step="0.0000001" name="gps_lat" id="gps_lat"
+                                       class="form-control form-control-sm @error('gps_lat') is-invalid @enderror"
+                                       placeholder="e.g. 10.5012345" value="{{ old('gps_lat') }}"
+                                       style="font-family:ui-monospace,monospace;">
+                            </div>
+                            <div style="flex:1;">
+                                <label class="form-label" style="font-size:.82rem;">GPS Longitude</label>
+                                <input type="number" step="0.0000001" name="gps_lng" id="gps_lng"
+                                       class="form-control form-control-sm @error('gps_lng') is-invalid @enderror"
+                                       placeholder="e.g. 123.7654321" value="{{ old('gps_lng') }}"
+                                       style="font-family:ui-monospace,monospace;">
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="gpsLocateBtn"
+                                    onclick="getGpsLocation()" style="white-space:nowrap;height:31px;">
+                                <i class="bi bi-crosshair me-1"></i> Get Location
+                            </button>
+                        </div>
+                        <small style="font-size:.72rem;color:#a8a29e;">Optional. Tap "Get Location" to use your device's GPS.</small>
+                    </div>
+
                     {{-- Vehicle mode toggle --}}
                     @php $initManual = old('vehicle_plate') ? true : false; @endphp
                     <div class="col-12">
@@ -570,5 +595,45 @@
         btn.disabled = true;
         btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Saving…';
     });
+
+    // GPS location
+    function getGpsLocation() {
+        const btn = document.getElementById('gpsLocateBtn');
+        const origHtml = btn.innerHTML;
+        
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser.");
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="spinner-border spinner-border-sm me-1"></i> Locating...';
+
+        navigator.geolocation.getCurrentPosition(function(position) {
+            document.getElementById('gps_lat').value = position.coords.latitude.toFixed(7);
+            document.getElementById('gps_lng').value = position.coords.longitude.toFixed(7);
+            btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Located';
+            btn.classList.remove('btn-outline-primary');
+            btn.classList.add('btn-success', 'text-white');
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+                btn.classList.remove('btn-success', 'text-white');
+                btn.classList.add('btn-outline-primary');
+            }, 3000);
+        }, function(error) {
+            btn.disabled = false;
+            btn.innerHTML = origHtml;
+            let msg = "Failed to get location.";
+            if (error.code === 1) msg = "Location access denied. Please allow location permissions.";
+            if (error.code === 2) msg = "Position unavailable. Make sure GPS is enabled.";
+            if (error.code === 3) msg = "Location request timed out.";
+            alert(msg);
+        }, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        });
+    }
 </script>
 @endpush

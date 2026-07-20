@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ViolationsExport;
 use App\Models\Incident;
 use App\Models\Violation;
 use App\Models\ViolationType;
 use App\Models\Violator;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
@@ -56,18 +58,37 @@ class ReportController extends Controller
             fn($item) => [$item['violator']->full_name ?? 'Unknown' => $item['total'] ?? 0]
         );
 
+        // B1: Officer Performance Report
+        $officerPerformance = Violation::whereYear('date_of_violation', $year)
+            ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
+            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->join('users', 'violations.recorded_by', '=', 'users.id')
+            ->select(
+                'users.id as user_id',
+                'users.name as officer_name',
+                'users.role as officer_role',
+                DB::raw('COUNT(*) as total_issued'),
+                DB::raw("SUM(CASE WHEN violations.status = 'settled' THEN 1 ELSE 0 END) as total_settled"),
+                DB::raw("SUM(CASE WHEN violations.status = 'pending' THEN 1 ELSE 0 END) as total_pending"),
+                DB::raw("SUM(CASE WHEN violations.status = 'contested' THEN 1 ELSE 0 END) as total_contested"),
+            )
+            ->groupBy('users.id', 'users.name', 'users.role')
+            ->orderByDesc('total_issued')
+            ->get();
+
         return view('reports.index', array_merge([
-            'repeatOffenders'  => $baseData['repeatOffenders'],
-            'month'            => $month,
-            'year'             => $year,
-            'search'           => $search,
-            'typeFilter'       => $typeFilter,
-            'municipality'     => $municipality,
-            'showAll'          => $showAll,
-            'allTypes'         => $allTypes,
-            'minYear'          => $baseData['minYear'],
-            'overdueViolations'=> $baseData['overdueViolations'],
-            'topViolators'     => $topViolators,
+            'repeatOffenders'    => $baseData['repeatOffenders'],
+            'month'              => $month,
+            'year'               => $year,
+            'search'             => $search,
+            'typeFilter'         => $typeFilter,
+            'municipality'       => $municipality,
+            'showAll'            => $showAll,
+            'allTypes'           => $allTypes,
+            'minYear'            => $baseData['minYear'],
+            'overdueViolations'  => $baseData['overdueViolations'],
+            'topViolators'       => $topViolators,
+            'officerPerformance' => $officerPerformance,
         ], $commonData, $data));
     }
 
@@ -111,6 +132,14 @@ class ReportController extends Controller
                                 ->whereNotNull('location')->where('location', '!=', '')
                                 ->select('location', DB::raw('COUNT(*) as total'))
                                 ->groupBy('location')->orderByDesc('total')->limit(7)->get();
+
+        $violationMapPoints = Violation::whereYear('date_of_violation', $year)
+                                ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
+                                ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+                                ->whereNotNull('gps_lat')->whereNotNull('gps_lng')
+                                ->select('id', 'gps_lat', 'gps_lng', 'location', 'violation_type_id', 'date_of_violation')
+                                ->with('violationType:id,name')
+                                ->get();
 
         $aggCounts = Violation::whereYear('date_of_violation', $year)
                         ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
@@ -162,7 +191,7 @@ class ReportController extends Controller
             ->pluck('total', 'role');
 
         return compact(
-            'totalIncidents', 'incidentsByStatus', 'incidentHotspots', 'violationHotspots',
+            'totalIncidents', 'incidentsByStatus', 'incidentHotspots', 'violationHotspots', 'violationMapPoints',
             'settledCount', 'contestedCount', 'pendingActiveCount', 'totalViolators',
             'overdueCount', 'violationsByType', 'violationStatusCounts', 'incidentsByDate',
             'roleDistribution'
@@ -381,5 +410,85 @@ class ReportController extends Controller
             'monthlySummary'     => $monthlySummary,
             'monthlyOffenders'   => $monthlyOffenders,
         ];
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $month        = $request->input('month', 0);
+        $year         = (int) $request->input('year', now()->year);
+        $typeFilter   = (string) ($request->input('type_filter') ?? '');
+        $municipality = trim($request->input('municipality', ''));
+        $showAll      = $month == 0;
+
+        $periodLabel = $showAll
+            ? 'Year ' . $year
+            : date('F', mktime(0, 0, 0, (int) $month)) . ' ' . $year;
+
+        $allTypes = ViolationType::orderBy('name')->get();
+        $typeFilterName = $typeFilter ? ($allTypes->firstWhere('id', $typeFilter)?->name ?? 'All Types') : 'All Types';
+
+        $totalViolationsCount = Violation::whereYear('date_of_violation', $year)
+            ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
+            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->when($typeFilter, fn($q) => $q->where('violation_type_id', $typeFilter))
+            ->count();
+
+        $settledCount = Violation::whereYear('date_of_violation', $year)
+            ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
+            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->where('status', 'settled')
+            ->count();
+
+        $overdueCount = Violation::overdue()
+            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->count();
+
+        $violationsByType = Violation::whereYear('date_of_violation', $year)
+            ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
+            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->when($typeFilter, fn($q) => $q->where('violation_type_id', $typeFilter))
+            ->select('violation_type_id', DB::raw('COUNT(*) as total'))
+            ->groupBy('violation_type_id')
+            ->pluck('total', 'violation_type_id');
+
+        $allTypesById = $allTypes->keyBy('id');
+        $violationsByType = $violationsByType->mapWithKeys(function ($total, $typeId) use ($allTypesById) {
+            $typeName = $allTypesById[$typeId]->name ?? 'Unknown';
+            return [$typeName => $total];
+        });
+
+        $violationHotspots = Violation::whereYear('date_of_violation', $year)
+            ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
+            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->whereNotNull('location')->where('location', '!=', '')
+            ->select('location', DB::raw('COUNT(*) as total'))
+            ->groupBy('location')->orderByDesc('total')->limit(7)->get();
+
+        $pdf = Pdf::loadView('reports.export-pdf', compact(
+            'periodLabel', 'municipality', 'typeFilterName',
+            'totalViolationsCount', 'settledCount', 'overdueCount',
+            'violationsByType', 'violationHotspots'
+        ));
+
+        $filename = 'TVIRS-Report-' . str_replace(' ', '-', $periodLabel) . '.pdf';
+        return $pdf->download($filename);
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $filters = [
+            'year'        => $request->input('year', now()->year),
+            'month'       => $request->input('month', 0),
+            'search'      => trim($request->input('search', '')),
+            'type_filter' => $request->input('type_filter', ''),
+            'municipality'=> trim($request->input('municipality', '')),
+        ];
+
+        $year  = $filters['year'];
+        $month = $filters['month'];
+        $label = $month ? date('F', mktime(0, 0, 0, (int) $month)) . '-' . $year : 'Year-' . $year;
+        $filename = 'TVIRS-Violations-' . $label . '.xlsx';
+
+        return (new ViolationsExport($filters))->download($filename);
     }
 }

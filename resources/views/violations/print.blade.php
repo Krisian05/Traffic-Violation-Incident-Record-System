@@ -198,6 +198,27 @@
         .sig-line { width: 140px; border-top: 1.5px solid #1c1917; margin: 0 auto 3px; }
         .sig-label { font-size: 9px; color: #57534e; font-weight: 600; }
 
+        /* ─── QR CODE BLOCK ─── */
+        .qr-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+        .qr-block canvas, .qr-block img {
+            width: 72px !important;
+            height: 72px !important;
+            display: block;
+        }
+        .qr-label {
+            font-size: 7.5px;
+            font-weight: 700;
+            color: #a8a29e;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            text-align: center;
+        }
+
         /* ─── PRINT MEDIA ─── */
         @media print {
             html, body { background: #fff !important; padding: 0 !important; margin: 0 !important; }
@@ -209,8 +230,10 @@
             }
             .section { page-break-inside: avoid; }
             .photo-cell-img { height: 78mm; }
+            .qr-block canvas { width: 72px !important; height: 72px !important; }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -266,6 +289,11 @@
             @else
                 <div style="font-size:11px;color:#a8a29e;font-style:italic;">No fine set</div>
             @endif
+        </div>
+        {{-- QR Code --}}
+        <div class="qr-block">
+            <canvas id="violationQrCode"></canvas>
+            <div class="qr-label">Scan to verify</div>
         </div>
     </div>
 
@@ -510,9 +538,18 @@
 @endif
 
 <script>
-
 window.addEventListener('load', function () {
-    setTimeout(function () { window.print(); }, 600);
+    // Generate QR code
+    var qrData = '{{ $violation->ticket_number ? $violation->ticket_number . " — " . ($violation->violator?->full_name ?? "") : url("/violations/" . $violation->id) }}';
+    QRCode.toCanvas(document.getElementById('violationQrCode'), qrData, {
+        width: 72,
+        margin: 1,
+        color: { dark: '#1c1917', light: '#fef2f2' }
+    }, function (error) {
+        if (error) console.error(error);
+    });
+
+    setTimeout(function () { window.print(); }, 800);
 });
 </script>
 </body>

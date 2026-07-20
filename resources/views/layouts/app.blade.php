@@ -996,10 +996,17 @@
     </div>
 
     <nav class="sidebar-nav">
-        <div class="nav-label">Main</div>
+        <div class="nav-label">Main Menu</div>
+        @if(auth()->user()->isProvinceAdmin() || auth()->user()->isAdmin())
+        <a href="{{ route('province.dashboard') }}" class="{{ request()->routeIs('province.dashboard') ? 'active' : '' }}">
+            <i class="bi bi-diagram-3"></i> Province Dashboard
+        </a>
+        @endif
+        @if(!auth()->user()->isProvinceAdmin())
         <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
             <i class="bi bi-speedometer2"></i> Dashboard
         </a>
+        @endif
 
         <div class="nav-label">Records</div>
         <a href="{{ route('violators.index') }}" class="{{ request()->routeIs('violators.*') ? 'active' : '' }}">
@@ -1008,9 +1015,14 @@
         <a href="{{ route('vehicles.index') }}" class="{{ request()->routeIs('vehicles.*', 'vehicle-photos.*') ? 'active' : '' }}">
             <i class="bi bi-car-front-fill"></i> Vehicles
         </a>
-        <a href="{{ route('violations.index') }}" class="{{ request()->routeIs('violations.*') ? 'active' : '' }}">
+        <a href="{{ route('violations.index') }}" class="{{ request()->routeIs('violations.*') && !request()->routeIs('violations.cashier') ? 'active' : '' }}">
             <i class="bi bi-exclamation-triangle-fill"></i> Violations
         </a>
+        @if(Auth::user()->isOperator())
+        <a href="{{ route('violations.cashier') }}" class="{{ request()->routeIs('violations.cashier') ? 'active' : '' }}">
+            <i class="bi bi-wallet2"></i> Cashier Portal
+        </a>
+        @endif
         <a href="{{ route('incidents.index') }}" class="{{ request()->routeIs('incidents.*') ? 'active' : '' }}">
             <i class="bi bi-flag-fill"></i> Incidents
         </a>

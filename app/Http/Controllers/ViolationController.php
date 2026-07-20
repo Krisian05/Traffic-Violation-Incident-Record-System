@@ -99,6 +99,8 @@ class ViolationController extends Controller
             'photos.*'           => ['image', 'mimes:jpg,jpeg,png', 'max:51200'],
             'date_of_violation'  => ['required', 'date', 'before_or_equal:today'],
             'location'           => ['nullable', 'string', 'max:255'],
+            'gps_lat'            => ['nullable', 'numeric', 'between:-90,90'],
+            'gps_lng'            => ['nullable', 'numeric', 'between:-180,180'],
             'ticket_number'           => ['nullable', 'string', 'max:50'],
             'citation_ticket_photo'   => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
             'valid_id_photo'          => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
@@ -209,6 +211,8 @@ class ViolationController extends Controller
             'photos.*'           => ['image', 'mimes:jpg,jpeg,png', 'max:51200'],
             'date_of_violation'  => ['required', 'date', 'before_or_equal:today'],
             'location'           => ['nullable', 'string', 'max:255'],
+            'gps_lat'            => ['nullable', 'numeric', 'between:-90,90'],
+            'gps_lng'            => ['nullable', 'numeric', 'between:-180,180'],
             'ticket_number'           => ['nullable', 'string', 'max:50'],
             'citation_ticket_photo'   => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
             'valid_id_photo'          => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
@@ -357,9 +361,10 @@ class ViolationController extends Controller
         }
 
         $data = $request->validate([
-            'or_number'     => ['required', 'string', 'max:50'],
-            'cashier_name'  => ['required', 'string', 'max:150'],
-            'receipt_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
+            'or_number'      => ['required', 'string', 'max:50'],
+            'cashier_name'   => ['required', 'string', 'max:150'],
+            'payment_method' => ['required', 'in:cash,gcash,maya,bank,other'],
+            'receipt_photo'  => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
         ]);
 
         if ($request->hasFile('receipt_photo')) {
@@ -405,5 +410,20 @@ class ViolationController extends Controller
 
         return redirect()->route('violations.index')
             ->with('success', 'Violation record deleted.');
+    }
+
+    public function cashier(Request $request)
+    {
+        $search = trim($request->input('search', ''));
+        $violation = null;
+
+        if ($search !== '') {
+            $violation = Violation::with(['violator', 'violationType', 'vehicle'])
+                ->where('ticket_number', $search)
+                ->orWhere('id', (int) $search)
+                ->first();
+        }
+
+        return view('violations.cashier', compact('violation', 'search'));
     }
 }

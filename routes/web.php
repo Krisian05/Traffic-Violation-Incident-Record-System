@@ -28,7 +28,15 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 // All authenticated users
 Route::middleware('auth')->group(function () {
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::middleware('role:admin,operator,traffic_officer')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    });
+
+    // ── PROVINCE DASHBOARD (B3) ───────────────────────────────────────────────
+    Route::middleware('role:province_admin')->prefix('province')->name('province.')->group(function () {
+        Route::get('/dashboard', [ProvinceDashboardController::class, 'index'])->name('dashboard');
+    });
+
     Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
     Route::get('/dashboard/search', [DashboardController::class, 'search'])->name('dashboard.search');
     Route::get('/dashboard/analytics', [DashboardController::class, 'analytics'])->name('dashboard.analytics');
@@ -88,6 +96,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/violations/{violation}', [ViolationController::class, 'update'])->name('violations.update');
         Route::delete('/violations/{violation}', [ViolationController::class, 'destroy'])->name('violations.destroy');
         Route::patch('/violations/{violation}/settle', [ViolationController::class, 'settle'])->name('violations.settle');
+        Route::get('/cashier', [ViolationController::class, 'cashier'])->name('violations.cashier');
         Route::delete('/violation-vehicle-photos/{violationVehiclePhoto}', [ViolationVehiclePhotoController::class, 'destroy'])->name('violation-vehicle-photos.destroy');
     });
 
@@ -124,6 +133,8 @@ Route::middleware('auth')->group(function () {
     // ── REPORTS ───────────────────────────────────────────────────────────────
     Route::get('/reports/violator-suggestions', [ReportController::class, 'suggestions'])->name('reports.suggestions')->middleware('throttle:30,1');
     Route::get('/reports/incident-stats', [ReportController::class, 'incidentStats'])->name('reports.incidentStats');
+    Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.exportPdf');
+    Route::get('/reports/export/excel', [ReportController::class, 'exportExcel'])->name('reports.exportExcel');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
     // ── USERS (admin only) ───────────────────────────────────────────────────

@@ -684,6 +684,26 @@
                             <input type="text" name="cashier_name" class="form-control" placeholder="Full name of cashier" required maxlength="150">
                         </div>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-700" style="font-size:.82rem;">Payment Method <span class="text-danger">*</span></label>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach([
+                                'cash'  => ['label'=>'Cash',         'icon'=>'bi-cash-stack',      'color'=>'#15803d'],
+                                'gcash' => ['label'=>'GCash',        'icon'=>'bi-phone-fill',       'color'=>'#0069f5'],
+                                'maya'  => ['label'=>'Maya',         'icon'=>'bi-credit-card-fill', 'color'=>'#6d28d9'],
+                                'bank'  => ['label'=>'Bank Transfer','icon'=>'bi-bank2',            'color'=>'#b45309'],
+                                'other' => ['label'=>'Other',        'icon'=>'bi-three-dots',       'color'=>'#475569'],
+                            ] as $val => $opt)
+                            <label style="cursor:pointer;">
+                                <input type="radio" name="payment_method" value="{{ $val }}" class="d-none settle-pm-radio" {{ $val === 'cash' ? 'checked' : '' }}>
+                                <span class="settle-pm-pill" data-color="{{ $opt['color'] }}"
+                                    style="display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .75rem;border-radius:20px;font-size:.78rem;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;transition:all .15s;user-select:none;">
+                                    <i class="bi {{ $opt['icon'] }}"></i> {{ $opt['label'] }}
+                                </span>
+                            </label>
+                            @endforeach
+                        </div>
+                    </div>
                     <div class="mb-2">
                         <label class="form-label fw-700" style="font-size:.82rem;">Receipt Photo <span style="color:#a8a29e;font-weight:400;">(optional)</span></label>
                         <input type="file" name="receipt_photo" id="receipt_photo" class="form-control" accept="image/jpg,image/jpeg,image/png">
@@ -749,8 +769,32 @@ function openSettleModal(btn) {
     document.getElementById('settleForm').reset();
     document.getElementById('receiptPreview').src = '';
     document.getElementById('receiptPreviewWrap').classList.add('d-none');
+    // Reset payment method pills
+    updatePaymentPills();
     new bootstrap.Modal(document.getElementById('settleModal')).show();
 }
+
+// Payment method pill visual toggle
+function updatePaymentPills() {
+    document.querySelectorAll('.settle-pm-radio').forEach(function(radio) {
+        var pill = radio.nextElementSibling;
+        var color = pill.dataset.color;
+        if (radio.checked) {
+            pill.style.background = color;
+            pill.style.borderColor = color;
+            pill.style.color = '#fff';
+        } else {
+            pill.style.background = '#fff';
+            pill.style.borderColor = '#e2e8f0';
+            pill.style.color = '#64748b';
+        }
+    });
+}
+document.querySelectorAll('.settle-pm-radio').forEach(function(radio) {
+    radio.addEventListener('change', updatePaymentPills);
+});
+// Init on load
+updatePaymentPills();
 
 document.getElementById('receipt_photo').addEventListener('change', function () {
     var file = this.files[0];
