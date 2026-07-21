@@ -70,11 +70,12 @@ class AuthController extends Controller
             }
         }
 
-        // Generate token
+        // Generate token — only the plaintext form is ever returned to the client;
+        // the database stores just its SHA-256 hash (see BearerTokenMiddleware).
         $tokenStr = Str::random(80);
         $token = ApiToken::create([
             'user_id' => $user->id,
-            'token' => $tokenStr,
+            'token' => hash('sha256', $tokenStr),
             'expires_at' => now()->addDays(30),
         ]);
 
@@ -95,7 +96,7 @@ class AuthController extends Controller
     {
         $header = $request->header('Authorization', '');
         if (preg_match('/Bearer\s(\S+)/', $header, $matches)) {
-            ApiToken::where('token', $matches[1])->delete();
+            ApiToken::where('token', hash('sha256', $matches[1]))->delete();
         }
 
         return response()->json(['message' => 'Successfully logged out.']);

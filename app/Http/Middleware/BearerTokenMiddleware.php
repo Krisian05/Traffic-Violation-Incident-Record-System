@@ -19,7 +19,7 @@ class BearerTokenMiddleware
         }
 
         $token = $matches[1];
-        $tokenModel = ApiToken::where('token', $token)->first();
+        $tokenModel = ApiToken::where('token', hash('sha256', $token))->first();
 
         if (!$tokenModel || ($tokenModel->expires_at && $tokenModel->expires_at->isPast())) {
             return response()->json(['message' => 'Unauthenticated. Invalid or expired token.'], 401);
