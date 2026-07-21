@@ -386,6 +386,17 @@ class ViolationController extends Controller
         $data['settled_at'] = now();
         $violation->update($data);
 
+        // Record the payment details in the payments table
+        \App\Models\Payment::create([
+            'violation_id'   => $violation->id,
+            'amount_paid'    => $violation->violationType->fine_amount,
+            'payment_method' => $data['payment_method'],
+            'or_number'      => $data['or_number'],
+            'cashier_name'   => $data['cashier_name'],
+            'paid_at'        => $data['settled_at'],
+            'receipt_photo'  => $data['receipt_photo'] ?? null,
+        ]);
+
         return back()->with('success', 'Violation settled successfully.');
     }
 

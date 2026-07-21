@@ -134,6 +134,11 @@ class Violation extends Model
         return $this->belongsTo(Lgu::class);
     }
 
+    public function payment()
+    {
+        return $this->hasOne(Payment::class);
+    }
+
     /** Pending violations older than 72 hours — countdown starts from date_of_violation */
     public function scopeOverdue($query)
     {
