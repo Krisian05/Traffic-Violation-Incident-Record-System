@@ -3,11 +3,20 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\DeviceRegistration;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Str;
 
 class LoginController extends Controller
 {
+    /** Traffic officers may have at most this many devices registered at once. */
+    private const MAX_OFFICER_DEVICES = 2;
+
+    private const DEVICE_COOKIE = 'tvirs_device';
+
     public function showLoginForm()
     {
         return redirect()->route('home');
@@ -20,21 +29,120 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt(['username' => $request->username, 'password' => $request->password], $request->boolean('remember'))) {
-            $request->session()->regenerate();
-
-            /** @var \App\Models\User $user */
-            $user = Auth::user();
-            if ($user->isTrafficOfficer()) {
-                return redirect()->route('officer.dashboard');
-            }
-
-            return redirect()->intended('/dashboard');
+        if (! Auth::validate(['username' => $request->username, 'password' => $request->password])) {
+            return back()->withErrors([
+                'username' => 'The provided credentials do not match our records.',
+            ])->onlyInput('username');
         }
 
-        return back()->withErrors([
-            'username' => 'The provided credentials do not match our records.',
-        ])->onlyInput('username');
+        /** @var User $user */
+        $user = User::where('username', $request->username)->firstOrFail();
+        $remember = $request->boolean('remember');
+
+        if ($user->isTrafficOfficer()) {
+            $deviceError = $this->enforceDeviceRegistration($request, $user);
+
+            if ($deviceError) {
+                return back()->withErrors(['username' => $deviceError])->onlyInput('username');
+            }
+        }
+
+        if ($user->hasTwoFactorEnabled()) {
+            $request->session()->put('2fa:user:id', $user->id);
+            $request->session()->put('2fa:remember', $remember);
+
+            return redirect()->route('two-factor.challenge');
+        }
+
+        Auth::login($user, $remember);
+        $request->session()->regenerate();
+
+        if ($user->isTrafficOfficer()) {
+            return redirect()->route('officer.dashboard');
+        }
+
+        return redirect()->intended('/dashboard');
+    }
+
+    /**
+     * Registers the current device for this officer if they're under the cap,
+     * otherwise returns an error message. Returns null when login may proceed.
+     */
+    private function enforceDeviceRegistration(Request $request, User $user): ?string
+    {
+        $token = $request->cookie(self::DEVICE_COOKIE);
+        $hash = $token ? hash('sha256', $token) : null;
+
+        if ($hash) {
+            $device = DeviceRegistration::where('user_id', $user->id)
+                ->where('token_hash', $hash)
+                ->first();
+
+            if ($device) {
+                $device->update([
+                    'last_used_at' => now(),
+                    'ip_address' => $request->ip(),
+                ]);
+
+                return null;
+            }
+        }
+
+        // Unrecognized (or no) device cookie — register it if this officer is under the cap.
+        if ($user->devices()->count() >= self::MAX_OFFICER_DEVICES) {
+            return 'Maximum registered devices reached for this account. Ask an administrator to reset your device registrations.';
+        }
+
+        $newToken = Str::random(64);
+
+        DeviceRegistration::create([
+            'user_id' => $user->id,
+            'token_hash' => hash('sha256', $newToken),
+            'label' => $this->describeDevice($request->userAgent()),
+            'user_agent' => $request->userAgent(),
+            'ip_address' => $request->ip(),
+            'last_used_at' => now(),
+        ]);
+
+        Cookie::queue(Cookie::make(
+            self::DEVICE_COOKIE,
+            $newToken,
+            60 * 24 * 365 * 2, // ~2 years
+            null,
+            null,
+            ! app()->isLocal(),
+            true,
+            false,
+            'Lax'
+        ));
+
+        return null;
+    }
+
+    private function describeDevice(?string $userAgent): string
+    {
+        if (! $userAgent) {
+            return 'Unknown device';
+        }
+
+        $os = match (true) {
+            str_contains($userAgent, 'Android') => 'Android',
+            str_contains($userAgent, 'iPhone'), str_contains($userAgent, 'iPad') => 'iOS',
+            str_contains($userAgent, 'Windows') => 'Windows',
+            str_contains($userAgent, 'Macintosh') => 'macOS',
+            str_contains($userAgent, 'Linux') => 'Linux',
+            default => 'Unknown OS',
+        };
+
+        $browser = match (true) {
+            str_contains($userAgent, 'Chrome') => 'Chrome',
+            str_contains($userAgent, 'Firefox') => 'Firefox',
+            str_contains($userAgent, 'Safari') => 'Safari',
+            str_contains($userAgent, 'Edg/') => 'Edge',
+            default => 'Browser',
+        };
+
+        return "{$os} · {$browser}";
     }
 
     public function logout(Request $request)

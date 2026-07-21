@@ -1,13 +1,16 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DeviceRegistrationController;
 use App\Http\Controllers\IncidentChargeTypeController;
 use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\LguController;
 use App\Http\Controllers\OfficerController;
 use App\Http\Controllers\ProvinceDashboardController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\VehiclePhotoController;
@@ -23,6 +26,14 @@ Route::get('/', fn () => view('welcome'))->name('home');
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5,1');
+
+    // Mid-login 2FA challenge — the user has passed their password but isn't
+    // authenticated yet, so this stays under the guest group, gated by a
+    // pending-login session marker set by LoginController.
+    Route::prefix('two-factor-challenge')->name('two-factor.')->group(function () {
+        Route::get('/', [TwoFactorChallengeController::class, 'show'])->name('challenge');
+        Route::post('/', [TwoFactorChallengeController::class, 'verify'])->name('challenge.verify')->middleware('throttle:5,1');
+    });
 });
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
@@ -42,6 +53,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
     Route::get('/dashboard/search', [DashboardController::class, 'search'])->name('dashboard.search');
     Route::get('/dashboard/analytics', [DashboardController::class, 'analytics'])->name('dashboard.analytics');
+
+    // ── SECURITY: TWO-FACTOR AUTHENTICATION (any authenticated user) ───────────
+    Route::prefix('security/two-factor')->name('security.two-factor.')->group(function () {
+        Route::get('/', [TwoFactorController::class, 'show'])->name('show');
+        Route::get('/enable', [TwoFactorController::class, 'enable'])->name('enable');
+        Route::post('/confirm', [TwoFactorController::class, 'confirm'])->name('confirm');
+        Route::delete('/', [TwoFactorController::class, 'disable'])->name('disable');
+        Route::post('/recovery-codes', [TwoFactorController::class, 'regenerateRecoveryCodes'])->name('recovery-codes');
+    });
 
     // ── VIOLATORS ─────────────────────────────────────────────────────────────
     Route::get('/violators', [ViolatorController::class, 'index'])->name('violators.index');
@@ -145,6 +165,7 @@ Route::middleware('auth')->group(function () {
     // ── USERS (admin only) ───────────────────────────────────────────────────
     Route::middleware('role:admin')->group(function () {
         Route::resource('users', UserController::class);
+        Route::delete('/users/{user}/devices/{device}', [DeviceRegistrationController::class, 'destroy'])->name('users.devices.destroy');
     });
 
     // ── LGUs (admin only) ────────────────────────────────────────────────────

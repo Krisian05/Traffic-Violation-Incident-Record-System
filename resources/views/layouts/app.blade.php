@@ -1047,6 +1047,11 @@
             <i class="bi bi-building"></i> LGUs
         </a>
         @endif
+
+        <div class="nav-label">Account</div>
+        <a href="{{ route('security.two-factor.show') }}" class="{{ request()->routeIs('security.two-factor.*') ? 'active' : '' }}">
+            <i class="bi bi-shield-lock-fill"></i> Security
+        </a>
     </nav>
 
     <div class="sidebar-footer">

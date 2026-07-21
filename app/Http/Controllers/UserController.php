@@ -40,6 +40,7 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $lgus = Lgu::orderBy('name')->get();
+        $user->loadMissing('devices');
         return view('users.edit', compact('user', 'lgus'));
     }
 

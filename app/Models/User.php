@@ -41,6 +41,9 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'two_factor_confirmed_at' => 'datetime',
         ];
     }
 
@@ -77,5 +80,15 @@ class User extends Authenticatable
     public function lgu()
     {
         return $this->belongsTo(Lgu::class);
+    }
+
+    public function devices()
+    {
+        return $this->hasMany(DeviceRegistration::class);
+    }
+
+    public function hasTwoFactorEnabled(): bool
+    {
+        return ! is_null($this->two_factor_confirmed_at) && ! is_null($this->two_factor_secret);
     }
 }

@@ -139,6 +139,40 @@
     </div>
 </div>
 
+@if($user->isTrafficOfficer())
+<div class="usr-form-card mt-3">
+    <div class="usr-form-header">
+        <span class="usr-form-icon" style="background:linear-gradient(135deg,#0369a1,#075985);box-shadow:0 3px 10px rgba(3,105,161,.35);">
+            <i class="bi bi-phone-fill" style="color:#fff;font-size:.95rem;"></i>
+        </span>
+        <div>
+            <div class="usr-form-title">Registered Devices</div>
+            <div class="usr-form-sub">Up to 2 devices per officer — revoke one to free a slot.</div>
+        </div>
+    </div>
+    <div class="usr-form-body">
+        @forelse($user->devices->sortByDesc('last_used_at') as $device)
+            <div class="d-flex align-items-center justify-content-between py-2" style="border-bottom:1px solid #f0ebe3;">
+                <div>
+                    <div style="font-size:.85rem;font-weight:700;color:#1c1917;">{{ $device->label ?? 'Unknown device' }}</div>
+                    <div style="font-size:.72rem;color:#a8a29e;">
+                        Last used {{ $device->last_used_at?->diffForHumans() ?? 'never' }} · {{ $device->ip_address }}
+                    </div>
+                </div>
+                <form method="POST" action="{{ route('users.devices.destroy', [$user, $device]) }}" data-confirm="Revoke this device? The officer will need to re-register on next login.">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="usr-act-btn" style="background:#fff1f2;color:#b91c1c;border:1.5px solid #fca5a5;">
+                        <i class="bi bi-trash-fill"></i>
+                    </button>
+                </form>
+            </div>
+        @empty
+            <div style="font-size:.82rem;color:#a8a29e;">No devices registered yet — one will be added automatically on next login.</div>
+        @endforelse
+    </div>
+</div>
+@endif
+
 <style>
 .usr-form-card {
     max-width: 520px;
