@@ -30,7 +30,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 // All authenticated users
 Route::middleware('auth')->group(function () {
 
-    Route::middleware('role:admin,operator,traffic_officer')->group(function () {
+    Route::middleware('role:admin,operator,traffic_officer,cashier')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     });
 
