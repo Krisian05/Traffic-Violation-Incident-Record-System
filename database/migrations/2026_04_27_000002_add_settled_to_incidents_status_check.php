@@ -7,13 +7,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("ALTER TABLE incidents DROP CONSTRAINT IF EXISTS incidents_status_check");
-        DB::statement("ALTER TABLE incidents ADD CONSTRAINT incidents_status_check CHECK (status IN ('under_investigation', 'cleared', 'solved', 'settled'))");
+        // Named CHECK constraints are Postgres-only syntax (SQLite, used for local/testing,
+        // has no equivalent and doesn't enforce this constraint).
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE incidents DROP CONSTRAINT IF EXISTS incidents_status_check");
+            DB::statement("ALTER TABLE incidents ADD CONSTRAINT incidents_status_check CHECK (status IN ('under_investigation', 'cleared', 'solved', 'settled'))");
+        }
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE incidents DROP CONSTRAINT IF EXISTS incidents_status_check");
-        DB::statement("ALTER TABLE incidents ADD CONSTRAINT incidents_status_check CHECK (status IN ('under_investigation', 'cleared', 'solved'))");
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE incidents DROP CONSTRAINT IF EXISTS incidents_status_check");
+            DB::statement("ALTER TABLE incidents ADD CONSTRAINT incidents_status_check CHECK (status IN ('under_investigation', 'cleared', 'solved'))");
+        }
     }
 };
