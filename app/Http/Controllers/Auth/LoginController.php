@@ -61,6 +61,10 @@ class LoginController extends Controller
             return redirect()->route('officer.dashboard');
         }
 
+        if ($user->isProvinceAdmin()) {
+            return redirect()->route('province.dashboard');
+        }
+
         return redirect()->intended('/dashboard');
     }
 

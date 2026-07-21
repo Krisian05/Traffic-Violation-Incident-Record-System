@@ -31,24 +31,5 @@ trait BelongsToLgu
                 }
             }
         });
-
-        // Event listener to register tenant lookup for routing
-        static::saved(function ($model) {
-            if (isset($model->lgu_id) && $model->lgu_id) {
-                $type = strtolower(class_basename($model));
-                if (in_array($type, ['violation', 'incident', 'violator', 'vehicle'])) {
-                    \App\Support\Tenant::registerLookup($type, $model->id, $model->lgu_id);
-                }
-            }
-        });
-
-        // Event listener to clean up tenant lookup on delete
-        static::deleted(function ($model) {
-            $type = strtolower(class_basename($model));
-            \Illuminate\Support\Facades\DB::table('tenant_lookups')
-                ->where('type', $type)
-                ->where('model_id', $model->id)
-                ->delete();
-        });
     }
 }
