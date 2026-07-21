@@ -1377,6 +1377,41 @@
     }, 3800);
 })();
 
+function tvirsGetGpsLocation(uid) {
+    var latInput  = document.getElementById(uid + '_lat');
+    var lngInput  = document.getElementById(uid + '_lng');
+    var btn       = document.getElementById(uid + '_btn');
+    var btnLabel  = document.getElementById(uid + '_btn_label');
+    var status    = document.getElementById(uid + '_status');
+    if (!latInput || !lngInput) return;
+
+    if (!navigator.geolocation) {
+        if (status) status.textContent = 'Geolocation is not supported on this device.';
+        return;
+    }
+
+    if (btn) btn.disabled = true;
+    if (btnLabel) btnLabel.textContent = 'Locating…';
+    if (status) status.textContent = '';
+
+    navigator.geolocation.getCurrentPosition(function (position) {
+        latInput.value = position.coords.latitude.toFixed(7);
+        lngInput.value = position.coords.longitude.toFixed(7);
+        if (btn) btn.disabled = false;
+        if (btnLabel) btnLabel.textContent = 'Location captured';
+        if (status) status.textContent = 'GPS coordinates captured from this device.';
+    }, function (error) {
+        if (btn) btn.disabled = false;
+        if (btnLabel) btnLabel.textContent = 'Get Current Location';
+        var messages = {
+            1: 'Location permission denied.',
+            2: 'Location unavailable right now.',
+            3: 'Location request timed out.'
+        };
+        if (status) status.textContent = messages[error.code] || 'Unable to get location.';
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+}
+
 const mobUserMenuToggle = document.getElementById('mobUserMenuToggle');
 const mobUserMenu = document.getElementById('mob-user-menu');
 const mobLogoutAction = document.getElementById('mobLogoutAction');

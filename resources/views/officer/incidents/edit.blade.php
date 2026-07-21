@@ -71,6 +71,12 @@
                 ])
             </div>
 
+            @include('partials.gps-locator', [
+                'uid'      => 'gps_incident',
+                'latValue' => $incident->gps_lat,
+                'lngValue' => $incident->gps_lng,
+            ])
+
             <div class="mb-3">
                 <label class="mob-label">Description</label>
                 <textarea name="description" rows="3" class="form-control mob-input @error('description') is-invalid @enderror" style="min-height:auto;resize:none;" placeholder="Brief description of what happened...">{{ old('description', $incident->description) }}</textarea>

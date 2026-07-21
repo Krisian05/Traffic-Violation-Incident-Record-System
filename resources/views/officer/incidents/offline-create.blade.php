@@ -113,6 +113,8 @@
                 </div>
             </div>
 
+            @include('partials.gps-locator', ['uid' => 'gps_offline_incident'])
+
             <div class="mb-4">
                 <label class="mob-label">Description</label>
                 <textarea name="description" rows="3" class="form-control mob-input"

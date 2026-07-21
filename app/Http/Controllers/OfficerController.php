@@ -328,6 +328,10 @@ class OfficerController extends Controller
     {
         $request->validate([
             'offline_motorist_key' => ['required', 'string'],
+            // Resolved client-side by mobile-offline.js: the offline queue tracks the server
+            // violator_id once the linked offline motorist record has synced, and injects it
+            // here before this endpoint is called. See syncRecord() in public/mobile-offline.js.
+            'violator_id'          => ['required', 'integer', 'exists:violators,id'],
             // Exclude soft-deleted rows from the unique check — withTrashed plates are restored below.
             'plate_number'         => ['required', 'string', 'max:20', Rule::unique('vehicles', 'plate_number')->whereNull('deleted_at')],
             'vehicle_type'         => ['required', 'in:MV,MC'],
@@ -343,10 +347,7 @@ class OfficerController extends Controller
             'photos.*'             => ['image', 'max:20480'],
         ]);
 
-        // TODO: Resolve offline_motorist_key to violator_id during sync (extend mobile-offline.js)
-        // For now require violator_id from synced form
-        $violatorId = $request->input('violator_id');
-        $violator = Violator::findOrFail($violatorId);
+        $violator = Violator::findOrFail($request->input('violator_id'));
 
         $data = $request->only([
             'plate_number', 'vehicle_type', 'make', 'model', 'color', 'year',
@@ -430,6 +431,8 @@ class OfficerController extends Controller
             'photos.*'              => ['image', 'mimes:jpg,jpeg,png', 'max:20480'],
             'date_of_violation'     => ['required', 'date', 'before_or_equal:today'],
             'location'              => ['nullable', 'string', 'max:255'],
+            'gps_lat'               => ['nullable', 'numeric', 'between:-90,90'],
+            'gps_lng'               => ['nullable', 'numeric', 'between:-180,180'],
             'ticket_number'         => ['nullable', 'string', 'max:50', 'unique:violations,ticket_number'],
             'citation_ticket_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
             'valid_id_photo'        => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
@@ -557,6 +560,8 @@ class OfficerController extends Controller
             'photos.*'              => ['image', 'mimes:jpg,jpeg,png', 'max:51200'],
             'date_of_violation'     => ['required', 'date', 'before_or_equal:today'],
             'location'              => ['nullable', 'string', 'max:255'],
+            'gps_lat'               => ['nullable', 'numeric', 'between:-90,90'],
+            'gps_lng'               => ['nullable', 'numeric', 'between:-180,180'],
             'ticket_number'         => ['nullable', 'string', 'max:50'],
             'citation_ticket_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
             'valid_id_photo'        => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
@@ -776,6 +781,8 @@ class OfficerController extends Controller
             'date_of_incident'                    => 'required|date|before_or_equal:today',
             'time_of_incident'                    => 'nullable|date_format:H:i',
             'location'                            => 'required|string|max:255',
+            'gps_lat'                              => 'nullable|numeric|between:-90,90',
+            'gps_lng'                              => 'nullable|numeric|between:-180,180',
             'description'                         => 'nullable|string|max:2000',
             'incident_photos'                     => 'nullable|array|max:6',
             'incident_photos.*'                   => 'image|mimes:jpg,jpeg,png|max:20480',
@@ -838,6 +845,8 @@ class OfficerController extends Controller
                 'date_of_incident' => $request->input('date_of_incident'),
                 'time_of_incident' => $request->input('time_of_incident'),
                 'location'         => $request->input('location'),
+                'gps_lat'          => $request->input('gps_lat'),
+                'gps_lng'          => $request->input('gps_lng'),
                 'lgu_id'           => Lgu::findByPsgcCityCode($request->input('_loc_city_code'))?->id,
                 'description'      => $request->input('description'),
                 'other_involved'   => !empty($otherInvolved) ? $otherInvolved : null,
@@ -1076,6 +1085,8 @@ class OfficerController extends Controller
             'date_of_incident'      => 'required|date|before_or_equal:today',
             'time_of_incident'      => 'nullable|date_format:H:i',
             'location'              => 'required|string|max:255',
+            'gps_lat'               => 'nullable|numeric|between:-90,90',
+            'gps_lng'               => 'nullable|numeric|between:-180,180',
             'description'           => 'nullable|string|max:2000',
             'incident_photos'       => 'nullable|array|max:6',
             'incident_photos.*'     => 'image|mimes:jpg,jpeg,png|max:20480',
@@ -1094,6 +1105,8 @@ class OfficerController extends Controller
             'date_of_incident' => $validated['date_of_incident'],
             'time_of_incident' => $validated['time_of_incident'] ?? null,
             'location'         => $validated['location'],
+            'gps_lat'          => $validated['gps_lat'] ?? null,
+            'gps_lng'          => $validated['gps_lng'] ?? null,
             'description'      => $validated['description'] ?? null,
             'other_involved'   => !empty($otherInvolved) ? $otherInvolved : null,
         ];

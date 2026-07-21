@@ -121,6 +121,12 @@
                 ])
             </div>
 
+            @include('partials.gps-locator', [
+                'uid'      => 'gps_violation',
+                'latValue' => $violation->gps_lat,
+                'lngValue' => $violation->gps_lng,
+            ])
+
             <div class="mb-3">
                 <label class="mob-label">Ticket Number</label>
                 <input type="text" value="{{ $violation->ticket_number }}" class="form-control mob-input" readonly style="background-color: #f1f5f9; color: #64748b;">

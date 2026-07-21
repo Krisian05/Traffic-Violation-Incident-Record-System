@@ -11,7 +11,6 @@ use App\Models\ViolationType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class OfficerApiController extends Controller
@@ -153,6 +152,8 @@ class OfficerApiController extends Controller
             'vehicle_chassis'       => ['nullable', 'string', 'max:100'],
             'date_of_violation'     => ['required', 'date', 'before_or_equal:today'],
             'location'              => ['nullable', 'string', 'max:255'],
+            'gps_lat'               => ['nullable', 'numeric', 'between:-90,90'],
+            'gps_lng'               => ['nullable', 'numeric', 'between:-180,180'],
             'ticket_number'         => ['nullable', 'string', 'max:50', 'unique:violations,ticket_number'],
             'citation_ticket_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
             'valid_id_photo'        => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
@@ -232,14 +233,14 @@ class OfficerApiController extends Controller
         $data = $request->validate([
             'date_of_incident' => ['required', 'date', 'before_or_equal:today'],
             'location'         => ['required', 'string', 'max:255'],
+            'gps_lat'          => ['nullable', 'numeric', 'between:-90,90'],
+            'gps_lng'          => ['nullable', 'numeric', 'between:-180,180'],
             'description'      => ['required', 'string'],
-            'severity'         => ['required', 'in:minor,major,fatal'],
-            'status'           => ['required', 'in:under_investigation,resolved,settled'],
+            'status'           => ['required', 'in:under_investigation,cleared,solved,settled'],
         ]);
 
-        $data['incident_number'] = 'INC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
-        $data['recorded_by']     = Auth::id();
-        $data['lgu_id']          = Auth::user()->lgu_id;
+        $data['recorded_by'] = Auth::id();
+        $data['lgu_id']      = Auth::user()->lgu_id;
 
         $incident = Incident::create($data);
 

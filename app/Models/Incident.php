@@ -19,7 +19,7 @@ class Incident extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['incident_number', 'date_of_incident', 'location', 'lgu_id', 'status', 'description'])
+            ->logOnly(['incident_number', 'date_of_incident', 'location', 'gps_lat', 'gps_lng', 'lgu_id', 'status', 'description'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('incident');
@@ -30,6 +30,8 @@ class Incident extends Model
         'date_of_incident',
         'time_of_incident',
         'location',
+        'gps_lat',
+        'gps_lng',
         'lgu_id',
         'description',
         'other_involved',

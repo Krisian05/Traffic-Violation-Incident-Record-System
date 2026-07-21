@@ -188,6 +188,8 @@
                 </div>
             </div>
 
+            @include('partials.gps-locator', ['uid' => 'gps_offline_violation'])
+
             <div class="mb-3">
                 <label class="mob-label">Ticket Number</label>
                 <input type="text" class="form-control mob-input" value="[Auto-generated on Save]" readonly style="background-color: #f1f5f9; color: #64748b;">
