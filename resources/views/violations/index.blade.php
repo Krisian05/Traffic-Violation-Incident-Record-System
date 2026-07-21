@@ -6,12 +6,14 @@
     {{ $violations->total() }} total {{ Str::plural('record', $violations->total()) }}
     @php
         $activeFilters = [];
-        if (request('search'))  $activeFilters[] = ['label' => 'Name',   'value' => request('search')];
-        if (request('plate'))   $activeFilters[] = ['label' => 'Plate',  'value' => request('plate')];
-        if (request('type'))    $activeFilters[] = ['label' => 'Type',   'value' => ucfirst(request('type'))];
-        if (request('status'))  $activeFilters[] = ['label' => 'Status', 'value' => ucfirst(request('status'))];
-        if (request('month'))   $activeFilters[] = ['label' => 'Month',  'value' => \Carbon\Carbon::create(null, (int) request('month'))->format('F')];
-        if (request('year'))    $activeFilters[] = ['label' => 'Year',   'value' => request('year')];
+        if (request('search'))    $activeFilters[] = ['label' => 'Name',   'value' => request('search')];
+        if (request('plate'))     $activeFilters[] = ['label' => 'Plate',  'value' => request('plate')];
+        if (request('type'))      $activeFilters[] = ['label' => 'Type',   'value' => ucfirst(request('type'))];
+        if (request('status'))    $activeFilters[] = ['label' => 'Status', 'value' => ucfirst(request('status'))];
+        if (request('month'))     $activeFilters[] = ['label' => 'Month',  'value' => \Carbon\Carbon::create(null, (int) request('month'))->format('F')];
+        if (request('year'))      $activeFilters[] = ['label' => 'Year',   'value' => request('year')];
+        if (request('date_from')) $activeFilters[] = ['label' => 'From',   'value' => \Carbon\Carbon::parse(request('date_from'))->format('M d, Y')];
+        if (request('date_to'))   $activeFilters[] = ['label' => 'To',     'value' => \Carbon\Carbon::parse(request('date_to'))->format('M d, Y')];
     @endphp
     @foreach($activeFilters as $f)
         &nbsp;·&nbsp; <span style="display:inline-flex;align-items:center;gap:3px;background:#fef9ec;color:#92400e;border:1px solid #fcd34d;border-radius:999px;padding:1px 8px;font-size:.78rem;font-weight:500;">
@@ -34,7 +36,7 @@
                 <div style="font-size:.72rem;color:#a8a29e;">Narrow down violation records</div>
             </div>
         </div>
-        @if(request()->hasAny(['search','plate','type','status','month','year']))
+        @if(request()->hasAny(['search','plate','type','status','month','year','date_from','date_to']))
             <a href="{{ route('violations.index') }}" class="filter-clear-btn ms-auto">
                 <i class="bi bi-x-lg"></i> Clear filters
             </a>
@@ -100,6 +102,18 @@
                         placeholder="{{ date('Y') }}"
                         value="{{ request('year') }}"
                         min="2000" max="{{ date('Y') }}">
+                </div>
+
+                <div style="flex:1.3;min-width:120px;">
+                    <label class="filter-label"><i class="bi bi-calendar-event me-1"></i>Date From</label>
+                    <input type="date" name="date_from" class="form-control form-control-sm filt-input"
+                        value="{{ request('date_from') }}">
+                </div>
+
+                <div style="flex:1.3;min-width:120px;">
+                    <label class="filter-label"><i class="bi bi-calendar-event me-1"></i>Date To</label>
+                    <input type="date" name="date_to" class="form-control form-control-sm filt-input"
+                        value="{{ request('date_to') }}">
                 </div>
 
                 <div style="flex-shrink:0;display:flex;gap:6px;">
