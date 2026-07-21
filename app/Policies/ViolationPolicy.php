@@ -37,22 +37,12 @@ class ViolationPolicy
         return $user->isOperator();
     }
 
-    // Only operators and cashiers can settle violations, scoped by LGU if assigned
+    // Only cashiers can settle violations via the Cashier Portal, scoped by LGU.
+    // Admins/operators still settle violations directly through the edit form
+    // (see update() above) — this ability is exclusive to the dedicated portal.
     public function settle(User $user, Violation $violation): bool
     {
-        if ($user->isAdmin()) {
-            return true;
-        }
-
-        if ($user->isOperator()) {
-            return !$user->lgu_id || $violation->lgu_id === $user->lgu_id;
-        }
-
-        if ($user->isCashier()) {
-            return $user->lgu_id && $violation->lgu_id === $user->lgu_id;
-        }
-
-        return false;
+        return $user->isCashier() && $user->lgu_id && $violation->lgu_id === $user->lgu_id;
     }
 
     public function restore(User $user, Violation $violation): bool

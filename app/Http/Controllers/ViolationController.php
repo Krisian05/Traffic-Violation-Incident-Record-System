@@ -433,30 +433,23 @@ class ViolationController extends Controller
                       ->orWhere('id', (int) $search);
                 });
 
-            // LGU scoping for cashier and non-admin operators
-            if (($user->isCashier() || $user->isOperator()) && !$user->isAdmin()) {
-                if ($user->lgu_id) {
-                    $query->where('lgu_id', $user->lgu_id);
-                }
+            // This route is cashier-only now; scope by their assigned LGU.
+            if ($user->lgu_id) {
+                $query->where('lgu_id', $user->lgu_id);
             }
 
             $violation = $query->first();
         }
 
-        // The "browse all unpaid tickets" list is a cashier-only convenience —
-        // admins/operators can still look up a specific ticket via search above.
-        $pendingTickets = collect();
-        if ($user->isCashier()) {
-            $pendingQuery = Violation::with(['violator', 'violationType'])
-                ->where('status', 'pending')
-                ->orderBy('date_of_violation', 'desc');
+        $pendingQuery = Violation::with(['violator', 'violationType'])
+            ->where('status', 'pending')
+            ->orderBy('date_of_violation', 'desc');
 
-            if ($user->lgu_id) {
-                $pendingQuery->where('lgu_id', $user->lgu_id);
-            }
-
-            $pendingTickets = $pendingQuery->limit(10)->get();
+        if ($user->lgu_id) {
+            $pendingQuery->where('lgu_id', $user->lgu_id);
         }
+
+        $pendingTickets = $pendingQuery->limit(10)->get();
 
         return view('violations.cashier', compact('violation', 'search', 'pendingTickets'));
     }

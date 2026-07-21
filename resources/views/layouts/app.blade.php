@@ -1018,7 +1018,7 @@
         <a href="{{ route('violations.index') }}" class="{{ request()->routeIs('violations.*') && !request()->routeIs('violations.cashier') ? 'active' : '' }}">
             <i class="bi bi-exclamation-triangle-fill"></i> Violations
         </a>
-        @if(Auth::user()->isOperator() || Auth::user()->isCashier())
+        @if(Auth::user()->isCashier())
         <a href="{{ route('violations.cashier') }}" class="{{ request()->routeIs('violations.cashier') ? 'active' : '' }}">
             <i class="bi bi-wallet2"></i> Cashier Portal
         </a>

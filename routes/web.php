@@ -100,7 +100,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/violation-vehicle-photos/{violationVehiclePhoto}', [ViolationVehiclePhotoController::class, 'destroy'])->name('violation-vehicle-photos.destroy');
     });
 
-    Route::middleware('role:operator,cashier')->group(function () {
+    Route::middleware('role:cashier')->group(function () {
         Route::get('/cashier', [ViolationController::class, 'cashier'])->name('violations.cashier');
         Route::patch('/violations/{violation}/settle', [ViolationController::class, 'settle'])->name('violations.settle');
     });
