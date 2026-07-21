@@ -25,10 +25,11 @@ class IncidentPolicy
         return $user->isOperator() || $user->isTrafficOfficer();
     }
 
-    // Only operators can edit incidents
+    // Operators can edit any incident; traffic officers can edit only the ones they recorded.
     public function update(User $user, Incident $incident): bool
     {
-        return $user->isOperator();
+        return $user->isOperator()
+            || ($user->isTrafficOfficer() && $incident->recorded_by === $user->id);
     }
 
     // Only operators can delete incidents or their media

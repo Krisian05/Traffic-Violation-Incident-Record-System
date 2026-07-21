@@ -25,10 +25,11 @@ class ViolationPolicy
         return true;
     }
 
-    // Only operators can edit violations
+    // Operators can edit any violation; traffic officers can edit only the ones they recorded.
     public function update(User $user, Violation $violation): bool
     {
-        return $user->isOperator();
+        return $user->isOperator()
+            || ($user->isTrafficOfficer() && $violation->recorded_by === $user->id);
     }
 
     // Only operators can delete violations
