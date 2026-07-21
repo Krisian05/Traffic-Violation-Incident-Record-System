@@ -430,7 +430,7 @@ class OfficerController extends Controller
             'photos.*'              => ['image', 'mimes:jpg,jpeg,png', 'max:20480'],
             'date_of_violation'     => ['required', 'date', 'before_or_equal:today'],
             'location'              => ['nullable', 'string', 'max:255'],
-            'ticket_number'         => ['nullable', 'string', 'max:50'],
+            'ticket_number'         => ['nullable', 'string', 'max:50', 'unique:violations,ticket_number'],
             'citation_ticket_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
             'valid_id_photo'        => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
             'status'                => ['required', 'in:pending,settled'],

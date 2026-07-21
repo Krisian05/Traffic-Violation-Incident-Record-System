@@ -190,7 +190,9 @@
 
             <div class="mb-3">
                 <label class="mob-label">Ticket Number</label>
-                <input type="text" name="ticket_number" class="form-control mob-input" placeholder="e.g. TMR-2026-001">
+                <input type="text" class="form-control mob-input" value="[Auto-generated on Save]" readonly style="background-color: #f1f5f9; color: #64748b;">
+                <input type="hidden" name="ticket_number" value="">
+                <div class="form-text text-muted" style="font-size: 0.72rem;">The system will automatically generate a unique ticket number matching the TVIRS standard.</div>
             </div>
 
             <div class="mob-form-divider">

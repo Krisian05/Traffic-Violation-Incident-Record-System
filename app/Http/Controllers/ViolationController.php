@@ -102,7 +102,7 @@ class ViolationController extends Controller
             'location'           => ['nullable', 'string', 'max:255'],
             'gps_lat'            => ['nullable', 'numeric', 'between:-90,90'],
             'gps_lng'            => ['nullable', 'numeric', 'between:-180,180'],
-            'ticket_number'           => ['nullable', 'string', 'max:50'],
+            'ticket_number'           => ['nullable', 'string', 'max:50', 'unique:violations,ticket_number'],
             'citation_ticket_photo'   => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
             'valid_id_photo'          => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
             'status'                  => ['required', 'in:pending,settled'],

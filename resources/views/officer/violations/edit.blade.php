@@ -123,9 +123,8 @@
 
             <div class="mb-3">
                 <label class="mob-label">Ticket Number</label>
-                <input type="text" name="ticket_number" value="{{ old('ticket_number', $violation->ticket_number) }}"
-                       class="form-control mob-input @error('ticket_number') is-invalid @enderror">
-                @error('ticket_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <input type="text" value="{{ $violation->ticket_number }}" class="form-control mob-input" readonly style="background-color: #f1f5f9; color: #64748b;">
+                <input type="hidden" name="ticket_number" value="{{ $violation->ticket_number }}">
             </div>
 
             <div class="mob-form-divider">
