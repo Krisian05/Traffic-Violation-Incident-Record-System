@@ -579,6 +579,10 @@
                    class="btn btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2 fw-600">
                     <i class="bi bi-printer-fill" style="font-size:.85rem;"></i> Print
                 </a>
+                <a href="{{ route('violations.print-thermal', $violation) }}" target="_blank"
+                   class="btn btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2 fw-600">
+                    <i class="bi bi-receipt" style="font-size:.85rem;"></i> Print Citation (Pocket Printer)
+                </a>
                 @if(Auth::user()->isOperator())
                 @if($violation->status === 'pending')
                 <button type="button" class="btn btn-success w-100 fw-600 d-inline-flex align-items-center justify-content-center gap-2"

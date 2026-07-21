@@ -135,6 +135,14 @@
 </a>
 @endif
 
+{{-- ── Actions ── --}}
+<div style="margin-bottom:1rem;">
+    <a href="{{ route('violations.print-thermal', $violation) }}" target="_blank" class="motshow-action motshow-action--blue" style="width:100%;">
+        <i class="ph-bold ph-printer"></i>
+        Print Citation (Pocket Printer)
+    </a>
+</div>
+
 {{-- ── Overdue alert ── --}}
 @if($isOverdue && $status === 'pending')
 <div class="motshow-alert motshow-alert--danger">

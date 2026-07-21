@@ -110,6 +110,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/violations', [ViolationController::class, 'index'])->name('violations.index');
     Route::get('/violations/{violation}', [ViolationController::class, 'show'])->name('violations.show');
     Route::get('/violations/{violation}/print', [ViolationController::class, 'printRecord'])->name('violations.print');
+    Route::get('/violations/{violation}/print-thermal', [ViolationController::class, 'printThermal'])->name('violations.print-thermal');
 
     Route::middleware('role:operator')->group(function () {
         Route::get('/violators/{violator}/violations/create', [ViolationController::class, 'create'])->name('violations.create');
