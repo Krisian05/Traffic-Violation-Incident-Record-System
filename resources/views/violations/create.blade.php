@@ -345,14 +345,12 @@
                         <label class="form-label">Ticket / Citation Number</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-receipt"></i></span>
-                            <input type="text" name="ticket_number"
-                                class="form-control @error('ticket_number') is-invalid @enderror"
-                                value="{{ old('ticket_number') }}"
-                                placeholder="e.g. TCK-2024-00123">
-                            @error('ticket_number')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <input type="text" class="form-control"
+                                value="[Auto-generated on Save]"
+                                readonly style="background-color: #f1f5f9; color: #64748b;">
+                            <input type="hidden" name="ticket_number" value="">
                         </div>
+                        <div class="form-text" style="font-size: 0.72rem;">The system will automatically generate a unique ticket number matching the TVIRS standard.</div>
                     </div>
 
                     <div class="col-md-6">
