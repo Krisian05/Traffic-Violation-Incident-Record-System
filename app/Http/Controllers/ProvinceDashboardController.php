@@ -36,9 +36,10 @@ class ProvinceDashboardController extends Controller
             ];
         })->sortByDesc('total_violations')->values();
 
-        $totalViolations     = Violation::whereYear('date_of_violation', $year)->count();
-        $totalViolators      = Violator::count();
-        $totalActiveOfficers = User::whereIn('role', ['traffic_officer', 'operator'])->count();
+        $totalViolationsAllTime = Violation::count();
+        $totalViolations        = Violation::whereYear('date_of_violation', $year)->count();
+        $totalViolators         = Violator::count();
+        $totalActiveOfficers    = User::whereIn('role', ['traffic_officer', 'operator'])->count();
 
         $monthlyTrend = Violation::whereYear('date_of_violation', $year)
             ->selectRaw("EXTRACT(MONTH FROM date_of_violation) as month, COUNT(*) as total")
@@ -51,9 +52,30 @@ class ProvinceDashboardController extends Controller
             $chartData[] = $monthlyTrend[$m] ?? 0;
         }
 
+        // Violation category distribution (top 5 categories, rest grouped as Other)
+        $categoriesQuery = Violation::whereYear('date_of_violation', $year)
+            ->join('violation_types', 'violations.violation_type_id', '=', 'violation_types.id')
+            ->selectRaw('violation_types.name, COUNT(*) as total')
+            ->groupBy('violation_types.name')
+            ->orderByDesc('total')
+            ->get();
+
+        $categoryLabels = [];
+        $categoryData = [];
+        $topCategories = $categoriesQuery->take(4);
+        foreach ($topCategories as $cat) {
+            $categoryLabels[] = $cat->name;
+            $categoryData[] = (int) $cat->total;
+        }
+        if ($categoriesQuery->count() > 4) {
+            $otherTotal = $categoriesQuery->slice(4)->sum('total');
+            $categoryLabels[] = 'Other Violations';
+            $categoryData[] = (int) $otherTotal;
+        }
+
         return view('province.dashboard', compact(
-            'year', 'municipalityStats', 'totalViolations', 'totalViolators',
-            'totalActiveOfficers', 'chartLabels', 'chartData'
+            'year', 'municipalityStats', 'totalViolations', 'totalViolationsAllTime', 'totalViolators',
+            'totalActiveOfficers', 'chartLabels', 'chartData', 'categoryLabels', 'categoryData'
         ));
     }
 }

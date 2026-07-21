@@ -39,7 +39,10 @@
                     <div style="font-size:.85rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;">Total Violations</div>
                 </div>
                 <div style="font-size:2.2rem;font-weight:800;color:#1e293b;">{{ number_format($totalViolations) }}</div>
-                <div style="font-size:.8rem;color:#94a3b8;font-weight:500;">Recorded in {{ $year }} across all LGUs</div>
+                <div class="d-flex align-items-center gap-2">
+                    <span style="font-size:.8rem;color:#94a3b8;font-weight:500;">Recorded in {{ $year }}</span>
+                    <span class="badge" style="background:#eff6ff;color:#1e40af;font-size:.7rem;font-weight:700;border:1px solid #bfdbfe;">All-Time: {{ number_format($totalViolationsAllTime) }}</span>
+                </div>
             </div>
         </div>
     </div>
@@ -99,30 +102,88 @@
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm h-100" style="border-radius:14px;overflow:hidden;border:1px solid #e2e8f0;">
             <div class="card-header border-0 bg-white" style="padding:1.25rem 1.5rem;">
-                <div style="font-size:1.05rem;font-weight:700;color:#1e293b;">LGU Breakdown</div>
-                <div style="font-size:.85rem;color:#64748b;">Top municipalities by violation count</div>
+                <div style="font-size:1.05rem;font-weight:700;color:#1e293b;">Violation Category Distribution</div>
+                <div style="font-size:.85rem;color:#64748b;">Top citation types across all LGUs</div>
+            </div>
+            <div class="card-body px-4 pb-4 pt-0 d-flex align-items-center justify-content-center" style="height:320px;">
+                @if(empty($categoryData))
+                    <div class="text-muted" style="font-size:.85rem;font-style:italic;">No data available for {{ $year }}.</div>
+                @else
+                    <div style="width:230px;height:230px;position:relative;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden;border:1px solid #e2e8f0;">
+            <div class="card-header border-0 bg-white" style="padding:1.25rem 1.5rem;">
+                <div style="font-size:1.05rem;font-weight:700;color:#1e293b;">Comparative LGU Performance Analysis</div>
+                <div style="font-size:.85rem;color:#64748b;">Enforcement activity and settlement ratios by municipality for {{ $year }}</div>
             </div>
             <div class="card-body p-0">
                 @if($municipalityStats->isEmpty())
-                <div class="p-4 text-center text-muted" style="font-size:.9rem;font-style:italic;">No data available.</div>
+                    <div class="p-4 text-center text-muted" style="font-size:.9rem;font-style:italic;">No data available.</div>
                 @else
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" style="font-size:.88rem;">
-                        <tbody>
-                            @foreach($municipalityStats as $stat)
-                            <tr>
-                                <td style="padding:.75rem 1.5rem;">
-                                    <div style="font-weight:700;color:#1e293b;">{{ $stat->municipality_name }}</div>
-                                    <div style="font-size:.75rem;color:#64748b;">{{ $stat->settled_rate }}% settlement rate</div>
-                                </td>
-                                <td style="padding:.75rem 1.5rem;text-align:right;">
-                                    <span class="badge" style="background:#f1f5f9;color:#334155;font-size:.85rem;">{{ number_format($stat->total_violations) }}</span>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="font-size:.9rem;">
+                            <thead class="table-light text-uppercase" style="font-size:.75rem;font-weight:700;letter-spacing:.04em;color:#475569;">
+                                <tr>
+                                    <th style="padding:1rem 1.5rem;width:80px;">Rank</th>
+                                    <th style="padding:1rem 1.5rem;">Municipality</th>
+                                    <th style="padding:1rem 1.5rem;text-align:center;">Total Citations</th>
+                                    <th style="padding:1rem 1.5rem;text-align:center;">Settled</th>
+                                    <th style="padding:1rem 1.5rem;text-align:center;">Pending / Overdue</th>
+                                    <th style="padding:1rem 1.5rem;text-align:center;">Settlement Rate</th>
+                                    <th style="padding:1rem 1.5rem;width:250px;">Enforcement Volume Share</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $maxViolations = $municipalityStats->max('total_violations') ?: 1;
+                                @endphp
+                                @foreach($municipalityStats as $index => $stat)
+                                <tr>
+                                    <td style="padding:1rem 1.5rem;font-weight:700;color:#64748b;">
+                                        #{{ $index + 1 }}
+                                    </td>
+                                    <td style="padding:1rem 1.5rem;font-weight:700;color:#1e293b;">
+                                        {{ $stat->municipality_name }}
+                                    </td>
+                                    <td style="padding:1rem 1.5rem;text-align:center;font-weight:600;color:#1e293b;">
+                                        {{ number_format($stat->total_violations) }}
+                                    </td>
+                                    <td style="padding:1rem 1.5rem;text-align:center;color:#16a34a;font-weight:600;">
+                                        {{ number_format($stat->settled_violations) }}
+                                    </td>
+                                    <td style="padding:1rem 1.5rem;text-align:center;color:#dc2626;font-weight:600;">
+                                        {{ number_format($stat->total_violations - $stat->settled_violations) }}
+                                    </td>
+                                    <td style="padding:1rem 1.5rem;text-align:center;">
+                                        <span class="badge" style="background:{{ $stat->settled_rate >= 70 ? '#d1fae5;color:#065f46;' : ($stat->settled_rate >= 40 ? '#fef3c7;color:#92400e;' : '#fee2e2;color:#991b1b;') }};padding:.35rem .65rem;border-radius:6px;font-size:0.8rem;">
+                                            {{ $stat->settled_rate }}%
+                                         </span>
+                                    </td>
+                                    <td style="padding:1rem 1.5rem;">
+                                        @php
+                                            $percentage = round(($stat->total_violations / $maxViolations) * 100);
+                                        @endphp
+                                        <div class="d-flex align-items-center gap-2">
+                                             <div class="progress flex-grow-1" style="height:6px;border-radius:3px;background-color:#f1f5f9;">
+                                                 <div class="progress-bar" style="width:{{ $percentage }}%;background-color:#3b82f6;border-radius:3px;"></div>
+                                             </div>
+                                             <span style="font-size:.75rem;font-weight:600;color:#64748b;width:30px;text-align:right;">{{ $percentage }}%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 @endif
             </div>
         </div>
@@ -134,50 +195,82 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('trendChart');
-    if(!ctx) return;
-    
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: @json($chartLabels),
-            datasets: [{
-                label: 'Violations',
-                data: @json($chartData),
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59,130,246,0.1)',
-                borderWidth: 3,
-                pointBackgroundColor: '#ffffff',
-                pointBorderColor: '#3b82f6',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
+    if(ctx) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: @json($chartLabels),
+                datasets: [{
+                    label: 'Violations',
+                    data: @json($chartData),
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59,130,246,0.06)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#3b82f6',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.35
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: '#f1f5f9', borderDash: [4, 4] },
-                    ticks: { precision: 0, font: { size: 11, family: "'Inter', sans-serif" } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
                 },
-                x: {
-                    grid: { display: false },
-                    ticks: { font: { size: 11, family: "'Inter', sans-serif" } }
-                }
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f5f9', borderDash: [4, 4] },
+                        ticks: { precision: 0, font: { size: 11, family: "'Inter', sans-serif" } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 11, family: "'Inter', sans-serif" } }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index',
+                },
+            }
+        });
+    }
+
+    const catCtx = document.getElementById('categoryChart');
+    if(catCtx) {
+        new Chart(catCtx, {
+            type: 'doughnut',
+            data: {
+                labels: @json($categoryLabels),
+                datasets: [{
+                    data: @json($categoryData),
+                    backgroundColor: [
+                        '#3b82f6',
+                        '#10b981',
+                        '#f59e0b',
+                        '#ef4444',
+                        '#8b5cf6'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
             },
-            interaction: {
-                intersect: false,
-                mode: 'index',
-            },
-        }
-    });
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                cutout: '68%'
+            }
+        });
+    }
 });
 </script>
 @endpush
