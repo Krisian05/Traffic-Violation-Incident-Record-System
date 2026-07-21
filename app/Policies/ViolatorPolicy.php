@@ -22,13 +22,13 @@ class ViolatorPolicy
     // Both operators and traffic officers can register motorists
     public function create(User $user): bool
     {
-        return true;
+        return $user->isOperator() || $user->isTrafficOfficer();
     }
 
     // Both operators and traffic officers can edit motorist records
     public function update(User $user, Violator $violator): bool
     {
-        return true;
+        return $user->isOperator() || $user->isTrafficOfficer();
     }
 
     // Only operators can soft-delete motorists

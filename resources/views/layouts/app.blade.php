@@ -1018,7 +1018,7 @@
         <a href="{{ route('violations.index') }}" class="{{ request()->routeIs('violations.*') && !request()->routeIs('violations.cashier') ? 'active' : '' }}">
             <i class="bi bi-exclamation-triangle-fill"></i> Violations
         </a>
-        @if(Auth::user()->isOperator())
+        @if(Auth::user()->isOperator() || Auth::user()->isCashier())
         <a href="{{ route('violations.cashier') }}" class="{{ request()->routeIs('violations.cashier') ? 'active' : '' }}">
             <i class="bi bi-wallet2"></i> Cashier Portal
         </a>
@@ -1042,6 +1042,9 @@
         <div class="nav-label">Administration</div>
         <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">
             <i class="bi bi-people-fill"></i> Users
+        </a>
+        <a href="{{ route('lgus.index') }}" class="{{ request()->routeIs('lgus.*') ? 'active' : '' }}">
+            <i class="bi bi-building"></i> LGUs
         </a>
         @endif
     </nav>

@@ -62,9 +62,28 @@
                         <option value="traffic_officer" {{ old('role','traffic_officer') == 'traffic_officer' ? 'selected' : '' }}>Traffic Officer — Mobile</option>
                         <option value="operator"        {{ old('role') == 'operator'                         ? 'selected' : '' }}>Operator — Full Access (except User Management)</option>
                         <option value="admin"           {{ old('role') == 'admin'                            ? 'selected' : '' }}>Admin — Full Access + User Management</option>
+                        <option value="province_admin"  {{ old('role') == 'province_admin'                   ? 'selected' : '' }}>Province Admin — Province-wide Monitoring Only</option>
+                        <option value="cashier"         {{ old('role') == 'cashier'                          ? 'selected' : '' }}>Cashier — Collect Payments for Assigned LGU</option>
                     </select>
                     @error('role')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="usr-label">LGU</label>
+                <div class="input-group">
+                    <span class="input-group-text usr-ig-icon" style="background:#f0f9ff;border-color:#bae6fd;">
+                        <i class="bi bi-building" style="color:#0369a1;"></i>
+                    </span>
+                    <select name="lgu_id" class="form-select usr-input @error('lgu_id') is-invalid @enderror">
+                        <option value="">— None / Province-wide —</option>
+                        @foreach($lgus as $lgu)
+                        <option value="{{ $lgu->id }}" {{ (string) old('lgu_id') === (string) $lgu->id ? 'selected' : '' }}>{{ $lgu->name }} ({{ $lgu->code }})</option>
+                        @endforeach
+                    </select>
+                    @error('lgu_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-text">Only needed for accounts that should be scoped to a single LGU.</div>
             </div>
 
             <div class="mb-3">

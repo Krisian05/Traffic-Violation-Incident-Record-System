@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Incident;
 use App\Models\IncidentMedia;
+use App\Models\Lgu;
 use App\Models\IncidentMotorist;
 use App\Models\IncidentChargeType;
 use App\Models\Vehicle;
@@ -147,6 +148,7 @@ class IncidentController extends Controller
                 'date_of_incident' => $validated['date_of_incident'],
                 'time_of_incident' => $validated['time_of_incident'] ?? null,
                 'location'         => $validated['location'],
+                'lgu_id'           => Lgu::findByPsgcCityCode($request->input('_loc_city_code'))?->id,
                 'description'      => $validated['description'] ?? null,
                 'other_involved'   => !empty($otherInvolved) ? $otherInvolved : null,
                 'status'           => $validated['status'],
@@ -303,14 +305,20 @@ class IncidentController extends Controller
             ->toArray();
 
         DB::transaction(function () use ($request, $validated, $incident, $otherInvolved) {
-            $incident->update([
+            $incidentUpdate = [
                 'date_of_incident' => $validated['date_of_incident'],
                 'time_of_incident' => $validated['time_of_incident'] ?? null,
                 'location'         => $validated['location'],
                 'description'      => $validated['description'] ?? null,
                 'other_involved'   => !empty($otherInvolved) ? $otherInvolved : null,
                 'status'           => $validated['status'],
-            ]);
+            ];
+            // Only touch lgu_id when the location selector actually resolved a city —
+            // editing without re-picking a location must not wipe the existing LGU tag.
+            if ($cityCode = $request->input('_loc_city_code')) {
+                $incidentUpdate['lgu_id'] = Lgu::findByPsgcCityCode($cityCode)?->id;
+            }
+            $incident->update($incidentUpdate);
 
             // Collect the IDs of motorists being kept/updated
             $submittedIds = collect($request->input('motorists', []))

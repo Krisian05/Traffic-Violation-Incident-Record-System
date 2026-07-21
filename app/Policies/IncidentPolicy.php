@@ -22,7 +22,7 @@ class IncidentPolicy
     // Both roles can record incidents
     public function create(User $user): bool
     {
-        return true;
+        return $user->isOperator() || $user->isTrafficOfficer();
     }
 
     // Only operators can edit incidents

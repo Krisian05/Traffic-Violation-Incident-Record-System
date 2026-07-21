@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\IncidentChargeType;
+use App\Models\Lgu;
 use App\Models\User;
 use App\Models\ViolationType;
 use Illuminate\Database\Seeder;
@@ -32,6 +33,17 @@ class DatabaseSeeder extends Seeder
         if ($adminUser->role !== 'admin') {
             $adminUser->update(['role' => 'admin']);
         }
+
+        // Seed the pilot LGU — Balamban is the current single-LGU rollout (Phase 1).
+        // psgc_city_code lets the location selector auto-tag citations/incidents to this LGU.
+        Lgu::firstOrCreate(
+            ['code' => 'BAL'],
+            [
+                'name'           => 'Balamban',
+                'province'       => 'Cebu',
+                'psgc_city_code' => '072208000',
+            ]
+        );
 
         // Seed common traffic violation types
         $violationTypes = [

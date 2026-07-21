@@ -15,7 +15,7 @@ class User extends Authenticatable
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'username', 'email', 'role'])
+            ->logOnly(['name', 'username', 'email', 'role', 'lgu_id'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('user');
@@ -26,6 +26,7 @@ class User extends Authenticatable
         'username',
         'email',
         'role',
+        'lgu_id',
         'password',
     ];
 
@@ -61,8 +62,18 @@ class User extends Authenticatable
         return $this->role === 'province_admin';
     }
 
+    public function isCashier(): bool
+    {
+        return $this->role === 'cashier';
+    }
+
     public function recordedViolations()
     {
         return $this->hasMany(Violation::class, 'recorded_by');
+    }
+
+    public function lgu()
+    {
+        return $this->belongsTo(Lgu::class);
     }
 }

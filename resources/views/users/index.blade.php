@@ -31,6 +31,7 @@
                     <th style="padding-left:1.4rem;"><span class="usr-th">User</span></th>
                     <th><span class="usr-th">Username</span></th>
                     <th><span class="usr-th">Role</span></th>
+                    <th><span class="usr-th">LGU</span></th>
                     <th><span class="usr-th">Joined</span></th>
                     <th class="text-center"><span class="usr-th">Actions</span></th>
                 </tr>
@@ -64,14 +65,29 @@
                             <span class="usr-role-badge usr-role-admin">
                                 <i class="bi bi-person-fill-gear me-1"></i>Admin
                             </span>
+                        @elseif($user->isProvinceAdmin())
+                            <span class="usr-role-badge usr-role-prov">
+                                <i class="bi bi-diagram-3-fill me-1"></i>Province Admin
+                            </span>
                         @elseif($user->isOperator())
                             <span class="usr-role-badge usr-role-op">
                                 <i class="bi bi-shield-fill-check me-1"></i>Operator
+                            </span>
+                        @elseif($user->isCashier())
+                            <span class="usr-role-badge usr-role-cashier" style="background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                                <i class="bi bi-wallet2 me-1"></i>Cashier
                             </span>
                         @else
                             <span class="usr-role-badge usr-role-to">
                                 <i class="bi bi-phone-fill me-1"></i>Traffic Officer
                             </span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($user->lgu)
+                            <span class="usr-username">{{ $user->lgu->code }}</span>
+                        @else
+                            <span style="color:#d6d3d1;font-size:.82rem;">—</span>
                         @endif
                     </td>
                     <td>
@@ -105,7 +121,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="py-5">
+                    <td colspan="6" class="py-5">
                         <div class="text-center">
                             <i class="bi bi-people" style="font-size:2rem;color:#d6d3d1;display:block;margin-bottom:.5rem;"></i>
                             <span style="color:#a8a29e;font-size:.88rem;">No user accounts found.</span>
@@ -223,6 +239,7 @@
     font-size: .72rem; font-weight: 700;
 }
 .usr-role-admin { background:#fdf4ff;color:#7c3aed;border-color:#e9d5ff; }
+.usr-role-prov { background:#f0f9ff;color:#0369a1;border-color:#7dd3fc; }
 .usr-role-op { background:#fef2f2;color:#b91c1c;border-color:#fca5a5; }
 .usr-role-to { background:#f0fdf4;color:#15803d;border-color:#86efac; }
 

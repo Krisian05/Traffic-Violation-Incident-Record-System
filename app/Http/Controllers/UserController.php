@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Lgu;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,13 +11,14 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::orderBy('name')->get();
+        $users = User::with('lgu')->orderBy('name')->get();
         return view('users.index', compact('users'));
     }
 
     public function create()
     {
-        return view('users.create');
+        $lgus = Lgu::orderBy('name')->get();
+        return view('users.create', compact('lgus'));
     }
 
     public function store(Request $request)
@@ -24,7 +26,8 @@ class UserController extends Controller
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', 'unique:users,username', 'alpha_dash'],
-            'role'     => ['required', 'in:admin,operator,traffic_officer'],
+            'role'     => ['required', 'in:admin,operator,traffic_officer,province_admin,cashier'],
+            'lgu_id'   => ['nullable', 'exists:lgus,id'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
@@ -36,7 +39,8 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        return view('users.edit', compact('user'));
+        $lgus = Lgu::orderBy('name')->get();
+        return view('users.edit', compact('user', 'lgus'));
     }
 
     public function update(Request $request, User $user)
@@ -44,7 +48,8 @@ class UserController extends Controller
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', "unique:users,username,{$user->id}", 'alpha_dash'],
-            'role'     => ['required', 'in:admin,operator,traffic_officer'],
+            'role'     => ['required', 'in:admin,operator,traffic_officer,province_admin,cashier'],
+            'lgu_id'   => ['nullable', 'exists:lgus,id'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
 

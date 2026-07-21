@@ -37,10 +37,22 @@ class ViolationPolicy
         return $user->isOperator();
     }
 
-    // Only operators can settle violations
+    // Only operators and cashiers can settle violations, scoped by LGU if assigned
     public function settle(User $user, Violation $violation): bool
     {
-        return $user->isOperator();
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($user->isOperator()) {
+            return !$user->lgu_id || $violation->lgu_id === $user->lgu_id;
+        }
+
+        if ($user->isCashier()) {
+            return $user->lgu_id && $violation->lgu_id === $user->lgu_id;
+        }
+
+        return false;
     }
 
     public function restore(User $user, Violation $violation): bool

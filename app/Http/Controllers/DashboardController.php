@@ -352,6 +352,9 @@ class DashboardController extends Controller
         if ($user->isTrafficOfficer()) {
             return redirect()->route('officer.dashboard');
         }
+        if ($user->isCashier()) {
+            return redirect()->route('violations.cashier');
+        }
 
         $totalViolators      = Violator::count();
         $totalVehicles       = Vehicle::count();

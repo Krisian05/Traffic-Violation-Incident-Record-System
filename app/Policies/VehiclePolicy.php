@@ -22,7 +22,7 @@ class VehiclePolicy
     // Both roles can register vehicles
     public function create(User $user): bool
     {
-        return true;
+        return $user->isOperator() || $user->isTrafficOfficer();
     }
 
     // Only operators can edit or delete vehicles

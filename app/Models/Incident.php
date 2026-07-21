@@ -17,7 +17,7 @@ class Incident extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['incident_number', 'date_of_incident', 'location', 'status', 'description'])
+            ->logOnly(['incident_number', 'date_of_incident', 'location', 'lgu_id', 'status', 'description'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('incident');
@@ -28,6 +28,7 @@ class Incident extends Model
         'date_of_incident',
         'time_of_incident',
         'location',
+        'lgu_id',
         'description',
         'other_involved',
         'status',
@@ -84,5 +85,10 @@ class Incident extends Model
     public function recorder(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recorded_by');
+    }
+
+    public function lgu(): BelongsTo
+    {
+        return $this->belongsTo(Lgu::class);
     }
 }

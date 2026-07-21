@@ -276,6 +276,48 @@
         </div>
     @endif
 
+    {{-- Pending Tickets List --}}
+    @if(isset($pendingTickets) && $pendingTickets->count() > 0)
+        <div class="mt-5">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-clock-history text-muted fs-5"></i>
+                <h5 class="fw-800 text-stone-900 mb-0" style="font-family: 'Instrument Sans', sans-serif;">Unpaid / Pending Citation Tickets</h5>
+            </div>
+            <div class="card border-0 shadow-sm" style="border-radius: 16px; overflow: hidden; border: 1px solid #e7e2db;">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0" style="font-size: .88rem;">
+                        <thead style="background-color: #faf9f6; border-bottom: 1px solid #e7e2db;">
+                            <tr>
+                                <th class="p-3 fw-700 text-muted" style="width: 25%;">Ticket Number</th>
+                                <th class="p-3 fw-700 text-muted" style="width: 30%;">Violator</th>
+                                <th class="p-3 fw-700 text-muted" style="width: 25%;">Violation Type</th>
+                                <th class="p-3 fw-700 text-muted" style="width: 10%;">Fine</th>
+                                <th class="p-3 fw-700 text-muted text-center" style="width: 10%;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($pendingTickets as $ticket)
+                                <tr style="border-bottom: 1px solid #f5f0e8;">
+                                    <td class="p-3 fw-700" style="font-family: ui-monospace, monospace;">{{ $ticket->ticket_number }}</td>
+                                    <td class="p-3 fw-600 text-stone-900">{{ $ticket->violator?->full_name }}</td>
+                                    <td class="p-3 text-muted">{{ $ticket->violationType?->name }}</td>
+                                    <td class="p-3 fw-700 text-danger">₱{{ number_format($ticket->violationType?->fine_amount, 2) }}</td>
+                                    <td class="p-3 text-center">
+                                        <a href="{{ route('violations.cashier', ['search' => $ticket->ticket_number]) }}" 
+                                           class="btn btn-sm text-white fw-700" 
+                                           style="background: linear-gradient(135deg, #1d4ed8, #1e40af); border-radius: 8px; font-size: .75rem; padding: .35rem .75rem;">
+                                            <i class="bi bi-wallet2 me-1"></i> Process
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @endif
+
 </div>
 
 @push('scripts')

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Incident;
 use App\Models\IncidentChargeType;
 use App\Models\IncidentMedia;
+use App\Models\Lgu;
 use App\Models\Vehicle;
 use App\Models\VehiclePhoto;
 use App\Models\Violation;
@@ -497,6 +498,7 @@ class OfficerController extends Controller
         unset($data['photos']);
         $data['violator_id'] = $violator->id;
         $data['recorded_by'] = Auth::id();
+        $data['lgu_id']      = Lgu::findByPsgcCityCode($request->input('_loc_city_code'))?->id;
 
         $violation = Violation::create($data);
 
@@ -679,6 +681,12 @@ class OfficerController extends Controller
             $data['vehicle_id'] = $existing->id;
         }
 
+        // Only touch lgu_id when the location selector actually resolved a city —
+        // editing without re-picking a location must not wipe the existing LGU tag.
+        if ($cityCode = $request->input('_loc_city_code')) {
+            $data['lgu_id'] = Lgu::findByPsgcCityCode($cityCode)?->id;
+        }
+
         $violation->update($data);
 
         if ($request->hasFile('photos') && empty($request->input('vehicle_id'))) {
@@ -830,6 +838,7 @@ class OfficerController extends Controller
                 'date_of_incident' => $request->input('date_of_incident'),
                 'time_of_incident' => $request->input('time_of_incident'),
                 'location'         => $request->input('location'),
+                'lgu_id'           => Lgu::findByPsgcCityCode($request->input('_loc_city_code'))?->id,
                 'description'      => $request->input('description'),
                 'other_involved'   => !empty($otherInvolved) ? $otherInvolved : null,
                 'status'           => 'under_investigation',
@@ -1081,13 +1090,19 @@ class OfficerController extends Controller
         $otherInvolved = collect($request->input('other_involved', []))
             ->filter(fn($o) => !empty($o['type']))->values()->toArray();
 
-        $incident->update([
+        $incidentUpdate = [
             'date_of_incident' => $validated['date_of_incident'],
             'time_of_incident' => $validated['time_of_incident'] ?? null,
             'location'         => $validated['location'],
             'description'      => $validated['description'] ?? null,
             'other_involved'   => !empty($otherInvolved) ? $otherInvolved : null,
-        ]);
+        ];
+        // Only touch lgu_id when the location selector actually resolved a city —
+        // editing without re-picking a location must not wipe the existing LGU tag.
+        if ($cityCode = $request->input('_loc_city_code')) {
+            $incidentUpdate['lgu_id'] = Lgu::findByPsgcCityCode($cityCode)?->id;
+        }
+        $incident->update($incidentUpdate);
 
         if ($request->hasFile('incident_photos')) {
             foreach (array_slice($request->file('incident_photos'), 0, 6) as $file) {

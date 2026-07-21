@@ -15,7 +15,7 @@ class Violation extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['violator_id', 'violation_type_id', 'date_of_violation', 'status', 'location', 'ticket_number', 'or_number', 'settled_at'])
+            ->logOnly(['violator_id', 'violation_type_id', 'date_of_violation', 'status', 'location', 'lgu_id', 'ticket_number', 'or_number', 'settled_at'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('violation');
@@ -36,6 +36,7 @@ class Violation extends Model
         'violation_type_id',
         'date_of_violation',
         'location',
+        'lgu_id',
         'gps_lat',
         'gps_lng',
         'ticket_number',
@@ -66,14 +67,21 @@ class Violation extends Model
                 return;
             }
 
-            $year   = now()->year;
+            $year    = now()->year;
             $isMysql = \DB::getDriverName() === 'mysql';
+
+            // LGU code drives the ticket number segment (e.g. TVIRS-CEB-BAL-2026-000001).
+            // Falls back to BAL — the current single-pilot LGU — when no LGU could be
+            // resolved for this record (e.g. PSGC lookup unavailable at capture time).
+            $lguCode = $model->lgu_id ? (Lgu::find($model->lgu_id)?->code) : null;
+            $lguCode = $lguCode ?: 'BAL';
+            $prefix  = "TVIRS-CEB-{$lguCode}-{$year}-";
 
             if ($isMysql) {
                 $maxNum = Violation::withTrashed()
                     ->whereYear('created_at', $year)
                     ->whereNotNull('ticket_number')
-                    ->whereRaw("ticket_number LIKE 'TVIRS-CEB-BAL-{$year}-%'")
+                    ->where('ticket_number', 'like', $prefix . '%')
                     ->selectRaw("MAX(CAST(SUBSTRING_INDEX(ticket_number, '-', -1) AS UNSIGNED)) as max_num")
                     ->value('max_num') ?? 0;
             } else {
@@ -81,13 +89,13 @@ class Violation extends Model
                 $maxNum = Violation::withTrashed()
                     ->whereYear('created_at', $year)
                     ->whereNotNull('ticket_number')
-                    ->whereRaw("ticket_number LIKE 'TVIRS-CEB-BAL-{$year}-%'")
+                    ->where('ticket_number', 'like', $prefix . '%')
                     ->pluck('ticket_number')
                     ->map(fn($n) => (int) last(explode('-', $n)))
                     ->max() ?? 0;
             }
 
-            $model->ticket_number = 'TVIRS-CEB-BAL-' . $year . '-' . str_pad($maxNum + 1, 6, '0', STR_PAD_LEFT);
+            $model->ticket_number = $prefix . str_pad($maxNum + 1, 6, '0', STR_PAD_LEFT);
         });
     }
 
@@ -119,6 +127,11 @@ class Violation extends Model
     public function recorder()
     {
         return $this->belongsTo(User::class, 'recorded_by');
+    }
+
+    public function lgu()
+    {
+        return $this->belongsTo(Lgu::class);
     }
 
     /** Pending violations older than 72 hours — countdown starts from date_of_violation */

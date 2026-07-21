@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Lgu;
 use App\Models\Vehicle;
 use App\Models\Violation;
 use App\Models\ViolationVehiclePhoto;
@@ -153,6 +154,7 @@ class ViolationController extends Controller
         unset($data['photos']);
         $data['violator_id'] = $violator->id;
         $data['recorded_by'] = Auth::id();
+        $data['lgu_id']      = Lgu::findByPsgcCityCode($request->input('_loc_city_code'))?->id;
 
         $violation = Violation::create($data);
 
@@ -326,6 +328,12 @@ class ViolationController extends Controller
             $data['vehicle_id'] = $existing->id;
         }
 
+        // Only touch lgu_id when the location selector actually resolved a city —
+        // editing without re-picking a location must not wipe the existing LGU tag.
+        if ($cityCode = $request->input('_loc_city_code')) {
+            $data['lgu_id'] = Lgu::findByPsgcCityCode($cityCode)?->id;
+        }
+
         $violation->update($data);
 
         // Add more photos for manual vehicle entry (respecting 4-photo limit)
@@ -416,14 +424,39 @@ class ViolationController extends Controller
     {
         $search = trim($request->input('search', ''));
         $violation = null;
+        $user = Auth::user();
+
+        // Scope query for pending tickets
+        $pendingQuery = Violation::with(['violator', 'violationType'])
+            ->where('status', 'pending')
+            ->orderBy('date_of_violation', 'desc');
 
         if ($search !== '') {
-            $violation = Violation::with(['violator', 'violationType', 'vehicle'])
-                ->where('ticket_number', $search)
-                ->orWhere('id', (int) $search)
-                ->first();
+            $query = Violation::with(['violator', 'violationType', 'vehicle'])
+                ->where(function ($q) use ($search) {
+                    $q->where('ticket_number', $search)
+                      ->orWhere('id', (int) $search);
+                });
+
+            // LGU scoping for cashier and non-admin operators
+            if (($user->isCashier() || $user->isOperator()) && !$user->isAdmin()) {
+                if ($user->lgu_id) {
+                    $query->where('lgu_id', $user->lgu_id);
+                }
+            }
+
+            $violation = $query->first();
         }
 
-        return view('violations.cashier', compact('violation', 'search'));
+        // LGU scoping for list of pending tickets
+        if (($user->isCashier() || $user->isOperator()) && !$user->isAdmin()) {
+            if ($user->lgu_id) {
+                $pendingQuery->where('lgu_id', $user->lgu_id);
+            }
+        }
+
+        $pendingTickets = $pendingQuery->limit(10)->get();
+
+        return view('violations.cashier', compact('violation', 'search', 'pendingTickets'));
     }
 }

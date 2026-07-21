@@ -4,7 +4,9 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\IncidentChargeTypeController;
 use App\Http\Controllers\IncidentController;
+use App\Http\Controllers\LguController;
 use App\Http\Controllers\OfficerController;
+use App\Http\Controllers\ProvinceDashboardController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
@@ -95,9 +97,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/violations/{violation}/edit', [ViolationController::class, 'edit'])->name('violations.edit');
         Route::put('/violations/{violation}', [ViolationController::class, 'update'])->name('violations.update');
         Route::delete('/violations/{violation}', [ViolationController::class, 'destroy'])->name('violations.destroy');
-        Route::patch('/violations/{violation}/settle', [ViolationController::class, 'settle'])->name('violations.settle');
-        Route::get('/cashier', [ViolationController::class, 'cashier'])->name('violations.cashier');
         Route::delete('/violation-vehicle-photos/{violationVehiclePhoto}', [ViolationVehiclePhotoController::class, 'destroy'])->name('violation-vehicle-photos.destroy');
+    });
+
+    Route::middleware('role:operator,cashier')->group(function () {
+        Route::get('/cashier', [ViolationController::class, 'cashier'])->name('violations.cashier');
+        Route::patch('/violations/{violation}/settle', [ViolationController::class, 'settle'])->name('violations.settle');
     });
 
     // ── INCIDENT CHARGE TYPES ─────────────────────────────────────────────────
@@ -140,6 +145,11 @@ Route::middleware('auth')->group(function () {
     // ── USERS (admin only) ───────────────────────────────────────────────────
     Route::middleware('role:admin')->group(function () {
         Route::resource('users', UserController::class);
+    });
+
+    // ── LGUs (admin only) ────────────────────────────────────────────────────
+    Route::middleware('role:admin')->group(function () {
+        Route::resource('lgus', LguController::class)->except(['show']);
     });
 
     // ── TRAFFIC OFFICER MOBILE ────────────────────────────────────────────────

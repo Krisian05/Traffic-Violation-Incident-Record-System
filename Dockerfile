@@ -3,13 +3,13 @@ FROM php:8.2-fpm-alpine
 # System dependencies
 RUN apk add --no-cache \
     git curl zip unzip \
-    libpng-dev libxml2-dev libpq-dev \
+    libpng-dev libxml2-dev libpq-dev libzip-dev \
     nginx supervisor nodejs npm
 
 # PHP extensions
 RUN docker-php-ext-install \
     pdo pdo_pgsql pgsql pdo_mysql \
-    bcmath gd xml opcache
+    bcmath gd xml opcache zip
 
 # Tune opcache for production
 RUN { \

@@ -14,24 +14,21 @@ class ProvinceDashboardController extends Controller
     {
         $year = (int) $request->input('year', now()->year);
 
-        // Aggregate violations per municipality
-        $municipalityStats = Violation::whereYear('date_of_violation', $year)
-            ->whereNotNull('location')
-            ->where('location', '!=', '')
+        // Aggregate violations per LGU (falls back to "Unassigned" for legacy records
+        // captured before lgu_id existed, or where the location lookup found no match).
+        $municipalityStats = Violation::whereYear('violations.date_of_violation', $year)
+            ->leftJoin('lgus', 'lgus.id', '=', 'violations.lgu_id')
             ->selectRaw("
-                trim(split_part(location, ',', 1)) as municipality_name,
+                COALESCE(lgus.name, 'Unassigned') as municipality_name,
                 COUNT(*) as total_violations,
-                SUM(CASE WHEN status = 'settled' THEN 1 ELSE 0 END) as settled_violations
+                SUM(CASE WHEN violations.status = 'settled' THEN 1 ELSE 0 END) as settled_violations
             ")
-            ->groupBy('municipality_name')
+            ->groupBy('lgus.id', 'lgus.name')
             ->orderByDesc('total_violations')
             ->get()
             ->map(function ($item) {
-                // Heuristic: Assuming location format "Barangay, Municipality" or just "Municipality"
-                // This gives a rough breakdown by LGU based on the current location string approach.
-                // For proper LGU scoping (Phase C1), this will rely on lgu_id.
-                $item->settled_rate = $item->total_violations > 0 
-                    ? round(($item->settled_violations / $item->total_violations) * 100) 
+                $item->settled_rate = $item->total_violations > 0
+                    ? round(($item->settled_violations / $item->total_violations) * 100)
                     : 0;
                 return $item;
             });
