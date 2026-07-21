@@ -31,11 +31,9 @@ class LguController extends Controller
 
         $data['code'] = strtoupper($data['code']);
 
-        $lgu = Lgu::create($data);
+        Lgu::create($data);
 
-        \App\Support\Tenant::createTenant($lgu->code);
-
-        return redirect()->route('lgus.index')->with('success', 'LGU added. PostgreSQL schema provisioned.');
+        return redirect()->route('lgus.index')->with('success', 'LGU added.');
     }
 
     public function edit(Lgu $lgu)

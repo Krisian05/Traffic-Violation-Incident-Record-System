@@ -13,17 +13,6 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
         $middleware->convertEmptyStringsToNull();
-        
-        $middleware->web(append: [
-            \App\Http\Middleware\TenantDatabaseSwitcher::class,
-        ]);
-
-        $middleware->priority([
-            \Illuminate\Session\Middleware\StartSession::class,
-            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            \App\Http\Middleware\TenantDatabaseSwitcher::class,
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
-        ]);
 
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,

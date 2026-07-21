@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToLgu;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,7 +11,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Violator extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity;
+    use HasFactory, SoftDeletes, LogsActivity, BelongsToLgu;
 
     public function getActivitylogOptions(): LogOptions
     {
@@ -22,6 +23,7 @@ class Violator extends Model
     }
 
     protected $fillable = [
+        'lgu_id',
         'first_name',
         'middle_name',
         'last_name',

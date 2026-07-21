@@ -2,14 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Lgu;
+use App\Models\User;
 use App\Models\Violation;
 use App\Models\Violator;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-
-use App\Models\Lgu;
-use App\Support\Tenant;
 
 class ProvinceDashboardController extends Controller
 {
@@ -17,62 +14,45 @@ class ProvinceDashboardController extends Controller
     {
         $year = (int) $request->input('year', now()->year);
 
-        // Fetch all registered LGUs
         $lgus = Lgu::orderBy('name')->get();
 
-        $municipalityStats = collect();
-        $totalViolations = 0;
-        $totalViolators = 0;
-        $monthlyTrendSum = array_fill(1, 12, 0);
+        // One grouped query for every LGU's violation counts this year
+        $countsByLgu = Violation::whereYear('date_of_violation', $year)
+            ->selectRaw("lgu_id, COUNT(*) as total_violations, SUM(CASE WHEN status = 'settled' THEN 1 ELSE 0 END) as settled_violations")
+            ->groupBy('lgu_id')
+            ->get()
+            ->keyBy('lgu_id');
 
-        // Aggregate statistics from each isolated tenant schema
-        foreach ($lgus as $lgu) {
-            Tenant::switchTo($lgu->code);
+        $municipalityStats = $lgus->map(function ($lgu) use ($countsByLgu) {
+            $row = $countsByLgu->get($lgu->id);
+            $total = (int) ($row->total_violations ?? 0);
+            $settled = (int) ($row->settled_violations ?? 0);
 
-            // 1. Violations Count & Settled Rate for this LGU
-            $lguViolationsCount = Violation::whereYear('date_of_violation', $year)->count();
-            $lguSettledCount = Violation::whereYear('date_of_violation', $year)->where('status', 'settled')->count();
-
-            $municipalityStats->push((object)[
+            return (object) [
                 'municipality_name'  => $lgu->name,
-                'total_violations'   => $lguViolationsCount,
-                'settled_violations' => $lguSettledCount,
-                'settled_rate'       => $lguViolationsCount > 0 ? round(($lguSettledCount / $lguViolationsCount) * 100) : 0,
-            ]);
+                'total_violations'   => $total,
+                'settled_violations' => $settled,
+                'settled_rate'       => $total > 0 ? round(($settled / $total) * 100) : 0,
+            ];
+        })->sortByDesc('total_violations')->values();
 
-            // 2. Add to overall sums
-            $totalViolations += $lguViolationsCount;
-            $totalViolators  += Violator::count();
-
-            // 3. Add to monthly trend sums
-            $lguMonthlyTrend = Violation::whereYear('date_of_violation', $year)
-                ->selectRaw("EXTRACT(MONTH FROM date_of_violation) as month, COUNT(*) as total")
-                ->groupBy('month')
-                ->pluck('total', 'month');
-
-            foreach ($lguMonthlyTrend as $month => $total) {
-                $monthlyTrendSum[(int) $month] += (int) $total;
-            }
-        }
-
-        // Restore active schema context back to public/landlord
-        Tenant::switchTo(null);
-
-        // Order municipal list descending by activity/violations count
-        $municipalityStats = $municipalityStats->sortByDesc('total_violations')->values();
-
-        // Overall active officers (stored globally in public schema)
+        $totalViolations     = Violation::whereYear('date_of_violation', $year)->count();
+        $totalViolators      = Violator::count();
         $totalActiveOfficers = User::whereIn('role', ['traffic_officer', 'operator'])->count();
 
-        // Format chart data arrays
+        $monthlyTrend = Violation::whereYear('date_of_violation', $year)
+            ->selectRaw("EXTRACT(MONTH FROM date_of_violation) as month, COUNT(*) as total")
+            ->groupBy('month')
+            ->pluck('total', 'month');
+
         $chartLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         $chartData = [];
         for ($m = 1; $m <= 12; $m++) {
-            $chartData[] = $monthlyTrendSum[$m];
+            $chartData[] = $monthlyTrend[$m] ?? 0;
         }
 
         return view('province.dashboard', compact(
-            'year', 'municipalityStats', 'totalViolations', 'totalViolators', 
+            'year', 'municipalityStats', 'totalViolations', 'totalViolators',
             'totalActiveOfficers', 'chartLabels', 'chartData'
         ));
     }

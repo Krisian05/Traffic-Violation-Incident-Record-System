@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToLgu;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vehicle extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, BelongsToLgu;
 
     protected $fillable = [
+        'lgu_id',
         'violator_id',
         'plate_number',
         'vehicle_type',
