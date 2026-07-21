@@ -11,7 +11,16 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::with('lgu')->orderBy('name')->get();
+        $query = User::with('lgu')->orderBy('name');
+        
+        $currentUser = Auth::user();
+        if ($currentUser->isOperator() && !$currentUser->isAdmin()) {
+            if ($currentUser->lgu_id) {
+                $query->where('lgu_id', $currentUser->lgu_id);
+            }
+        }
+        
+        $users = $query->get();
         return view('users.index', compact('users'));
     }
 

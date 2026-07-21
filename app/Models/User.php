@@ -8,11 +8,9 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
-use App\Traits\BelongsToLgu;
-
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, LogsActivity, BelongsToLgu;
+    use HasFactory, Notifiable, LogsActivity;
 
     public function getActivitylogOptions(): LogOptions
     {
