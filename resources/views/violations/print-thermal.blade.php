@@ -229,7 +229,8 @@
 </div>
 
 <div class="toolbar no-print">
-    <button type="button" class="primary" onclick="window.print()">Print</button>
+    <button type="button" class="primary" onclick="window.print()">Standard Print</button>
+    <button type="button" class="primary" style="background:#0f172a; border-color:#0f172a;" onclick="printViaRawBT()">Print via RawBT</button>
     <a href="javascript:window.close()">Close</a>
 </div>
 
@@ -238,10 +239,12 @@ window.addEventListener('load', function () {
     var pending = {{ $gcashQrPayload ? 2 : 1 }};
     function done() {
         pending--;
-        if (pending <= 0) setTimeout(function () { window.print(); }, 400);
+        // We disabled auto-print because mobile browsers block window.print() inside setTimeout
+        // if it wasn't triggered by a direct user tap.
     }
 
-    var qrData = '{{ $violation->ticket_number ? $violation->ticket_number . " — " . ($violation->violator?->full_name ?? "") : url("/violations/" . $violation->id) }}';
+    var qrData = @json($violation->ticket_number ? $violation->ticket_number . " — " . ($violation->violator?->full_name ?? "") : url("/violations/" . $violation->id));
+    
     QRCode.toCanvas(document.getElementById('citQr'), qrData, {
         width: 140,
         margin: 1,
@@ -252,7 +255,7 @@ window.addEventListener('load', function () {
     });
 
     @if($gcashQrPayload)
-    QRCode.toCanvas(document.getElementById('gcashQr'), '{{ $gcashQrPayload }}', {
+    QRCode.toCanvas(document.getElementById('gcashQr'), @json($gcashQrPayload), {
         width: 140,
         margin: 1,
         color: { dark: '#000000', light: '#ffffff' }
@@ -262,6 +265,15 @@ window.addEventListener('load', function () {
     });
     @endif
 });
+
+// RawBT Intent for Android Bluetooth Printers
+function printViaRawBT() {
+    // Convert the entire page to base64 image or just send the URL to RawBT.
+    // The simplest way for RawBT is to send the current URL.
+    var url = window.location.href;
+    var intent = "intent:" + url + "#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
+    window.location.href = intent;
+}
 </script>
 </body>
 </html>
