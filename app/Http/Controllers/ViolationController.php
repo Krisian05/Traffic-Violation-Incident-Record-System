@@ -369,7 +369,7 @@ class ViolationController extends Controller
         }
 
         $data = $request->validate([
-            'or_number'      => ['required', 'string', 'max:50'],
+            'or_number'      => ['required', 'string', 'max:50', \Illuminate\Validation\Rule::unique('violations', 'or_number')->whereNull('deleted_at')],
             'cashier_name'   => ['required', 'string', 'max:150'],
             'payment_method' => ['required', 'in:cash,gcash,maya,bank,other'],
             'receipt_photo'  => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
