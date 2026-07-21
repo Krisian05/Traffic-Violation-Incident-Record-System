@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -25,6 +27,7 @@ class Incident extends Model
 
     protected $fillable = [
         'incident_number',
+        'lgu_id',
         'date_of_incident',
         'time_of_incident',
         'location',
@@ -63,12 +66,35 @@ class Incident extends Model
             }
 
             $model->incident_number = 'INC-' . now()->year . '-' . str_pad($maxNum + 1, 4, '0', STR_PAD_LEFT);
+
+            // Defensive default: see Violation::boot() for the same rationale.
+            if (!$model->lgu_id && Auth::check()) {
+                $model->lgu_id = Auth::user()->lgu_id;
+            }
         });
     }
 
     public function motorists(): HasMany
     {
         return $this->hasMany(IncidentMotorist::class);
+    }
+
+    public function lgu(): BelongsTo
+    {
+        return $this->belongsTo(Lgu::class);
+    }
+
+    /**
+     * Multi-LGU data isolation: admin/province_admin see every LGU, everyone
+     * else (operator, traffic_officer, cashier, auditor) only sees their own.
+     */
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        if ($user->seesAllLgus()) {
+            return $query;
+        }
+
+        return $query->where('lgu_id', $user->lgu_id);
     }
 
     public function violations(): HasMany

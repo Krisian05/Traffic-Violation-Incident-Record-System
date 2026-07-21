@@ -12,6 +12,8 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(LguSeeder::class);
+
         // Bootstrap operator account — only create if it doesn't exist yet,
         // so subsequent deploys never overwrite a changed password.
         $adminPassword = env('DEFAULT_ADMIN_PASSWORD');

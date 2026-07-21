@@ -16,7 +16,8 @@ class ViolationController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Violation::with(['violator', 'violationType', 'vehicle']);
+        $query = Violation::with(['violator', 'violationType', 'vehicle'])
+            ->visibleTo(Auth::user());
 
         if ($search = $request->input('search')) {
             $lk = '%' . mb_strtolower($search) . '%';
@@ -168,19 +169,29 @@ class ViolationController extends Controller
 
     public function show(Violation $violation)
     {
+        $this->ensureVisible($violation);
         $violation->load(['violator', 'vehicle.violator', 'vehicle.photos', 'violationType', 'recorder', 'vehiclePhotos', 'incident']);
         return view('violations.show', compact('violation'));
     }
 
     public function printRecord(Violation $violation)
     {
+        $this->ensureVisible($violation);
         $violation->load(['violator', 'vehicle.violator', 'vehicle.photos', 'violationType', 'recorder', 'vehiclePhotos', 'incident']);
         return view('violations.print', compact('violation'));
+    }
+
+    private function ensureVisible(Violation $violation): void
+    {
+        if (!Auth::user()->seesAllLgus() && $violation->lgu_id !== Auth::user()->lgu_id) {
+            abort(404);
+        }
     }
 
     public function edit(Violation $violation)
     {
         $this->authorize('update', $violation);
+        $this->ensureVisible($violation);
         $violation->load(['violator', 'vehiclePhotos']);
         $allVehicles    = Vehicle::with('violator:id,first_name,last_name')
             ->orderBy('plate_number')
@@ -193,6 +204,7 @@ class ViolationController extends Controller
     public function update(Request $request, Violation $violation)
     {
         $this->authorize('update', $violation);
+        $this->ensureVisible($violation);
         $data = $request->validate([
             'violation_type_id'  => ['required', 'exists:violation_types,id'],
             'vehicle_id'         => ['nullable', 'exists:vehicles,id'],
@@ -352,6 +364,7 @@ class ViolationController extends Controller
     public function settle(Request $request, Violation $violation)
     {
         $this->authorize('settle', $violation);
+        $this->ensureVisible($violation);
         if ($violation->status === 'settled') {
             return back()->with('error', 'This violation has already been settled.');
         }
@@ -379,6 +392,7 @@ class ViolationController extends Controller
     public function destroy(Violation $violation)
     {
         $this->authorize('delete', $violation);
+        $this->ensureVisible($violation);
         foreach ($violation->vehiclePhotos as $p) {
             Storage::disk(uploads_disk())->delete($p->photo);
         }

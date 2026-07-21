@@ -11,20 +11,14 @@
 <div class="usr-form-card">
 
     <div class="usr-form-header">
-        <div class="usr-form-avatar {{ $user->isOperator() ? 'usr-avatar--op' : 'usr-avatar--to' }}">
+        <div class="usr-form-avatar usr-avatar--{{ $user->role }}">
             {{ strtoupper(substr($user->name, 0, 1)) }}
         </div>
         <div>
             <div class="usr-form-title">Edit User</div>
             <div class="usr-form-sub">{{ $user->username }}</div>
         </div>
-        @if($user->isAdmin())
-            <span class="usr-role-chip usr-role-admin ms-auto"><i class="bi bi-person-fill-gear me-1"></i>Admin</span>
-        @elseif($user->isOperator())
-            <span class="usr-role-chip usr-role-op ms-auto"><i class="bi bi-shield-fill-check me-1"></i>Operator</span>
-        @else
-            <span class="usr-role-chip usr-role-to ms-auto"><i class="bi bi-phone-fill me-1"></i>Traffic Officer</span>
-        @endif
+        <span class="usr-role-chip usr-role-{{ $user->role }} ms-auto">{{ \App\Enums\UserRole::from($user->role)->label() }}</span>
     </div>
 
     <div class="usr-form-body">
@@ -63,12 +57,28 @@
                     <span class="input-group-text usr-ig-icon" style="background:#fdf4ff;border-color:#e9d5ff;">
                         <i class="bi bi-shield-fill-check" style="color:#7c3aed;"></i>
                     </span>
-                    <select name="role" class="form-select usr-input @error('role') is-invalid @enderror" required>
-                        <option value="traffic_officer" {{ old('role', $user->role) == 'traffic_officer' ? 'selected' : '' }}>Traffic Officer — Mobile</option>
-                        <option value="operator"        {{ old('role', $user->role) == 'operator'        ? 'selected' : '' }}>Operator — Full Access (except User Management)</option>
-                        <option value="admin"           {{ old('role', $user->role) == 'admin'           ? 'selected' : '' }}>Admin — Full Access + User Management</option>
+                    <select name="role" id="usr-role-select" class="form-select usr-input @error('role') is-invalid @enderror" required>
+                        @foreach(\App\Enums\UserRole::cases() as $role)
+                            <option value="{{ $role->value }}" {{ old('role', $user->role) == $role->value ? 'selected' : '' }}>{{ $role->label() }}</option>
+                        @endforeach
                     </select>
                     @error('role')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+            </div>
+
+            <div class="mb-3" id="usr-lgu-field">
+                <label class="usr-label">LGU <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <span class="input-group-text usr-ig-icon" style="background:#eff6ff;border-color:#bfdbfe;">
+                        <i class="bi bi-signpost-split-fill" style="color:#1d4ed8;"></i>
+                    </span>
+                    <select name="lgu_id" class="form-select usr-input @error('lgu_id') is-invalid @enderror">
+                        <option value="">Select LGU…</option>
+                        @foreach($lgus as $lgu)
+                            <option value="{{ $lgu->id }}" {{ old('lgu_id', $user->lgu_id) == $lgu->id ? 'selected' : '' }}>{{ $lgu->name }} ({{ $lgu->code }})</option>
+                        @endforeach
+                    </select>
+                    @error('lgu_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
 
@@ -139,8 +149,12 @@
     font-size: 1.05rem; font-weight: 800;
     flex-shrink: 0;
 }
-.usr-avatar--op { background:#fef2f2;color:#b91c1c;border:2px solid #fca5a5; }
-.usr-avatar--to { background:#f0fdf4;color:#15803d;border:2px solid #86efac; }
+.usr-avatar--admin { background:#fdf4ff;color:#7c3aed;border:2px solid #e9d5ff; }
+.usr-avatar--operator { background:#fef2f2;color:#b91c1c;border:2px solid #fca5a5; }
+.usr-avatar--traffic_officer { background:#f0fdf4;color:#15803d;border:2px solid #86efac; }
+.usr-avatar--province_admin { background:#eff6ff;color:#1d4ed8;border:2px solid #bfdbfe; }
+.usr-avatar--cashier { background:#fffbeb;color:#b45309;border:2px solid #fde68a; }
+.usr-avatar--auditor { background:#f5f3f0;color:#57534e;border:2px solid #d6d3d1; }
 .usr-form-title { font-size: .95rem; font-weight: 700; color: #1c1917; }
 .usr-form-sub   { font-size: .74rem; color: #a8a29e; margin-top: .1rem; font-family: ui-monospace, monospace; }
 .usr-form-body  { padding: 1.4rem; }
@@ -151,8 +165,11 @@
     font-size: .7rem; font-weight: 700; white-space: nowrap;
 }
 .usr-role-admin { background:#fdf4ff;color:#7c3aed;border-color:#e9d5ff; }
-.usr-role-op { background:#fef2f2;color:#b91c1c;border-color:#fca5a5; }
-.usr-role-to { background:#f0fdf4;color:#15803d;border-color:#86efac; }
+.usr-role-operator { background:#fef2f2;color:#b91c1c;border-color:#fca5a5; }
+.usr-role-traffic_officer { background:#f0fdf4;color:#15803d;border-color:#86efac; }
+.usr-role-province_admin { background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe; }
+.usr-role-cashier { background:#fffbeb;color:#b45309;border-color:#fde68a; }
+.usr-role-auditor { background:#f5f3f0;color:#57534e;border-color:#d6d3d1; }
 
 .usr-label {
     font-size: .72rem; font-weight: 700;
@@ -195,5 +212,18 @@
 }
 .usr-submit-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(180,83,9,.45); }
 </style>
+
+<script>
+(function () {
+    var lguScoped = ['operator', 'traffic_officer', 'cashier', 'auditor'];
+    var roleSelect = document.getElementById('usr-role-select');
+    var lguField   = document.getElementById('usr-lgu-field');
+    function toggle() {
+        lguField.style.display = lguScoped.includes(roleSelect.value) ? '' : 'none';
+    }
+    roleSelect.addEventListener('change', toggle);
+    toggle();
+})();
+</script>
 
 @endsection

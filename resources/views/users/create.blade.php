@@ -58,12 +58,28 @@
                     <span class="input-group-text usr-ig-icon" style="background:#fdf4ff;border-color:#e9d5ff;">
                         <i class="bi bi-shield-fill-check" style="color:#7c3aed;"></i>
                     </span>
-                    <select name="role" class="form-select usr-input @error('role') is-invalid @enderror" required>
-                        <option value="traffic_officer" {{ old('role','traffic_officer') == 'traffic_officer' ? 'selected' : '' }}>Traffic Officer — Mobile</option>
-                        <option value="operator"        {{ old('role') == 'operator'                         ? 'selected' : '' }}>Operator — Full Access (except User Management)</option>
-                        <option value="admin"           {{ old('role') == 'admin'                            ? 'selected' : '' }}>Admin — Full Access + User Management</option>
+                    <select name="role" id="usr-role-select" class="form-select usr-input @error('role') is-invalid @enderror" required>
+                        @foreach(\App\Enums\UserRole::cases() as $role)
+                            <option value="{{ $role->value }}" {{ old('role','traffic_officer') == $role->value ? 'selected' : '' }}>{{ $role->label() }}</option>
+                        @endforeach
                     </select>
                     @error('role')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+            </div>
+
+            <div class="mb-3" id="usr-lgu-field">
+                <label class="usr-label">LGU <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <span class="input-group-text usr-ig-icon" style="background:#eff6ff;border-color:#bfdbfe;">
+                        <i class="bi bi-signpost-split-fill" style="color:#1d4ed8;"></i>
+                    </span>
+                    <select name="lgu_id" class="form-select usr-input @error('lgu_id') is-invalid @enderror">
+                        <option value="">Select LGU…</option>
+                        @foreach($lgus as $lgu)
+                            <option value="{{ $lgu->id }}" {{ old('lgu_id') == $lgu->id ? 'selected' : '' }}>{{ $lgu->name }} ({{ $lgu->code }})</option>
+                        @endforeach
+                    </select>
+                    @error('lgu_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
 
@@ -160,5 +176,18 @@
 }
 .usr-submit-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(220,38,38,.45); }
 </style>
+
+<script>
+(function () {
+    var lguScoped = ['operator', 'traffic_officer', 'cashier', 'auditor'];
+    var roleSelect = document.getElementById('usr-role-select');
+    var lguField   = document.getElementById('usr-lgu-field');
+    function toggle() {
+        lguField.style.display = lguScoped.includes(roleSelect.value) ? '' : 'none';
+    }
+    roleSelect.addEventListener('change', toggle);
+    toggle();
+})();
+</script>
 
 @endsection

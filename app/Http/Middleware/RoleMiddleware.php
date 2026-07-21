@@ -17,13 +17,12 @@ class RoleMiddleware
 
         $userRole = Auth::user()->role;
 
-        // Admin is a superset of operator — allow admin wherever operator is required
-        $effectiveRoles = $roles;
-        if (in_array('operator', $roles) && !in_array('admin', $roles)) {
-            $effectiveRoles[] = 'admin';
+        // Super Admin: full system control — bypasses every role: gate.
+        if ($userRole === 'admin') {
+            return $next($request);
         }
 
-        if (!in_array($userRole, $effectiveRoles)) {
+        if (!in_array($userRole, $roles)) {
             abort(403, 'Access denied. Insufficient permissions.');
         }
 

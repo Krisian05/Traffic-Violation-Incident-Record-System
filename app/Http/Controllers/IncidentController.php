@@ -32,7 +32,8 @@ class IncidentController extends Controller
         }
 
         $query = Incident::with(['motorists.violator', 'media', 'recorder'])
-            ->withCount(['motorists', 'media']);
+            ->withCount(['motorists', 'media'])
+            ->visibleTo(Auth::user());
 
         if ($search !== '') {
             $lk = '%' . $search . '%';
@@ -228,14 +229,23 @@ class IncidentController extends Controller
 
     public function show(Incident $incident): View
     {
+        $this->ensureVisible($incident);
         $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'motorists.ownerViolator', 'media', 'recorder']);
 
         return view('incidents.show', compact('incident'));
     }
 
+    private function ensureVisible(Incident $incident): void
+    {
+        if (!Auth::user()->seesAllLgus() && $incident->lgu_id !== Auth::user()->lgu_id) {
+            abort(404);
+        }
+    }
+
     public function edit(Incident $incident): View
     {
         $this->authorize('update', $incident);
+        $this->ensureVisible($incident);
         $incident->load(['motorists', 'media']);
         $chargeTypes     = IncidentChargeType::orderBy('name')->get();
         $violators       = Violator::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'middle_name', 'last_name']);
@@ -249,6 +259,7 @@ class IncidentController extends Controller
     public function update(Request $request, Incident $incident): RedirectResponse
     {
         $this->authorize('update', $incident);
+        $this->ensureVisible($incident);
         $validated = $request->validate([
             'date_of_incident'              => 'required|date|before_or_equal:today',
             'time_of_incident'              => 'nullable|date_format:H:i',
@@ -474,6 +485,7 @@ class IncidentController extends Controller
     public function destroy(Incident $incident): RedirectResponse
     {
         $this->authorize('delete', $incident);
+        $this->ensureVisible($incident);
         foreach ($incident->media as $media) {
             if (!Storage::disk(uploads_disk())->delete($media->file_path)) {
                 Log::warning("Failed to delete incident media: {$media->file_path}");
@@ -500,6 +512,7 @@ class IncidentController extends Controller
     public function destroyMedia(IncidentMedia $media): RedirectResponse
     {
         $this->authorize('deleteMedia', $media->incident);
+        $this->ensureVisible($media->incident);
         $incidentId = $media->incident_id;
 
         if (!Storage::disk(uploads_disk())->delete($media->file_path)) {

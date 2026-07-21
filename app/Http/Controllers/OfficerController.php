@@ -23,6 +23,20 @@ use Illuminate\View\View;
 
 class OfficerController extends Controller
 {
+    private function ensureViolationVisible(Violation $violation): void
+    {
+        if (!Auth::user()->seesAllLgus() && $violation->lgu_id !== Auth::user()->lgu_id) {
+            abort(404);
+        }
+    }
+
+    private function ensureIncidentVisible(Incident $incident): void
+    {
+        if (!Auth::user()->seesAllLgus() && $incident->lgu_id !== Auth::user()->lgu_id) {
+            abort(404);
+        }
+    }
+
     // ─────────────────────────────────────────────
     //  DASHBOARD
     // ─────────────────────────────────────────────
@@ -513,6 +527,7 @@ class OfficerController extends Controller
 
     public function showViolation(Violation $violation): View
     {
+        $this->ensureViolationVisible($violation);
         $violation->load(['violationType', 'vehicle.violator', 'vehiclePhotos', 'recorder', 'violator', 'incident']);
 
         return view('officer.violations.show', compact('violation'));
@@ -521,6 +536,7 @@ class OfficerController extends Controller
     public function editViolation(Violation $violation): View
     {
         $this->authorize('update', $violation);
+        $this->ensureViolationVisible($violation);
         $violation->load(['violator', 'vehiclePhotos']);
         $violationTypes = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
         $allVehicles = Vehicle::with('violator:id,first_name,middle_name,last_name')
@@ -537,6 +553,7 @@ class OfficerController extends Controller
     public function updateViolation(Request $request, Violation $violation): RedirectResponse
     {
         $this->authorize('update', $violation);
+        $this->ensureViolationVisible($violation);
 
         $data = $request->validate([
             'violation_type_id'     => ['required', 'exists:violation_types,id'],
@@ -714,7 +731,7 @@ class OfficerController extends Controller
         $search = trim((string) $request->input('search', ''));
         $status = $request->filled('status') ? (string) $request->input('status') : '';
 
-        $query = Incident::with('motorists')->withCount('motorists');
+        $query = Incident::with('motorists')->withCount('motorists')->visibleTo(Auth::user());
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
@@ -1045,6 +1062,7 @@ class OfficerController extends Controller
 
     public function showIncident(Incident $incident): View
     {
+        $this->ensureIncidentVisible($incident);
         $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'recorder', 'media']);
 
         return view('officer.incidents.show', compact('incident'));
@@ -1053,6 +1071,7 @@ class OfficerController extends Controller
     public function editIncident(Incident $incident): View
     {
         $this->authorize('update', $incident);
+        $this->ensureIncidentVisible($incident);
         $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'media']);
         $chargeTypes = Cache::remember('incident_charge_types', 600, fn() => IncidentChargeType::orderBy('name')->get());
 
@@ -1062,6 +1081,7 @@ class OfficerController extends Controller
     public function updateIncident(Request $request, Incident $incident): RedirectResponse
     {
         $this->authorize('update', $incident);
+        $this->ensureIncidentVisible($incident);
 
         $validated = $request->validate([
             'date_of_incident'      => 'required|date|before_or_equal:today',

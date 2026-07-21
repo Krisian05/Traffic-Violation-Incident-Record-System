@@ -31,6 +31,7 @@
                     <th style="padding-left:1.4rem;"><span class="usr-th">User</span></th>
                     <th><span class="usr-th">Username</span></th>
                     <th><span class="usr-th">Role</span></th>
+                    <th><span class="usr-th">LGU</span></th>
                     <th><span class="usr-th">Joined</span></th>
                     <th class="text-center"><span class="usr-th">Actions</span></th>
                 </tr>
@@ -40,7 +41,7 @@
                 <tr class="usr-row usr-row-clickable" data-href="{{ route('users.edit', $user) }}">
                     <td style="padding-left:1.4rem;">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="usr-avatar {{ $user->isOperator() ? 'usr-avatar--op' : 'usr-avatar--to' }}">
+                            <div class="usr-avatar usr-avatar--{{ $user->role }}">
                                 {{ strtoupper(substr($user->name, 0, 1)) }}
                             </div>
                             <div>
@@ -60,19 +61,12 @@
                         <span class="usr-username">{{ $user->username }}</span>
                     </td>
                     <td>
-                        @if($user->isAdmin())
-                            <span class="usr-role-badge usr-role-admin">
-                                <i class="bi bi-person-fill-gear me-1"></i>Admin
-                            </span>
-                        @elseif($user->isOperator())
-                            <span class="usr-role-badge usr-role-op">
-                                <i class="bi bi-shield-fill-check me-1"></i>Operator
-                            </span>
-                        @else
-                            <span class="usr-role-badge usr-role-to">
-                                <i class="bi bi-phone-fill me-1"></i>Traffic Officer
-                            </span>
-                        @endif
+                        <span class="usr-role-badge usr-role-{{ $user->role }}">
+                            {{ \App\Enums\UserRole::from($user->role)->label() }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="usr-date">{{ $user->lgu?->code ?? '—' }}</span>
                     </td>
                     <td>
                         <span class="usr-date">{{ $user->created_at->format('M d, Y') }}</span>
@@ -105,7 +99,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="py-5">
+                    <td colspan="6" class="py-5">
                         <div class="text-center">
                             <i class="bi bi-people" style="font-size:2rem;color:#d6d3d1;display:block;margin-bottom:.5rem;"></i>
                             <span style="color:#a8a29e;font-size:.88rem;">No user accounts found.</span>
@@ -192,8 +186,12 @@
     flex-shrink: 0;
     letter-spacing: 0;
 }
-.usr-avatar--op { background: #fef2f2; color: #b91c1c; border: 2px solid #fca5a5; }
-.usr-avatar--to { background: #f0fdf4; color: #15803d; border: 2px solid #86efac; }
+.usr-avatar--admin { background:#fdf4ff;color:#7c3aed;border:2px solid #e9d5ff; }
+.usr-avatar--operator { background: #fef2f2; color: #b91c1c; border: 2px solid #fca5a5; }
+.usr-avatar--traffic_officer { background: #f0fdf4; color: #15803d; border: 2px solid #86efac; }
+.usr-avatar--province_admin { background:#eff6ff;color:#1d4ed8;border:2px solid #bfdbfe; }
+.usr-avatar--cashier { background:#fffbeb;color:#b45309;border:2px solid #fde68a; }
+.usr-avatar--auditor { background:#f5f3f0;color:#57534e;border:2px solid #d6d3d1; }
 
 /* ─── CELLS ─── */
 .usr-name {
@@ -223,8 +221,11 @@
     font-size: .72rem; font-weight: 700;
 }
 .usr-role-admin { background:#fdf4ff;color:#7c3aed;border-color:#e9d5ff; }
-.usr-role-op { background:#fef2f2;color:#b91c1c;border-color:#fca5a5; }
-.usr-role-to { background:#f0fdf4;color:#15803d;border-color:#86efac; }
+.usr-role-operator { background:#fef2f2;color:#b91c1c;border-color:#fca5a5; }
+.usr-role-traffic_officer { background:#f0fdf4;color:#15803d;border-color:#86efac; }
+.usr-role-province_admin { background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe; }
+.usr-role-cashier { background:#fffbeb;color:#b45309;border-color:#fde68a; }
+.usr-role-auditor { background:#f5f3f0;color:#57534e;border-color:#d6d3d1; }
 
 /* ─── ACTION BUTTONS ─── */
 .usr-act-btn {

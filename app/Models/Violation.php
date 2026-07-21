@@ -2,15 +2,31 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class Violation extends Model
 {
     use HasFactory, SoftDeletes, LogsActivity;
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        // Defensive default: any violation created without an explicit lgu_id
+        // (e.g. a future code path that forgets to set it) falls back to the
+        // recording user's own LGU rather than failing the NOT NULL constraint.
+        static::creating(function (Violation $violation) {
+            if (!$violation->lgu_id && Auth::check()) {
+                $violation->lgu_id = Auth::user()->lgu_id;
+            }
+        });
+    }
 
     public function getActivitylogOptions(): LogOptions
     {
@@ -23,6 +39,7 @@ class Violation extends Model
 
     protected $fillable = [
         'violator_id',
+        'lgu_id',
         'incident_id',
         'vehicle_id',
         'vehicle_owner_name',
@@ -56,6 +73,11 @@ class Violation extends Model
     public function violator()
     {
         return $this->belongsTo(Violator::class);
+    }
+
+    public function lgu()
+    {
+        return $this->belongsTo(Lgu::class);
     }
 
     public function incident()
@@ -101,5 +123,18 @@ class Violation extends Model
     public function isOverdue(): bool
     {
         return $this->status === 'pending' && $this->date_of_violation <= now()->subHours(72);
+    }
+
+    /**
+     * Multi-LGU data isolation: admin/province_admin see every LGU, everyone
+     * else (operator, traffic_officer, cashier, auditor) only sees their own.
+     */
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        if ($user->seesAllLgus()) {
+            return $query;
+        }
+
+        return $query->where('lgu_id', $user->lgu_id);
     }
 }

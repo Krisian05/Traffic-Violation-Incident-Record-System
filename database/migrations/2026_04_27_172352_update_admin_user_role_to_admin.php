@@ -9,7 +9,14 @@ return new class extends Migration
     {
         // Drop the check constraint that limits role to operator/traffic_officer,
         // then add a new one that also allows 'admin'.
-        DB::statement('ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check');
+        $constraint = DB::select("
+            SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'
+            AND CONSTRAINT_NAME = 'users_role_check'
+        ");
+        if (!empty($constraint)) {
+            DB::statement("ALTER TABLE users DROP CHECK users_role_check");
+        }
         DB::statement("ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('admin', 'operator', 'traffic_officer'))");
 
         DB::table('users')
@@ -25,7 +32,14 @@ return new class extends Migration
             ->where('role', 'admin')
             ->update(['role' => 'operator']);
 
-        DB::statement('ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check');
+        $constraint = DB::select("
+            SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'
+            AND CONSTRAINT_NAME = 'users_role_check'
+        ");
+        if (!empty($constraint)) {
+            DB::statement("ALTER TABLE users DROP CHECK users_role_check");
+        }
         DB::statement("ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('operator', 'traffic_officer'))");
     }
 };
