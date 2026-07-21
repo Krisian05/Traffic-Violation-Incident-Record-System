@@ -426,11 +426,6 @@ class ViolationController extends Controller
         $violation = null;
         $user = Auth::user();
 
-        // Scope query for pending tickets
-        $pendingQuery = Violation::with(['violator', 'violationType'])
-            ->where('status', 'pending')
-            ->orderBy('date_of_violation', 'desc');
-
         if ($search !== '') {
             $query = Violation::with(['violator', 'violationType', 'vehicle'])
                 ->where(function ($q) use ($search) {
@@ -448,14 +443,20 @@ class ViolationController extends Controller
             $violation = $query->first();
         }
 
-        // LGU scoping for list of pending tickets
-        if (($user->isCashier() || $user->isOperator()) && !$user->isAdmin()) {
+        // The "browse all unpaid tickets" list is a cashier-only convenience —
+        // admins/operators can still look up a specific ticket via search above.
+        $pendingTickets = collect();
+        if ($user->isCashier()) {
+            $pendingQuery = Violation::with(['violator', 'violationType'])
+                ->where('status', 'pending')
+                ->orderBy('date_of_violation', 'desc');
+
             if ($user->lgu_id) {
                 $pendingQuery->where('lgu_id', $user->lgu_id);
             }
-        }
 
-        $pendingTickets = $pendingQuery->limit(10)->get();
+            $pendingTickets = $pendingQuery->limit(10)->get();
+        }
 
         return view('violations.cashier', compact('violation', 'search', 'pendingTickets'));
     }
