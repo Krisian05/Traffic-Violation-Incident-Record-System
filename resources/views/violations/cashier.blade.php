@@ -69,6 +69,7 @@
                                     $statusPillCls = [
                                         'overdue' => 'background-color: #fef2f2; color: #b91c1c; border: 1px solid #fca5a5;',
                                         'pending' => 'background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a;',
+                                        'partial' => 'background-color: #fff7ed; color: #c2410c; border: 1px solid #fdba74;',
                                         'settled' => 'background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;',
                                     ][$displayStatus] ?? 'background-color: #f5f5f4; color: #57534e;';
                                 @endphp
@@ -80,12 +81,23 @@
                         <div class="card-body p-4" style="background-color: #fff;">
                             
                             {{-- Fine Summary --}}
-                            <div class="p-3 mb-4 d-flex align-items-center justify-content-between" style="background-color: #fef2f2; border-radius: 12px; border: 1px solid #fca5a5;">
-                                <div>
-                                    <span class="text-muted fw-600" style="font-size: .75rem; display: block;">TOTAL FINE DUE</span>
-                                    <strong style="font-size: 1.5rem; color: #b91c1c;">₱{{ number_format($violation->violationType->fine_amount, 2) }}</strong>
+                            <div class="p-3 mb-4" style="background-color: #fef2f2; border-radius: 12px; border: 1px solid #fca5a5;">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <span class="text-muted fw-600" style="font-size: .75rem; display: block;">{{ $violation->status === 'partial' ? 'BALANCE DUE' : 'TOTAL AMOUNT DUE' }}</span>
+                                        <strong style="font-size: 1.5rem; color: #b91c1c;">₱{{ number_format($violation->balanceRemaining(), 2) }}</strong>
+                                    </div>
+                                    <i class="bi bi-cash-coin text-danger fs-1"></i>
                                 </div>
-                                <i class="bi bi-cash-coin text-danger fs-1"></i>
+                                <div class="mt-2 pt-2" style="border-top: 1px dashed #fca5a5; font-size: .78rem; color: #7f1d1d;">
+                                    Base fine: ₱{{ number_format($violation->violationType->fine_amount, 2) }}
+                                    @if($violation->isOverdue() && $violation->latePenaltyAmount() > 0)
+                                        <span class="ms-1">+ Late penalty: ₱{{ number_format($violation->latePenaltyAmount(), 2) }}</span>
+                                    @endif
+                                    @if($violation->totalAmountPaid() > 0)
+                                        <span class="ms-1">· Already paid: ₱{{ number_format($violation->totalAmountPaid(), 2) }}</span>
+                                    @endif
+                                </div>
                             </div>
 
                             <table class="table table-borderless align-middle mb-0" style="font-size: .88rem;">
