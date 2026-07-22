@@ -18,6 +18,7 @@ class Lgu extends Model
         'ordinance_reference',
         'treasurer_office',
         'gcash_qr_path',
+        'citation_statement',
     ];
 
     public function users(): HasMany

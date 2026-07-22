@@ -27,6 +27,7 @@ class LguController extends Controller
             'psgc_city_code'      => ['nullable', 'string', 'max:20', 'unique:lgus,psgc_city_code'],
             'ordinance_reference' => ['nullable', 'string', 'max:255'],
             'treasurer_office'    => ['nullable', 'string', 'max:255'],
+            'citation_statement'  => ['nullable', 'string', 'max:2000'],
             'gcash_qr_image'      => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
         ]);
 
@@ -55,6 +56,7 @@ class LguController extends Controller
             'psgc_city_code'      => ['nullable', 'string', 'max:20', "unique:lgus,psgc_city_code,{$lgu->id}"],
             'ordinance_reference' => ['nullable', 'string', 'max:255'],
             'treasurer_office'    => ['nullable', 'string', 'max:255'],
+            'citation_statement'  => ['nullable', 'string', 'max:2000'],
             'gcash_qr_image'      => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
         ]);
 
