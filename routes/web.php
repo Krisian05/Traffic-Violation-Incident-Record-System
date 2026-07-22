@@ -8,6 +8,7 @@ use App\Http\Controllers\DeviceRegistrationController;
 use App\Http\Controllers\IncidentChargeTypeController;
 use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\LguController;
+use App\Http\Controllers\OcrController;
 use App\Http\Controllers\OfficerController;
 use App\Http\Controllers\ProvinceDashboardController;
 use App\Http\Controllers\ReportController;
@@ -54,6 +55,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
     Route::get('/dashboard/search', [DashboardController::class, 'search'])->name('dashboard.search');
     Route::get('/dashboard/analytics', [DashboardController::class, 'analytics'])->name('dashboard.analytics');
+
+    // ── OCR (Smart Fallback: Gemini -> OCR.Space) ───────────────────────────────
+    Route::post('/api/ocr/scan', [OcrController::class, 'scanId'])->name('ocr.scan')->middleware('throttle:30,1');
 
     // ── SECURITY: TWO-FACTOR AUTHENTICATION (any authenticated user) ───────────
     Route::prefix('security/two-factor')->name('security.two-factor.')->group(function () {
@@ -143,6 +147,8 @@ Route::middleware('auth')->group(function () {
 
     // Static path before wildcard
     Route::middleware('role:operator')->group(function () {
+        Route::get('/settings/charge-types', [SettingController::class, 'chargeTypes'])->name('settings.charge-types');
+        Route::post('/api/ocr/scan', [OcrController::class, 'scanId'])->name('api.ocr.scan');
         Route::get('/incidents/create', [IncidentController::class, 'create'])->name('incidents.create');
         Route::post('/incidents', [IncidentController::class, 'store'])->name('incidents.store');
     });

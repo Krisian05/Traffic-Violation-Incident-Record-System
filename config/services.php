@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+    ],
+
+    'ocrspace' => [
+        'key' => env('OCR_SPACE_API_KEY'),
+    ],
+
 ];

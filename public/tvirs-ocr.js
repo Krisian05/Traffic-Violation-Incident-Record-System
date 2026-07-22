@@ -259,7 +259,9 @@
     // genuine (near-)blank ID, so treat it as "nothing usable was read".
     var MIN_USABLE_TEXT_LENGTH = 6;
 
-    function recognizeIdFromCanvas(canvas, onStatus) {
+    // Tier 3: on-device Tesseract.js. Used when the cloud OCR endpoint is
+    // unreachable or errors out, so enforcers are never stuck without a scanner.
+    function recognizeIdFromCanvasLocal(canvas, onStatus) {
         var setStatus = typeof onStatus === 'function' ? onStatus : function () {};
 
         setStatus('Loading text reader… (first scan may take a moment)');
@@ -279,9 +281,66 @@
         });
     }
 
+    var OCR_SERVER_ENDPOINT = '/api/ocr/scan';
+    var OCR_SERVER_TIMEOUT_MS = 15000;
+
+    function getCsrfToken() {
+        var meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    }
+
+    // Tiers 1 & 2: the backend tries Gemini then OCR.Space and returns already
+    // structured, parsed field data — no client-side parsing needed here.
+    function recognizeIdFromCanvasViaServer(canvas, onStatus) {
+        var setStatus = typeof onStatus === 'function' ? onStatus : function () {};
+        setStatus('Reading ID (cloud)…');
+
+        var ocrCanvas = prepareCanvasForOcr(canvas);
+        var imageData = ocrCanvas.toDataURL('image/jpeg', 0.85);
+
+        var controller = ('AbortController' in window) ? new AbortController() : null;
+        var timeoutId = controller ? setTimeout(function () { controller.abort(); }, OCR_SERVER_TIMEOUT_MS) : null;
+
+        return fetch(OCR_SERVER_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': getCsrfToken()
+            },
+            body: JSON.stringify({ image: imageData }),
+            credentials: 'same-origin',
+            signal: controller ? controller.signal : undefined
+        }).then(function (response) {
+            if (timeoutId) clearTimeout(timeoutId);
+            if (!response.ok) {
+                throw new Error('OCR server responded with ' + response.status);
+            }
+            return response.json();
+        }).then(function (json) {
+            if (!json || !json.success || !json.data) {
+                throw new Error((json && json.message) || 'OCR server returned no data.');
+            }
+            return { text: '', parsed: json.data };
+        }).catch(function (error) {
+            if (timeoutId) clearTimeout(timeoutId);
+            throw error;
+        });
+    }
+
+    function recognizeIdFromCanvas(canvas, onStatus) {
+        var setStatus = typeof onStatus === 'function' ? onStatus : function () {};
+
+        return recognizeIdFromCanvasViaServer(canvas, setStatus).catch(function () {
+            setStatus('Cloud reader unavailable — using on-device text reader…');
+            return recognizeIdFromCanvasLocal(canvas, setStatus);
+        });
+    }
+
     window.TvirsOcr = {
         preload: preloadOcrEngine,
         recognizeIdFromCanvas: recognizeIdFromCanvas,
+        recognizeIdFromCanvasLocal: recognizeIdFromCanvasLocal,
         parseIdText: parseIdText
     };
 })();
