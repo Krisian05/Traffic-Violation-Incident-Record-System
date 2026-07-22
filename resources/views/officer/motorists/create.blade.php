@@ -527,7 +527,12 @@
         <div class="edit-section-body">
 
             <div class="field-group">
-                <label class="mob-label">License Number</label>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <label class="mob-label mb-0">License Number</label>
+                    <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="border-radius:8px;font-size:.72rem;font-weight:800;" onclick="tvirsStartScanner('license_number')">
+                        <i class="ph ph-qr-code"></i> Scan Barcode
+                    </button>
+                </div>
                 <div class="field-wrap @error('license_number') is-invalid-wrap @enderror" id="wrap-license-number">
                     <span class="field-adorn"><i class="ph ph-hash"></i></span>
                     <input type="text" name="license_number" id="license_number" value="{{ old('license_number') }}"
@@ -537,7 +542,7 @@
                 @error('license_number')
                     <div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>
                 @else
-                    <div class="field-hint" id="hint-license">LTO format: N01-23-456789. Auto-uppercased.</div>
+                    <div class="field-hint" id="hint-license">LTO format: N01-23-456789 or scan card barcode.</div>
                 @enderror
             </div>
 

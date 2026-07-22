@@ -161,7 +161,6 @@
     @if($violation->violator?->address)
     <div class="kv-line">Address: {{ $violation->violator->address }}</div>
     @endif
-    
     <div class="divider"></div>
     
     <div class="section-title">VIOLATION:</div>
@@ -182,6 +181,17 @@
     
     <div class="section-title">RECORDED BY:</div>
     <div class="kv-line">Off. {{ strtoupper($violation->recorder?->name ?? '(Deleted User)') }}</div>
+
+    <div class="divider"></div>
+
+    <div class="section-title">VIOLATOR SIGNATURE:</div>
+    <div class="center" style="margin-top:10px;">
+        @if($violation->signature_photo)
+            <img src="{{ uploaded_file_url($violation->signature_photo) }}" alt="Signature" style="max-height: 50px; max-width: 180px; display: block; margin: 0 auto 4px;">
+        @endif
+        <div style="border-top: 1.5px solid #000; width: 180px; margin: 25px auto 4px;"></div>
+        <div style="font-size:11px;font-weight:600;">Violator's Signature @if($violation->signature_photo)[Digital]@endif</div>
+    </div>
     <div class="kv-line">Badge: {{ $violation->recorder?->badge_number ?? '—' }}</div>
     
     <div class="divider"></div>
