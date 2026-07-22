@@ -136,6 +136,6 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // DemoDataSeeder intentionally removed — production data only
+        $this->call(CebuProvinceGisSeeder::class);
     }
 }
