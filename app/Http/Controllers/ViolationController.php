@@ -154,7 +154,7 @@ class ViolationController extends Controller
         unset($data['photos']);
         $data['violator_id'] = $violator->id;
         $data['recorded_by'] = Auth::id();
-        $data['lgu_id']      = Lgu::findByPsgcCityCode($request->input('_loc_city_code'))?->id;
+        $data['lgu_id']      = Lgu::findByPsgcCityCode($request->input('_loc_city_code'))?->id ?? Auth::user()->lgu_id ?? $violator->lgu_id;
 
         $violation = Violation::create($data);
 

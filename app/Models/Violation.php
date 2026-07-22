@@ -37,6 +37,7 @@ class Violation extends Model
         'vehicle_chassis',
         'violation_type_id',
         'date_of_violation',
+        'due_date',
         'location',
         'lgu_id',
         'gps_lat',
@@ -57,6 +58,7 @@ class Violation extends Model
 
     protected $casts = [
         'date_of_violation' => 'date',
+        'due_date'          => 'date',
         'settled_at'        => 'datetime',
     ];
 
@@ -65,6 +67,12 @@ class Violation extends Model
         parent::boot();
 
         static::creating(function ($model) {
+            // Auto-generate due_date from the grace period unless explicitly set
+            if (empty($model->due_date) && !empty($model->date_of_violation)) {
+                $graceDays = (int) config('tvirs.payment.grace_period_days', 3);
+                $model->due_date = \Carbon\Carbon::parse($model->date_of_violation)->addDays($graceDays)->toDateString();
+            }
+
             // Auto-generate ticket number only if none was manually entered
             if (!empty($model->ticket_number)) {
                 return;
@@ -137,28 +145,69 @@ class Violation extends Model
         return $this->belongsTo(Lgu::class);
     }
 
-    public function payment()
+    public function payments()
     {
-        return $this->hasOne(Payment::class);
+        return $this->hasMany(Payment::class);
     }
 
-    /** Pending violations older than 72 hours — countdown starts from date_of_violation */
+    /** Most recent payment recorded for this violation, if any. */
+    public function latestPayment()
+    {
+        return $this->hasOne(Payment::class)->latestOfMany('paid_at');
+    }
+
+    /** Unpaid/partially-paid violations whose due_date has passed. */
     public function scopeOverdue($query)
     {
-        return $query->where('status', 'pending')
-                     ->where('date_of_violation', '<=', now()->subHours(72)->toDateString());
+        return $query->whereIn('status', ['pending', 'partial'])
+                     ->whereNotNull('due_date')
+                     ->where('due_date', '<', now()->toDateString());
     }
 
-    /** Pending violations still within the 72-hour window */
+    /** Unpaid/partially-paid violations still within their due date. */
     public function scopePendingActive($query)
     {
-        return $query->where('status', 'pending')
-                     ->where('date_of_violation', '>', now()->subHours(72)->toDateString());
+        return $query->whereIn('status', ['pending', 'partial'])
+                     ->where(function ($q) {
+                         $q->whereNull('due_date')->orWhere('due_date', '>=', now()->toDateString());
+                     });
     }
 
-    /** True if this violation instance is overdue */
+    /** True if this violation instance is past its due date and still unpaid/partially paid. */
     public function isOverdue(): bool
     {
-        return $this->status === 'pending' && $this->date_of_violation <= now()->subHours(72);
+        return in_array($this->status, ['pending', 'partial'], true)
+            && $this->due_date
+            && now()->startOfDay()->gt($this->due_date);
+    }
+
+    /** Additional penalty added once a violation passes its due_date (0 if not overdue or not configured). */
+    public function latePenaltyAmount(): float
+    {
+        if (!$this->isOverdue()) {
+            return 0.0;
+        }
+
+        return (float) ($this->violationType?->late_penalty_amount ?? 0);
+    }
+
+    /** Base fine plus any late penalty currently owed. */
+    public function totalAmountDue(): float
+    {
+        $base = (float) ($this->violationType?->fine_amount ?? 0);
+
+        return round($base + $this->latePenaltyAmount(), 2);
+    }
+
+    /** Sum of all payments recorded against this violation. */
+    public function totalAmountPaid(): float
+    {
+        return (float) $this->payments()->sum('amount_paid');
+    }
+
+    /** Remaining balance owed (never negative). */
+    public function balanceRemaining(): float
+    {
+        return max(0.0, round($this->totalAmountDue() - $this->totalAmountPaid(), 2));
     }
 }

@@ -14,7 +14,7 @@ class Payment extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['violation_id', 'amount_paid', 'payment_method', 'or_number', 'cashier_name', 'paid_at'])
+            ->logOnly(['violation_id', 'amount_paid', 'payment_method', 'or_number', 'cashier_name', 'collected_by', 'paid_at'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('payment');
@@ -26,6 +26,7 @@ class Payment extends Model
         'payment_method',
         'or_number',
         'cashier_name',
+        'collected_by',
         'paid_at',
         'receipt_photo',
     ];
@@ -38,5 +39,10 @@ class Payment extends Model
     public function violation()
     {
         return $this->belongsTo(Violation::class);
+    }
+
+    public function collector()
+    {
+        return $this->belongsTo(User::class, 'collected_by');
     }
 }

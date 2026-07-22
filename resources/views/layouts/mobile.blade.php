@@ -1993,8 +1993,9 @@ function tvirsStartScanner(targetInputId, callback) {
     var status = document.getElementById('tvirs_scanner_status');
     var torchBtn = document.getElementById('tvirs_torch_btn');
 
-    // Warm up the (lightweight) OCR engine script in the background so it's
-    // likely ready by the time "Snap & Read" needs its text-reading fallback.
+    // Fully initialize the OCR engine (script + WASM core + language data) in
+    // the background as soon as the scanner opens, so "Snap & Read" only pays
+    // the fast recognition cost instead of also waiting on a cold engine load.
     if (window.TvirsOcr && typeof window.TvirsOcr.preload === 'function') {
         window.TvirsOcr.preload();
     }

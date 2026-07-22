@@ -339,9 +339,15 @@
         </div>
     </div>
 
-    <div id="scan-review-banner" class="mob-alert mob-alert-success mb-3" style="display:none;">
+    <div id="scan-review-banner" class="mob-alert mob-alert-success mb-3" style="display:none;align-items:flex-start;">
         <i class="ph-fill ph-check-circle" style="font-size:1.15rem;flex-shrink:0;"></i>
-        <div><span id="scan-review-banner-text"></span> Please check the highlighted fields for accuracy before saving.</div>
+        <div>
+            <div id="scan-review-banner-text"></div>
+            <label style="display:flex;align-items:flex-start;gap:.45rem;margin-top:.55rem;font-size:.78rem;font-weight:700;cursor:pointer;">
+                <input type="checkbox" id="scan-review-confirm" style="width:16px;height:16px;flex-shrink:0;margin-top:.1rem;">
+                <span>I've checked the highlighted fields against the ID and they're correct.</span>
+            </label>
+        </div>
     </div>
 
     {{-- ── PHOTO ── --}}
@@ -1019,27 +1025,58 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ── Driver's License / Valid ID Camera Scan Autofill ──
+    // Scanning (barcode or OCR) can misread a card — glare, blur, wear, a bad
+    // angle. It is a best-effort draft, never a substitute for the officer
+    // actually looking at the ID. So: never silently overwrite something the
+    // officer already confirmed, and never let the form submit with
+    // scan-filled data the officer hasn't explicitly reviewed.
+    var scanReviewBanner = document.getElementById('scan-review-banner');
+    var scanReviewText = document.getElementById('scan-review-banner-text');
+    var scanReviewCheckbox = document.getElementById('scan-review-confirm');
+    var motoristSubmitBtn = document.getElementById('submitBtn');
+    var scanNeedsReview = false;
+
+    function setScanReviewRequired(required) {
+        scanNeedsReview = required;
+        if (motoristSubmitBtn) {
+            motoristSubmitBtn.disabled = required;
+        }
+    }
+
+    if (scanReviewCheckbox) {
+        scanReviewCheckbox.addEventListener('change', function () {
+            setScanReviewRequired(!scanReviewCheckbox.checked);
+        });
+    }
+
     document.addEventListener('tvirs:license-scanned', function (e) {
         var parsed = e.detail && e.detail.parsed;
         if (!parsed) return;
 
+        var source = e.detail.source === 'ocr' ? 'ocr' : 'barcode';
         var autofilledFields = [];
 
         function fill(name, value) {
             if (!value) return;
             var input = document.querySelector('[name="' + name + '"]') || document.getElementById(name);
-            if (input) {
-                input.value = value;
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('change', { bubbles: true }));
+            if (!input) return;
 
-                input.classList.add('field-autofilled');
-                autofilledFields.push(input);
-                input.addEventListener('input', function clearHighlight() {
-                    input.classList.remove('field-autofilled');
-                    input.removeEventListener('input', clearHighlight);
-                });
-            }
+            // A non-empty value the officer already typed/edited (i.e. not still
+            // carrying a prior scan's un-reviewed highlight) is left alone —
+            // a later scan must never quietly clobber a manual correction.
+            var hasConfirmedValue = input.value.trim() !== '' && !input.classList.contains('field-autofilled');
+            if (hasConfirmedValue) return;
+
+            input.value = value;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+
+            input.classList.add('field-autofilled');
+            autofilledFields.push(input);
+            input.addEventListener('input', function clearHighlight() {
+                input.classList.remove('field-autofilled');
+                input.removeEventListener('input', clearHighlight);
+            });
         }
 
         if (parsed.license_number) fill('license_number', parsed.license_number);
@@ -1070,18 +1107,36 @@ document.addEventListener('DOMContentLoaded', function () {
                 .catch(function () {});
         }
 
-        if (autofilledFields.length > 0) {
-            var banner = document.getElementById('scan-review-banner');
-            var bannerText = document.getElementById('scan-review-banner-text');
-            if (banner && bannerText) {
-                bannerText.textContent = 'Filled ' + autofilledFields.length + ' field' + (autofilledFields.length === 1 ? '' : 's') + ' from the scan.';
-                banner.style.display = '';
-            }
+        if (autofilledFields.length > 0 && scanReviewBanner && scanReviewText) {
+            var count = autofilledFields.length;
+            var confidenceNote = source === 'barcode'
+                ? 'Read from the ID\'s barcode (usually reliable, but cards can be damaged or outdated) —'
+                : 'Read from the photo using text recognition, which can misread characters —';
+            scanReviewText.textContent = confidenceNote + ' filled ' + count + ' field' + (count === 1 ? '' : 's') + '. Compare each one against the physical ID.';
+            scanReviewBanner.style.display = '';
+
+            if (scanReviewCheckbox) scanReviewCheckbox.checked = false;
+            setScanReviewRequired(true);
+
             setTimeout(function () {
                 autofilledFields.forEach(function (el) { el.classList.remove('field-autofilled'); });
-            }, 6000);
+            }, 8000);
         }
     });
+
+    // Defense in depth: even if button state ever gets out of sync, block submission
+    // outright while a scan is awaiting the officer's explicit confirmation.
+    // (motoristForm is already declared above, for the offline-link-refresh logic.)
+    if (motoristForm) {
+        motoristForm.addEventListener('submit', function (event) {
+            if (scanNeedsReview) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                if (scanReviewBanner) scanReviewBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (scanReviewCheckbox) scanReviewCheckbox.focus();
+            }
+        }, true);
+    }
 
 })();
 </script>

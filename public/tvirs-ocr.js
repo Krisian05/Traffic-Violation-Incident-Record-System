@@ -13,6 +13,25 @@
     var engineLoadPromise = null;
     var workerPromise = null;
 
+    // Set by recognizeIdFromCanvas() while a scan is actively in progress, so
+    // load/recognize progress from the worker's `logger` reaches the caller's
+    // status UI. A no-op the rest of the time (e.g. during background preload).
+    var activeStatusCallback = function () {};
+
+    var OCR_STATUS_LABELS = {
+        'loading tesseract core': 'Loading text reader engine',
+        'loading language traineddata': 'Loading language data',
+        'initializing tesseract': 'Preparing text reader',
+        'recognizing text': 'Reading text from ID'
+    };
+
+    function reportOcrProgress(m) {
+        if (!m || !m.status) return;
+        var label = OCR_STATUS_LABELS[m.status] || m.status;
+        var pct = typeof m.progress === 'number' ? Math.round(m.progress * 100) : null;
+        activeStatusCallback(label + (pct !== null ? '… ' + pct + '%' : '…'));
+    }
+
     function loadOcrEngine() {
         if (typeof window.Tesseract !== 'undefined') {
             return Promise.resolve();
@@ -46,7 +65,8 @@
             return window.Tesseract.createWorker('eng', 1, {
                 workerPath: OCR_WORKER_PATH,
                 corePath: OCR_CORE_PATH,
-                langPath: OCR_LANG_PATH
+                langPath: OCR_LANG_PATH,
+                logger: reportOcrProgress
             });
         }).then(function (worker) {
             // Sparse-text mode suits ID cards better than the default fully-automatic
@@ -63,12 +83,14 @@
         return workerPromise;
     }
 
-    // Preload the (small) engine script in the background as soon as the scanner
-    // opens, so it is likely already available by the time a scan is attempted.
-    // The heavy WASM core / language data only load once recognize() actually runs.
+    // Fully initializes the OCR worker — engine script, WASM core, and language
+    // data — in the background as soon as the scanner opens. This is the part
+    // that actually takes multiple seconds; doing it ahead of time means the
+    // officer's first "Snap & Read" only pays the (fast) recognition cost
+    // instead of also waiting for engine/data loading at that moment.
     function preloadOcrEngine() {
-        loadOcrEngine().catch(function () {
-            // Silently ignore — the explicit recognize() call will surface any error.
+        getOcrWorker().catch(function () {
+            // Silently ignore — an explicit recognize() call will surface any error.
         });
     }
 
@@ -237,7 +259,7 @@
     // Trims very large captures down to a size that recognizes noticeably faster
     // without losing enough detail to hurt accuracy — ID card text stays legible
     // well below the ~1920px long edge the camera can capture at.
-    var OCR_MAX_DIMENSION = 1600;
+    var OCR_MAX_DIMENSION = 1280;
 
     function prepareCanvasForOcr(sourceCanvas) {
         var longestEdge = Math.max(sourceCanvas.width, sourceCanvas.height);
@@ -264,10 +286,17 @@
     function recognizeIdFromCanvasLocal(canvas, onStatus) {
         var setStatus = typeof onStatus === 'function' ? onStatus : function () {};
 
-        setStatus('Loading text reader… (first scan may take a moment)');
+        // Route the worker's own load/recognize progress (via its `logger`) to
+        // the caller's status UI for the duration of this scan.
+        activeStatusCallback = setStatus;
+        setStatus('Preparing text reader…');
+
+        var finish = function (outcome) {
+            activeStatusCallback = function () {};
+            return outcome;
+        };
 
         return getOcrWorker().then(function (worker) {
-            setStatus('Reading text from ID…');
             var ocrCanvas = prepareCanvasForOcr(canvas);
             // Only text output is used — skipping blocks/hocr/tsv generation
             // recognizes measurably faster.
@@ -275,9 +304,12 @@
         }).then(function (result) {
             var text = (result && result.data && result.data.text) || '';
             if (text.trim().length < MIN_USABLE_TEXT_LENGTH) {
-                return { text: text, parsed: { raw: text } };
+                return finish({ text: text, parsed: { raw: text } });
             }
-            return { text: text, parsed: parseIdText(text) };
+            return finish({ text: text, parsed: parseIdText(text) });
+        }).catch(function (error) {
+            finish();
+            throw error;
         });
     }
 

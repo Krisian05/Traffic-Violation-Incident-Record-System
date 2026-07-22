@@ -14,6 +14,7 @@ class ViolationType extends Model
         'name',
         'description',
         'fine_amount',
+        'late_penalty_amount',
     ];
 
     protected static function boot(): void
