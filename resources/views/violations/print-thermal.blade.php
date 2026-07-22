@@ -18,51 +18,46 @@
         .slip {
             width: 384px;
             margin: 20px auto;
-            padding: 10px 12px;
+            padding: 15px;
             background: #fff;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            font-size: 15px;
-            line-height: 1.3;
+            
+            /* User requested large bold text for readability on thermal */
+            font-size: 18px; 
+            font-weight: 900; 
+            line-height: 1.4;
         }
 
         .text-center { text-align: center; }
-        .text-left { text-align: left; }
         .text-right { text-align: right; }
-        .bold { font-weight: 700; }
         
-        .header-title { font-size: 15px; font-weight: 700; margin-top: 2px; }
-        .ticket-title { font-size: 20px; font-weight: 900; margin: 4px 0; letter-spacing: -0.5px; }
-        .ticket-no-label { font-size: 16px; font-weight: 700; margin-top: 4px; }
-        .ticket-no { font-size: 21px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.1; margin-bottom: 6px; }
-        .fine-amt { font-size: 18px; font-weight: 900; margin-top: 2px; }
-
-        .divider { border-top: 2px dashed #000; margin: 8px 0; }
-        .divider-double { border-top: 4px double #000; margin: 8px 0; }
+        .header-text { font-size: 16px; font-weight: 900; }
+        .title-text { font-size: 22px; font-weight: 900; margin: 15px 0; letter-spacing: -0.5px; }
         
-        .row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2px; }
-        .col { display: flex; flex-direction: column; }
-        
-        .section-title { font-weight: 900; margin-bottom: 4px; text-transform: uppercase; font-size: 16px; }
-        
-        .kv-line { margin-bottom: 2px; }
-        .kv-line .k { font-weight: 700; }
-
-        .status-box { border: 2px solid #000; padding: 1px 6px; display: inline-block; font-weight: 900; }
-        
-        .qr-section { display: flex; justify-content: space-between; margin: 12px 0; }
-        .qr-box { display: flex; flex-direction: column; align-items: center; width: 48%; }
-        .qr-box canvas { width: 130px !important; height: 130px !important; image-rendering: pixelated; margin-bottom: 4px; }
-        .qr-label { font-size: 13px; font-weight: 900; text-align: center; text-transform: uppercase; }
-        .qr-sub { font-size: 10px; text-align: center; font-weight: 600; line-height: 1.1; margin-top: 2px; }
-
-        .signature-line {
-            display: flex; align-items: flex-end; margin-top: 20px; font-size: 16px; font-weight: 700;
-        }
-        .signature-line .line {
-            flex-grow: 1; border-bottom: 2px solid #000; margin-left: 8px; height: 20px;
+        .field-row { margin-bottom: 12px; }
+        .field-label { display: block; margin-bottom: 2px; }
+        .field-value { 
+            border-bottom: 2px solid #000; 
+            min-height: 25px; 
+            display: flex;
+            align-items: flex-end;
+            padding-bottom: 2px;
         }
 
-        .footer-text { font-size: 13px; font-weight: 600; text-align: center; margin-top: 8px; line-height: 1.2; }
+        .flex-row { display: flex; gap: 15px; margin-bottom: 12px; }
+        .flex-col { flex: 1; }
+        
+        .divider { border-top: 3px dashed #000; margin: 20px 0; }
+
+        .footer-text { 
+            font-size: 15px; 
+            text-align: justify; 
+            margin-top: 15px; 
+            line-height: 1.3;
+        }
+        
+        .qr-container { display: flex; flex-direction: column; align-items: center; margin: 20px 0; }
+        .qr-container canvas { width: 180px !important; height: 180px !important; image-rendering: pixelated; margin-bottom: 8px; }
 
         /* Floating Toolbar */
         .toolbar {
@@ -78,29 +73,29 @@
         }
         .toolbar button {
             flex: 1;
-            max-width: 250px;
-            padding: 12px;
+            max-width: 300px;
+            padding: 15px;
             border-radius: 8px;
             border: none;
             background: #2563eb;
             color: #fff;
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 18px;
+            font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
         }
         .toolbar button:disabled { background: #94a3b8; }
         
         #status {
             text-align: center;
-            font-size: 13px;
+            font-size: 14px;
             color: #64748b;
             margin-top: 10px;
             font-family: system-ui, sans-serif;
-            font-weight: 600;
+            font-weight: 700;
         }
     </style>
     <!-- Libraries -->
@@ -115,114 +110,125 @@
     $plate = $violation->vehicle?->plate_number ?? $violation->vehicle_plate;
     $mm = trim(($violation->vehicle?->make ?? $violation->vehicle_make) . ' ' . ($violation->vehicle?->model ?? $violation->vehicle_model));
     $color = $violation->vehicle?->color;
-    
-    $statusText = 'UNPAID';
-    if (in_array($violation->status, ['paid', 'settled'])) {
-        $statusText = 'PAID';
-    } elseif ($violation->status === 'contested') {
-        $statusText = 'CONTESTED';
-    }
 @endphp
 
 <div id="status">Ready to connect...</div>
 
 <div class="slip" id="print-area">
-    <div class="text-center">
-        <div>REPUBLIKA NG PILIPINAS</div>
-        <div class="header-title">{{ strtoupper($stationName) }}</div>
-        @if($lgu?->province)
-            <div>Traffic Enforcement Unit</div>
-            <div>Poblacion, {{ $lgu->province }}</div>
-        @else
-            <div>Traffic Enforcement Unit</div>
-        @endif
+    <div class="text-center header-text">
+        <div>Republic of the Philippines</div>
+        <div>Province of Cebu</div>
+        <div>Municipality of {{ $lgu?->name ?? 'Balamban' }}</div>
+        <div style="margin-top: 10px; font-size: 18px;">{{ strtoupper($stationName) }}</div>
     </div>
     
-    <div class="divider-double"></div>
-    <div class="text-center ticket-title">TRAFFIC CITATION TICKET</div>
-    <div class="divider-double"></div>
+    <div class="text-center title-text">TRAFFIC CITATION TICKET</div>
     
-    <div class="ticket-no-label">Ticket No:</div>
-    <div class="ticket-no">{{ $violation->ticket_number ?: '—' }}</div>
-    
-    <div class="row">
-        <div>Date: {{ $violation->date_of_violation->format('F d, Y') }}</div>
-        <div>{{ $violation->date_of_violation->format('h:i A') }}</div>
-    </div>
-    <div class="kv-line" style="margin-top:4px;">
-        <span class="k">Status:</span> <span class="status-box">{{ $statusText }}</span>
-    </div>
-    
-    <div class="divider"></div>
-    
-    <div class="section-title">VIOLATOR INFORMATION:</div>
-    <div class="kv-line">Name: {{ strtoupper($violation->violator?->full_name ?? '(Deleted Motorist)') }}</div>
-    <div class="kv-line">License No: {{ $violation->violator?->license_number ?? '—' }}</div>
-    @if($violation->violator?->address)
-    <div class="kv-line">Address: {{ $violation->violator->address }}</div>
-    @endif
-    
-    <div class="divider"></div>
-    
-    <div class="section-title">VIOLATION:</div>
-    <div class="kv-line">Type: {{ $violation->violationType?->name ?? '—' }}</div>
-    <div class="kv-line">Location: {{ $violation->location ?? '—' }}</div>
-    <div class="fine-amt">Fine Amount: PHP {{ number_format($violation->violationType?->fine_amount ?? 0, 2) }}</div>
-    
-    <div class="divider"></div>
-    
-    <div class="section-title">VEHICLE:</div>
-    <div class="row">
-        <div>Plate No: {{ $plate ?: '—' }}</div>
-        <div>Type: {{ strtoupper($violation->vehicle?->type ?? 'MV') }}</div>
-    </div>
-    <div class="kv-line">Make/Model: {{ $mm ?: '—' }}{{ $color ? ' / ' . $color : '' }}</div>
-    
-    <div class="divider"></div>
-    
-    <div class="section-title">RECORDED BY:</div>
-    <div class="kv-line">Off. {{ strtoupper($violation->recorder?->name ?? '(Deleted User)') }}</div>
-    <div class="kv-line">Badge: {{ $violation->recorder?->badge_number ?? '—' }}</div>
-    
-    <div class="divider"></div>
-    
-    <div class="qr-section">
-        <div class="qr-box" style="{{ !$gcashQrPayload ? 'width:100%;' : '' }}">
-            <canvas id="citQr"></canvas>
-            <div class="qr-label">SCAN TO VERIFY</div>
-            <div class="qr-sub">Scan to verify and view<br>the ticket details.</div>
+    <div class="flex-row">
+        <div class="field-label" style="margin-top: 5px;">DATE:</div>
+        <div class="field-value" style="flex-grow: 1; justify-content: center;">
+            {{ $violation->date_of_violation->format('M d, Y') }}
         </div>
-        @if($gcashQrPayload)
-        <div class="qr-box">
-            <div class="qr-label">GCASH PAYMENT</div>
-            <canvas id="gcashQr"></canvas>
-            <div class="qr-label">SCAN TO PAY<br>PHP {{ number_format($violation->violationType?->fine_amount ?? 0, 2) }}</div>
+    </div>
+    
+    <div class="field-row">
+        <div class="field-label">TO:</div>
+        <div class="field-value">{{ strtoupper($violation->violator?->full_name ?? '') }}</div>
+    </div>
+    
+    <div class="field-row">
+        <div class="field-label">ADDRESS:</div>
+        <div class="field-value">{{ strtoupper($violation->violator?->address ?? '') }}</div>
+    </div>
+    
+    <div class="field-row">
+        <div class="field-label">VEHICLE PLATE NO.:</div>
+        <div class="field-value">{{ strtoupper($plate) }}</div>
+    </div>
+    
+    <div class="flex-row">
+        <div class="flex-col">
+            <div class="field-label">MAKE:</div>
+            <div class="field-value">{{ strtoupper($mm) }}</div>
         </div>
-        @endif
+        <div class="flex-col">
+            <div class="field-label">COLOR:</div>
+            <div class="field-value">{{ strtoupper($color) }}</div>
+        </div>
     </div>
     
-    <div class="divider"></div>
+    <div class="text-center title-text" style="margin: 25px 0 15px;">VIOLATION(S)</div>
     
-    <div class="signature-line">
-        Violator's Signature: <div class="line"></div>
+    <div style="display: flex; margin-bottom: 20px;">
+        <span style="margin-right: 12px; font-size: 20px;">[X]</span>
+        <span>{{ strtoupper($violation->violationType?->name ?? '') }}</span>
     </div>
     
-    <div class="divider" style="margin-top:12px;"></div>
+    <div class="field-row">
+        <div class="field-label">Place of Violation:</div>
+        <div class="field-value">{{ strtoupper($violation->location ?? '') }}</div>
+    </div>
+    
+    <div class="flex-row">
+        <div class="flex-col" style="flex: 2;">
+            <div class="field-label">Time of Violation:</div>
+            <div class="field-value">{{ $violation->date_of_violation->format('h:i') }}</div>
+        </div>
+        <div class="flex-col" style="flex: 1;">
+            <div class="field-label">(AM/PM)</div>
+            <div class="field-value" style="justify-content: center;">{{ $violation->date_of_violation->format('A') }}</div>
+        </div>
+    </div>
+    
+    <div class="text-center" style="margin-top: 40px;">
+        <div style="border-bottom: 2px solid #000; width: 80%; margin: 0 auto; height: 30px;"></div>
+        <div style="margin-top: 5px;">Driver's Signature</div>
+    </div>
     
     <div class="footer-text">
-        <div>Pay within 72 hours to avoid additional penalties.</div>
-        <div style="margin-top:4px;">Present this ticket at the {{ $lgu?->name ?? 'Municipal' }} Treasurer's Office or scan the GCash QR above.</div>
-        <div style="margin-top:8px;">TVIRS - Traffic Violation Incident Record System</div>
+        You are directed to report to the {{ $lgu?->name ?? 'Balamban' }} Traffic Operation Management Office within 3 days from the date hereof for disposition appropriation in the citation.
+        <br><br>
+        Failure to appear or report within the period stipulated will mean a waiver and criminal complaint against you will be filed in court pursuant to the provisions of Ordinance No. 2005-09 otherwise known as the Municipal Traffic Enforcement Code 2005.
     </div>
     
-    <!-- Extra padding at the bottom of the receipt for tearing -->
-    <div style="height: 40px;"></div>
+    <div class="text-right" style="font-size: 26px; font-weight: 900; margin: 25px 0;">
+        NO. {{ $violation->ticket_number ?: $violation->id }}
+    </div>
+    
+    <div style="margin-top: 35px;">
+        <div>Apprehending Traffic Officer:</div>
+        <div style="border-bottom: 2px solid #000; min-height: 40px; margin-top: 15px; text-align: center; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px;">
+            {{ strtoupper($violation->recorder?->name ?? '') }}
+        </div>
+    </div>
+    
+    <div class="text-center" style="margin-top: 50px;">
+        <div style="border-bottom: 2px solid #000; width: 80%; margin: 0 auto; min-height: 30px;"></div>
+        <div style="margin-top: 5px;">Chairman BATOM</div>
+    </div>
+    
+    <div class="divider"></div>
+    
+    <div class="qr-container">
+        <canvas id="citQr"></canvas>
+        <div>SCAN TO VERIFY</div>
+    </div>
+    
+    @if($gcashQrPayload)
+    <div class="qr-container">
+        <canvas id="gcashQr"></canvas>
+        <div>GCASH PAYMENT</div>
+        <div style="font-size: 16px; margin-top: 5px;">PHP {{ number_format($violation->violationType?->fine_amount ?? 0, 2) }}</div>
+    </div>
+    @endif
+    
+    <div style="height: 60px;"></div>
 </div>
 
 <div class="toolbar">
     <button type="button" id="btn-print" onclick="printViaWebBluetooth()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 7 10 10"/><path d="M17 7 7 17"/></svg>
-        Connect & Print (Bluetooth)
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m7 7 10 10"/><path d="M17 7 7 17"/></svg>
+        Connect & Print
     </button>
 </div>
 
@@ -230,12 +236,12 @@
 window.addEventListener('load', function () {
     var qrData = @json($violation->ticket_number ? $violation->ticket_number . " — " . ($violation->violator?->full_name ?? "") : url("/violations/" . $violation->id));
     QRCode.toCanvas(document.getElementById('citQr'), qrData, {
-        width: 140, margin: 1, color: { dark: '#000000', light: '#ffffff' }
+        width: 180, margin: 1, color: { dark: '#000000', light: '#ffffff' }
     });
 
     @if($gcashQrPayload)
     QRCode.toCanvas(document.getElementById('gcashQr'), @json($gcashQrPayload), {
-        width: 140, margin: 1, color: { dark: '#000000', light: '#ffffff' }
+        width: 180, margin: 1, color: { dark: '#000000', light: '#ffffff' }
     });
     @endif
 });
