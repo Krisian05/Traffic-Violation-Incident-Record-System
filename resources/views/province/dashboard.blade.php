@@ -2,6 +2,18 @@
 
 @section('title', 'Provincial Command Dashboard')
 
+@push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #provinceMap {
+        height: 320px;
+        width: 100%;
+        border-radius: 12px;
+        z-index: 1;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid px-4 py-3">
     {{-- Executive Header --}}
@@ -12,8 +24,8 @@
                 <i class="bi bi-diagram-3-fill" style="font-size:1.4rem;"></i>
             </div>
             <div>
-                <div class="text-uppercase fw-bold text-primary" style="font-size:.68rem;letter-spacing:.08em;">Province of Cebu • Oversight Platform</div>
-                <h3 class="mb-0 fw-extrabold text-dark">Provincial Command Dashboard</h3>
+                <div class="text-uppercase fw-bold text-primary" style="font-size:.68rem;letter-spacing:.08em;">Province of Cebu • Provincial Command Hub</div>
+                <h3 class="mb-0 fw-extrabold text-dark">Provincial Traffic Intelligence & Command Dashboard</h3>
             </div>
         </div>
         
@@ -35,9 +47,9 @@
         </div>
     </div>
 
-    {{-- Key Performance Indicator Cards --}}
+    {{-- Section 1 & 3: Province-Wide Statistics & Collection Performance KPI Cards --}}
     <div class="row g-3 mb-4">
-        <!-- Total Violations -->
+        <!-- Total Citations -->
         <div class="col-xl-3 col-md-6">
             <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden" style="background:#fff;border-left:4px solid #1d4ed8 !important;">
                 <div class="card-body p-3">
@@ -55,7 +67,7 @@
             </div>
         </div>
 
-        <!-- Total Revenue Collected -->
+        <!-- Revenue Collected -->
         <div class="col-xl-3 col-md-6">
             <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden" style="background:#fff;border-left:4px solid #16a34a !important;">
                 <div class="card-body p-3">
@@ -66,7 +78,7 @@
                         </div>
                     </div>
                     <div class="fs-2 fw-extrabold text-dark mb-1">₱{{ number_format($totalRevenueCollected, 2) }}</div>
-                    <div class="text-muted" style="font-size:.75rem;">Settled fine payments in {{ $year }}</div>
+                    <div class="text-muted" style="font-size:.75rem;">Settled fine revenue in {{ $year }}</div>
                 </div>
             </div>
         </div>
@@ -87,7 +99,7 @@
             </div>
         </div>
 
-        <!-- Active Officers & Motorists -->
+        <!-- Active Officers & Database -->
         <div class="col-xl-3 col-md-6">
             <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden" style="background:#fff;border-left:4px solid #8b5cf6 !important;">
                 <div class="card-body p-3">
@@ -110,14 +122,14 @@
         </div>
     </div>
 
-    {{-- Trends & Distribution Row --}}
+    {{-- Section 7: Monthly Enforcement Trend Analysis & Category Distribution --}}
     <div class="row g-4 mb-4">
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden" style="background:#fff;">
                 <div class="card-header bg-white p-3 border-0 d-flex align-items-center justify-content-between">
                     <div>
-                        <h6 class="mb-0 fw-bold text-dark">Provincial Violation Trends ({{ $year }})</h6>
-                        <span class="text-muted" style="font-size:.78rem;">Monthly citation distribution across participating LGUs</span>
+                        <h6 class="mb-0 fw-bold text-dark">Monthly Enforcement Trend Analysis ({{ $year }})</h6>
+                        <span class="text-muted" style="font-size:.78rem;">Periodic enforcement activity trends across the province</span>
                     </div>
                 </div>
                 <div class="card-body px-3 pb-3 pt-0" style="height:310px;">
@@ -129,8 +141,8 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden" style="background:#fff;">
                 <div class="card-header bg-white p-3 border-0">
-                    <h6 class="mb-0 fw-bold text-dark">Violation Classification Split</h6>
-                    <span class="text-muted" style="font-size:.78rem;">Top citation categories across Cebu</span>
+                    <h6 class="mb-0 fw-bold text-dark">Violation Category Split</h6>
+                    <span class="text-muted" style="font-size:.78rem;">Distribution of top ordinance categories</span>
                 </div>
                 <div class="card-body px-3 pb-3 pt-0 d-flex align-items-center justify-content-center" style="height:310px;">
                     @if(empty($categoryData))
@@ -145,14 +157,28 @@
         </div>
     </div>
 
-    {{-- Hotspots & Comparative Analysis Row --}}
+    {{-- Section 4: GIS Geographic Analytics & Location Hotspots --}}
     <div class="row g-4 mb-4">
-        {{-- Provincial Hotspots --}}
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden" style="background:#fff;">
+                <div class="card-header bg-white p-3 border-0 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-map-fill text-primary me-1"></i> Province-Wide GIS Violation Heatmap</h6>
+                        <span class="text-muted" style="font-size:.78rem;">Geographic distribution and concentration of traffic violations</span>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary fw-bold" style="font-size:.75rem;">{{ count($mapPoints) }} Mapped Points</span>
+                </div>
+                <div class="card-body p-3">
+                    <div id="provinceMap"></div>
+                </div>
+            </div>
+        </div>
+
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden" style="background:#fff;">
                 <div class="card-header bg-white p-3 border-0">
                     <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-geo-alt-fill text-danger me-1"></i> High Incident Hotspots</h6>
-                    <span class="text-muted" style="font-size:.78rem;">Top enforcement locations in Cebu</span>
+                    <span class="text-muted" style="font-size:.78rem;">Concentrated violation areas requiring targeted deployment</span>
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
@@ -162,23 +188,115 @@
                                     <span class="badge bg-danger text-white rounded-circle" style="width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;">{{ $idx + 1 }}</span>
                                     <span class="fw-semibold text-dark" style="font-size:.84rem;">{{ $spot->location }}</span>
                                 </div>
-                                <span class="badge bg-danger-subtle text-danger fw-bold rounded-pill" style="font-size:.75rem;">{{ number_format($spot->total) }} tickets</span>
+                                <span class="badge bg-danger-subtle text-danger fw-bold rounded-pill" style="font-size:.75rem;">{{ number_format($spot->total) }} citations</span>
                             </div>
                         @empty
-                            <div class="p-4 text-center text-muted" style="font-size:.85rem;">No location hotspot data recorded.</div>
+                            <div class="p-4 text-center text-muted" style="font-size:.85rem;">No hotspot locations recorded yet.</div>
                         @endforelse
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        {{-- LGU Comparative Table --}}
-        <div class="col-lg-8">
+    {{-- Section 5 & 6: Repeat Offender Intelligence & Officer Productivity --}}
+    <div class="row g-4 mb-4">
+        {{-- Repeat Offender Monitoring --}}
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden" style="background:#fff;">
+                <div class="card-header bg-white p-3 border-0 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-person-exclamation text-warning me-1"></i> Repeat Offender Intelligence</h6>
+                        <span class="text-muted" style="font-size:.78rem;">Recurring violators across the province</span>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size:.84rem;">
+                        <thead class="bg-light text-muted" style="font-size:.72rem;text-transform:uppercase;">
+                            <tr>
+                                <th class="ps-3">Violator Name</th>
+                                <th>License No</th>
+                                <th class="text-center">Total Citations</th>
+                                <th class="text-end pe-3">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($repeatOffenders as $offender)
+                                <tr>
+                                    <td class="ps-3 fw-bold text-dark">{{ $offender->full_name }}</td>
+                                    <td class="text-muted">{{ $offender->license_number ?? '—' }}</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning-subtle text-warning-emphasis fw-bold rounded-pill" style="font-size:.75rem;">
+                                            {{ $offender->violations_count }} violations
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <a href="{{ route('violators.show', $offender->id) }}" class="btn btn-sm btn-outline-primary rounded-3 px-2 py-0" style="font-size:.75rem;">View Record</a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted" style="font-size:.85rem;">No repeat offenders recorded for this period.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {{-- Officer Productivity --}}
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden" style="background:#fff;">
+                <div class="card-header bg-white p-3 border-0 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-award-fill text-success me-1"></i> Officer & Unit Productivity</h6>
+                        <span class="text-muted" style="font-size:.78rem;">Top performing enforcement officers</span>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size:.84rem;">
+                        <thead class="bg-light text-muted" style="font-size:.72rem;text-transform:uppercase;">
+                            <tr>
+                                <th class="ps-3">Officer Name</th>
+                                <th>Role</th>
+                                <th class="text-center">Issued</th>
+                                <th class="text-center">Settled Ratio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($topOfficers as $officer)
+                                <tr>
+                                    <td class="ps-3 fw-bold text-dark">{{ $officer->name }}</td>
+                                    <td class="text-muted">{{ ucfirst(str_replace('_', ' ', $officer->role)) }}</td>
+                                    <td class="text-center fw-bold text-dark">{{ number_format($officer->total_issued) }}</td>
+                                    <td class="text-center">
+                                        @php
+                                            $ratio = $officer->total_issued > 0 ? round(($officer->total_settled / $officer->total_issued) * 100) : 0;
+                                        @endphp
+                                        <span class="badge bg-success-subtle text-success fw-bold rounded-pill" style="font-size:.75rem;">{{ $ratio }}%</span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted" style="font-size:.85rem;">No officer productivity data available.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Section 2: LGU Enforcement Performance Ranking --}}
+    <div class="row g-4 mb-4">
+        <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background:#fff;">
                 <div class="card-header bg-white p-3 border-0 d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="mb-0 fw-bold text-dark">Comparative LGU Performance Matrix</h6>
-                        <span class="text-muted" style="font-size:.78rem;">Enforcement volume and settlement rates across municipalities</span>
+                        <span class="text-muted" style="font-size:.78rem;">Comparative analytics and compliance monitoring across municipalities in Cebu</span>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -190,7 +308,7 @@
                                 <th class="text-center">Total Tickets</th>
                                 <th class="text-center">Settled</th>
                                 <th class="text-center">Pending / Overdue</th>
-                                <th class="text-center">Settlement Rate</th>
+                                <th class="text-center">Compliance & Settlement Rate</th>
                                 <th style="width:200px;">Volume Share</th>
                             </tr>
                         </thead>
@@ -240,8 +358,10 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // ── Trend Line Chart ──
     const ctx = document.getElementById('trendChart');
     if(ctx) {
         new Chart(ctx, {
@@ -274,6 +394,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // ── Category Split Doughnut Chart ──
     const catCtx = document.getElementById('categoryChart');
     if(catCtx) {
         new Chart(catCtx, {
@@ -293,6 +414,41 @@ document.addEventListener('DOMContentLoaded', function() {
                 plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
             }
         });
+    }
+
+    // ── GIS Leaflet Map ──
+    const mapEl = document.getElementById('provinceMap');
+    if (mapEl) {
+        const map = L.map('provinceMap').setView([10.3157, 123.8854], 9);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        const points = @json($mapPoints);
+        if (points && points.length > 0) {
+            const bounds = [];
+            points.forEach(function(pt) {
+                if (pt.gps_lat && pt.gps_lng) {
+                    const lat = parseFloat(pt.gps_lat);
+                    const lng = parseFloat(pt.gps_lng);
+                    bounds.push([lat, lng]);
+
+                    L.circleMarker([lat, lng], {
+                        radius: 7,
+                        fillColor: '#ef4444',
+                        color: '#b91c1c',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }).addTo(map)
+                    .bindPopup('<b>' + (pt.violation_type ? pt.violation_type.name : 'Violation') + '</b><br>' + (pt.location || 'Cebu') + '<br><small>' + (pt.date_of_violation || '') + '</small>');
+                }
+            });
+            if (bounds.length > 0) {
+                map.fitBounds(bounds, { padding: [20, 20] });
+            }
+        }
     }
 });
 </script>

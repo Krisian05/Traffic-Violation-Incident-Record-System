@@ -72,7 +72,7 @@ class ProvinceDashboardController extends Controller
             ->join('violation_types', 'violations.violation_type_id', '=', 'violation_types.id')
             ->sum('violation_types.fine_amount');
 
-        // Location Hotspots
+        // Feature 4: Location Hotspots & GIS Map Points
         $provincialHotspots = (clone $baseViolationQuery)
             ->whereNotNull('location')->where('location', '!=', '')
             ->select('location', DB::raw('COUNT(*) as total'))
@@ -81,7 +81,40 @@ class ProvinceDashboardController extends Controller
             ->limit(5)
             ->get();
 
-        // Monthly Trend
+        $mapPoints = (clone $baseViolationQuery)
+            ->whereNotNull('gps_lat')->whereNotNull('gps_lng')
+            ->with(['violationType:id,name', 'lgu:id,name'])
+            ->limit(50)
+            ->get(['id', 'gps_lat', 'gps_lng', 'location', 'violation_type_id', 'lgu_id', 'date_of_violation']);
+
+        // Feature 5: Repeat Offender Intelligence
+        $repeatOffenders = Violator::withCount(['violations' => fn($q) =>
+                $q->whereYear('date_of_violation', $year)
+                  ->when($selectedLguId, fn($sq) => $sq->where('lgu_id', $selectedLguId))
+            ])
+            ->whereHas('violations', fn($q) =>
+                $q->whereYear('date_of_violation', $year)
+                  ->when($selectedLguId, fn($sq) => $sq->where('lgu_id', $selectedLguId))
+            , '>', 1)
+            ->orderByDesc('violations_count')
+            ->limit(5)
+            ->get();
+
+        // Feature 6: Officer & Unit Productivity Monitoring
+        $topOfficers = Violation::whereYear('date_of_violation', $year)
+            ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))
+            ->join('users', 'violations.recorded_by', '=', 'users.id')
+            ->select(
+                'users.id', 'users.name', 'users.role',
+                DB::raw('COUNT(*) as total_issued'),
+                DB::raw("SUM(CASE WHEN violations.status = 'settled' THEN 1 ELSE 0 END) as total_settled")
+            )
+            ->groupBy('users.id', 'users.name', 'users.role')
+            ->orderByDesc('total_issued')
+            ->limit(5)
+            ->get();
+
+        // Feature 7: Monthly Enforcement Trend Analysis
         $monthlyTrend = (clone $baseViolationQuery)
             ->get(['date_of_violation'])
             ->groupBy(fn($v) => (int) ($v->date_of_violation?->format('n') ?? 0))
@@ -117,7 +150,8 @@ class ProvinceDashboardController extends Controller
         return view('province.dashboard', compact(
             'year', 'lgus', 'selectedLguId', 'municipalityStats', 'totalViolations', 'totalViolationsAllTime',
             'totalViolators', 'totalActiveOfficers', 'totalRevenueCollected', 'totalUncollectedFines',
-            'provincialHotspots', 'chartLabels', 'chartData', 'categoryLabels', 'categoryData'
+            'provincialHotspots', 'mapPoints', 'repeatOffenders', 'topOfficers',
+            'chartLabels', 'chartData', 'categoryLabels', 'categoryData'
         ));
     }
 }
