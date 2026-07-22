@@ -24,21 +24,21 @@
 @section('content')
 
 @php
-    $isOverdue = $violation->status === 'pending'
-        && $violation->date_of_violation
-        && $violation->date_of_violation <= now()->subHours(72);
+    $isOverdue = $violation->isOverdue();
     $status = $violation->status ?? 'pending';
 
     $statusLabel = match(true) {
         $status === 'settled'   => 'Settled',
         $status === 'contested' => 'Contested',
         $isOverdue              => 'Overdue',
+        $status === 'partial'   => 'Partial Payment',
         default                 => 'Pending',
     };
     $statusIcon = match(true) {
         $status === 'settled'   => 'ph-check-circle',
         $status === 'contested' => 'ph-scales',
         $isOverdue              => 'ph-warning-octagon',
+        $status === 'partial'   => 'ph-coins',
         default                 => 'ph-clock',
     };
 
@@ -149,7 +149,7 @@
     <div class="motshow-alert-icon"><i class="ph-fill ph-warning-octagon"></i></div>
     <div>
         <div class="motshow-alert-title">Overdue Violation</div>
-        <div class="motshow-alert-text">This violation is past 72 hours and remains unsettled. Follow-up action may be required.</div>
+        <div class="motshow-alert-text">This violation is past its due date{{ $violation->due_date ? ' (' . $violation->due_date->format('M d, Y') . ')' : '' }} and remains unsettled. Follow-up action may be required.</div>
     </div>
 </div>
 @endif

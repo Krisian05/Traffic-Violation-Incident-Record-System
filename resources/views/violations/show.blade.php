@@ -16,11 +16,13 @@
 .viol-status-pill { display:inline-flex;align-items:center;gap:8px;padding:.25rem .75rem;border-radius:9999px;font-weight:600; }
 .viol-status-overdue   { background:#fef2f2;color:#b91c1c;border:1.5px solid #fca5a5; }
 .viol-status-pending   { background:#fef3c7;color:#92400e;border:1.5px solid #fcd34d; }
+.viol-status-partial   { background:#fff7ed;color:#c2410c;border:1.5px solid #fdba74; }
 .viol-status-settled   { background:#f0fdf4;color:#15803d;border:1.5px solid #86efac; }
 .viol-status-contested { background:#f8fafc;color:#475569;border:1.5px solid #cbd5e1; }
 .viol-status-dot { border-radius:50%;display:inline-block;flex-shrink:0; }
 .viol-status-overdue   .viol-status-dot { background:#dc2626; }
 .viol-status-pending   .viol-status-dot { background:#f59e0b; }
+.viol-status-partial   .viol-status-dot { background:#f97316; }
 .viol-status-settled   .viol-status-dot { background:#22c55e; }
 .viol-status-contested .viol-status-dot { background:#94a3b8; }
 
@@ -129,7 +131,7 @@
 @php
     $isOverdue = $violation->isOverdue();
     $displayStatus = $isOverdue ? 'overdue' : $violation->status;
-    $statusLabel = ['overdue' => 'Overdue', 'pending' => 'Pending', 'settled' => 'Settled', 'contested' => 'Contested'];
+    $statusLabel = ['overdue' => 'Overdue', 'pending' => 'Pending', 'partial' => 'Partial Payment', 'settled' => 'Settled', 'contested' => 'Contested'];
     $label = $statusLabel[$displayStatus] ?? ucfirst($displayStatus);
 @endphp
 
@@ -179,6 +181,19 @@
                                 <span class="fw-700" style="color:#1c1917;font-size:.95rem;">
                                     ₱{{ number_format($violation->violationType->fine_amount, 2) }}
                                 </span>
+                                @if($isOverdue && $violation->latePenaltyAmount() > 0)
+                                    <span style="color:#b91c1c;font-size:.82rem;"> + ₱{{ number_format($violation->latePenaltyAmount(), 2) }} late penalty</span>
+                                @endif
+                                @if(in_array($violation->status, ['pending', 'partial', 'settled']))
+                                    <div style="font-size:.8rem;color:#57534e;margin-top:.2rem;">
+                                        @if($violation->totalAmountPaid() > 0)
+                                            Paid so far: <strong style="color:#15803d;">₱{{ number_format($violation->totalAmountPaid(), 2) }}</strong> ·
+                                        @endif
+                                        @if($violation->status !== 'settled')
+                                            Balance due: <strong style="color:#b91c1c;">₱{{ number_format($violation->balanceRemaining(), 2) }}</strong>
+                                        @endif
+                                    </div>
+                                @endif
                             @else
                                 <span style="color:#a8a29e;font-style:italic;">No fine set</span>
                             @endif
@@ -258,7 +273,7 @@
                         <div style="width:120px;flex-shrink:0;font-size:.8rem;color:#a8a29e;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">Status</div>
                         <div>
                             <span class="viol-status-pill viol-status-{{ $displayStatus }}" style="font-size:.8rem;"
-                                @if($displayStatus === 'overdue') data-bs-toggle="tooltip" data-bs-title="Pending settlement for more than 72 hours" @endif>
+                                @if($displayStatus === 'overdue') data-bs-toggle="tooltip" data-bs-title="Past due date ({{ $violation->due_date?->format('M d, Y') }}) and not fully paid" @endif>
                                 <span class="viol-status-dot" style="width:7px;height:7px;"></span>
                                 {{ $label }}
                             </span>
@@ -495,40 +510,46 @@
             </div>
         </div>
 
-        {{-- Settlement Details (only when settled) --}}
-        @if($violation->status === 'settled')
+        {{-- Payment History (once at least one payment has been recorded) --}}
+        @if($violation->payments->isNotEmpty())
         <div class="card border-0 shadow-sm mb-4" style="border-left:3px solid #15803d!important;">
             <div class="card-header d-flex align-items-center gap-2 py-3">
                 <span class="rounded d-flex align-items-center justify-content-center"
                       style="width:28px;height:28px;background:#dcfce7;">
                     <i class="bi bi-receipt" style="font-size:.85rem;color:#15803d;"></i>
                 </span>
-                <span class="fw-600" style="font-size:.925rem;color:#292524;">Settlement Details</span>
+                <span class="fw-600" style="font-size:.925rem;color:#292524;">{{ $violation->status === 'settled' ? 'Settlement Details' : 'Payment History' }}</span>
             </div>
             <div class="card-body p-3">
-                <ul class="mb-0 list-unstyled" style="font-size:.8rem;color:#57534e;line-height:2.2;">
+                @foreach($violation->payments->sortByDesc('paid_at') as $p)
+                <ul class="mb-0 list-unstyled" style="font-size:.8rem;color:#57534e;line-height:2.2; {{ !$loop->last ? 'border-bottom:1px dashed #ede8df;padding-bottom:.5rem;margin-bottom:.5rem;' : '' }}">
                     <li>
-                        <span style="color:#a8a29e;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">Date Settled</span>
-                        <span class="fw-600" style="color:#15803d;">{{ ($violation->settled_at ?? $violation->updated_at)->format('F d, Y  g:i A') }}</span>
+                        <span style="color:#a8a29e;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">Date Paid</span>
+                        <span class="fw-600" style="color:#15803d;">{{ $p->paid_at->format('F d, Y  g:i A') }}</span>
+                    </li>
+                    <li class="border-top pt-2 mt-1" style="border-color:#ede8df!important;">
+                        <span style="color:#a8a29e;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">Amount</span>
+                        <span class="fw-700" style="color:#15803d;">₱{{ number_format($p->amount_paid, 2) }}</span>
                     </li>
                     <li class="border-top pt-2 mt-1" style="border-color:#ede8df!important;">
                         <span style="color:#a8a29e;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">OR Number</span>
-                        <span class="fw-600 font-monospace" style="color:#15803d;">{{ $violation->or_number ?? '—' }}</span>
+                        <span class="fw-600 font-monospace" style="color:#15803d;">{{ $p->or_number }}</span>
                     </li>
                     <li class="border-top pt-2 mt-1" style="border-color:#ede8df!important;">
                         <span style="color:#a8a29e;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">Cashier</span>
-                        <span>{{ $violation->cashier_name ?? '—' }}</span>
+                        <span>{{ $p->cashier_name }}</span>
                     </li>
-                    @if($violation->receipt_photo)
+                    @if($p->receipt_photo)
                     <li class="border-top pt-2 mt-1" style="border-color:#ede8df!important;">
                         <span style="color:#a8a29e;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">Receipt Photo</span>
-                        <img src="{{ uploaded_file_url($violation->receipt_photo) }}" alt="Receipt"
-                             data-lightbox="{{ uploaded_file_url($violation->receipt_photo) }}"
-                             data-caption="Receipt — {{ $violation->or_number }}"
+                        <img src="{{ uploaded_file_url($p->receipt_photo) }}" alt="Receipt"
+                             data-lightbox="{{ uploaded_file_url($p->receipt_photo) }}"
+                             data-caption="Receipt — {{ $p->or_number }}"
                              style="max-width:100%;max-height:160px;object-fit:contain;border-radius:8px;border:1px solid #bbf7d0;cursor:pointer;margin-top:4px;display:block;">
                     </li>
                     @endif
                 </ul>
+                @endforeach
             </div>
         </div>
         @endif
@@ -583,16 +604,19 @@
                    class="btn btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2 fw-600">
                     <i class="bi bi-receipt" style="font-size:.85rem;"></i> Print Citation (Pocket Printer)
                 </a>
-                @if(Auth::user()->isOperator())
-                @if($violation->status === 'pending')
+                @can('settle', $violation)
+                @if(in_array($violation->status, ['pending', 'partial']))
                 <button type="button" class="btn btn-success w-100 fw-600 d-inline-flex align-items-center justify-content-center gap-2"
                     data-id="{{ $violation->id }}"
                     data-type="{{ $violation->violationType?->name ?? '' }}"
                     data-date="{{ $violation->date_of_violation->format('M d, Y') }}"
+                    data-balance="{{ $violation->balanceRemaining() }}"
                     onclick="openSettleModal(this)">
-                    <i class="bi bi-receipt" style="font-size:.85rem;"></i> Settle Violation
+                    <i class="bi bi-receipt" style="font-size:.85rem;"></i> {{ $violation->status === 'partial' ? 'Record Payment' : 'Settle Violation' }}
                 </button>
                 @endif
+                @endcan
+                @if(Auth::user()->isOperator())
                 <a href="{{ route('violations.edit', $violation) }}"
                    class="btn btn-warning w-100 fw-600 d-inline-flex align-items-center justify-content-center gap-2">
                     <i class="bi bi-pencil-fill" style="font-size:.85rem;"></i> Edit Violation
@@ -689,6 +713,14 @@
                         </div>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label fw-700" style="font-size:.82rem;">Amount Received <span style="color:#a8a29e;font-weight:400;">(optional — blank pays the full balance)</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">₱</span>
+                            <input type="number" name="amount_paid" id="settleAmountPaid" class="form-control" step="0.01" min="0.01" placeholder="Full balance">
+                        </div>
+                        <small style="font-size:.72rem;color:#a8a29e;" id="settleBalanceHint">&nbsp;</small>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label fw-700" style="font-size:.82rem;">Payment Method <span class="text-danger">*</span></label>
                         <div class="d-flex flex-wrap gap-2">
                             @foreach([
@@ -773,6 +805,13 @@ function openSettleModal(btn) {
     document.getElementById('settleForm').reset();
     document.getElementById('receiptPreview').src = '';
     document.getElementById('receiptPreviewWrap').classList.add('d-none');
+
+    var balance = parseFloat(btn.dataset.balance || '0');
+    var amountInput = document.getElementById('settleAmountPaid');
+    amountInput.max = balance > 0 ? balance : '';
+    amountInput.placeholder = 'Full balance: ' + balance.toFixed(2);
+    document.getElementById('settleBalanceHint').textContent = 'Outstanding balance: ₱' + balance.toFixed(2) + '. Enter less to record a partial payment.';
+
     // Reset payment method pills
     updatePaymentPills();
     new bootstrap.Modal(document.getElementById('settleModal')).show();

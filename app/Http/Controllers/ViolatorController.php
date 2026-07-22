@@ -13,8 +13,8 @@ class ViolatorController extends Controller
     public function index(Request $request)
     {
         $query = Violator::withCount('violations')
-            ->withCount(['violations as pending_count' => fn($q) => $q->where('status', 'pending')])
-            ->withCount(['violations as overdue_count' => fn($q) => $q->where('status', 'pending')->where('date_of_violation', '<=', now()->subHours(72)->toDateString())]);
+            ->withCount(['violations as pending_count' => fn($q) => $q->whereIn('status', ['pending', 'partial'])])
+            ->withCount(['violations as overdue_count' => fn($q) => $q->whereIn('status', ['pending', 'partial'])->whereNotNull('due_date')->where('due_date', '<', now()->toDateString())]);
 
         if ($search = $request->input('search')) {
             $lk = '%' . mb_strtolower($search) . '%';

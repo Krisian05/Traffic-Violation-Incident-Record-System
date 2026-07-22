@@ -147,9 +147,9 @@ class ReportController extends Controller
                         ->selectRaw("
                             SUM(CASE WHEN status = 'settled' THEN 1 ELSE 0 END) as settled,
                             SUM(CASE WHEN status = 'contested' THEN 1 ELSE 0 END) as contested,
-                            SUM(CASE WHEN status = 'pending' AND date_of_violation > ? THEN 1 ELSE 0 END) as pending_active,
+                            SUM(CASE WHEN status IN ('pending', 'partial') AND (due_date IS NULL OR due_date >= ?) THEN 1 ELSE 0 END) as pending_active,
                             COUNT(DISTINCT violator_id) as total_violators
-                        ", [now()->subHours(72)->toDateString()])
+                        ", [now()->toDateString()])
                         ->first();
 
         $settledCount       = (int) ($aggCounts->settled ?? 0);

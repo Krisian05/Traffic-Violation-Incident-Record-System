@@ -174,7 +174,7 @@ class ViolationController extends Controller
 
     public function show(Violation $violation)
     {
-        $violation->load(['violator', 'vehicle.violator', 'vehicle.photos', 'violationType', 'recorder', 'vehiclePhotos', 'incident']);
+        $violation->load(['violator', 'vehicle.violator', 'vehicle.photos', 'violationType', 'recorder', 'vehiclePhotos', 'incident', 'payments']);
         return view('violations.show', compact('violation'));
     }
 

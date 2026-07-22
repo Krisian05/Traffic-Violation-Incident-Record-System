@@ -333,9 +333,10 @@
                         <thead style="background-color: #faf9f6; border-bottom: 1px solid #e7e2db;">
                             <tr>
                                 <th class="p-3 fw-700 text-muted" style="width: 25%;">Ticket Number</th>
-                                <th class="p-3 fw-700 text-muted" style="width: 30%;">Violator</th>
-                                <th class="p-3 fw-700 text-muted" style="width: 25%;">Violation Type</th>
-                                <th class="p-3 fw-700 text-muted" style="width: 10%;">Fine</th>
+                                <th class="p-3 fw-700 text-muted" style="width: 25%;">Violator</th>
+                                <th class="p-3 fw-700 text-muted" style="width: 20%;">Violation Type</th>
+                                <th class="p-3 fw-700 text-muted" style="width: 10%;">Balance Due</th>
+                                <th class="p-3 fw-700 text-muted" style="width: 10%;">Status</th>
                                 <th class="p-3 fw-700 text-muted text-center" style="width: 10%;">Action</th>
                             </tr>
                         </thead>
@@ -345,7 +346,16 @@
                                     <td class="p-3 fw-700" style="font-family: ui-monospace, monospace;">{{ $ticket->ticket_number }}</td>
                                     <td class="p-3 fw-600 text-stone-900">{{ $ticket->violator?->full_name }}</td>
                                     <td class="p-3 text-muted">{{ $ticket->violationType?->name }}</td>
-                                    <td class="p-3 fw-700 text-danger">₱{{ number_format($ticket->violationType?->fine_amount, 2) }}</td>
+                                    <td class="p-3 fw-700 text-danger">₱{{ number_format($ticket->balanceRemaining(), 2) }}</td>
+                                    <td class="p-3">
+                                        @if($ticket->isOverdue())
+                                            <span class="badge" style="background:#fef2f2;color:#b91c1c;">Overdue</span>
+                                        @elseif($ticket->status === 'partial')
+                                            <span class="badge" style="background:#fff7ed;color:#c2410c;">Partial</span>
+                                        @else
+                                            <span class="badge" style="background:#fffbeb;color:#b45309;">Pending</span>
+                                        @endif
+                                    </td>
                                     <td class="p-3 text-center">
                                         <a href="{{ route('violations.cashier', ['search' => $ticket->ticket_number]) }}" 
                                            class="btn btn-sm text-white fw-700" 

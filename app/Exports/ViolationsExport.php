@@ -24,7 +24,7 @@ class ViolationsExport implements FromQuery, WithHeadings, WithMapping, ShouldAu
 
     public function query()
     {
-        $query = Violation::with(['violator', 'violationType', 'vehicle'])
+        $query = Violation::with(['violator', 'violationType', 'vehicle', 'payments'])
             ->leftJoin('violators', 'violations.violator_id', '=', 'violators.id')
             ->leftJoin('violation_types', 'violations.violation_type_id', '=', 'violation_types.id')
             ->select('violations.*');
@@ -65,8 +65,10 @@ class ViolationsExport implements FromQuery, WithHeadings, WithMapping, ShouldAu
             'Plate Number',
             'Violation Type',
             'Fine Amount',
+            'Balance Due',
             'Location',
             'Date of Violation',
+            'Due Date',
             'Status',
             'OR Number',
             'Cashier Name',
@@ -87,8 +89,10 @@ class ViolationsExport implements FromQuery, WithHeadings, WithMapping, ShouldAu
             $violation->vehicle?->plate_number ?? $violation->vehicle_plate ?? '—',
             $violation->violationType?->name ?? '—',
             $violation->violationType?->fine_amount ?: 0,
+            $violation->balanceRemaining(),
             $violation->location ?: '—',
             $violation->date_of_violation->format('Y-m-d'),
+            $violation->due_date?->format('Y-m-d') ?: '—',
             $status,
             $violation->or_number ?: '—',
             $violation->cashier_name ?: '—',

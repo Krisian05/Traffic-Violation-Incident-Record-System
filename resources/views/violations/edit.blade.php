@@ -167,16 +167,22 @@
                         <label class="form-label">
                             Status <span class="text-danger">*</span>
                         </label>
+                        @if(in_array($violation->status, ['settled', 'partial']))
+                            <input type="text" class="form-control" value="{{ ucfirst($violation->status) }}" readonly style="background-color:#f1f5f9;color:#64748b;">
+                            <input type="hidden" name="status" value="{{ $violation->status }}">
+                            <div class="form-text">Payment-driven status — use the Settle / Record Payment action on the violation page to change it.</div>
+                        @else
                         <select name="status"
                                 class="form-select @error('status') is-invalid @enderror"
                                 required>
-                            @foreach(['pending','settled'] as $s)
+                            @foreach(['pending','contested'] as $s)
                                 <option value="{{ $s }}" {{ old('status', $violation->status) == $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
                             @endforeach
                         </select>
                         @error('status')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                        @endif
                     </div>
 
                 </div>
@@ -510,82 +516,6 @@
             </div>
         </div>
 
-        {{-- Card 4: Settlement Details (shown when status = settled) --}}
-        <div class="card border-0 shadow-sm mb-4 {{ old('status', $violation->status) === 'settled' ? '' : 'd-none' }}" id="settlementCard">
-            <div class="card-header d-flex align-items-center gap-2 py-3">
-                <span class="rounded d-flex align-items-center justify-content-center"
-                      style="width:28px;height:28px;background:#dcfce7;">
-                    <i class="bi bi-receipt" style="font-size:.85rem;color:#15803d;"></i>
-                </span>
-                <span class="fw-600" style="font-size:.925rem;color:#292524;">Settlement Details</span>
-                <span class="ms-auto badge" style="background:#dcfce7;color:#15803d;font-size:.7rem;">Required when settled</span>
-            </div>
-            <div class="card-body p-4">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">OR Number <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-hash" style="color:#15803d;"></i></span>
-                            <input type="text" name="or_number"
-                                class="form-control font-monospace @error('or_number') is-invalid @enderror"
-                                value="{{ old('or_number', $violation->or_number) }}"
-                                placeholder="Official Receipt No.">
-                            @error('or_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Cashier Name <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-person-badge-fill" style="color:#15803d;"></i></span>
-                            <input type="text" name="cashier_name"
-                                class="form-control @error('cashier_name') is-invalid @enderror"
-                                value="{{ old('cashier_name', $violation->cashier_name) }}"
-                                placeholder="Full name of cashier">
-                            @error('cashier_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                    </div>
-                    @if($violation->settled_at ?? $violation->status === 'settled')
-                    <div class="col-12">
-                        <div style="font-size:.78rem;color:#78716c;">
-                            <i class="bi bi-clock-history me-1" style="color:#15803d;"></i>
-                            Date Settled: <strong style="color:#15803d;">{{ ($violation->settled_at ?? $violation->updated_at)->format('F d, Y  g:i A') }}</strong>
-                        </div>
-                    </div>
-                    @endif
-                    <div class="col-12">
-                        <label class="form-label">Receipt Photo</label>
-                        @if($violation->receipt_photo)
-                            <div class="mb-2" id="currentReceiptWrap">
-                                <img src="{{ uploaded_file_url($violation->receipt_photo) }}"
-                                     alt="Current receipt"
-                                     style="max-width:100%;max-height:160px;object-fit:contain;border-radius:8px;border:2px solid #bbf7d0;">
-                                <div class="d-flex align-items-center gap-2 mt-1">
-                                    <span style="font-size:.72rem;color:#a8a29e;">Current receipt — upload new to replace</span>
-                                    <label class="d-flex align-items-center gap-1 ms-auto" style="font-size:.75rem;color:#dc2626;cursor:pointer;">
-                                        <input type="checkbox" name="remove_receipt_photo" value="1" id="removeReceiptPhoto"
-                                               onchange="toggleReceiptInput(this)">
-                                        Remove
-                                    </label>
-                                </div>
-                            </div>
-                        @endif
-                        <input type="file" name="receipt_photo" id="receipt_photo_edit"
-                            accept="image/jpeg,image/png"
-                            class="form-control @error('receipt_photo') is-invalid @enderror"
-                            onchange="previewReceiptPhoto(event)">
-                        @error('receipt_photo')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <div class="form-text">Optional. JPG/PNG, max 5 MB.</div>
-                        <div class="mt-2" id="receiptPhotoPreview" style="display:none;">
-                            <img id="receiptPhotoImg" src="" alt="Receipt preview"
-                                 style="max-width:100%;max-height:160px;border-radius:8px;border:2px dashed #bbf7d0;object-fit:contain;">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>{{-- /LEFT COLUMN --}}
 
     {{-- ── RIGHT COLUMN ── --}}
@@ -734,14 +664,6 @@
     initIncidentDatePicker('#dp-violation-date', { maxDate:'today', defaultDate: document.getElementById('dp-violation-date').value || null });
 </script>
 <script>
-    // Show/hide settlement card based on status
-    const statusSelect = document.querySelector('select[name="status"]');
-    const settlementCard = document.getElementById('settlementCard');
-    statusSelect.addEventListener('change', function () {
-        settlementCard.classList.toggle('d-none', this.value !== 'settled');
-    });
-
-
     // Searchable vehicle dropdown
     let tsVehicle = new TomSelect('#vehicle_id', {
         allowEmptyOption: true,
@@ -805,26 +727,6 @@
             document.getElementById('validIdPhotoPreview').style.display = '';
         };
         reader.readAsDataURL(file);
-    }
-
-    function previewReceiptPhoto(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = e => {
-            document.getElementById('receiptPhotoImg').src = e.target.result;
-            document.getElementById('receiptPhotoPreview').style.display = '';
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function toggleReceiptInput(checkbox) {
-        const input = document.getElementById('receipt_photo_edit');
-        input.disabled = checkbox.checked;
-        if (checkbox.checked) {
-            input.value = '';
-            document.getElementById('receiptPhotoPreview').style.display = 'none';
-        }
     }
 
     function setVehicleMode(mode) {

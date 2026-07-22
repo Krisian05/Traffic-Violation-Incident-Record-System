@@ -453,18 +453,19 @@
                                 </td>
                                 <td class="text-center">
                                     @php
-                                        $isOverdue = $viol->status === 'pending' && $viol->created_at <= now()->subHours(72);
+                                        $isOverdue = $viol->isOverdue();
                                         $displayStatus = $isOverdue ? 'overdue' : $viol->status;
                                         $sc = match($displayStatus) {
                                             'overdue'   => ['cls'=>'vlt-status-overdue',  'icon'=>'bi-exclamation-triangle-fill'],
                                             'pending'   => ['cls'=>'vlt-status-pending',  'icon'=>'bi-hourglass-split'],
+                                            'partial'   => ['cls'=>'vlt-status-partial',  'icon'=>'bi-coin'],
                                             'settled'   => ['cls'=>'vlt-status-settled',  'icon'=>'bi-check2-circle'],
                                             'contested' => ['cls'=>'vlt-status-contested','icon'=>'bi-shield-slash'],
                                             default     => ['cls'=>'vlt-status-default',  'icon'=>'bi-circle'],
                                         };
                                     @endphp
                                     <span class="vlt-status-badge {{ $sc['cls'] }}"
-                                        @if($displayStatus === 'overdue') data-bs-toggle="tooltip" data-bs-title="Pending payment for more than 72 hours" @endif>
+                                        @if($displayStatus === 'overdue') data-bs-toggle="tooltip" data-bs-title="Past due date and remains unpaid" @endif>
                                         <i class="bi {{ $sc['icon'] }}"></i> {{ ucfirst($displayStatus) }}
                                     </span>
                                 </td>
@@ -675,6 +676,7 @@
 }
 .vlt-status-overdue   { background:#fef2f2;color:#b91c1c;border-color:#fca5a5; }
 .vlt-status-pending   { background:#fff7ed;color:#c2410c;border-color:#fed7aa; }
+.vlt-status-partial   { background:#fff7ed;color:#c2410c;border-color:#fdba74; }
 .vlt-status-settled   { background:#f0fdf4;color:#15803d;border-color:#86efac; }
 .vlt-status-contested { background:#f8fafc;color:#475569;border-color:#cbd5e1; }
 .vlt-status-default   { background:#f8fafc;color:#475569;border-color:#e2e8f0; }

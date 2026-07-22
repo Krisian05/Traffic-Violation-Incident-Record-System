@@ -182,7 +182,10 @@ class OfficerController extends Controller
     {
         $violator->load([
             'vehicles.photos',
-            'violations' => fn($q) => $q->withoutGlobalScope('lgu_isolation')->with(['violationType', 'vehicle', 'recorder', 'incident']),
+            'violations.violationType',
+            'violations.vehicle',
+            'violations.recorder',
+            'violations.incident',
             'incidentMotorists.incident',
             'incidentMotorists.vehicle',
         ]);
