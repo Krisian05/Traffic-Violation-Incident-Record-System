@@ -6,10 +6,37 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
     #provinceMap {
-        height: 320px;
+        height: 350px;
         width: 100%;
         border-radius: 12px;
         z-index: 1;
+    }
+    .hotspot-pulse-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .hotspot-pulse-ring {
+        width: 22px;
+        height: 22px;
+        background: rgba(220, 38, 38, 0.95);
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.8);
+        animation: hotspotPulseAnim 1.6s infinite ease-in-out;
+    }
+    @keyframes hotspotPulseAnim {
+        0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.85); }
+        70% { transform: scale(1.35); box-shadow: 0 0 0 14px rgba(220, 38, 38, 0); }
+        100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+    }
+    .gis-legend {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 8px 12px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        font-size: 0.74rem;
+        line-height: 1.5;
     }
 </style>
 @endpush
@@ -157,16 +184,16 @@
         </div>
     </div>
 
-    {{-- Section 4: GIS Geographic Analytics & Location Hotspots --}}
+    {{-- Section 4: Combined GIS Heatmap (Violations & Incidents Hotspots) --}}
     <div class="row g-4 mb-4">
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden" style="background:#fff;">
                 <div class="card-header bg-white p-3 border-0 d-flex align-items-center justify-content-between">
                     <div>
-                        <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-map-fill text-primary me-1"></i> Province-Wide GIS Violation Heatmap</h6>
-                        <span class="text-muted" style="font-size:.78rem;">Geographic distribution and concentration of traffic violations</span>
+                        <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-map-fill text-danger me-1"></i> Province-Wide GIS Violation & Incident Heatmap</h6>
+                        <span class="text-muted" style="font-size:.78rem;">Geographic distribution and red dot hotspot markers for violations & incidents</span>
                     </div>
-                    <span class="badge bg-primary-subtle text-primary fw-bold" style="font-size:.75rem;">{{ count($mapPoints) }} Mapped Points</span>
+                    <span class="badge bg-danger-subtle text-danger fw-bold" style="font-size:.75rem;">{{ count($mapPoints) }} Mapped GIS Points</span>
                 </div>
                 <div class="card-body p-3">
                     <div id="provinceMap"></div>
@@ -177,8 +204,8 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden" style="background:#fff;">
                 <div class="card-header bg-white p-3 border-0">
-                    <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-geo-alt-fill text-danger me-1"></i> High Incident Hotspots</h6>
-                    <span class="text-muted" style="font-size:.78rem;">Concentrated violation areas requiring targeted deployment</span>
+                    <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-fire text-danger me-1"></i> High-Incidence Violation & Incident Hotspots</h6>
+                    <span class="text-muted" style="font-size:.78rem;">Concentrated violation and incident areas requiring targeted officer deployment</span>
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
@@ -188,7 +215,7 @@
                                     <span class="badge bg-danger text-white rounded-circle" style="width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;">{{ $idx + 1 }}</span>
                                     <span class="fw-semibold text-dark" style="font-size:.84rem;">{{ $spot->location }}</span>
                                 </div>
-                                <span class="badge bg-danger-subtle text-danger fw-bold rounded-pill" style="font-size:.75rem;">{{ number_format($spot->total) }} citations</span>
+                                <span class="badge bg-danger-subtle text-danger fw-bold rounded-pill" style="font-size:.75rem;">{{ number_format($spot->total) }} incidents & citations</span>
                             </div>
                         @empty
                             <div class="p-4 text-center text-muted" style="font-size:.85rem;">No hotspot locations recorded yet.</div>
@@ -416,7 +443,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ── GIS Leaflet Map ──
+    // ── GIS Leaflet Map with Red Hotspot Pulsing Markers ──
     const mapEl = document.getElementById('provinceMap');
     if (mapEl) {
         const map = L.map('provinceMap').setView([10.3157, 123.8854], 9);
@@ -425,28 +452,81 @@ document.addEventListener('DOMContentLoaded', function() {
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
+        // Add GIS Legend Control
+        const legend = L.control({ position: 'bottomright' });
+        legend.onAdd = function() {
+            const div = L.DomUtil.create('div', 'gis-legend');
+            div.innerHTML = `
+                <div class="fw-bold mb-1" style="font-size:0.72rem;color:#0f172a;">GIS Map Legend</div>
+                <div class="d-flex align-items-center gap-1.5"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#dc2626;box-shadow:0 0 4px #dc2626;"></span> <span style="font-size:0.68rem;">🔴 High-Incidence Hotspot</span></div>
+                <div class="d-flex align-items-center gap-1.5"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#1d4ed8;"></span> <span style="font-size:0.68rem;">🔵 Traffic Violation</span></div>
+                <div class="d-flex align-items-center gap-1.5"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f97316;"></span> <span style="font-size:0.68rem;">🟠 Traffic Incident</span></div>
+            `;
+            return div;
+        };
+        legend.addTo(map);
+
         const points = @json($mapPoints);
         if (points && points.length > 0) {
             const bounds = [];
+            
+            // Group coordinates to identify hotspot concentration
+            const locationCounts = {};
+            points.forEach(function(pt) {
+                if (pt.gps_lat && pt.gps_lng) {
+                    const key = pt.gps_lat.toFixed(4) + ',' + pt.gps_lng.toFixed(4);
+                    locationCounts[key] = (locationCounts[key] || 0) + 1;
+                }
+            });
+
+            const hotspotPulseIcon = L.divIcon({
+                className: 'hotspot-pulse-container',
+                html: '<div class="hotspot-pulse-ring"></div>',
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            });
+
             points.forEach(function(pt) {
                 if (pt.gps_lat && pt.gps_lng) {
                     const lat = parseFloat(pt.gps_lat);
                     const lng = parseFloat(pt.gps_lng);
                     bounds.push([lat, lng]);
 
-                    L.circleMarker([lat, lng], {
-                        radius: 7,
-                        fillColor: '#ef4444',
-                        color: '#b91c1c',
-                        weight: 2,
-                        opacity: 1,
-                        fillOpacity: 0.8
-                    }).addTo(map)
-                    .bindPopup('<b>' + (pt.violation_type ? pt.violation_type.name : 'Violation') + '</b><br>' + (pt.location || 'Cebu') + '<br><small>' + (pt.date_of_violation || '') + '</small>');
+                    const key = lat.toFixed(4) + ',' + lng.toFixed(4);
+                    const isHotspot = (locationCounts[key] && locationCounts[key] >= 2);
+
+                    if (isHotspot) {
+                        // Render glowing Red Dot Pulsing Hotspot Marker
+                        L.marker([lat, lng], { icon: hotspotPulseIcon }).addTo(map)
+                        .bindPopup('<div class="p-1"><span class="badge bg-danger mb-1">🔴 HIGH INCIDENT HOTSPOT AREA</span><br><b>' + pt.title + '</b><br>' + (pt.location || 'Cebu') + '<br><small class="text-muted">' + (pt.lgu ? pt.lgu + ' • ' : '') + pt.date + '</small></div>');
+                    } else if (pt.category === 'incident') {
+                        // Render Traffic Incident Marker (Orange)
+                        L.circleMarker([lat, lng], {
+                            radius: 7,
+                            fillColor: '#f97316',
+                            color: '#c2410c',
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.85
+                        }).addTo(map)
+                        .bindPopup('<div class="p-1"><span class="badge bg-warning text-dark mb-1">🟠 Traffic Incident</span><br><b>' + pt.title + '</b><br>' + (pt.location || 'Cebu') + '<br><small class="text-muted">' + (pt.lgu ? pt.lgu + ' • ' : '') + pt.date + '</small></div>');
+                    } else {
+                        // Render Traffic Violation Marker (Red)
+                        L.circleMarker([lat, lng], {
+                            radius: 7,
+                            fillColor: '#dc2626',
+                            color: '#991b1b',
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.85
+                        }).addTo(map)
+                        .bindPopup('<div class="p-1"><span class="badge bg-danger mb-1">🔴 Traffic Violation</span><br><b>' + pt.title + '</b><br>' + (pt.location || 'Cebu') + '<br><small class="text-muted">' + (pt.lgu ? pt.lgu + ' • ' : '') + pt.date + '</small></div>');
+                    }
                 }
             });
+
             if (bounds.length > 0) {
-                map.fitBounds(bounds, { padding: [20, 20] });
+                map.fitBounds(bounds, { padding: [30, 30] });
             }
         }
     }

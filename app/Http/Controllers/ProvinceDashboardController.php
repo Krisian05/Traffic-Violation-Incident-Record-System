@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Incident;
 use App\Models\Lgu;
 use App\Models\Payment;
 use App\Models\User;
@@ -76,20 +77,63 @@ class ProvinceDashboardController extends Controller
 
         $totalUncollectedFines = max(0, $totalFineAndPenaltyDue - $totalPaidTowardOutstanding);
 
-        // Feature 4: Location Hotspots & GIS Map Points
-        $provincialHotspots = (clone $baseViolationQuery)
+        // Feature 4: Combined Violation & Incident Location Hotspots & GIS Map Points
+        $baseIncidentQuery = Incident::whereYear('date_of_incident', $year)
+            ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId));
+
+        $vHotspots = (clone $baseViolationQuery)
             ->whereNotNull('location')->where('location', '!=', '')
             ->select('location', DB::raw('COUNT(*) as total'))
-            ->groupBy('location')
-            ->orderByDesc('total')
-            ->limit(5)
-            ->get();
+            ->groupBy('location')->get();
 
-        $mapPoints = (clone $baseViolationQuery)
+        $iHotspots = (clone $baseIncidentQuery)
+            ->whereNotNull('location')->where('location', '!=', '')
+            ->select('location', DB::raw('COUNT(*) as total'))
+            ->groupBy('location')->get();
+
+        $mergedHotspots = collect();
+        foreach ($vHotspots as $item) {
+            $mergedHotspots->put($item->location, ($mergedHotspots->get($item->location, 0)) + $item->total);
+        }
+        foreach ($iHotspots as $item) {
+            $mergedHotspots->put($item->location, ($mergedHotspots->get($item->location, 0)) + $item->total);
+        }
+
+        $provincialHotspots = $mergedHotspots->sortDesc()->take(5)->map(fn($total, $loc) => (object) ['location' => $loc, 'total' => $total])->values();
+
+        $violationPoints = (clone $baseViolationQuery)
             ->whereNotNull('gps_lat')->whereNotNull('gps_lng')
             ->with(['violationType:id,name', 'lgu:id,name'])
             ->limit(50)
-            ->get(['id', 'gps_lat', 'gps_lng', 'location', 'violation_type_id', 'lgu_id', 'date_of_violation']);
+            ->get(['id', 'gps_lat', 'gps_lng', 'location', 'violation_type_id', 'lgu_id', 'date_of_violation'])
+            ->map(fn($v) => [
+                'id'        => 'v_' . $v->id,
+                'category'  => 'violation',
+                'gps_lat'   => (float) $v->gps_lat,
+                'gps_lng'   => (float) $v->gps_lng,
+                'location'  => $v->location,
+                'title'     => $v->violationType?->name ?? 'Traffic Violation',
+                'lgu'       => $v->lgu?->name ?? '',
+                'date'      => $v->date_of_violation?->format('M d, Y') ?? '',
+            ]);
+
+        $incidentPoints = (clone $baseIncidentQuery)
+            ->whereNotNull('gps_lat')->whereNotNull('gps_lng')
+            ->with(['lgu:id,name'])
+            ->limit(50)
+            ->get(['id', 'gps_lat', 'gps_lng', 'location', 'incident_number', 'lgu_id', 'date_of_incident'])
+            ->map(fn($i) => [
+                'id'        => 'i_' . $i->id,
+                'category'  => 'incident',
+                'gps_lat'   => (float) $i->gps_lat,
+                'gps_lng'   => (float) $i->gps_lng,
+                'location'  => $i->location,
+                'title'     => 'Traffic Incident #' . ($i->incident_number ?? $i->id),
+                'lgu'       => $i->lgu?->name ?? '',
+                'date'      => $i->date_of_incident?->format('M d, Y') ?? '',
+            ]);
+
+        $mapPoints = $violationPoints->concat($incidentPoints)->values();
 
         // Feature 5: Repeat Offender Intelligence
         $repeatOffenders = Violator::withCount(['violations' => fn($q) =>
