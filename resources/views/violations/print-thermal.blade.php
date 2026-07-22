@@ -159,8 +159,8 @@
     <div class="text-center title-text" style="margin: 25px 0 15px;">VIOLATION(S)</div>
     
     <div style="display: flex; margin-bottom: 20px;">
-        <span style="margin-right: 12px; font-size: 20px;">[X]</span>
-        <span>{{ strtoupper($violation->violationType?->name ?? '') }}</span>
+        <span style="margin-right: 12px; font-size: 20px; font-weight: 900;">[X]</span>
+        <span style="font-size: 20px; font-weight: 900;">{{ strtoupper($violation->violationType?->name ?? '') }}</span>
     </div>
     
     <div class="field-row">
