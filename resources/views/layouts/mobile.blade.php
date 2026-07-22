@@ -1830,7 +1830,47 @@ var tvirsScannerStream = null;
 var tvirsScannerAnim = null;
 var tvirsScannerCallback = null;
 
-function tvirsStartScanner(targetInputId) {
+function tvirsParseLicenseBarcode(code) {
+    if (!code) return null;
+    var raw = String(code).trim();
+    var data = { raw: raw, license_number: raw };
+
+    // 1. JSON Payload
+    if (raw.startsWith('{') && raw.endsWith('}')) {
+        try {
+            var obj = JSON.parse(raw);
+            data.license_number = obj.license_number || obj.license || obj.id || raw;
+            data.first_name     = obj.first_name || obj.firstname || '';
+            data.last_name      = obj.last_name || obj.lastname || '';
+            data.middle_name    = obj.middle_name || obj.middlename || '';
+            data.date_of_birth  = obj.date_of_birth || obj.dob || '';
+            data.gender         = obj.gender || obj.sex || '';
+            data.address        = obj.address || obj.street || '';
+            data.license_expiry_date = obj.license_expiry_date || obj.expiry || '';
+            return data;
+        } catch (e) {}
+    }
+
+    // 2. Delimited Payload (Pipe |, Comma ,, Tab \t, Semicolon ;)
+    var delim = raw.includes('|') ? '|' : (raw.includes(';') ? ';' : (raw.includes(',') ? ',' : (raw.includes('\t') ? '\t' : null)));
+    if (delim) {
+        var parts = raw.split(delim).map(function(s) { return s.trim(); });
+        if (parts.length >= 2) {
+            data.license_number = parts[0];
+            data.last_name      = parts[1] || '';
+            data.first_name     = parts[2] || '';
+            if (parts[3]) data.middle_name    = parts[3];
+            if (parts[4]) data.date_of_birth  = parts[4];
+            if (parts[5]) data.gender         = parts[5];
+            if (parts[6]) data.address        = parts[6];
+            return data;
+        }
+    }
+
+    return data;
+}
+
+function tvirsStartScanner(targetInputId, callback) {
     var modalEl = document.getElementById('cameraScannerModal');
     var video = document.getElementById('tvirs_scanner_video');
     var status = document.getElementById('tvirs_scanner_status');
@@ -1860,12 +1900,23 @@ function tvirsStartScanner(targetInputId) {
                     detector.detect(video).then(function(barcodes) {
                         if (barcodes.length > 0) {
                             var code = barcodes[0].rawValue;
+                            var parsed = tvirsParseLicenseBarcode(code);
+
                             if (inputEl) {
-                                inputEl.value = code;
+                                inputEl.value = parsed.license_number || code;
                                 inputEl.dispatchEvent(new Event('input', { bubbles: true }));
                                 inputEl.dispatchEvent(new Event('change', { bubbles: true }));
                             }
-                            if (status) status.textContent = '✓ Code scanned: ' + code;
+
+                            document.dispatchEvent(new CustomEvent('tvirs:license-scanned', {
+                                detail: { code: code, parsed: parsed, targetId: targetInputId }
+                            }));
+
+                            if (typeof callback === 'function') {
+                                callback(code, parsed);
+                            }
+
+                            if (status) status.textContent = '✓ Scanned: ' + (parsed.license_number || code);
                             tvirsStopScanner();
                             bsModal.hide();
                         } else {

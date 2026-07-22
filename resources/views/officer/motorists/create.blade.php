@@ -992,6 +992,50 @@ document.addEventListener('DOMContentLoaded', function () {
         refreshOfflineMotoristLinks();
     });
 
+    // ── Driver's License Camera Scan Autofill ──
+    document.addEventListener('tvirs:license-scanned', function (e) {
+        var parsed = e.detail && e.detail.parsed;
+        if (!parsed) return;
+
+        function fill(name, value) {
+            if (!value) return;
+            var input = document.querySelector('[name="' + name + '"]') || document.getElementById(name);
+            if (input) {
+                input.value = value;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+
+        if (parsed.license_number) fill('license_number', parsed.license_number);
+        if (parsed.first_name)     fill('first_name', parsed.first_name);
+        if (parsed.middle_name)    fill('middle_name', parsed.middle_name);
+        if (parsed.last_name)      fill('last_name', parsed.last_name);
+        if (parsed.date_of_birth)  fill('date_of_birth', parsed.date_of_birth);
+        if (parsed.gender)         fill('gender', parsed.gender);
+        if (parsed.address)        fill('address', parsed.address);
+        if (parsed.license_expiry_date) fill('license_expiry_date', parsed.license_expiry_date);
+
+        // Instant duplicate/existing motorist check by license number
+        if (parsed.license_number && (!parsed.first_name || !parsed.last_name)) {
+            fetch('/officer/motorists/suggestions?q=' + encodeURIComponent(parsed.license_number))
+                .then(function (res) { return res.json(); })
+                .then(function (list) {
+                    if (Array.isArray(list) && list.length > 0) {
+                        var matched = list[0];
+                        if (matched.label) {
+                            var nameParts = matched.label.split(',').map(function(s) { return s.trim(); });
+                            if (nameParts.length >= 2) {
+                                fill('last_name', nameParts[0]);
+                                fill('first_name', nameParts[1]);
+                            }
+                        }
+                    }
+                })
+                .catch(function () {});
+        }
+    });
+
 })();
 </script>
 @endpush
