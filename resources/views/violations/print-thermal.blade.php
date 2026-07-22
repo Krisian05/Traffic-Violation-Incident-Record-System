@@ -190,7 +190,7 @@
         Failure to appear or report within the period stipulated will mean a waiver and criminal complaint against you will be filed in court pursuant to the provisions of Ordinance No. 2005-09 otherwise known as the Municipal Traffic Enforcement Code 2005.
     </div>
     
-    <div class="text-right" style="font-size: 26px; font-weight: 900; margin: 25px 0;">
+    <div class="text-center" style="font-size: 24px; font-weight: 900; margin: 25px 0; word-break: break-word; line-height: 1.2;">
         NO. {{ $violation->ticket_number ?: $violation->id }}
     </div>
     
