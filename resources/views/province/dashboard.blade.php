@@ -4,9 +4,10 @@
 
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-rotate@0.2.1/dist/leaflet-rotate.css" />
 <style>
     #provinceMap {
-        height: 350px;
+        height: 360px;
         width: 100%;
         border-radius: 12px;
         z-index: 1;
@@ -17,8 +18,8 @@
         justify-content: center;
     }
     .hotspot-pulse-ring {
-        width: 22px;
-        height: 22px;
+        width: 24px;
+        height: 24px;
         background: rgba(220, 38, 38, 0.95);
         border: 2px solid #ffffff;
         border-radius: 50%;
@@ -37,6 +38,33 @@
         box-shadow: 0 2px 10px rgba(0,0,0,0.15);
         font-size: 0.74rem;
         line-height: 1.5;
+    }
+    .map-rotate-toolbar {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.92);
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+        padding: 4px;
+        display: flex;
+        gap: 4px;
+    }
+    .map-rotate-btn {
+        border: none;
+        background: #f8fafc;
+        color: #1e293b;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .map-rotate-btn:hover {
+        background: #1d4ed8;
+        color: #fff;
     }
 </style>
 @endpush
@@ -184,19 +212,24 @@
         </div>
     </div>
 
-    {{-- Section 4: Combined GIS Heatmap (Violations & Incidents Hotspots) --}}
+    {{-- Section 4: Combined 360° Rotatable GIS Heatmap (Violations & Incidents Hotspots) --}}
     <div class="row g-4 mb-4">
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden" style="background:#fff;">
                 <div class="card-header bg-white p-3 border-0 d-flex align-items-center justify-content-between">
                     <div>
-                        <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-map-fill text-danger me-1"></i> Province-Wide GIS Violation & Incident Heatmap</h6>
-                        <span class="text-muted" style="font-size:.78rem;">Geographic distribution and red dot hotspot markers for violations & incidents</span>
+                        <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-compass-fill text-danger me-1"></i> Province-Wide 360° Rotatable GIS Heatmap</h6>
+                        <span class="text-muted" style="font-size:.78rem;">Rotatable interactive map showing precise violation & incident hotspot markers</span>
                     </div>
                     <span class="badge bg-danger-subtle text-danger fw-bold" style="font-size:.75rem;">{{ count($mapPoints) }} Mapped GIS Points</span>
                 </div>
-                <div class="card-body p-3">
+                <div class="card-body p-3 position-relative">
                     <div id="provinceMap"></div>
+                    <div class="map-rotate-toolbar">
+                        <button type="button" class="map-rotate-btn" id="btnRotateLeft" title="Rotate Counter-Clockwise"><i class="bi bi-arrow-counterclockwise"></i> -45°</button>
+                        <button type="button" class="map-rotate-btn" id="btnRotateReset" title="Reset North"><i class="bi bi-compass"></i> North</button>
+                        <button type="button" class="map-rotate-btn" id="btnRotateRight" title="Rotate Clockwise"><i class="bi bi-arrow-clockwise"></i> +45°</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -386,6 +419,7 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-rotate@0.2.1/dist/leaflet-rotate.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // ── Trend Line Chart ──
@@ -443,14 +477,50 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ── GIS Leaflet Map with Red Hotspot Pulsing Markers ──
+    // ── 360° Rotatable GIS Leaflet Map ──
     const mapEl = document.getElementById('provinceMap');
     if (mapEl) {
-        const map = L.map('provinceMap').setView([10.3157, 123.8854], 9);
+        let currentBearing = 0;
+        const mapOptions = {
+            center: [10.3157, 123.8854],
+            zoom: 9,
+            rotate: true,
+            touchRotate: true,
+            rotateControl: false,
+            bearing: 0
+        };
+
+        const map = L.map('provinceMap', mapOptions);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 18,
             attribution: '© OpenStreetMap'
         }).addTo(map);
+
+        // Rotation Controls
+        const btnLeft = document.getElementById('btnRotateLeft');
+        const btnRight = document.getElementById('btnRotateRight');
+        const btnReset = document.getElementById('btnRotateReset');
+
+        if (btnLeft) {
+            btnLeft.addEventListener('click', function() {
+                currentBearing = (currentBearing - 45 + 360) % 360;
+                if (typeof map.setBearing === 'function') map.setBearing(currentBearing);
+            });
+        }
+
+        if (btnRight) {
+            btnRight.addEventListener('click', function() {
+                currentBearing = (currentBearing + 45) % 360;
+                if (typeof map.setBearing === 'function') map.setBearing(currentBearing);
+            });
+        }
+
+        if (btnReset) {
+            btnReset.addEventListener('click', function() {
+                currentBearing = 0;
+                if (typeof map.setBearing === 'function') map.setBearing(0);
+            });
+        }
 
         // Add GIS Legend Control
         const legend = L.control({ position: 'bottomright' });
@@ -459,8 +529,9 @@ document.addEventListener('DOMContentLoaded', function() {
             div.innerHTML = `
                 <div class="fw-bold mb-1" style="font-size:0.72rem;color:#0f172a;">GIS Map Legend</div>
                 <div class="d-flex align-items-center gap-1.5"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#dc2626;box-shadow:0 0 4px #dc2626;"></span> <span style="font-size:0.68rem;">🔴 High-Incidence Hotspot</span></div>
-                <div class="d-flex align-items-center gap-1.5"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#1d4ed8;"></span> <span style="font-size:0.68rem;">🔵 Traffic Violation</span></div>
-                <div class="d-flex align-items-center gap-1.5"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f97316;"></span> <span style="font-size:0.68rem;">🟠 Traffic Incident</span></div>
+                <div class="d-flex align-items-center gap-1.5"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#1d4ed8;"></span> <span style="font-size:0.68rem;">🔵 Traffic Violation Point</span></div>
+                <div class="d-flex align-items-center gap-1.5"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f97316;"></span> <span style="font-size:0.68rem;">🟠 Traffic Incident Point</span></div>
+                <div class="mt-1 text-muted" style="font-size:0.62rem;">Shift+Drag or Right-Click Drag to Rotate</div>
             `;
             return div;
         };
@@ -496,11 +567,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     const isHotspot = (locationCounts[key] && locationCounts[key] >= 2);
 
                     if (isHotspot) {
-                        // Render glowing Red Dot Pulsing Hotspot Marker
+                        // Render glowing Red Dot Pulsing Hotspot Marker at exact location
                         L.marker([lat, lng], { icon: hotspotPulseIcon }).addTo(map)
                         .bindPopup('<div class="p-1"><span class="badge bg-danger mb-1">🔴 HIGH INCIDENT HOTSPOT AREA</span><br><b>' + pt.title + '</b><br>' + (pt.location || 'Cebu') + '<br><small class="text-muted">' + (pt.lgu ? pt.lgu + ' • ' : '') + pt.date + '</small></div>');
                     } else if (pt.category === 'incident') {
-                        // Render Traffic Incident Marker (Orange)
+                        // Render Traffic Incident Marker (Orange) at exact location
                         L.circleMarker([lat, lng], {
                             radius: 7,
                             fillColor: '#f97316',
@@ -511,7 +582,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }).addTo(map)
                         .bindPopup('<div class="p-1"><span class="badge bg-warning text-dark mb-1">🟠 Traffic Incident</span><br><b>' + pt.title + '</b><br>' + (pt.location || 'Cebu') + '<br><small class="text-muted">' + (pt.lgu ? pt.lgu + ' • ' : '') + pt.date + '</small></div>');
                     } else {
-                        // Render Traffic Violation Marker (Red)
+                        // Render Traffic Violation Marker (Red) at exact location
                         L.circleMarker([lat, lng], {
                             radius: 7,
                             fillColor: '#dc2626',

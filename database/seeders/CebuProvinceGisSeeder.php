@@ -145,12 +145,12 @@ class CebuProvinceGisSeeder extends Seeder
             ],
         ];
 
-        // Seed Violations & Incidents with slight jitter around coordinates
+        // Seed Violations & Incidents at exact location coordinates
         foreach ($cebuGisLocations as $idx => $locData) {
             for ($i = 0; $i < $locData['count']; $i++) {
-                // Add micro jitter (±0.0005) so multiple points map naturally
-                $jitterLat = $locData['lat'] + ((rand(-50, 50) / 100000));
-                $jitterLng = $locData['lng'] + ((rand(-50, 50) / 100000));
+                // Exact location for primary point, micro offset (±0.00015) for overlapping pins
+                $exactLat = $i === 0 ? $locData['lat'] : ($locData['lat'] + ((rand(-15, 15) / 100000)));
+                $exactLng = $i === 0 ? $locData['lng'] : ($locData['lng'] + ((rand(-15, 15) / 100000)));
 
                 if ($i % 2 === 0) {
                     // Seed Violation
@@ -162,8 +162,8 @@ class CebuProvinceGisSeeder extends Seeder
                         'ticket_number' => 'TVIRS-GIS-' . strtoupper($locData['lgu']->code) . '-' . sprintf('%04d', rand(100, 9999)),
                         'date_of_violation' => now()->subDays(rand(1, 180))->toDateString(),
                         'location' => $locData['location'],
-                        'gps_lat' => $jitterLat,
-                        'gps_lng' => $jitterLng,
+                        'gps_lat' => $exactLat,
+                        'gps_lng' => $exactLng,
                         'status' => rand(0, 1) ? 'settled' : 'pending',
                     ]);
                 } else {
@@ -174,8 +174,8 @@ class CebuProvinceGisSeeder extends Seeder
                         'incident_number' => 'INC-GIS-' . strtoupper($locData['lgu']->code) . '-' . sprintf('%04d', rand(100, 9999)),
                         'date_of_incident' => now()->subDays(rand(1, 180))->toDateTimeString(),
                         'location' => $locData['location'],
-                        'gps_lat' => $jitterLat,
-                        'gps_lng' => $jitterLng,
+                        'gps_lat' => $exactLat,
+                        'gps_lng' => $exactLng,
                         'status' => rand(0, 1) ? 'under_investigation' : 'solved',
                         'description' => 'Traffic incident reported at ' . $locData['location'],
                     ]);

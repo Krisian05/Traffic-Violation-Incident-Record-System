@@ -153,8 +153,6 @@ Route::middleware('auth')->group(function () {
 
     // Static path before wildcard
     Route::middleware('role:operator')->group(function () {
-        Route::get('/settings/charge-types', [SettingController::class, 'chargeTypes'])->name('settings.charge-types');
-        Route::post('/api/ocr/scan', [OcrController::class, 'scanId'])->name('api.ocr.scan');
         Route::get('/incidents/create', [IncidentController::class, 'create'])->name('incidents.create');
         Route::post('/incidents', [IncidentController::class, 'store'])->name('incidents.store');
     });
