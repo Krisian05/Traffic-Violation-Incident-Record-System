@@ -80,7 +80,6 @@ class OfficerGpsCaptureTest extends TestCase
             'location'         => 'Test Street',
             'gps_lat'          => '10.3333333',
             'gps_lng'          => '123.9999999',
-            'status'           => 'under_investigation',
             'motorists'        => [
                 ['motorist_name' => 'Juan Dela Cruz'],
             ],

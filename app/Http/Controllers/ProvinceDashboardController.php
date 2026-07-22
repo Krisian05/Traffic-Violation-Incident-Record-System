@@ -101,37 +101,55 @@ class ProvinceDashboardController extends Controller
 
         $provincialHotspots = $mergedHotspots->sortDesc()->take(5)->map(fn($total, $loc) => (object) ['location' => $loc, 'total' => $total])->values();
 
-        $violationPoints = (clone $baseViolationQuery)
+        $violationPointsQuery = (clone $baseViolationQuery)
             ->whereNotNull('gps_lat')->whereNotNull('gps_lng')
             ->with(['violationType:id,name', 'lgu:id,name'])
-            ->limit(50)
-            ->get(['id', 'gps_lat', 'gps_lng', 'location', 'violation_type_id', 'lgu_id', 'date_of_violation'])
-            ->map(fn($v) => [
-                'id'        => 'v_' . $v->id,
-                'category'  => 'violation',
-                'gps_lat'   => (float) $v->gps_lat,
-                'gps_lng'   => (float) $v->gps_lng,
-                'location'  => $v->location,
-                'title'     => $v->violationType?->name ?? 'Traffic Violation',
-                'lgu'       => $v->lgu?->name ?? '',
-                'date'      => $v->date_of_violation?->format('M d, Y') ?? '',
-            ]);
+            ->limit(100)
+            ->get(['id', 'gps_lat', 'gps_lng', 'location', 'violation_type_id', 'lgu_id', 'date_of_violation']);
 
-        $incidentPoints = (clone $baseIncidentQuery)
+        if ($violationPointsQuery->isEmpty()) {
+            $violationPointsQuery = Violation::whereNotNull('gps_lat')->whereNotNull('gps_lng')
+                ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))
+                ->with(['violationType:id,name', 'lgu:id,name'])
+                ->limit(100)
+                ->get(['id', 'gps_lat', 'gps_lng', 'location', 'violation_type_id', 'lgu_id', 'date_of_violation']);
+        }
+
+        $violationPoints = $violationPointsQuery->map(fn($v) => [
+            'id'        => 'v_' . $v->id,
+            'category'  => 'violation',
+            'gps_lat'   => (float) $v->gps_lat,
+            'gps_lng'   => (float) $v->gps_lng,
+            'location'  => $v->location,
+            'title'     => $v->violationType?->name ?? 'Traffic Violation',
+            'lgu'       => $v->lgu?->name ?? '',
+            'date'      => $v->date_of_violation?->format('M d, Y') ?? '',
+        ]);
+
+        $incidentPointsQuery = (clone $baseIncidentQuery)
             ->whereNotNull('gps_lat')->whereNotNull('gps_lng')
             ->with(['lgu:id,name'])
-            ->limit(50)
-            ->get(['id', 'gps_lat', 'gps_lng', 'location', 'incident_number', 'lgu_id', 'date_of_incident'])
-            ->map(fn($i) => [
-                'id'        => 'i_' . $i->id,
-                'category'  => 'incident',
-                'gps_lat'   => (float) $i->gps_lat,
-                'gps_lng'   => (float) $i->gps_lng,
-                'location'  => $i->location,
-                'title'     => 'Traffic Incident #' . ($i->incident_number ?? $i->id),
-                'lgu'       => $i->lgu?->name ?? '',
-                'date'      => $i->date_of_incident?->format('M d, Y') ?? '',
-            ]);
+            ->limit(100)
+            ->get(['id', 'gps_lat', 'gps_lng', 'location', 'incident_number', 'lgu_id', 'date_of_incident']);
+
+        if ($incidentPointsQuery->isEmpty()) {
+            $incidentPointsQuery = Incident::whereNotNull('gps_lat')->whereNotNull('gps_lng')
+                ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))
+                ->with(['lgu:id,name'])
+                ->limit(100)
+                ->get(['id', 'gps_lat', 'gps_lng', 'location', 'incident_number', 'lgu_id', 'date_of_incident']);
+        }
+
+        $incidentPoints = $incidentPointsQuery->map(fn($i) => [
+            'id'        => 'i_' . $i->id,
+            'category'  => 'incident',
+            'gps_lat'   => (float) $i->gps_lat,
+            'gps_lng'   => (float) $i->gps_lng,
+            'location'  => $i->location,
+            'title'     => 'Traffic Incident #' . ($i->incident_number ?? $i->id),
+            'lgu'       => $i->lgu?->name ?? '',
+            'date'      => $i->date_of_incident?->format('M d, Y') ?? '',
+        ]);
 
         $mapPoints = $violationPoints->concat($incidentPoints)->values();
 

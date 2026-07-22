@@ -53,11 +53,13 @@
 
 @php
     $sc = match($incident->status) {
-        'under_investigation' => ['label' => 'Under Investigation', 'class' => 'motshow-status--danger', 'icon' => 'ph-flag'],
-        'cleared'             => ['label' => 'Cleared',             'class' => 'motshow-status--info',   'icon' => 'ph-shield-check'],
-        'solved'              => ['label' => 'Solved',              'class' => 'motshow-status--safe',   'icon' => 'ph-check-circle'],
-        'settled'             => ['label' => 'Settled',             'class' => 'motshow-status--safe',   'icon' => 'ph-handshake'],
-        default               => ['label' => 'Under Investigation', 'class' => 'motshow-status--danger', 'icon' => 'ph-flag'],
+        'reported'                   => ['label' => 'Reported',                   'class' => 'motshow-status--danger', 'icon' => 'ph-flag'],
+        'under_assessment'           => ['label' => 'Under Assessment',           'class' => 'motshow-status--warn',   'icon' => 'ph-magnifying-glass'],
+        'assigned_for_investigation' => ['label' => 'Assigned for Investigation', 'class' => 'motshow-status--info',   'icon' => 'ph-user-focus'],
+        'resolved'                   => ['label' => 'Resolved',                   'class' => 'motshow-status--safe',   'icon' => 'ph-check-circle'],
+        'closed'                     => ['label' => 'Closed',                     'class' => 'motshow-status--safe',   'icon' => 'ph-lock-simple'],
+        'referred_to_authority'      => ['label' => 'Referred to Authority',      'class' => 'motshow-status--info',   'icon' => 'ph-share-network'],
+        default                      => ['label' => 'Reported',                   'class' => 'motshow-status--danger', 'icon' => 'ph-flag'],
     };
     $mediaLabels = ['scene' => 'Scene Photo', 'ticket' => 'Citation Ticket', 'document' => 'Document', 'other' => 'Other'];
     $restrDesc = [
@@ -410,25 +412,51 @@
 </div>
 @endif
 
-{{-- ── Other Involved Parties ── --}}
-@if(!empty($incident->other_involved))
-<div class="motshow-section">Other Involved Parties ({{ count($incident->other_involved) }})</div>
+{{-- ── Parties Involved ── --}}
+@if($incident->parties->isNotEmpty())
+<div class="motshow-section">Parties Involved ({{ $incident->parties->count() }})</div>
 <div class="motshow-card">
     <div class="motshow-card-body">
-        @foreach($incident->other_involved as $party)
+        @foreach($incident->parties as $party)
         <div style="padding:.65rem 0;border-bottom:1px solid #f1f5f9;display:flex;align-items:flex-start;gap:.75rem;">
             <span style="background:#fff7ed;color:#ea580c;border:1.5px solid #fed7aa;border-radius:6px;font-size:.72rem;font-weight:700;padding:.2rem .6rem;flex-shrink:0;">
-                {{ $party['type'] }}
+                {{ $party->role_label }}
             </span>
             <div>
-                <div style="font-size:.875rem;font-weight:600;color:#0f172a;">{{ $party['name'] ?? '(Name not provided)' }}</div>
-                @if(!empty($party['contact']))
-                <div style="font-size:.75rem;color:#64748b;margin-top:2px;">{{ $party['contact'] }}</div>
+                <div style="font-size:.875rem;font-weight:600;color:#0f172a;">{{ $party->name ?? '(Name not provided)' }}</div>
+                @if(!empty($party->contact_number))
+                <div style="font-size:.75rem;color:#64748b;margin-top:2px;">{{ $party->contact_number }}</div>
                 @endif
-                @if(!empty($party['notes']))
-                <div style="font-size:.75rem;color:#94a3b8;font-style:italic;margin-top:2px;">{{ $party['notes'] }}</div>
+                @if(!empty($party->description))
+                <div style="font-size:.75rem;color:#94a3b8;font-style:italic;margin-top:2px;">{{ $party->description }}</div>
                 @endif
             </div>
+        </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
+{{-- ── Status History ── --}}
+@if($incident->statusHistories->isNotEmpty())
+<div class="motshow-section">Status History</div>
+<div class="motshow-card">
+    <div class="motshow-card-body">
+        @foreach($incident->statusHistories as $h)
+        <div style="padding:.65rem 0;border-bottom:1px solid #f1f5f9;">
+            <div style="font-size:.82rem;font-weight:600;color:#0f172a;">
+                @if($h->from_status)
+                    {{ \App\Models\Incident::STATUSES[$h->from_status] ?? $h->from_status }} &rarr; {{ \App\Models\Incident::STATUSES[$h->to_status] ?? $h->to_status }}
+                @else
+                    Reported as {{ \App\Models\Incident::STATUSES[$h->to_status] ?? $h->to_status }}
+                @endif
+            </div>
+            <div style="font-size:.7rem;color:#94a3b8;margin-top:2px;">
+                {{ $h->changedBy?->name ?? 'System' }} · {{ $h->created_at->format('M d, Y g:i A') }}
+            </div>
+            @if($h->note)
+            <div style="font-size:.75rem;color:#64748b;font-style:italic;margin-top:2px;">{{ $h->note }}</div>
+            @endif
         </div>
         @endforeach
     </div>

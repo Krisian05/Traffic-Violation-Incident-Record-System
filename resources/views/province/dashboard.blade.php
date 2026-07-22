@@ -543,6 +543,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Group coordinates to identify hotspot concentration
             const locationCounts = {};
+            const hotspotPlaced = {};
+
             points.forEach(function(pt) {
                 if (pt.gps_lat && pt.gps_lng) {
                     const key = pt.gps_lat.toFixed(4) + ',' + pt.gps_lng.toFixed(4);
@@ -553,8 +555,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const hotspotPulseIcon = L.divIcon({
                 className: 'hotspot-pulse-container',
                 html: '<div class="hotspot-pulse-ring"></div>',
-                iconSize: [24, 24],
-                iconAnchor: [12, 12]
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
             });
 
             points.forEach(function(pt) {
@@ -566,32 +568,35 @@ document.addEventListener('DOMContentLoaded', function() {
                     const key = lat.toFixed(4) + ',' + lng.toFixed(4);
                     const isHotspot = (locationCounts[key] && locationCounts[key] >= 2);
 
-                    if (isHotspot) {
-                        // Render glowing Red Dot Pulsing Hotspot Marker at exact location
-                        L.marker([lat, lng], { icon: hotspotPulseIcon }).addTo(map)
-                        .bindPopup('<div class="p-1"><span class="badge bg-danger mb-1">🔴 HIGH INCIDENT HOTSPOT AREA</span><br><b>' + pt.title + '</b><br>' + (pt.location || 'Cebu') + '<br><small class="text-muted">' + (pt.lgu ? pt.lgu + ' • ' : '') + pt.date + '</small></div>');
-                    } else if (pt.category === 'incident') {
-                        // Render Traffic Incident Marker (Orange) at exact location
+                    // Place glowing Red Pulse Ring once per hotspot area
+                    if (isHotspot && !hotspotPlaced[key]) {
+                        hotspotPlaced[key] = true;
+                        L.marker([lat, lng], { icon: hotspotPulseIcon, zIndexOffset: 500 }).addTo(map)
+                        .bindPopup('<div class="p-1"><span class="badge bg-danger mb-1">🔴 HIGH INCIDENT HOTSPOT AREA</span><br><b>' + pt.location + '</b><br><small class="text-muted">' + (locationCounts[key]) + ' total records in this area</small></div>');
+                    }
+
+                    if (pt.category === 'incident') {
+                        // Render Traffic Incident Marker (Orange Dot)
                         L.circleMarker([lat, lng], {
                             radius: 7,
                             fillColor: '#f97316',
                             color: '#c2410c',
                             weight: 2,
                             opacity: 1,
-                            fillOpacity: 0.85
+                            fillOpacity: 0.9
                         }).addTo(map)
                         .bindPopup('<div class="p-1"><span class="badge bg-warning text-dark mb-1">🟠 Traffic Incident</span><br><b>' + pt.title + '</b><br>' + (pt.location || 'Cebu') + '<br><small class="text-muted">' + (pt.lgu ? pt.lgu + ' • ' : '') + pt.date + '</small></div>');
                     } else {
-                        // Render Traffic Violation Marker (Red) at exact location
+                        // Render Traffic Violation Marker (Blue Dot)
                         L.circleMarker([lat, lng], {
                             radius: 7,
-                            fillColor: '#dc2626',
-                            color: '#991b1b',
+                            fillColor: '#1d4ed8',
+                            color: '#1e40af',
                             weight: 2,
                             opacity: 1,
-                            fillOpacity: 0.85
+                            fillOpacity: 0.9
                         }).addTo(map)
-                        .bindPopup('<div class="p-1"><span class="badge bg-danger mb-1">🔴 Traffic Violation</span><br><b>' + pt.title + '</b><br>' + (pt.location || 'Cebu') + '<br><small class="text-muted">' + (pt.lgu ? pt.lgu + ' • ' : '') + pt.date + '</small></div>');
+                        .bindPopup('<div class="p-1"><span class="badge bg-primary mb-1">🔵 Traffic Violation</span><br><b>' + pt.title + '</b><br>' + (pt.location || 'Cebu') + '<br><small class="text-muted">' + (pt.lgu ? pt.lgu + ' • ' : '') + pt.date + '</small></div>');
                     }
                 }
             });

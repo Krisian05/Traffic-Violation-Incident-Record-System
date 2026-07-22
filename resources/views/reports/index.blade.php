@@ -434,10 +434,12 @@
                 @else
                     @php
                         $incStatusMap = [
-                            'under_investigation' => ['label' => 'Under Investigation', 'bg' => '#eff6ff', 'color' => '#1d4ed8', 'icon' => 'bi-search'],
-                            'cleared'             => ['label' => 'Cleared',             'bg' => '#fffbeb', 'color' => '#92400e', 'icon' => 'bi-shield-check'],
-                            'solved'              => ['label' => 'Solved',              'bg' => '#f0fdf4', 'color' => '#15803d', 'icon' => 'bi-check-circle-fill'],
-                            'settled'             => ['label' => 'Settled',             'bg' => '#faf5ff', 'color' => '#6b21a8', 'icon' => 'bi-handshake'],
+                            'reported'                   => ['label' => 'Reported',                   'bg' => '#eff6ff', 'color' => '#1d4ed8', 'icon' => 'bi-flag-fill'],
+                            'under_assessment'           => ['label' => 'Under Assessment',           'bg' => '#fffbeb', 'color' => '#92400e', 'icon' => 'bi-search'],
+                            'assigned_for_investigation' => ['label' => 'Assigned for Investigation', 'bg' => '#eef2ff', 'color' => '#4338ca', 'icon' => 'bi-person-badge-fill'],
+                            'resolved'                   => ['label' => 'Resolved',                   'bg' => '#f0fdf4', 'color' => '#15803d', 'icon' => 'bi-check-circle-fill'],
+                            'closed'                     => ['label' => 'Closed',                     'bg' => '#f8fafc', 'color' => '#475569', 'icon' => 'bi-lock-fill'],
+                            'referred_to_authority'      => ['label' => 'Referred to Authority',      'bg' => '#faf5ff', 'color' => '#6b21a8', 'icon' => 'bi-share-fill'],
                         ];
                     @endphp
                     <div class="d-flex flex-column gap-2">
@@ -1670,14 +1672,18 @@ document.addEventListener('DOMContentLoaded', function() {
 .rpt-card-sub   { font-size: .71rem; color: #a8a29e; margin-top: .05rem; }
 
 /* ─── Incident summary status row colors ─── */
-.inc-sum-under-investigation    { background: #eff6ff; border: 1px solid #eff6ff; }
-.inc-sum-under-investigation-fg { color: #1d4ed8; }
-.inc-sum-cleared                { background: #fffbeb; border: 1px solid #fffbeb; }
-.inc-sum-cleared-fg             { color: #92400e; }
-.inc-sum-solved                 { background: #f0fdf4; border: 1px solid #f0fdf4; }
-.inc-sum-solved-fg              { color: #15803d; }
-.inc-sum-settled                { background: #faf5ff; border: 1px solid #faf5ff; }
-.inc-sum-settled-fg             { color: #6b21a8; }
+.inc-sum-reported                          { background: #eff6ff; border: 1px solid #eff6ff; }
+.inc-sum-reported-fg                       { color: #1d4ed8; }
+.inc-sum-under-assessment                  { background: #fffbeb; border: 1px solid #fffbeb; }
+.inc-sum-under-assessment-fg               { color: #92400e; }
+.inc-sum-assigned-for-investigation        { background: #eef2ff; border: 1px solid #eef2ff; }
+.inc-sum-assigned-for-investigation-fg     { color: #4338ca; }
+.inc-sum-resolved                          { background: #f0fdf4; border: 1px solid #f0fdf4; }
+.inc-sum-resolved-fg                       { color: #15803d; }
+.inc-sum-closed                            { background: #f8fafc; border: 1px solid #f8fafc; }
+.inc-sum-closed-fg                         { color: #475569; }
+.inc-sum-referred-to-authority             { background: #faf5ff; border: 1px solid #faf5ff; }
+.inc-sum-referred-to-authority-fg          { color: #6b21a8; }
 
 /* ─── Proportion bars ─── */
 .inc-bar-fill  { height: 4px; background: #1d4ed8; border-radius: 4px; width: 0; }
@@ -1974,11 +1980,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     .rpt-inc-stat-row * { color: #000 !important; font-size: 9pt !important; white-space: normal !important; }
     .rpt-inc-stat-row .fw-bold, .rpt-inc-stat-row [style*="font-weight"] { font-weight: 700 !important; }
-    .inc-sum-under-investigation, .inc-sum-cleared, .inc-sum-solved, .inc-sum-settled {
+    .inc-sum-reported, .inc-sum-under-assessment, .inc-sum-assigned-for-investigation, .inc-sum-resolved, .inc-sum-closed, .inc-sum-referred-to-authority {
         background: transparent !important; border: none !important;
         border-bottom: 1pt solid #ddd !important;
     }
-    .inc-sum-under-investigation-fg, .inc-sum-cleared-fg, .inc-sum-solved-fg, .inc-sum-settled-fg { color: #000 !important; }
+    .inc-sum-reported-fg, .inc-sum-under-assessment-fg, .inc-sum-assigned-for-investigation-fg, .inc-sum-resolved-fg, .inc-sum-closed-fg, .inc-sum-referred-to-authority-fg { color: #000 !important; }
 
     /* Top locations: plain list ── */
     .rpt-hotspot-row {
@@ -2378,8 +2384,15 @@ function rptToggleShowMore(btn) {
         var offenseLabels = Object.keys(data.byChargeType);
         var offenseData   = Object.values(data.byChargeType);
 
-        var statusLabels = ['Under Investigation', 'Cleared', 'Solved', 'Settled'];
-        var statusData   = [data.byStatus.under_investigation || 0, data.byStatus.cleared || 0, data.byStatus.solved || 0, data.byStatus.settled || 0];
+        var statusLabels = ['Reported', 'Under Assessment', 'Assigned for Investigation', 'Resolved', 'Closed', 'Referred to Authority'];
+        var statusData   = [
+            data.byStatus.reported || 0,
+            data.byStatus.under_assessment || 0,
+            data.byStatus.assigned_for_investigation || 0,
+            data.byStatus.resolved || 0,
+            data.byStatus.closed || 0,
+            data.byStatus.referred_to_authority || 0,
+        ];
 
         if (_clockChart)   { _clockChart.data.datasets[0].data   = data.byHour; _clockChart.update(); }
         else               { _clockChart   = makeLineChart(document.getElementById('incClockChart'),   HOUR_LABELS, data.byHour); }

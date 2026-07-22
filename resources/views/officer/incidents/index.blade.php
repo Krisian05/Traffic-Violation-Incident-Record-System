@@ -269,7 +269,7 @@ a.inc-page:hover {
 @section('content')
 
 @php
-    $openCount = $incidents->getCollection()->where('status', 'assigned_for_investigation')->count();
+    $openCount = $incidents->getCollection()->whereIn('status', ['reported', 'assigned_for_investigation'])->count();
     $reviewCount = $incidents->getCollection()->where('status', 'under_assessment')->count();
     $closedCount = $incidents->getCollection()->whereIn('status', ['resolved', 'closed', 'referred_to_authority'])->count();
 @endphp
@@ -368,15 +368,14 @@ a.inc-page:hover {
     @foreach($incidents as $inc)
         @php
             $variant = match($inc->status) {
-                'under_investigation' => 'open',
-                'cleared'             => 'review',
-                default               => 'closed',
+                'reported', 'assigned_for_investigation' => 'open',
+                'under_assessment'                       => 'review',
+                default                                  => 'closed',
             };
             $badgeClass = match($inc->status) {
-                'under_investigation' => 'mob-badge-open',
-                'cleared'             => 'mob-badge-review',
-                'settled'             => 'mob-badge-closed',
-                default               => 'mob-badge-closed',
+                'reported', 'assigned_for_investigation' => 'mob-badge-open',
+                'under_assessment'                       => 'mob-badge-review',
+                default                                  => 'mob-badge-closed',
             };
         @endphp
         <a href="{{ route('officer.incidents.show', $inc) }}" class="inc-list-card inc-list-card--{{ $variant }}">
@@ -398,7 +397,7 @@ a.inc-page:hover {
             </div>
 
             <div class="d-flex flex-column align-items-end gap-1 ms-2 flex-shrink-0">
-                <span class="mob-badge {{ $badgeClass }}">{{ ucfirst(str_replace('_', ' ', $inc->status)) }}</span>
+                <span class="mob-badge {{ $badgeClass }}">{{ $inc->statusLabel() }}</span>
                 <i class="ph ph-caret-right" style="color:#cbd5e1;font-size:.82rem;"></i>
             </div>
         </a>

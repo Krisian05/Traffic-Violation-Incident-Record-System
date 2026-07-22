@@ -554,13 +554,8 @@
                                 </td>
                                 <td class="text-center">
                                     @php
-                                        $iscLabel = match($im->incident->status) {
-                                            'under_investigation' => 'Under Investigation',
-                                            'cleared'             => 'Cleared',
-                                            'solved'              => 'Solved',
-                                            default               => ucfirst($im->incident->status),
-                                        };
-                                        $iscClass = in_array($im->incident->status, ['under_investigation','cleared','solved'])
+                                        $iscLabel = $im->incident->statusLabel();
+                                        $iscClass = array_key_exists($im->incident->status, \App\Models\Incident::STATUSES)
                                             ? 'inc-status-' . $im->incident->status
                                             : 'inc-status-default';
                                     @endphp
@@ -959,9 +954,12 @@ a.vlt-stat-item:hover .vlt-stat-num { text-decoration: underline; text-underline
     font-size:.72rem; font-weight:700; padding:.25rem .65rem;
     border-radius:20px; white-space:nowrap; display:inline-block;
 }
-.inc-status-under_investigation { background:#eff6ff; color:#1d4ed8; }
-.inc-status-cleared             { background:#fffbeb; color:#92400e; }
-.inc-status-solved              { background:#f0fdf4; color:#15803d; }
+.inc-status-reported                   { background:#eff6ff; color:#1d4ed8; }
+.inc-status-under_assessment           { background:#fffbeb; color:#92400e; }
+.inc-status-assigned_for_investigation { background:#eef2ff; color:#4338ca; }
+.inc-status-resolved                   { background:#f0fdf4; color:#15803d; }
+.inc-status-closed                     { background:#f8fafc; color:#475569; }
+.inc-status-referred_to_authority      { background:#faf5ff; color:#6b21a8; }
 .inc-status-default             { background:#f8fafc; color:#475569; }
 </style>
 

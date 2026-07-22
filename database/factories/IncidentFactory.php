@@ -21,7 +21,7 @@ class IncidentFactory extends Factory
             'date_of_incident' => fake()->dateTimeBetween('-1 year', 'now')->format('Y-m-d'),
             'location'         => fake()->streetAddress(),
             'description'      => fake()->optional(0.7)->paragraph(),
-            'status'           => fake()->randomElement(['under_investigation', 'cleared', 'solved']),
+            'status'           => fake()->randomElement(array_keys(\App\Models\Incident::STATUSES)),
         ];
     }
 }

@@ -520,9 +520,9 @@
 </div>
 @forelse($incidents as $inc)
     @php
-        $incAccentClass = ['under_investigation' => 'motshow-accent--open', 'cleared' => 'motshow-accent--review', 'solved' => 'motshow-accent--closed'][$inc->status] ?? 'motshow-accent--closed';
-        $incIcon   = ['under_investigation' => 'motshow-item-icon--danger', 'cleared' => 'motshow-item-icon--blue', 'solved' => 'motshow-item-icon--slate'][$inc->status] ?? 'motshow-item-icon--slate';
-        $sc = ['under_investigation' => 'mob-badge-open', 'cleared' => 'mob-badge-review', 'solved' => 'mob-badge-closed'][$inc->status] ?? 'mob-badge-closed';
+        $incAccentClass = ['reported' => 'motshow-accent--open', 'assigned_for_investigation' => 'motshow-accent--open', 'under_assessment' => 'motshow-accent--review'][$inc->status] ?? 'motshow-accent--closed';
+        $incIcon   = ['reported' => 'motshow-item-icon--danger', 'assigned_for_investigation' => 'motshow-item-icon--danger', 'under_assessment' => 'motshow-item-icon--blue'][$inc->status] ?? 'motshow-item-icon--slate';
+        $sc = ['reported' => 'mob-badge-open', 'assigned_for_investigation' => 'mob-badge-open', 'under_assessment' => 'mob-badge-review'][$inc->status] ?? 'mob-badge-closed';
     @endphp
     <a href="{{ route('officer.incidents.show', $inc) }}"
        style="display:flex;align-items:flex-start;gap:.85rem;background:#fff;border-radius:16px;border:1px solid rgba(15,23,42,.06);box-shadow:0 2px 10px rgba(15,23,42,.04);margin-bottom:.65rem;overflow:hidden;text-decoration:none;color:inherit;">

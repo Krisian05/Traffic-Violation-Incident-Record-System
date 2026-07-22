@@ -1650,10 +1650,12 @@ a.dash-vtype-pill:hover { background: rgba(99,102,241,.22); }
 .dash-search-badge-overdue  { background: rgba(220,38,38,.12);  color: #dc2626; }
 .dash-search-badge-settled  { background: rgba(16,185,129,.12); color: #059669; }
 .dash-search-badge-contested{ background: rgba(99,102,241,.12); color: #4f46e5; }
-.dash-search-badge-under_investigation { background: rgba(239,68,68,.12);  color: #dc2626; }
-.dash-search-badge-cleared             { background: rgba(245,158,11,.12); color: #d97706; }
-.dash-search-badge-solved              { background: rgba(16,185,129,.12); color: #059669; }
-.dash-search-badge-resolved { background: rgba(99,102,241,.12); color: #4f46e5; }
+.dash-search-badge-reported                    { background: rgba(37,99,235,.12);  color: #1d4ed8; }
+.dash-search-badge-under_assessment            { background: rgba(245,158,11,.12); color: #d97706; }
+.dash-search-badge-assigned_for_investigation  { background: rgba(79,70,229,.12);  color: #4338ca; }
+.dash-search-badge-resolved                    { background: rgba(16,185,129,.12); color: #059669; }
+.dash-search-badge-closed                      { background: rgba(100,116,139,.12); color: #475569; }
+.dash-search-badge-referred_to_authority       { background: rgba(147,51,234,.12); color: #7e22ce; }
 .dash-search-icon-motorist  { color: #3b82f6; }
 .dash-search-icon-vehicle   { color: #10b981; }
 .dash-search-icon-violation { color: #f59e0b; }
@@ -2016,10 +2018,12 @@ a.settlement-pill:hover { filter: brightness(.93); transform: translateY(-1px); 
                   : badge === 'pending'   ? 'dash-search-badge-pending'
                   : badge === 'settled'   ? 'dash-search-badge-settled'
                   : badge === 'contested' ? 'dash-search-badge-contested'
-                  : badge === 'under_investigation' ? 'dash-search-badge-under_investigation'
-                  : badge === 'cleared'           ? 'dash-search-badge-cleared'
-                  : badge === 'solved'            ? 'dash-search-badge-solved'
-                  : badge === 'resolved'  ? 'dash-search-badge-resolved'
+                  : badge === 'reported'                   ? 'dash-search-badge-reported'
+                  : badge === 'under_assessment'            ? 'dash-search-badge-under_assessment'
+                  : badge === 'assigned_for_investigation'  ? 'dash-search-badge-assigned_for_investigation'
+                  : badge === 'resolved'                    ? 'dash-search-badge-resolved'
+                  : badge === 'closed'                      ? 'dash-search-badge-closed'
+                  : badge === 'referred_to_authority'       ? 'dash-search-badge-referred_to_authority'
                   : 'dash-search-vcount';
         return '<span class="dash-search-badge ' + cls + '">' + escHtml(badge) + '</span>';
     }

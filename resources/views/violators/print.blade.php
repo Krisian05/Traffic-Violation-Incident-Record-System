@@ -575,15 +575,12 @@
                         <td>{{ $im->chargeType->name ?? '—' }}</td>
                         <td class="center">
                             @php
-                                $label = match($im->incident->status) {
-                                    'under_investigation' => 'Under Investigation',
-                                    'cleared'             => 'Cleared',
-                                    'solved'              => 'Solved',
-                                    default               => ucfirst($im->incident->status),
-                                };
+                                $label = $im->incident->statusLabel();
+                                $isDone = in_array($im->incident->status, ['resolved', 'closed'], true);
+                                $isNew  = $im->incident->status === 'reported';
                             @endphp
                             <span class="status-dot">
-                                <span class="dot {{ $im->incident->status === 'solved' ? 'dot-settled' : ($im->incident->status === 'under_investigation' ? 'dot-pending' : 'dot-contested') }}"></span>
+                                <span class="dot {{ $isDone ? 'dot-settled' : ($isNew ? 'dot-pending' : 'dot-contested') }}"></span>
                                 {{ $label }}
                             </span>
                         </td>
