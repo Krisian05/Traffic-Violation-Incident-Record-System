@@ -68,14 +68,22 @@ class OcrController extends Controller
 
         $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . $apiKey;
 
-        $prompt = "Extract the actual personal details of the cardholder from this driver's license or ID card. CRITICAL: Do NOT extract the printed field labels (like 'Last Name' or 'First Name' or 'Middle Name' or 'Address'), you must extract the actual TRUE value of the person's name and details. Return ONLY a pure JSON object, without any markdown formatting or backticks. If a field cannot be found or is unreadable, return an empty string for it. The JSON must exactly match these keys:\n"
-                . "- first_name (The person's actual given name, e.g. KRIS IAN or JUAN)\n"
-                . "- last_name (The person's actual surname, e.g. CALIDA or DELA CRUZ)\n"
-                . "- middle_name (The person's actual middle name, e.g. SAPOTALO)\n"
-                . "- license_number (The actual ID/License number, e.g. G25-24-005686)\n"
-                . "- date_of_birth (Format: YYYY-MM-DD)\n"
-                . "- gender (Male or Female)\n"
-                . "- address (The person's actual home address)";
+        $prompt = "You are an expert OCR AI specializing in Philippine Driver's Licenses. Extract the TRUE personal details of the cardholder from the provided image.\n\n"
+                . "CRITICAL INSTRUCTIONS:\n"
+                . "1. DO NOT extract the printed field labels (e.g. 'Last Name', 'First Name', 'Address', 'License No', 'Date of Birth', 'Sex'). Look for the actual personal data written near or below these labels.\n"
+                . "2. Name Format: On a PH Driver's License, the name is printed immediately BELOW the label 'Last Name, First Name, Middle Name'. For example, if it says 'CALIDA, KRIS IAN SAPOTALO', the last_name is 'CALIDA', the first_name is 'KRIS IAN', and the middle_name is 'SAPOTALO'.\n"
+                . "3. License No: Look below the label 'License No', usually formatted like 'G25-24-005686' or similar.\n"
+                . "4. Date of Birth: Look below the label 'Date of Birth' (Format: YYYY/MM/DD). You MUST return it as YYYY-MM-DD.\n"
+                . "5. Address: Look below the label 'Address'. It is usually a full address like 'SAN JUAN, TUBURAN, CEBU, 6043'.\n"
+                . "6. Gender: Look below 'Sex'. 'M' means Male, 'F' means Female.\n\n"
+                . "Return ONLY a pure JSON object, without any markdown formatting or backticks. If a field cannot be found, return an empty string. The JSON must exactly match these keys:\n"
+                . "- first_name\n"
+                . "- last_name\n"
+                . "- middle_name\n"
+                . "- license_number\n"
+                . "- date_of_birth\n"
+                . "- gender\n"
+                . "- address";
 
         $response = Http::post($url, [
             'contents' => [
