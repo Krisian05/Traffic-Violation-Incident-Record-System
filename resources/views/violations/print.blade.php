@@ -510,6 +510,8 @@
         $allPhotos->push(['url' => uploaded_file_url($violation->citation_ticket_photo), 'label' => 'Citation Ticket', 'color' => 'red']);
     if ($violation->valid_id_photo)
         $allPhotos->push(['url' => uploaded_file_url($violation->valid_id_photo), 'label' => 'Valid ID', 'color' => 'purple']);
+    if ($violation->signature_photo)
+        $allPhotos->push(['url' => uploaded_file_url($violation->signature_photo), 'label' => 'Digital Signature', 'color' => 'emerald']);
     // Pick first vehicle photo from violation photos (manual entry) or registered vehicle photos
     $firstVehiclePhoto = $violation->vehiclePhotos->first()?->photo
         ?? $violation->vehicle?->photos->first()?->photo;

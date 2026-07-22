@@ -343,6 +343,24 @@
 </div>
 @endif
 
+{{-- ── Digital Signature ── --}}
+@if($violation->signature_photo)
+<div class="motshow-section">Digital Signature</div>
+<div class="motshow-card" style="margin-bottom:.9rem;">
+    <div style="padding:1rem;text-align:center;">
+        <img src="{{ uploaded_file_url($violation->signature_photo) }}"
+             alt="Digital Signature"
+             class="mob-photo-thumb"
+             data-full="{{ uploaded_file_url($violation->signature_photo) }}"
+             data-caption="Digital Signature — {{ $violation->ticket_number ?? 'Violation' }}"
+             style="max-height:120px;margin:0 auto;border-radius:10px;background:#fafafa;border:1px dashed #cbd5e1;padding:6px;display:block;">
+        <div style="display:flex;align-items:center;justify-content:center;gap:.35rem;margin-top:.6rem;font-size:.7rem;color:#166534;font-weight:700;">
+            <i class="ph-fill ph-check-circle"></i> Electronically Signed & Verified
+        </div>
+    </div>
+</div>
+@endif
+
 {{-- ── Settlement Details ── --}}
 @if($status === 'settled' || $violation->or_number || $violation->cashier_name || $violation->receipt_photo)
 <div class="motshow-section">Settlement</div>
