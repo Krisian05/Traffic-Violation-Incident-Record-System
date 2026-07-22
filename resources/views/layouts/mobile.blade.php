@@ -1807,19 +1807,29 @@ document.addEventListener('keydown', function (e) {
 <div class="modal fade" id="cameraScannerModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:380px;margin:1rem auto;">
         <div class="modal-content border-0 rounded-4 shadow" style="overflow:hidden;">
-            <div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;">
+            <div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);padding:.85rem 1.25rem;display:flex;align-items:center;justify-content:space-between;">
                 <div style="display:flex;align-items:center;gap:.6rem;color:#fff;font-weight:800;font-size:.9rem;">
                     <i class="ph ph-qr-code" style="font-size:1.2rem;"></i>
-                    <span>Scan Barcode / QR Code</span>
+                    <span>Fast ID / QR Scanner</span>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="tvirsStopScanner()"></button>
             </div>
             <div style="padding:1rem;background:#0f172a;text-align:center;">
                 <div style="position:relative;width:100%;aspect-ratio:4/3;border-radius:14px;overflow:hidden;background:#000;border:2px dashed rgba(255,255,255,.2);">
                     <video id="tvirs_scanner_video" style="width:100%;height:100%;object-fit:cover;" playsinline muted></video>
-                    <div style="position:absolute;inset:20%;border:2px solid #60a5fa;border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.45);pointer-events:none;"></div>
+                    <canvas id="tvirs_scanner_canvas" class="d-none"></canvas>
+                    <div style="position:absolute;inset:15%;border:2px solid #60a5fa;border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.45);pointer-events:none;"></div>
                 </div>
                 <div id="tvirs_scanner_status" style="margin-top:.7rem;font-size:.78rem;color:#94a3b8;font-weight:600;">Point camera at Driver's License Barcode or Ticket QR code</div>
+
+                <div class="d-flex gap-2 justify-content-center mt-3">
+                    <button type="button" id="tvirs_snap_btn" class="btn btn-primary btn-sm px-3 fw-bold rounded-3" style="font-size:.8rem;" onclick="tvirsSnapAndRead()">
+                        <i class="ph ph-camera me-1"></i> Snap & Read
+                    </button>
+                    <button type="button" id="tvirs_torch_btn" class="btn btn-outline-light btn-sm px-3 fw-bold rounded-3 d-none" style="font-size:.8rem;" onclick="tvirsToggleTorch()">
+                        <i class="ph ph-lightning me-1"></i> Torch
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1828,7 +1838,9 @@ document.addEventListener('keydown', function (e) {
 <script>
 var tvirsScannerStream = null;
 var tvirsScannerAnim = null;
+var tvirsScannerTargetInput = null;
 var tvirsScannerCallback = null;
+var tvirsTorchState = false;
 
 function tvirsParseLicenseBarcode(code) {
     if (!code) return null;
@@ -1870,11 +1882,82 @@ function tvirsParseLicenseBarcode(code) {
     return data;
 }
 
+function tvirsProcessScannedCode(code) {
+    if (!code) return;
+    var parsed = tvirsParseLicenseBarcode(code);
+    var targetInputId = tvirsScannerTargetInput;
+    var inputEl = targetInputId ? document.getElementById(targetInputId) : null;
+    var status = document.getElementById('tvirs_scanner_status');
+
+    if (navigator.vibrate) {
+        navigator.vibrate(80);
+    }
+
+    if (inputEl) {
+        inputEl.value = parsed.license_number || code;
+        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+        inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    document.dispatchEvent(new CustomEvent('tvirs:license-scanned', {
+        detail: { code: code, parsed: parsed, targetId: targetInputId }
+    }));
+
+    if (typeof tvirsScannerCallback === 'function') {
+        tvirsScannerCallback(code, parsed);
+    }
+
+    if (status) status.textContent = '✓ Scanned: ' + (parsed.license_number || code);
+    tvirsStopScanner();
+
+    var modalEl = document.getElementById('cameraScannerModal');
+    if (modalEl) {
+        var bsModal = bootstrap.Modal.getInstance(modalEl);
+        if (bsModal) bsModal.hide();
+    }
+}
+
+function tvirsSnapAndRead() {
+    var video = document.getElementById('tvirs_scanner_video');
+    var canvas = document.getElementById('tvirs_scanner_canvas');
+    var status = document.getElementById('tvirs_scanner_status');
+    if (!video || !canvas || video.readyState < 2) return;
+
+    canvas.width = video.videoWidth || 1280;
+    canvas.height = video.videoHeight || 720;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    if ('BarcodeDetector' in window) {
+        var detector = new BarcodeDetector({ formats: ['qr_code', 'pdf417', 'code_128', 'code_39', 'ean_13', 'data_matrix', 'aztec'] });
+        detector.detect(canvas).then(function(barcodes) {
+            if (barcodes.length > 0) {
+                tvirsProcessScannedCode(barcodes[0].rawValue);
+            } else if (status) {
+                status.textContent = 'No barcode detected in photo snap. Hold closer or adjust lighting.';
+            }
+        }).catch(function() {
+            if (status) status.textContent = 'Scanning frame... Adjust distance.';
+        });
+    }
+}
+
+function tvirsToggleTorch() {
+    if (!tvirsScannerStream) return;
+    var track = tvirsScannerStream.getVideoTracks()[0];
+    if (track && track.getCapabilities && track.getCapabilities().torch) {
+        tvirsTorchState = !tvirsTorchState;
+        track.applyConstraints({ advanced: [{ torch: tvirsTorchState }] });
+    }
+}
+
 function tvirsStartScanner(targetInputId, callback) {
+    tvirsScannerTargetInput = targetInputId;
+    tvirsScannerCallback = callback;
     var modalEl = document.getElementById('cameraScannerModal');
     var video = document.getElementById('tvirs_scanner_video');
     var status = document.getElementById('tvirs_scanner_status');
-    var inputEl = document.getElementById(targetInputId);
+    var torchBtn = document.getElementById('tvirs_torch_btn');
 
     if (!modalEl || !video) return;
 
@@ -1886,53 +1969,66 @@ function tvirsStartScanner(targetInputId, callback) {
         return;
     }
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    var constraints = {
+        video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1920, min: 1280 },
+            height: { ideal: 1080, min: 720 },
+            frameRate: { ideal: 30, min: 15 }
+        }
+    };
+
+    navigator.mediaDevices.getUserMedia(constraints)
         .then(function(stream) {
             tvirsScannerStream = stream;
             video.srcObject = stream;
             video.play();
-            if (status) status.textContent = 'Scanning... Hold steady';
+            if (status) status.textContent = 'Hold camera steady over barcode / QR code';
+
+            var track = stream.getVideoTracks()[0];
+            if (track && track.getCapabilities && track.getCapabilities().torch && torchBtn) {
+                torchBtn.classList.remove('d-none');
+            }
 
             if ('BarcodeDetector' in window) {
-                var detector = new BarcodeDetector({ formats: ['qr_code', 'pdf417', 'code_128', 'code_39', 'ean_13'] });
-                function scanFrame() {
+                var detector = new BarcodeDetector({ formats: ['qr_code', 'pdf417', 'code_128', 'code_39', 'ean_13', 'data_matrix', 'aztec'] });
+                var lastDetectTime = 0;
+
+                function scanFrame(timestamp) {
                     if (!tvirsScannerStream) return;
-                    detector.detect(video).then(function(barcodes) {
-                        if (barcodes.length > 0) {
-                            var code = barcodes[0].rawValue;
-                            var parsed = tvirsParseLicenseBarcode(code);
 
-                            if (inputEl) {
-                                inputEl.value = parsed.license_number || code;
-                                inputEl.dispatchEvent(new Event('input', { bubbles: true }));
-                                inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    // Throttle detection to every 60ms for ultra-smooth performance
+                    if (timestamp - lastDetectTime > 60) {
+                        lastDetectTime = timestamp;
+                        detector.detect(video).then(function(barcodes) {
+                            if (barcodes.length > 0) {
+                                tvirsProcessScannedCode(barcodes[0].rawValue);
+                            } else {
+                                tvirsScannerAnim = requestAnimationFrame(scanFrame);
                             }
-
-                            document.dispatchEvent(new CustomEvent('tvirs:license-scanned', {
-                                detail: { code: code, parsed: parsed, targetId: targetInputId }
-                            }));
-
-                            if (typeof callback === 'function') {
-                                callback(code, parsed);
-                            }
-
-                            if (status) status.textContent = '✓ Scanned: ' + (parsed.license_number || code);
-                            tvirsStopScanner();
-                            bsModal.hide();
-                        } else {
+                        }).catch(function() {
                             tvirsScannerAnim = requestAnimationFrame(scanFrame);
-                        }
-                    }).catch(function() {
+                        });
+                    } else {
                         tvirsScannerAnim = requestAnimationFrame(scanFrame);
-                    });
+                    }
                 }
                 tvirsScannerAnim = requestAnimationFrame(scanFrame);
             } else {
-                if (status) status.textContent = 'Camera active. Point at barcode/QR code.';
+                if (status) status.textContent = 'Tap "Snap & Read" to scan card photo.';
             }
         })
         .catch(function(err) {
-            if (status) status.textContent = 'Camera permission denied or camera unavailable.';
+            // Fallback for simple camera constraint
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(function(stream) {
+                    tvirsScannerStream = stream;
+                    video.srcObject = stream;
+                    video.play();
+                })
+                .catch(function() {
+                    if (status) status.textContent = 'Camera permission denied or camera unavailable.';
+                });
         });
 }
 
