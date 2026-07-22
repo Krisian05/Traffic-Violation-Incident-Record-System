@@ -438,8 +438,8 @@ class ViolationController extends Controller
             $violation = $query->first();
         }
 
-        $pendingQuery = Violation::with(['violator', 'violationType'])
-            ->where('status', 'pending')
+        $pendingQuery = Violation::with(['violator', 'violationType', 'payments'])
+            ->whereIn('status', ['pending', 'partial'])
             ->orderBy('date_of_violation', 'desc');
 
         if ($user->lgu_id) {

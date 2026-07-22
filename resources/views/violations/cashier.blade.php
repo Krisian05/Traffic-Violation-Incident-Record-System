@@ -270,6 +270,17 @@
                                         </div>
                                     </div>
 
+                                    <div class="mb-3">
+                                        <label class="form-label fw-700" style="font-size: .82rem;">Amount Received <span class="text-muted" style="font-weight: 400;">(optional — leave blank to collect the full balance)</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">₱</span>
+                                            <input type="number" name="amount_paid" class="form-control" step="0.01" min="0.01"
+                                                   max="{{ $violation->balanceRemaining() }}"
+                                                   placeholder="Full balance: {{ number_format($violation->balanceRemaining(), 2) }}">
+                                        </div>
+                                        <small style="font-size: .72rem; color: #a8a29e;">Enter a smaller amount to record a partial payment.</small>
+                                    </div>
+
                                     <div class="mb-4">
                                         <label class="form-label fw-700" style="font-size: .82rem;">Receipt Image <span class="text-muted" style="font-weight: 400;">(optional)</span></label>
                                         <input type="file" name="receipt_photo" id="cashier_receipt_photo" class="form-control" accept="image/*">
@@ -279,7 +290,7 @@
                                     </div>
 
                                     <button type="submit" class="btn text-white fw-700 w-100 py-2.5" style="background: linear-gradient(135deg, #15803d, #166534); border: none; border-radius: 10px;">
-                                        <i class="bi bi-check2-circle me-1"></i> Settle Violation &amp; Print Receipt
+                                        <i class="bi bi-check2-circle me-1"></i> Record Payment
                                     </button>
                                 </form>
                             </div>
