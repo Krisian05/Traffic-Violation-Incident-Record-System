@@ -179,7 +179,7 @@ class CebuProvinceGisSeeder extends Seeder
                         'location' => $locData['location'],
                         'gps_lat' => $exactLat,
                         'gps_lng' => $exactLng,
-                        'status' => rand(0, 1) ? 'under_investigation' : 'solved',
+                        'status' => rand(0, 1) ? 'assigned_for_investigation' : 'resolved',
                         'description' => 'Traffic incident reported at ' . $locData['location'],
                     ]);
                 }

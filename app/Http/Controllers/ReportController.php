@@ -321,7 +321,7 @@ class ReportController extends Controller
 
         $byHour       = array_fill(0, 24, 0);
         $byDay        = array_fill(0, 7, 0);
-        $byStatus     = ['under_investigation' => 0, 'cleared' => 0, 'solved' => 0, 'settled' => 0];
+        $byStatus     = array_fill_keys(array_keys(\App\Models\Incident::STATUSES), 0);
         $byChargeType = [];
         $byLocation   = [];
 
@@ -333,7 +333,7 @@ class ReportController extends Controller
             $dow = (int) $inc->date_of_incident->dayOfWeek;
             $byDay[$dow]++;
 
-            $key = $inc->status ?? 'under_investigation';
+            $key = $inc->status ?? 'reported';
             if (\array_key_exists($key, $byStatus)) $byStatus[$key]++;
 
             if ($inc->location) {

@@ -269,9 +269,9 @@ a.inc-page:hover {
 @section('content')
 
 @php
-    $openCount = $incidents->getCollection()->where('status', 'under_investigation')->count();
-    $reviewCount = $incidents->getCollection()->where('status', 'cleared')->count();
-    $closedCount = $incidents->getCollection()->whereIn('status', ['solved', 'settled'])->count();
+    $openCount = $incidents->getCollection()->where('status', 'assigned_for_investigation')->count();
+    $reviewCount = $incidents->getCollection()->where('status', 'under_assessment')->count();
+    $closedCount = $incidents->getCollection()->whereIn('status', ['resolved', 'closed', 'referred_to_authority'])->count();
 @endphp
 
 <div class="motshow-section">Search &amp; Filter</div>
@@ -293,10 +293,12 @@ a.inc-page:hover {
     <div class="inc-filter-row">
         <select name="status" class="form-select mob-select" style="font-size:.85rem;">
             <option value="">All statuses</option>
-            <option value="under_investigation" {{ $status === 'under_investigation' ? 'selected' : '' }}>Under Investigation</option>
-            <option value="cleared" {{ $status === 'cleared' ? 'selected' : '' }}>Cleared</option>
-            <option value="solved" {{ $status === 'solved' ? 'selected' : '' }}>Solved</option>
-            <option value="settled" {{ $status === 'settled' ? 'selected' : '' }}>Settled</option>
+            <option value="reported" {{ $status === 'reported' ? 'selected' : '' }}>Reported</option>
+            <option value="under_assessment" {{ $status === 'under_assessment' ? 'selected' : '' }}>Under Assessment</option>
+            <option value="assigned_for_investigation" {{ $status === 'assigned_for_investigation' ? 'selected' : '' }}>Assigned for Investigation</option>
+            <option value="resolved" {{ $status === 'resolved' ? 'selected' : '' }}>Resolved</option>
+            <option value="closed" {{ $status === 'closed' ? 'selected' : '' }}>Closed</option>
+            <option value="referred_to_authority" {{ $status === 'referred_to_authority' ? 'selected' : '' }}>Referred to Authority</option>
         </select>
         <button type="submit" class="inc-filter-btn">
             <i class="ph ph-funnel-simple me-1"></i> Apply
@@ -336,15 +338,15 @@ a.inc-page:hover {
 <div class="inc-stat-grid">
     <div class="inc-stat-card">
         <div class="inc-stat-num inc-stat-num--open">{{ $openCount }}</div>
-        <div class="inc-stat-lbl">Under Investigation</div>
+        <div class="inc-stat-lbl">Investigation</div>
     </div>
     <div class="inc-stat-card">
         <div class="inc-stat-num inc-stat-num--review">{{ $reviewCount }}</div>
-        <div class="inc-stat-lbl">Cleared</div>
+        <div class="inc-stat-lbl">Assessment</div>
     </div>
     <div class="inc-stat-card">
         <div class="inc-stat-num inc-stat-num--closed">{{ $closedCount }}</div>
-        <div class="inc-stat-lbl">Solved</div>
+        <div class="inc-stat-lbl">Resolved / Closed</div>
     </div>
 </div>
 

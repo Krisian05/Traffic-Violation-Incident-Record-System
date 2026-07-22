@@ -236,10 +236,9 @@
                     <div class="col-md-4">
                         <label class="form-label fw-500" style="font-size:.84rem;"><i class="bi bi-circle-fill me-1" style="font-size:.65rem;color:#6b7280;"></i>Status <span class="text-danger">*</span></label>
                         <select name="status" class="form-select form-select-sm @error('status') is-invalid @enderror">
-                            <option value="under_investigation" {{ old('status', 'under_investigation') === 'under_investigation' ? 'selected' : '' }}>Under Investigation</option>
-                            <option value="cleared"            {{ old('status') === 'cleared'            ? 'selected' : '' }}>Cleared</option>
-                            <option value="solved"             {{ old('status') === 'solved'             ? 'selected' : '' }}>Solved</option>
-                            <option value="settled"            {{ old('status') === 'settled'            ? 'selected' : '' }}>Settled</option>
+                            @foreach(\App\Models\Incident::STATUSES as $val => $label)
+                                <option value="{{ $val }}" {{ old('status', 'reported') === $val ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
                         </select>
                         @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
@@ -284,8 +283,8 @@
                         <i class="bi bi-people-fill" style="color:#fff;font-size:.85rem;"></i>
                     </span>
                     <div>
-                        <div class="inc-section-title">Other Involved Parties</div>
-                        <div class="inc-section-sub">Pedestrians, cyclists, pedicabs, bystanders, etc.</div>
+                        <div class="inc-section-title">Parties Involved</div>
+                        <div class="inc-section-sub">Passengers, witnesses, reporting parties, responding personnel, and others (pedestrians, cyclists, bystanders, etc.)</div>
                     </div>
                 </div>
                 <button type="button" class="btn btn-sm fw-600" id="addOtherPartyBtn"
@@ -297,7 +296,7 @@
             <div class="card-body" id="other-parties-container">
                 <div id="other-parties-list"></div>
                 <div id="other-parties-empty" style="font-size:.8rem;color:#a8a29e;font-style:italic;text-align:center;padding:.5rem 0;">
-                    No other involved parties. Click "Add Party" to add a pedestrian, cyclist, etc.
+                    No other parties recorded. Click "Add Party" to record a passenger, witness, reporting party, responding personnel, or other involved party.
                 </div>
             </div>
         </div>
@@ -829,22 +828,23 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-/* ── Other Involved Parties ── */
+/* ── Parties Involved (non-motorist) ── */
 let otherPartyCount = 0;
-const OTHER_TYPES = ['Pedestrian', 'Bicycle', 'Pedicab', 'Tricycle', 'Animal-drawn', 'Bystander', 'Other'];
-const CHARGE_TYPES = JSON.parse(document.getElementById('charge-types-data').textContent);
+const PARTY_ROLES = {
+    passenger: 'Passenger',
+    witness: 'Witness',
+    reporting_party: 'Reporting Party',
+    responding_personnel: 'Responding Personnel',
+    other: 'Other (pedestrian, cyclist, bystander, etc.)',
+};
 
 function addOtherParty(data) {
     const i = otherPartyCount++;
     const list = document.getElementById('other-parties-list');
     document.getElementById('other-parties-empty').style.display = 'none';
 
-    const typeOptions = OTHER_TYPES.map(t =>
-        `<option value="${t}"${data && data.type === t ? ' selected' : ''}>${t}</option>`
-    ).join('');
-
-    const chargeOptions = '<option value="">— None —</option>' + CHARGE_TYPES.map(c =>
-        `<option value="${c}"${data && data.charge === c ? ' selected' : ''}>${c}</option>`
+    const roleOptions = Object.entries(PARTY_ROLES).map(([val, label]) =>
+        `<option value="${val}"${data && data.role === val ? ' selected' : ''}>${label}</option>`
     ).join('');
 
     const div = document.createElement('div');
@@ -858,32 +858,31 @@ function addOtherParty(data) {
         </button>
         <div class="row g-2">
             <div class="col-md-4">
-                <label style="font-size:.72rem;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.25rem;">Type <span class="text-danger">*</span></label>
-                <select name="other_involved[${i}][type]" class="form-select form-select-sm" required>
-                    <option value="">Select type...</option>
-                    ${typeOptions}
+                <label style="font-size:.72rem;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.25rem;">Role <span class="text-danger">*</span></label>
+                <select name="parties[${i}][role]" class="form-select form-select-sm" required>
+                    <option value="">Select role...</option>
+                    ${roleOptions}
                 </select>
             </div>
             <div class="col-md-4">
                 <label style="font-size:.72rem;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.25rem;">Name</label>
-                <input type="text" name="other_involved[${i}][name]" class="form-control form-control-sm"
+                <input type="text" name="parties[${i}][name]" class="form-control form-control-sm"
                     placeholder="Full name (optional)" value="${data ? (data.name || '') : ''}">
             </div>
             <div class="col-md-4">
-                <label style="font-size:.72rem;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.25rem;">Contact / Address</label>
-                <input type="text" name="other_involved[${i}][contact]" class="form-control form-control-sm"
-                    placeholder="Contact or address" value="${data ? (data.contact || '') : ''}">
+                <label style="font-size:.72rem;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.25rem;">Contact Number</label>
+                <input type="text" name="parties[${i}][contact_number]" class="form-control form-control-sm"
+                    placeholder="Contact number" value="${data ? (data.contact_number || '') : ''}">
             </div>
-            <div class="col-md-6">
-                <label style="font-size:.72rem;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.25rem;">Charge / Offense</label>
-                <select name="other_involved[${i}][charge]" class="form-select form-select-sm">
-                    ${chargeOptions}
-                </select>
+            <div class="col-md-4">
+                <label style="font-size:.72rem;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.25rem;">Address</label>
+                <input type="text" name="parties[${i}][address]" class="form-control form-control-sm"
+                    placeholder="Address (optional)" value="${data ? (data.address || '') : ''}">
             </div>
-            <div class="col-md-6">
-                <label style="font-size:.72rem;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.25rem;">Notes</label>
-                <input type="text" name="other_involved[${i}][notes]" class="form-control form-control-sm"
-                    placeholder="Injuries, condition, remarks..." value="${data ? (data.notes || '') : ''}">
+            <div class="col-md-8">
+                <label style="font-size:.72rem;font-weight:700;color:#78716c;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.25rem;">Details / Statement</label>
+                <input type="text" name="parties[${i}][description]" class="form-control form-control-sm"
+                    placeholder="Party type if 'Other' (e.g. pedestrian, cyclist), witness statement, charge, injuries, remarks..." value="${data ? (data.description || '') : ''}">
             </div>
         </div>`;
     list.appendChild(div);

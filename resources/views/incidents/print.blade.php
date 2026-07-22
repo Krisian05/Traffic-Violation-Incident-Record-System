@@ -32,10 +32,12 @@ body { font-family: 'Arial', sans-serif; font-size: 12px; color: #111; backgroun
 
 /* Status badge */
 .status-badge { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border: 1px solid; }
-.status-under_investigation { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
-.status-cleared             { background:#fffbeb; color:#92400e; border-color:#fde68a; }
-.status-solved              { background:#f0fdf4; color:#15803d; border-color:#bbf7d0; }
-.status-settled             { background:#faf5ff; color:#6b21a8; border-color:#d8b4fe; }
+.status-reported                   { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
+.status-under_assessment           { background:#fffbeb; color:#92400e; border-color:#fde68a; }
+.status-assigned_for_investigation { background:#eef2ff; color:#4338ca; border-color:#c7d2fe; }
+.status-resolved                   { background:#f0fdf4; color:#15803d; border-color:#bbf7d0; }
+.status-closed                     { background:#f8fafc; color:#475569; border-color:#cbd5e1; }
+.status-referred_to_authority      { background:#faf5ff; color:#6b21a8; border-color:#d8b4fe; }
 
 /* Sections */
 .section { margin-bottom: 18px; }
@@ -142,11 +144,8 @@ tbody tr:nth-child(even) { background: #f9fafb; }
         <div>
             <div class="rpt-number">{{ $incident->incident_number }}</div>
             <div style="margin-top:5px;">
-                @php
-                    $statusLabels = ['under_investigation' => 'Under Investigation', 'cleared' => 'Cleared', 'solved' => 'Solved', 'settled' => 'Settled'];
-                @endphp
                 <span class="status-badge status-{{ $incident->status }}">
-                    {{ $statusLabels[$incident->status] ?? $incident->status }}
+                    {{ $incident->statusLabel() }}
                 </span>
             </div>
         </div>
@@ -258,28 +257,28 @@ tbody tr:nth-child(even) { background: #f9fafb; }
     </div>
     @endif
 
-    {{-- Other Involved Parties --}}
-    @if(!empty($incident->other_involved))
+    {{-- Parties Involved --}}
+    @if($incident->parties->isNotEmpty())
     <div class="section">
-        <div class="section-title" style="background:#ea580c;">Other Involved Parties</div>
+        <div class="section-title" style="background:#ea580c;">Parties Involved</div>
         <table>
             <thead>
                 <tr>
-                    <th style="width:13%;">Type</th>
-                    <th style="width:25%;">Name</th>
-                    <th style="width:22%;">Contact / Address</th>
-                    <th style="width:22%;">Charge / Offense</th>
-                    <th style="width:18%;">Notes</th>
+                    <th style="width:15%;">Role</th>
+                    <th style="width:20%;">Name</th>
+                    <th style="width:18%;">Contact</th>
+                    <th style="width:17%;">Address</th>
+                    <th style="width:30%;">Details / Statement</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($incident->other_involved as $party)
+                @foreach($incident->parties as $party)
                 <tr>
-                    <td><strong>{{ $party['type'] }}</strong></td>
-                    <td>{{ $party['name'] ?? '—' }}</td>
-                    <td>{{ $party['contact'] ?? '—' }}</td>
-                    <td>{{ $party['charge'] ?? '—' }}</td>
-                    <td>{{ $party['notes'] ?? '—' }}</td>
+                    <td><strong>{{ $party->role_label }}</strong></td>
+                    <td>{{ $party->name ?? '—' }}</td>
+                    <td>{{ $party->contact_number ?? '—' }}</td>
+                    <td>{{ $party->address ?? '—' }}</td>
+                    <td>{{ $party->description ?? '—' }}</td>
                 </tr>
                 @endforeach
             </tbody>

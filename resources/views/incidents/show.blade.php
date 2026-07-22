@@ -11,16 +11,20 @@
 <style>
 /* ── Incident status pills ── */
 .inc-status-pill { display:inline-flex;align-items:center;gap:8px;padding:.25rem .75rem;border-radius:9999px;font-weight:600; }
-.inc-status-under_investigation { background:#eff6ff;color:#1d4ed8;border:1.5px solid #93c5fd; }
-.inc-status-cleared             { background:#fef3c7;color:#92400e;border:1.5px solid #fcd34d; }
-.inc-status-solved              { background:#f0fdf4;color:#15803d;border:1.5px solid #86efac; }
-.inc-status-settled             { background:#faf5ff;color:#6b21a8;border:1.5px solid #d8b4fe; }
+.inc-status-reported                   { background:#eff6ff;color:#1d4ed8;border:1.5px solid #93c5fd; }
+.inc-status-under_assessment           { background:#fef3c7;color:#92400e;border:1.5px solid #fcd34d; }
+.inc-status-assigned_for_investigation { background:#eef2ff;color:#4338ca;border:1.5px solid #a5b4fc; }
+.inc-status-resolved                   { background:#f0fdf4;color:#15803d;border:1.5px solid #86efac; }
+.inc-status-closed                     { background:#f8fafc;color:#475569;border:1.5px solid #cbd5e1; }
+.inc-status-referred_to_authority      { background:#faf5ff;color:#6b21a8;border:1.5px solid #d8b4fe; }
 .inc-status-default             { background:#f8fafc;color:#475569;border:1.5px solid #cbd5e1; }
 .inc-status-dot { border-radius:50%;display:inline-block;flex-shrink:0; }
-.inc-status-under_investigation .inc-status-dot { background:#2563eb; }
-.inc-status-cleared             .inc-status-dot { background:#f59e0b; }
-.inc-status-solved              .inc-status-dot { background:#22c55e; }
-.inc-status-settled             .inc-status-dot { background:#9333ea; }
+.inc-status-reported                   .inc-status-dot { background:#2563eb; }
+.inc-status-under_assessment           .inc-status-dot { background:#f59e0b; }
+.inc-status-assigned_for_investigation .inc-status-dot { background:#4f46e5; }
+.inc-status-resolved                   .inc-status-dot { background:#22c55e; }
+.inc-status-closed                     .inc-status-dot { background:#64748b; }
+.inc-status-referred_to_authority      .inc-status-dot { background:#9333ea; }
 .inc-status-default             .inc-status-dot { background:#94a3b8; }
 /* ── Motorist tag ── */
 .mot-tag { font-size:.64rem;font-weight:700;padding:.15rem .5rem;border-radius:10px;letter-spacing:.03em; }
@@ -46,8 +50,8 @@
 @section('content')
 
 @php
-    $statusLabels = ['under_investigation' => 'Under Investigation', 'cleared' => 'Cleared', 'solved' => 'Solved', 'settled' => 'Settled'];
-    $statusPill   = in_array($incident->status, ['under_investigation','cleared','solved','settled'])
+    $statusLabels = \App\Models\Incident::STATUSES;
+    $statusPill   = array_key_exists($incident->status, $statusLabels)
                         ? 'inc-status-' . $incident->status : 'inc-status-default';
     $restrDesc    = ['A'=>'Motorcycle','A1'=>'MC w/ Sidecar','B'=>'Light Vehicle','B1'=>'Light Vehicle (Prof.)','B2'=>'Light Vehicle w/ Trailer','C'=>'Medium/Heavy Truck','D'=>'Bus','BE'=>'Light + Heavy Trailer','CE'=>'Large Truck + Trailer'];
     $mediaLabels  = ['scene'=>'Scene Photo','ticket'=>'Citation Ticket','document'=>'Document','other'=>'Other'];
@@ -341,43 +345,81 @@
             </div>
         </div>
 
-        {{-- Card 2b: Other Involved Parties --}}
-        @if(!empty($incident->other_involved))
+        {{-- Card 2b: Parties Involved --}}
+        @if($incident->parties->isNotEmpty())
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header d-flex align-items-center gap-2 py-3">
                 <span class="rounded d-flex align-items-center justify-content-center"
                       style="width:28px;height:28px;background:#fff7ed;">
                     <i class="bi bi-people-fill" style="font-size:.85rem;color:#ea580c;"></i>
                 </span>
-                <span class="fw-600" style="font-size:.925rem;color:#292524;">Other Involved Parties</span>
+                <span class="fw-600" style="font-size:.925rem;color:#292524;">Parties Involved</span>
                 <span class="ms-auto badge" style="background:#fff7ed;color:#ea580c;font-size:.7rem;">
-                    {{ count($incident->other_involved) }} {{ count($incident->other_involved) != 1 ? 'parties' : 'party' }}
+                    {{ $incident->parties->count() }} {{ $incident->parties->count() != 1 ? 'parties' : 'party' }}
                 </span>
             </div>
             <div class="card-body p-0">
-                @foreach($incident->other_involved as $party)
+                @foreach($incident->parties as $party)
                 <div class="d-flex align-items-start gap-3 px-4 py-3" style="border-bottom:1px solid #f5f0e8;">
                     <span class="badge" style="background:#fff7ed;color:#ea580c;border:1.5px solid #fed7aa;font-size:.75rem;font-weight:700;flex-shrink:0;margin-top:2px;">
-                        {{ $party['type'] }}
+                        {{ $party->role_label }}
                     </span>
                     <div>
                         <div class="fw-600" style="font-size:.875rem;color:#1c1917;">
-                            {{ $party['name'] ?? '(Name not provided)' }}
+                            {{ $party->name ?? '(Name not provided)' }}
                         </div>
-                        @if(!empty($party['contact']))
+                        @if(!empty($party->contact_number))
                         <div style="font-size:.78rem;color:#78716c;margin-top:2px;">
-                            <i class="bi bi-geo-alt me-1"></i>{{ $party['contact'] }}
+                            <i class="bi bi-telephone me-1"></i>{{ $party->contact_number }}
                         </div>
                         @endif
-                        @if(!empty($party['charge']))
-                        <div style="font-size:.78rem;color:#dc2626;margin-top:2px;font-weight:600;">
-                            <i class="bi bi-exclamation-circle me-1"></i>{{ $party['charge'] }}
+                        @if(!empty($party->address))
+                        <div style="font-size:.78rem;color:#78716c;margin-top:2px;">
+                            <i class="bi bi-geo-alt me-1"></i>{{ $party->address }}
                         </div>
                         @endif
-                        @if(!empty($party['notes']))
+                        @if(!empty($party->description))
                         <div style="font-size:.78rem;color:#57534e;margin-top:2px;font-style:italic;">
-                            {{ $party['notes'] }}
+                            {{ $party->description }}
                         </div>
+                        @endif
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        {{-- Card 2c: Status History --}}
+        @if($incident->statusHistories->isNotEmpty())
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header d-flex align-items-center gap-2 py-3">
+                <span class="rounded d-flex align-items-center justify-content-center"
+                      style="width:28px;height:28px;background:#eef2ff;">
+                    <i class="bi bi-clock-history" style="font-size:.85rem;color:#4338ca;"></i>
+                </span>
+                <span class="fw-600" style="font-size:.925rem;color:#292524;">Status History</span>
+            </div>
+            <div class="card-body p-0">
+                @foreach($incident->statusHistories as $h)
+                <div class="d-flex align-items-start gap-3 px-4 py-3" style="border-bottom:1px solid #f5f0e8;">
+                    <span class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                          style="width:26px;height:26px;background:#eef2ff;margin-top:2px;">
+                        <i class="bi bi-arrow-right-circle-fill" style="font-size:.7rem;color:#4338ca;"></i>
+                    </span>
+                    <div>
+                        <div class="fw-600" style="font-size:.84rem;color:#1c1917;">
+                            @if($h->from_status)
+                                {{ \App\Models\Incident::STATUSES[$h->from_status] ?? $h->from_status }} &rarr; {{ \App\Models\Incident::STATUSES[$h->to_status] ?? $h->to_status }}
+                            @else
+                                Reported as {{ \App\Models\Incident::STATUSES[$h->to_status] ?? $h->to_status }}
+                            @endif
+                        </div>
+                        <div style="font-size:.74rem;color:#a8a29e;margin-top:2px;">
+                            {{ $h->changedBy?->name ?? 'System' }} · {{ $h->created_at->format('M d, Y g:i A') }}
+                        </div>
+                        @if($h->note)
+                        <div style="font-size:.78rem;color:#57534e;margin-top:2px;font-style:italic;">{{ $h->note }}</div>
                         @endif
                     </div>
                 </div>

@@ -83,6 +83,23 @@
                 @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
+            <div class="mb-3">
+                <label class="mob-label">Status <span class="text-danger">*</span></label>
+                <select name="status" class="form-select mob-select @error('status') is-invalid @enderror">
+                    @foreach(\App\Models\Incident::STATUSES as $val => $label)
+                        <option value="{{ $val }}" {{ old('status', $incident->status) === $val ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+                @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="mb-3">
+                <label class="mob-label">Status Change Note <span style="font-weight:400;color:#94a3b8;">(optional)</span></label>
+                <input type="text" name="status_note" class="form-control mob-input @error('status_note') is-invalid @enderror"
+                       value="{{ old('status_note') }}" placeholder="Reason for the status change, if applicable" maxlength="500">
+                @error('status_note')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+
             {{-- Motorists (read-only) --}}
             @if($incident->motorists->isNotEmpty())
             <div class="mob-form-divider">
@@ -110,16 +127,16 @@
             </div>
             @endif
 
-            {{-- Other Involved Parties --}}
+            {{-- Parties Involved --}}
             <div class="mob-form-divider" style="margin:1.25rem 0 .75rem;">
                 <span class="mob-form-divider-line"></span>
-                <span class="mob-form-divider-text">Other Involved Parties</span>
+                <span class="mob-form-divider-text">Parties Involved</span>
                 <span class="mob-form-divider-line"></span>
             </div>
-            <div class="mb-3" style="font-size:.78rem;color:#94a3b8;">Pedestrians, cyclists, pedicabs, bystanders, etc.</div>
+            <div class="mb-3" style="font-size:.78rem;color:#94a3b8;">Passengers, witnesses, reporting parties, responding personnel, and others</div>
             <div id="other-parties-list"></div>
             <button type="button" class="mob-btn-outline w-100 mb-3" onclick="addOtherParty()" style="border-color:#fed7aa;color:#ea580c;">
-                <i class="ph-bold ph-plus"></i> Add Other Involved Party
+                <i class="ph-bold ph-plus"></i> Add Party
             </button>
 
             {{-- Add scene photos --}}
@@ -163,8 +180,7 @@
 @endsection
 
 @push('scripts')
-<script type="application/json" id="other-involved-data">{{ json_encode($incident->other_involved ?? []) }}</script>
-<script type="application/json" id="charge-types-data">{{ json_encode($chargeTypes->pluck('name')) }}</script>
+<script type="application/json" id="other-involved-data">{{ json_encode($incident->parties->map(fn($p) => ['role' => $p->role, 'name' => $p->name, 'contact_number' => $p->contact_number, 'address' => $p->address, 'description' => $p->description])) }}</script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     initPhotoPicker('picker-incident-photos', 'incident_photos[]', { multiple: true });
@@ -182,19 +198,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-/* ── Other Involved Parties ── */
+/* ── Parties Involved (non-motorist) ── */
 let otherPartyCount = 0;
-const OTHER_TYPES = ['Pedestrian', 'Bicycle', 'Pedicab', 'Tricycle', 'Animal-drawn', 'Bystander', 'Other'];
-const OTHER_CHARGE_TYPES = JSON.parse(document.getElementById('charge-types-data').textContent);
+const PARTY_ROLES = {
+    passenger: 'Passenger',
+    witness: 'Witness',
+    reporting_party: 'Reporting Party',
+    responding_personnel: 'Responding Personnel',
+    other: 'Other (pedestrian, cyclist, bystander, etc.)',
+};
 
 function addOtherParty(data) {
     const i = otherPartyCount++;
     const list = document.getElementById('other-parties-list');
-    const typeOptions = OTHER_TYPES.map(t =>
-        `<option value="${t}"${data && data.type === t ? ' selected' : ''}>${t}</option>`
-    ).join('');
-    const chargeOptions = '<option value="">— None —</option>' + OTHER_CHARGE_TYPES.map(c =>
-        `<option value="${c}"${data && data.charge === c ? ' selected' : ''}>${c}</option>`
+    const roleOptions = Object.entries(PARTY_ROLES).map(([val, label]) =>
+        `<option value="${val}"${data && data.role === val ? ' selected' : ''}>${label}</option>`
     ).join('');
     const div = document.createElement('div');
     div.id = `other-party-${i}`;
@@ -205,32 +223,31 @@ function addOtherParty(data) {
             <i class="bi bi-x-lg"></i>
         </button>
         <div class="mb-2">
-            <label class="mob-label">Type <span style="color:#dc2626;">*</span></label>
-            <select name="other_involved[${i}][type]" class="form-select mob-select" required>
-                <option value="">Select type...</option>
-                ${typeOptions}
+            <label class="mob-label">Role <span style="color:#dc2626;">*</span></label>
+            <select name="parties[${i}][role]" class="form-select mob-select" required>
+                <option value="">Select role...</option>
+                ${roleOptions}
             </select>
         </div>
         <div class="mb-2">
             <label class="mob-label">Name</label>
-            <input type="text" name="other_involved[${i}][name]" class="form-control mob-input"
+            <input type="text" name="parties[${i}][name]" class="form-control mob-input"
                 placeholder="Full name (optional)" value="${data ? (data.name || '') : ''}">
         </div>
         <div class="mb-2">
-            <label class="mob-label">Contact / Address</label>
-            <input type="text" name="other_involved[${i}][contact]" class="form-control mob-input"
-                placeholder="Contact or address" value="${data ? (data.contact || '') : ''}">
+            <label class="mob-label">Contact Number</label>
+            <input type="text" name="parties[${i}][contact_number]" class="form-control mob-input"
+                placeholder="Contact number" value="${data ? (data.contact_number || '') : ''}">
         </div>
         <div class="mb-2">
-            <label class="mob-label">Charge / Offense</label>
-            <select name="other_involved[${i}][charge]" class="form-select mob-select">
-                ${chargeOptions}
-            </select>
+            <label class="mob-label">Address</label>
+            <input type="text" name="parties[${i}][address]" class="form-control mob-input"
+                placeholder="Address (optional)" value="${data ? (data.address || '') : ''}">
         </div>
         <div>
-            <label class="mob-label">Notes</label>
-            <input type="text" name="other_involved[${i}][notes]" class="form-control mob-input"
-                placeholder="Injuries, condition, remarks..." value="${data ? (data.notes || '') : ''}">
+            <label class="mob-label">Details / Statement</label>
+            <input type="text" name="parties[${i}][description]" class="form-control mob-input"
+                placeholder="Party type if 'Other', witness statement, injuries, remarks..." value="${data ? (data.description || '') : ''}">
         </div>`;
     list.appendChild(div);
 }
