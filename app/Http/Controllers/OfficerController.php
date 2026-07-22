@@ -186,6 +186,7 @@ class OfficerController extends Controller
             'violations.vehicle',
             'violations.recorder',
             'violations.incident',
+            'violations.lgu',
             'incidentMotorists.incident',
             'incidentMotorists.vehicle',
         ]);

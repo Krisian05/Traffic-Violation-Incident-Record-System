@@ -67,7 +67,7 @@ class Violator extends Model
 
     public function violations()
     {
-        return $this->hasMany(Violation::class);
+        return $this->hasMany(Violation::class)->withoutGlobalScope('lgu_isolation');
     }
 
     public function incidentMotorists()

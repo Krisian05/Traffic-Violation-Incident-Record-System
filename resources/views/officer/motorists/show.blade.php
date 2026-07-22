@@ -372,7 +372,7 @@
 </div>
 @forelse($violator->violations as $viol)
     @php
-        $isOverdue = $viol->status === 'pending' && $viol->date_of_violation && $viol->date_of_violation <= now()->subHours(72);
+        $isOverdue = $viol->isOverdue();
         $badgeClass = match($viol->status) {
             'settled'   => 'mob-badge-settled',
             'contested' => 'mob-badge-contested',
@@ -381,6 +381,7 @@
         $badgeLabel = match($viol->status) {
             'settled'   => 'Settled',
             'contested' => 'Contested',
+            'partial'   => $isOverdue ? 'Overdue' : 'Partial Payment',
             default     => $isOverdue ? 'Overdue' : 'Pending',
         };
         $accentClass = match($viol->status) {
@@ -407,9 +408,11 @@
                     {{ \Illuminate\Support\Str::limit($viol->location, 24) }}
                     @endif
                 </div>
-                @if($viol->ticket_number)
-                <div style="margin-top:.28rem;font-size:.68rem;color:#94a3b8;display:flex;align-items:center;gap:.25rem;">
-                    <i class="ph ph-ticket"></i> Ticket #{{ $viol->ticket_number }}
+                @if($viol->ticket_number || $viol->lgu)
+                <div style="margin-top:.28rem;font-size:.68rem;color:#94a3b8;display:flex;align-items:center;gap:.25rem;flex-wrap:wrap;">
+                    @if($viol->ticket_number)<span><i class="ph ph-ticket"></i> Ticket #{{ $viol->ticket_number }}</span>@endif
+                    @if($viol->ticket_number && $viol->lgu)<span style="color:#cbd5e1;">&middot;</span>@endif
+                    @if($viol->lgu)<span class="badge bg-light text-dark border" style="font-size:.64rem;font-weight:700;"><i class="ph ph-buildings text-primary me-1"></i>{{ $viol->lgu->name }}</span>@endif
                 </div>
                 @endif
             </div>

@@ -10,6 +10,7 @@ use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\LguController;
 use App\Http\Controllers\OcrController;
 use App\Http\Controllers\OfficerController;
+use App\Http\Controllers\PaymentReportController;
 use App\Http\Controllers\ProvinceDashboardController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TwoFactorController;
@@ -43,7 +44,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 // All authenticated users
 Route::middleware('auth')->group(function () {
 
-    Route::middleware('role:admin,operator,traffic_officer,cashier,province_admin')->group(function () {
+    Route::middleware('role:admin,operator,traffic_officer,cashier,province_admin,treasurer')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     });
 
@@ -189,6 +190,13 @@ Route::middleware('auth')->group(function () {
     // ── LGUs (admin only) ────────────────────────────────────────────────────
     Route::middleware('role:admin')->group(function () {
         Route::resource('lgus', LguController::class)->except(['show']);
+    });
+
+    // ── PAYMENT MONITORING: Collection Reports & Reconciliation ─────────────
+    // Treasurers are scoped to their own LGU inside PaymentReportController.
+    Route::middleware('role:admin,operator,province_admin,treasurer')->group(function () {
+        Route::get('/payments/report', [PaymentReportController::class, 'index'])->name('payments.report');
+        Route::get('/payments/report/export', [PaymentReportController::class, 'exportExcel'])->name('payments.report.export');
     });
 
     // ── TRAFFIC OFFICER MOBILE ────────────────────────────────────────────────

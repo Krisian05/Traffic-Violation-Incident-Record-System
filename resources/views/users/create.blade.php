@@ -64,6 +64,7 @@
                         <option value="admin"           {{ old('role') == 'admin'                            ? 'selected' : '' }}>Admin — Full Access + User Management</option>
                         <option value="province_admin"  {{ old('role') == 'province_admin'                   ? 'selected' : '' }}>Province Admin — Province-wide Monitoring Only</option>
                         <option value="cashier"         {{ old('role') == 'cashier'                          ? 'selected' : '' }}>Cashier — Collect Payments for Assigned LGU</option>
+                        <option value="treasurer"       {{ old('role') == 'treasurer'                        ? 'selected' : '' }}>Treasurer — Collection Monitoring for Assigned LGU</option>
                     </select>
                     @error('role')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>

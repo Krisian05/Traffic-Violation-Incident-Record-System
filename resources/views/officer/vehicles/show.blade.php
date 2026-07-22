@@ -265,14 +265,13 @@
 <div class="motshow-section">Violations ({{ $vehicle->violations->count() }})</div>
 @foreach($vehicle->violations as $viol)
 @php
-    $isOvd = $viol->status === 'pending'
-        && $viol->date_of_violation
-        && $viol->date_of_violation <= now()->subHours(72);
+    $isOvd = $viol->isOverdue();
     $vs = $viol->status ?? 'pending';
     $vLabel = match(true) {
         $vs === 'settled'   => 'Settled',
         $vs === 'contested' => 'Contested',
         $isOvd              => 'Overdue',
+        $vs === 'partial'   => 'Partial Payment',
         default             => 'Pending',
     };
     $vColor = match(true) {

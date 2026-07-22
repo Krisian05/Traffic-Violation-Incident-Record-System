@@ -35,7 +35,7 @@ class UserController extends Controller
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', 'unique:users,username', 'alpha_dash'],
-            'role'     => ['required', 'in:admin,operator,traffic_officer,province_admin,cashier'],
+            'role'     => ['required', 'in:admin,operator,traffic_officer,province_admin,cashier,treasurer'],
             'lgu_id'   => ['nullable', 'exists:lgus,id'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
@@ -58,7 +58,7 @@ class UserController extends Controller
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', "unique:users,username,{$user->id}", 'alpha_dash'],
-            'role'     => ['required', 'in:admin,operator,traffic_officer,province_admin,cashier'],
+            'role'     => ['required', 'in:admin,operator,traffic_officer,province_admin,cashier,treasurer'],
             'lgu_id'   => ['nullable', 'exists:lgus,id'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);

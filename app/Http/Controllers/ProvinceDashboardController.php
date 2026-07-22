@@ -53,24 +53,28 @@ class ProvinceDashboardController extends Controller
                                     ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))
                                     ->count();
 
-        // Financial Metrics across Province
+        // Financial Metrics across Province — every settlement writes a Payment row
+        // (see PaymentService), so this is now the single source of truth for revenue.
         $totalRevenueCollected = Payment::whereHas('violation', function ($q) use ($year, $selectedLguId) {
                 $q->whereYear('date_of_violation', $year)
                   ->when($selectedLguId, fn($sq) => $sq->where('lgu_id', $selectedLguId));
             })->sum('amount_paid');
 
-        // If no direct payment records, fall back to settled violation fine amounts
-        if ($totalRevenueCollected == 0) {
-            $totalRevenueCollected = (clone $baseViolationQuery)
-                ->where('status', 'settled')
-                ->join('violation_types', 'violations.violation_type_id', '=', 'violation_types.id')
-                ->sum('violation_types.fine_amount');
-        }
-
-        $totalUncollectedFines = (clone $baseViolationQuery)
-            ->whereIn('status', ['pending', 'overdue'])
+        // Outstanding = (base fine + late penalty if overdue) − amount already paid,
+        // for every violation not yet fully settled.
+        $totalFineAndPenaltyDue = (clone $baseViolationQuery)
+            ->whereIn('status', ['pending', 'partial'])
             ->join('violation_types', 'violations.violation_type_id', '=', 'violation_types.id')
-            ->sum('violation_types.fine_amount');
+            ->selectRaw("COALESCE(SUM(violation_types.fine_amount + CASE WHEN violations.due_date IS NOT NULL AND violations.due_date < CURRENT_DATE THEN COALESCE(violation_types.late_penalty_amount, 0) ELSE 0 END), 0) as total")
+            ->value('total');
+
+        $totalPaidTowardOutstanding = Payment::whereHas('violation', function ($q) use ($year, $selectedLguId) {
+                $q->whereYear('date_of_violation', $year)
+                  ->whereIn('status', ['pending', 'partial'])
+                  ->when($selectedLguId, fn($sq) => $sq->where('lgu_id', $selectedLguId));
+            })->sum('amount_paid');
+
+        $totalUncollectedFines = max(0, $totalFineAndPenaltyDue - $totalPaidTowardOutstanding);
 
         // Feature 4: Location Hotspots & GIS Map Points
         $provincialHotspots = (clone $baseViolationQuery)

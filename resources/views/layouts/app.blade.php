@@ -1024,6 +1024,11 @@
             <i class="bi bi-wallet2"></i> Cashier Portal
         </a>
         @endif
+        @if(Auth::user()->isAdmin() || Auth::user()->isOperator() || Auth::user()->isProvinceAdmin() || Auth::user()->isTreasurer())
+        <a href="{{ route('payments.report') }}" class="{{ request()->routeIs('payments.report') ? 'active' : '' }}">
+            <i class="bi bi-cash-coin"></i> Collection Reports
+        </a>
+        @endif
         <a href="{{ route('incidents.index') }}" class="{{ request()->routeIs('incidents.*') ? 'active' : '' }}">
             <i class="bi bi-flag-fill"></i> Incidents
         </a>
