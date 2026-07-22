@@ -131,6 +131,25 @@
                 <div class="form-text">Upload a new image to replace the existing one. This will be printed on the citation tickets.</div>
             </div>
 
+            <div class="mb-4">
+                <label class="lgu-label">Maya QR Code Image (Optional)</label>
+                @if($lgu->maya_qr_path)
+                    <div class="mb-2">
+                        <img src="{{ Storage::url($lgu->maya_qr_path) }}" alt="Maya QR" style="max-height: 150px; border: 1px solid #ccc; border-radius: 8px;">
+                    </div>
+                @endif
+                <div class="input-group">
+                    <span class="input-group-text lgu-ig-icon" style="background:#f3f4f6;border-color:#d1d5db;">
+                        <i class="bi bi-qr-code-scan" style="color:#4b5563;"></i>
+                    </span>
+                    <input type="file" name="maya_qr_image"
+                           class="form-control lgu-input @error('maya_qr_image') is-invalid @enderror"
+                           accept="image/png, image/jpeg, image/jpg">
+                    @error('maya_qr_image')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-text">Upload a new image to replace the existing one. This will be printed on the citation tickets.</div>
+            </div>
+
             <div class="d-flex gap-2 pt-2">
                 <button type="submit" class="lgu-submit-btn">
                     <i class="bi bi-check-lg"></i> Update LGU

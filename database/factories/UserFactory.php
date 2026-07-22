@@ -42,4 +42,19 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => ['role' => 'traffic_officer']);
     }
+
+    public function cashier(): static
+    {
+        return $this->state(fn (array $attributes) => ['role' => 'cashier']);
+    }
+
+    public function treasurer(): static
+    {
+        return $this->state(fn (array $attributes) => ['role' => 'treasurer']);
+    }
+
+    public function provinceAdmin(): static
+    {
+        return $this->state(fn (array $attributes) => ['role' => 'province_admin']);
+    }
 }

@@ -215,6 +215,14 @@
         <div style="font-size: 16px; margin-top: 5px;">PHP {{ number_format($violation->violationType?->fine_amount ?? 0, 2) }}</div>
     </div>
     @endif
+
+    @if($lgu?->maya_qr_path)
+    <div class="qr-container">
+        <img src="{{ Storage::url($lgu->maya_qr_path) }}" alt="Maya Payment" style="width: 260px; height: 260px; margin-bottom: 8px; object-fit: contain;">
+        <div>MAYA PAYMENT</div>
+        <div style="font-size: 16px; margin-top: 5px;">PHP {{ number_format($violation->violationType?->fine_amount ?? 0, 2) }}</div>
+    </div>
+    @endif
     
     <div style="height: 60px;"></div>
 </div>

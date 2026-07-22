@@ -28,12 +28,16 @@ class LguController extends Controller
             'ordinance_reference' => ['nullable', 'string', 'max:255'],
             'treasurer_office'    => ['nullable', 'string', 'max:255'],
             'gcash_qr_image'      => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'maya_qr_image'       => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
         ]);
 
         $data['code'] = strtoupper($data['code']);
 
         if ($request->hasFile('gcash_qr_image')) {
             $data['gcash_qr_path'] = $request->file('gcash_qr_image')->store('lgus/gcash_qrs', 'public');
+        }
+        if ($request->hasFile('maya_qr_image')) {
+            $data['maya_qr_path'] = $request->file('maya_qr_image')->store('lgus/maya_qrs', 'public');
         }
 
         Lgu::create($data);
@@ -56,6 +60,7 @@ class LguController extends Controller
             'ordinance_reference' => ['nullable', 'string', 'max:255'],
             'treasurer_office'    => ['nullable', 'string', 'max:255'],
             'gcash_qr_image'      => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'maya_qr_image'       => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
         ]);
 
         $data['code'] = strtoupper($data['code']);
@@ -65,6 +70,12 @@ class LguController extends Controller
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($lgu->gcash_qr_path);
             }
             $data['gcash_qr_path'] = $request->file('gcash_qr_image')->store('lgus/gcash_qrs', 'public');
+        }
+        if ($request->hasFile('maya_qr_image')) {
+            if ($lgu->maya_qr_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($lgu->maya_qr_path);
+            }
+            $data['maya_qr_path'] = $request->file('maya_qr_image')->store('lgus/maya_qrs', 'public');
         }
 
         $lgu->update($data);
