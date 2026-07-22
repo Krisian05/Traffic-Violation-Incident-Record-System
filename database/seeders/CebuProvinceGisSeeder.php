@@ -64,50 +64,50 @@ class CebuProvinceGisSeeder extends Seeder
             $violator = $violators->first();
         }
 
-        // 5. Hotspot & GPS Coordinates across Cebu Province
+        // 5. Exact Road & Intersection GPS Coordinates across Cebu Province
         $cebuGisLocations = [
             // Balamban Hotspots
             [
                 'location' => 'Balamban Public Market, Transcentral Highway',
-                'lat' => 10.5050,
-                'lng' => 123.7198,
+                'lat' => 10.5015,
+                'lng' => 123.7170,
                 'lgu' => $createdLgus['BAL'],
                 'count' => 5,
             ],
             [
                 'location' => 'Nivel Hills, Transcentral Highway, Balamban',
-                'lat' => 10.3700,
-                'lng' => 123.8680,
+                'lat' => 10.3685,
+                'lng' => 123.8580,
                 'lgu' => $createdLgus['BAL'],
                 'count' => 4,
             ],
-            // Mandaue City Hotspots
+            // Mandaue City Hotspots (Exact M.C. Briones St & Hernan Cortes Ave Intersection)
             [
-                'location' => 'Subangdaku Flyover, Mandaue City',
-                'lat' => 10.3275,
-                'lng' => 123.9240,
+                'location' => 'Subangdaku Flyover, M.C. Briones St, Mandaue City',
+                'lat' => 10.3223,
+                'lng' => 123.9247,
                 'lgu' => $createdLgus['MAN'],
                 'count' => 6,
             ],
             [
-                'location' => 'UN Avenue Corridor, Mandaue City',
-                'lat' => 10.3395,
-                'lng' => 123.9390,
+                'location' => 'UN Avenue & M.C. Briones Junction, Mandaue City',
+                'lat' => 10.3340,
+                'lng' => 123.9357,
                 'lgu' => $createdLgus['MAN'],
-                'count' => 3,
+                'count' => 4,
             ],
             // Cebu City Hotspots
             [
                 'location' => 'SRP Coastal Road, South Road Properties, Cebu City',
-                'lat' => 10.2850,
-                'lng' => 123.8750,
+                'lat' => 10.2885,
+                'lng' => 123.8770,
                 'lgu' => $createdLgus['CEB'],
                 'count' => 7,
             ],
             [
                 'location' => 'Fuente Osmeña Circle, Cebu City',
                 'lat' => 10.3117,
-                'lng' => 123.8917,
+                'lng' => 123.8915,
                 'lgu' => $createdLgus['CEB'],
                 'count' => 5,
             ],
@@ -122,35 +122,38 @@ class CebuProvinceGisSeeder extends Seeder
             // Carcar City Hotspots
             [
                 'location' => 'Carcar Rotunda Highway, Carcar City',
-                'lat' => 10.1060,
-                'lng' => 123.6390,
+                'lat' => 10.1062,
+                'lng' => 123.6388,
                 'lgu' => $createdLgus['CAR'],
                 'count' => 4,
             ],
             // Talisay City Hotspots
             [
                 'location' => 'Tabunok Flyover, CSCR Expressway, Talisay City',
-                'lat' => 10.2720,
-                'lng' => 123.8420,
+                'lat' => 10.2725,
+                'lng' => 123.8425,
                 'lgu' => $createdLgus['TAL'],
                 'count' => 5,
             ],
             // Toledo City Hotspots
             [
                 'location' => 'Toledo City Port Highway, Toledo City',
-                'lat' => 10.3780,
-                'lng' => 123.6370,
+                'lat' => 10.3782,
+                'lng' => 123.6372,
                 'lgu' => $createdLgus['TOL'],
                 'count' => 3,
             ],
         ];
 
-        // Seed Violations & Incidents at exact location coordinates
+        // Clear previous test GIS entries to ensure exact pin placement
+        Violation::where('ticket_number', 'LIKE', 'TVIRS-GIS-%')->forceDelete();
+        Incident::where('incident_number', 'LIKE', 'INC-GIS-%')->forceDelete();
+
+        // Seed Violations & Incidents at 100% exact intersection/road coordinates (zero jitter)
         foreach ($cebuGisLocations as $idx => $locData) {
             for ($i = 0; $i < $locData['count']; $i++) {
-                // Exact location for primary point, micro offset (±0.00015) for overlapping pins
-                $exactLat = $i === 0 ? $locData['lat'] : ($locData['lat'] + ((rand(-15, 15) / 100000)));
-                $exactLng = $i === 0 ? $locData['lng'] : ($locData['lng'] + ((rand(-15, 15) / 100000)));
+                $exactLat = $locData['lat'];
+                $exactLng = $locData['lng'];
 
                 if ($i % 2 === 0) {
                     // Seed Violation
