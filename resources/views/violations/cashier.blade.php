@@ -136,6 +136,27 @@
 
                 {{-- Right Side: Settle Action or Receipt Details --}}
                 <div class="col-md-6">
+                    @if($violation->payments->isNotEmpty())
+                        {{-- Payment History --}}
+                        <div class="card border-0 shadow-sm mb-3" style="border-radius: 16px; overflow: hidden; border: 1px solid #e7e2db;">
+                            <div class="card-header border-0 p-3" style="background-color: #faf9f6; border-bottom: 1px solid #e7e2db !important;">
+                                <span class="text-muted uppercase fw-700" style="font-size: .72rem; letter-spacing: .05em;">PAYMENT HISTORY</span>
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-sm align-middle mb-0" style="font-size: .8rem;">
+                                    <tbody>
+                                        @foreach($violation->payments->sortByDesc('paid_at') as $p)
+                                        <tr>
+                                            <td class="ps-3 py-2 fw-700" style="font-family: ui-monospace, monospace;">{{ $p->or_number }}</td>
+                                            <td class="py-2 text-success fw-700">₱{{ number_format($p->amount_paid, 2) }}</td>
+                                            <td class="py-2 text-muted">{{ $p->paid_at?->format('M d, Y g:i A') }}</td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @endif
                     @if($violation->status === 'settled')
                         {{-- Settle Details (Paid State) --}}
                         <div class="card border-0 shadow-sm h-100" style="border-radius: 16px; overflow: hidden; border: 1px solid #e7e2db;">

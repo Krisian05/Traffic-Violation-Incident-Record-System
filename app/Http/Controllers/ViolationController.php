@@ -424,7 +424,7 @@ class ViolationController extends Controller
         $user = Auth::user();
 
         if ($search !== '') {
-            $query = Violation::with(['violator', 'violationType', 'vehicle'])
+            $query = Violation::with(['violator', 'violationType', 'vehicle', 'payments'])
                 ->where(function ($q) use ($search) {
                     $q->where('ticket_number', $search)
                       ->orWhere('id', (int) $search);
