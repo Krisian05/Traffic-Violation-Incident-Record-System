@@ -210,7 +210,7 @@
     
     @if($lgu?->gcash_qr_path)
     <div class="qr-container">
-        <img src="{{ Storage::url($lgu->gcash_qr_path) }}" alt="GCash Payment" style="width: 180px; height: 180px; margin-bottom: 8px;">
+        <img src="{{ Storage::url($lgu->gcash_qr_path) }}" alt="GCash Payment" style="width: 260px; height: 260px; margin-bottom: 8px; object-fit: contain;">
         <div>GCASH PAYMENT</div>
         <div style="font-size: 16px; margin-top: 5px;">PHP {{ number_format($violation->violationType?->fine_amount ?? 0, 2) }}</div>
     </div>
