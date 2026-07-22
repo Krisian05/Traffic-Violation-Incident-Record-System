@@ -292,6 +292,13 @@
         border: 1px solid rgba(0,0,0,.04);
         padding: 1rem;
     }
+
+    /* ── Scan autofill highlight ── */
+    .field-autofilled {
+        background-color: #fef9c3 !important;
+        border-color: #eab308 !important;
+        transition: background-color 1.6s ease, border-color 1.6s ease;
+    }
 </style>
 @endpush
 
@@ -317,6 +324,25 @@
         <div>{{ $errors->first() }}</div>
     </div>
     @endif
+
+    {{-- ── SCAN TO AUTOFILL ── --}}
+    <div class="edit-section" style="border:1.5px dashed #93c5fd;background:linear-gradient(135deg,#eff6ff,#f8fafc);">
+        <div class="edit-section-body text-center" style="padding:1.15rem 1rem;">
+            <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#1d4ed8,#1e40af);display:flex;align-items:center;justify-content:center;margin:0 auto .7rem;box-shadow:0 4px 16px rgba(29,78,216,.3);">
+                <i class="ph-bold ph-camera" style="font-size:1.5rem;color:#fff;"></i>
+            </div>
+            <div style="font-size:.9rem;font-weight:800;color:#0f172a;margin-bottom:.2rem;">Scan Driver's License or Valid ID</div>
+            <div style="font-size:.74rem;color:#64748b;margin-bottom:.9rem;">Fills in the details below automatically — review before saving</div>
+            <button type="button" class="mob-btn-primary" onclick="tvirsStartScanner('license_number')">
+                <i class="ph-bold ph-qr-code"></i> Scan ID
+            </button>
+        </div>
+    </div>
+
+    <div id="scan-review-banner" class="mob-alert mob-alert-success mb-3" style="display:none;">
+        <i class="ph-fill ph-check-circle" style="font-size:1.15rem;flex-shrink:0;"></i>
+        <div><span id="scan-review-banner-text"></span> Please check the highlighted fields for accuracy before saving.</div>
+    </div>
 
     {{-- ── PHOTO ── --}}
     <div class="edit-section">
@@ -992,10 +1018,12 @@ document.addEventListener('DOMContentLoaded', function () {
         refreshOfflineMotoristLinks();
     });
 
-    // ── Driver's License Camera Scan Autofill ──
+    // ── Driver's License / Valid ID Camera Scan Autofill ──
     document.addEventListener('tvirs:license-scanned', function (e) {
         var parsed = e.detail && e.detail.parsed;
         if (!parsed) return;
+
+        var autofilledFields = [];
 
         function fill(name, value) {
             if (!value) return;
@@ -1004,6 +1032,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 input.value = value;
                 input.dispatchEvent(new Event('input', { bubbles: true }));
                 input.dispatchEvent(new Event('change', { bubbles: true }));
+
+                input.classList.add('field-autofilled');
+                autofilledFields.push(input);
+                input.addEventListener('input', function clearHighlight() {
+                    input.classList.remove('field-autofilled');
+                    input.removeEventListener('input', clearHighlight);
+                });
             }
         }
 
@@ -1033,6 +1068,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 })
                 .catch(function () {});
+        }
+
+        if (autofilledFields.length > 0) {
+            var banner = document.getElementById('scan-review-banner');
+            var bannerText = document.getElementById('scan-review-banner-text');
+            if (banner && bannerText) {
+                bannerText.textContent = 'Filled ' + autofilledFields.length + ' field' + (autofilledFields.length === 1 ? '' : 's') + ' from the scan.';
+                banner.style.display = '';
+            }
+            setTimeout(function () {
+                autofilledFields.forEach(function (el) { el.classList.remove('field-autofilled'); });
+            }, 6000);
         }
     });
 

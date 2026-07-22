@@ -48,6 +48,13 @@
                 corePath: OCR_CORE_PATH,
                 langPath: OCR_LANG_PATH
             });
+        }).then(function (worker) {
+            // Sparse-text mode suits ID cards better than the default fully-automatic
+            // layout analysis, since a photo/logo sits alongside scattered text fields
+            // rather than one uniform paragraph block.
+            return worker.setParameters({ tessedit_pageseg_mode: '11' }).then(function () {
+                return worker;
+            });
         }).catch(function (error) {
             workerPromise = null;
             throw error;
@@ -76,29 +83,57 @@
         jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12
     };
 
+    // Rejects calendar-impossible dates (e.g. month 13, Feb 30) that a naive
+    // regex match would otherwise happily "normalize" — OCR misreads (a smudged
+    // digit, a merged character) commonly produce exactly this kind of garbage.
+    function isValidCalendarDate(year, month, day) {
+        if (year < 1900 || year > 2099) return false;
+        if (month < 1 || month > 12) return false;
+        if (day < 1 || day > 31) return false;
+
+        var d = new Date(year, month - 1, day);
+        return d.getFullYear() === year && d.getMonth() === month - 1 && d.getDate() === day;
+    }
+
+    function formatDate(year, month, day) {
+        return year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+    }
+
     function normalizeDate(value) {
         var s = String(value || '').trim();
         if (!s) return '';
 
         var iso = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
         if (iso) {
-            return iso[1] + '-' + iso[2].padStart(2, '0') + '-' + iso[3].padStart(2, '0');
+            var isoY = parseInt(iso[1], 10), isoM = parseInt(iso[2], 10), isoD = parseInt(iso[3], 10);
+            return isValidCalendarDate(isoY, isoM, isoD) ? formatDate(isoY, isoM, isoD) : '';
         }
 
         var mdy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
         if (mdy) {
-            return mdy[3] + '-' + mdy[1].padStart(2, '0') + '-' + mdy[2].padStart(2, '0');
+            var mdyM = parseInt(mdy[1], 10), mdyD = parseInt(mdy[2], 10), mdyY = parseInt(mdy[3], 10);
+            return isValidCalendarDate(mdyY, mdyM, mdyD) ? formatDate(mdyY, mdyM, mdyD) : '';
         }
 
         var textDate = s.match(/^([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(\d{4})$/);
         if (textDate) {
             var monNum = MONTHS[textDate[1].slice(0, 3).toLowerCase()];
-            if (monNum) {
-                return textDate[3] + '-' + String(monNum).padStart(2, '0') + '-' + textDate[2].padStart(2, '0');
+            var textD = parseInt(textDate[2], 10), textY = parseInt(textDate[3], 10);
+            if (monNum && isValidCalendarDate(textY, monNum, textD)) {
+                return formatDate(textY, monNum, textD);
             }
         }
 
         return '';
+    }
+
+    function isPlausibleBirthDate(isoDate) {
+        var parts = isoDate.split('-');
+        var asDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        var now = new Date();
+        var ageMs = now - asDate;
+        var ageYears = ageMs / (365.25 * 24 * 60 * 60 * 1000);
+        return ageYears >= 0 && ageYears <= 120;
     }
 
     function findAfterLabel(lines, labelPattern) {
@@ -170,7 +205,11 @@
             || dobSource.match(/\b([A-Za-z]{3,9}\.?\s+\d{1,2},?\s+\d{4})\b/);
         if (dobMatch) {
             var normalizedDob = normalizeDate(dobMatch[1]);
-            if (normalizedDob) data.date_of_birth = normalizedDob;
+            // Calendar-valid but implausible as a birth date (in the future, or
+            // implying an age over 120) is still almost certainly an OCR misread.
+            if (normalizedDob && isPlausibleBirthDate(normalizedDob)) {
+                data.date_of_birth = normalizedDob;
+            }
         }
 
         var expiryLabelText = findAfterLabel(lines, 'expir\\w*|exp\\s*date|valid\\s*until');
@@ -195,6 +234,31 @@
         return data;
     }
 
+    // Trims very large captures down to a size that recognizes noticeably faster
+    // without losing enough detail to hurt accuracy — ID card text stays legible
+    // well below the ~1920px long edge the camera can capture at.
+    var OCR_MAX_DIMENSION = 1600;
+
+    function prepareCanvasForOcr(sourceCanvas) {
+        var longestEdge = Math.max(sourceCanvas.width, sourceCanvas.height);
+        if (longestEdge <= OCR_MAX_DIMENSION) {
+            return sourceCanvas;
+        }
+
+        var scale = OCR_MAX_DIMENSION / longestEdge;
+        var scaledCanvas = document.createElement('canvas');
+        scaledCanvas.width = Math.round(sourceCanvas.width * scale);
+        scaledCanvas.height = Math.round(sourceCanvas.height * scale);
+
+        var ctx = scaledCanvas.getContext('2d');
+        ctx.drawImage(sourceCanvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+        return scaledCanvas;
+    }
+
+    // A recognition with almost no text is more likely camera noise/blur than a
+    // genuine (near-)blank ID, so treat it as "nothing usable was read".
+    var MIN_USABLE_TEXT_LENGTH = 6;
+
     function recognizeIdFromCanvas(canvas, onStatus) {
         var setStatus = typeof onStatus === 'function' ? onStatus : function () {};
 
@@ -202,9 +266,15 @@
 
         return getOcrWorker().then(function (worker) {
             setStatus('Reading text from ID…');
-            return worker.recognize(canvas);
+            var ocrCanvas = prepareCanvasForOcr(canvas);
+            // Only text output is used — skipping blocks/hocr/tsv generation
+            // recognizes measurably faster.
+            return worker.recognize(ocrCanvas, {}, { text: true, blocks: false, hocr: false, tsv: false });
         }).then(function (result) {
             var text = (result && result.data && result.data.text) || '';
+            if (text.trim().length < MIN_USABLE_TEXT_LENGTH) {
+                return { text: text, parsed: { raw: text } };
+            }
             return { text: text, parsed: parseIdText(text) };
         });
     }
