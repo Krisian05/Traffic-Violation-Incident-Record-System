@@ -8,10 +8,12 @@ use App\Models\Violation;
 use App\Models\ViolationVehiclePhoto;
 use App\Models\Violator;
 use App\Models\ViolationType;
+use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class ViolationController extends Controller
 {
@@ -226,26 +228,19 @@ class ViolationController extends Controller
             'ticket_number'           => ['nullable', 'string', 'max:50'],
             'citation_ticket_photo'   => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
             'valid_id_photo'          => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
-            'status'       => ['required', 'in:pending,settled'],
+            'status'       => ['required', 'in:pending,partial,settled,contested'],
             'notes'        => ['nullable', 'string', 'max:1000'],
-            'or_number'    => ['nullable', 'string', 'max:50'],
-            'cashier_name' => ['nullable', 'string', 'max:150'],
-            'receipt_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
         ]);
 
-        // Set settled_at when transitioning to settled for the first time
-        if ($data['status'] === 'settled' && !$violation->settled_at) {
-            $data['settled_at'] = now();
-        }
-        // Clear settlement fields if unsettling
-        if ($data['status'] !== 'settled') {
-            $data['settled_at']   = null;
-            $data['or_number']    = null;
-            $data['cashier_name'] = null;
-            if ($violation->receipt_photo) {
-                Storage::disk(uploads_disk())->delete($violation->receipt_photo);
-            }
-            $data['receipt_photo'] = null;
+        // Settlement state (pending/partial/settled) is payment-driven and can only
+        // change via the Settle action (ViolationController::settle -> PaymentService),
+        // which is the only path that keeps the `payments` table in sync. This form
+        // may only toggle between pending and contested for records not yet settled;
+        // a tampered request can neither un-settle a paid record nor fake one as settled.
+        if (in_array($violation->status, ['settled', 'partial'], true)) {
+            $data['status'] = $violation->status;
+        } elseif (!in_array($data['status'], ['pending', 'contested'], true)) {
+            $data['status'] = 'pending';
         }
 
         unset($data['photos']);
@@ -278,23 +273,6 @@ class ViolationController extends Controller
             $data['valid_id_photo'] = $request->file('valid_id_photo')->store('valid-id-photos', uploads_disk());
         } else {
             unset($data['valid_id_photo']);
-        }
-
-        // Receipt photo: replace or remove (only when settled)
-        if ($data['status'] === 'settled') {
-            if ($request->boolean('remove_receipt_photo') && !$request->hasFile('receipt_photo')) {
-                if ($violation->receipt_photo) {
-                    Storage::disk(uploads_disk())->delete($violation->receipt_photo);
-                }
-                $data['receipt_photo'] = null;
-            } elseif ($request->hasFile('receipt_photo')) {
-                if ($violation->receipt_photo) {
-                    Storage::disk(uploads_disk())->delete($violation->receipt_photo);
-                }
-                $data['receipt_photo'] = $request->file('receipt_photo')->store('receipt-photos', uploads_disk());
-            } else {
-                unset($data['receipt_photo']);
-            }
         }
 
         // Normalise: empty string from the "None" select option must be null for the FK column
@@ -376,36 +354,36 @@ class ViolationController extends Controller
             return back()->with('error', 'This violation has already been settled.');
         }
 
+        $violation->loadMissing('violationType');
+        $balance = $violation->balanceRemaining();
+
         $data = $request->validate([
-            'or_number'      => ['required', 'string', 'max:50', \Illuminate\Validation\Rule::unique('violations', 'or_number')->whereNull('deleted_at')],
+            'or_number'      => ['required', 'string', 'max:50', Rule::unique('payments', 'or_number')],
             'cashier_name'   => ['required', 'string', 'max:150'],
             'payment_method' => ['required', 'in:cash,gcash,maya,bank,other'],
+            'amount_paid'    => ['nullable', 'numeric', 'min:0.01', 'max:' . max($balance, 0.01)],
             'receipt_photo'  => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
         ]);
 
         if ($request->hasFile('receipt_photo')) {
-            if ($violation->receipt_photo) {
-                Storage::disk(uploads_disk())->delete($violation->receipt_photo);
-            }
             $data['receipt_photo'] = $request->file('receipt_photo')->store('receipt-photos', uploads_disk());
         }
 
-        $data['status']     = 'settled';
-        $data['settled_at'] = now();
-        $violation->update($data);
+        try {
+            app(PaymentService::class)->recordPayment($violation, $data, Auth::user());
+        } catch (\InvalidArgumentException $e) {
+            if (!empty($data['receipt_photo'])) {
+                Storage::disk(uploads_disk())->delete($data['receipt_photo']);
+            }
+            return back()->withInput()->with('error', $e->getMessage());
+        }
 
-        // Record the payment details in the payments table
-        \App\Models\Payment::create([
-            'violation_id'   => $violation->id,
-            'amount_paid'    => $violation->violationType->fine_amount,
-            'payment_method' => $data['payment_method'],
-            'or_number'      => $data['or_number'],
-            'cashier_name'   => $data['cashier_name'],
-            'paid_at'        => $data['settled_at'],
-            'receipt_photo'  => $data['receipt_photo'] ?? null,
-        ]);
+        $violation->refresh();
+        $message = $violation->status === 'settled'
+            ? 'Violation settled successfully.'
+            : 'Partial payment recorded. Remaining balance: ₱' . number_format($violation->balanceRemaining(), 2) . '.';
 
-        return back()->with('success', 'Violation settled successfully.');
+        return back()->with('success', $message);
     }
 
     public function destroy(Violation $violation)

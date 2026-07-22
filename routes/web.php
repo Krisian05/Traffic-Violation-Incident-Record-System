@@ -128,6 +128,11 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:cashier')->group(function () {
         Route::get('/cashier', [ViolationController::class, 'cashier'])->name('violations.cashier');
+    });
+
+    // Operators can also settle violations directly (LGUs without a dedicated cashier
+    // account) — see ViolationPolicy::settle() for the actual per-request authorization.
+    Route::middleware('role:cashier,operator')->group(function () {
         Route::patch('/violations/{violation}/settle', [ViolationController::class, 'settle'])->name('violations.settle');
     });
 
