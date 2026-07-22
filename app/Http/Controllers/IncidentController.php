@@ -11,6 +11,7 @@ use App\Models\IncidentChargeType;
 use App\Models\Vehicle;
 use App\Models\VehiclePhoto;
 use App\Models\Violator;
+use App\Services\IncidentStatusService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -97,7 +98,7 @@ class IncidentController extends Controller
             'time_of_incident'                  => 'nullable|date_format:H:i',
             'location'                          => 'required|string|max:255',
             'description'                       => 'nullable|string|max:2000',
-            'status'                            => 'required|in:cleared,under_investigation,solved,settled',
+            'status'                            => 'required|in:' . implode(',', array_keys(Incident::STATUSES)),
             'motorists'                         => 'required|array|min:1|max:10',
             'motorists.*.violator_id'           => 'nullable|exists:violators,id',
             'motorists.*.motorist_name'         => 'nullable|string|max:200',
@@ -122,12 +123,12 @@ class IncidentController extends Controller
             'media_types.*'                     => 'in:scene,ticket,document,other',
             'captions'                          => 'nullable|array',
             'captions.*'                        => 'nullable|string|max:200',
-            'other_involved'                    => 'nullable|array|max:20',
-            'other_involved.*.type'             => 'required|string|max:50',
-            'other_involved.*.name'             => 'nullable|string|max:200',
-            'other_involved.*.contact'          => 'nullable|string|max:100',
-            'other_involved.*.charge'           => 'nullable|string|max:200',
-            'other_involved.*.notes'            => 'nullable|string|max:500',
+            'parties'                           => 'nullable|array|max:20',
+            'parties.*.role'                    => 'required|in:passenger,witness,reporting_party,responding_personnel,other',
+            'parties.*.name'                    => 'nullable|string|max:200',
+            'parties.*.contact_number'          => 'nullable|string|max:100',
+            'parties.*.address'                 => 'nullable|string|max:255',
+            'parties.*.description'             => 'nullable|string|max:1000',
         ]);
 
         // Ensure each motorist has a name or linked violator
@@ -137,23 +138,28 @@ class IncidentController extends Controller
             }
         }
 
-        // Build other_involved JSON (filter out empty rows)
-        $otherInvolved = collect($request->input('other_involved', []))
-            ->filter(fn($o) => !empty($o['type']))
+        // Build parties list (filter out empty rows)
+        $parties = collect($request->input('parties', []))
+            ->filter(fn($p) => !empty($p['role']))
             ->values()
             ->toArray();
 
-        $incident = DB::transaction(function () use ($request, $validated, $otherInvolved) {
+        $incident = DB::transaction(function () use ($request, $validated, $parties) {
             $incident = Incident::create([
                 'date_of_incident' => $validated['date_of_incident'],
                 'time_of_incident' => $validated['time_of_incident'] ?? null,
                 'location'         => $validated['location'],
                 'lgu_id'           => Lgu::findByPsgcCityCode($request->input('_loc_city_code'))?->id,
                 'description'      => $validated['description'] ?? null,
-                'other_involved'   => !empty($otherInvolved) ? $otherInvolved : null,
                 'status'           => $validated['status'],
                 'recorded_by'      => Auth::id(),
             ]);
+
+            app(IncidentStatusService::class)->recordInitialStatus($incident, Auth::user());
+
+            foreach ($parties as $party) {
+                $incident->parties()->create($party);
+            }
 
             $vehiclePhotos    = $request->file('motorist_photos', []);
             $motoristIdPhotos = $request->file('motorist_id_photos', []);
@@ -230,7 +236,7 @@ class IncidentController extends Controller
 
     public function show(Incident $incident): View
     {
-        $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'motorists.ownerViolator', 'media', 'recorder']);
+        $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'motorists.ownerViolator', 'media', 'recorder', 'parties', 'statusHistories.changedBy']);
 
         return view('incidents.show', compact('incident'));
     }
@@ -238,7 +244,7 @@ class IncidentController extends Controller
     public function edit(Incident $incident): View
     {
         $this->authorize('update', $incident);
-        $incident->load(['motorists', 'media']);
+        $incident->load(['motorists', 'media', 'parties']);
         $chargeTypes     = IncidentChargeType::orderBy('name')->get();
         $violators       = Violator::orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'middle_name', 'last_name']);
         $vehiclesByOwner = Vehicle::orderBy('plate_number')
@@ -256,7 +262,8 @@ class IncidentController extends Controller
             'time_of_incident'              => 'nullable|date_format:H:i',
             'location'                      => 'required|string|max:255',
             'description'                   => 'nullable|string|max:2000',
-            'status'                        => 'required|in:cleared,under_investigation,solved,settled',
+            'status'                        => 'required|in:' . implode(',', array_keys(Incident::STATUSES)),
+            'status_note'                   => 'nullable|string|max:500',
             'motorists'                     => 'required|array|min:1|max:10',
             'motorists.*.motorist_id'       => 'nullable|integer|exists:incident_motorists,id',
             'motorists.*.violator_id'       => 'nullable|exists:violators,id',
@@ -285,12 +292,12 @@ class IncidentController extends Controller
             'media_types.*'                   => 'in:scene,ticket,document,other',
             'captions'                        => 'nullable|array',
             'captions.*'                      => 'nullable|string|max:200',
-            'other_involved'                  => 'nullable|array|max:20',
-            'other_involved.*.type'           => 'required|string|max:50',
-            'other_involved.*.name'           => 'nullable|string|max:200',
-            'other_involved.*.contact'        => 'nullable|string|max:100',
-            'other_involved.*.charge'         => 'nullable|string|max:200',
-            'other_involved.*.notes'          => 'nullable|string|max:500',
+            'parties'                         => 'nullable|array|max:20',
+            'parties.*.role'                  => 'required|in:passenger,witness,reporting_party,responding_personnel,other',
+            'parties.*.name'                  => 'nullable|string|max:200',
+            'parties.*.contact_number'        => 'nullable|string|max:100',
+            'parties.*.address'               => 'nullable|string|max:255',
+            'parties.*.description'           => 'nullable|string|max:1000',
         ]);
 
         foreach ($request->input('motorists', []) as $i => $m) {
@@ -299,19 +306,17 @@ class IncidentController extends Controller
             }
         }
 
-        $otherInvolved = collect($request->input('other_involved', []))
-            ->filter(fn($o) => !empty($o['type']))
+        $parties = collect($request->input('parties', []))
+            ->filter(fn($p) => !empty($p['role']))
             ->values()
             ->toArray();
 
-        DB::transaction(function () use ($request, $validated, $incident, $otherInvolved) {
+        DB::transaction(function () use ($request, $validated, $incident, $parties) {
             $incidentUpdate = [
                 'date_of_incident' => $validated['date_of_incident'],
                 'time_of_incident' => $validated['time_of_incident'] ?? null,
                 'location'         => $validated['location'],
                 'description'      => $validated['description'] ?? null,
-                'other_involved'   => !empty($otherInvolved) ? $otherInvolved : null,
-                'status'           => $validated['status'],
             ];
             // Only touch lgu_id when the location selector actually resolved a city —
             // editing without re-picking a location must not wipe the existing LGU tag.
@@ -319,6 +324,21 @@ class IncidentController extends Controller
                 $incidentUpdate['lgu_id'] = Lgu::findByPsgcCityCode($cityCode)?->id;
             }
             $incident->update($incidentUpdate);
+
+            if ($validated['status'] !== $incident->status) {
+                app(IncidentStatusService::class)->changeStatus(
+                    $incident,
+                    $validated['status'],
+                    Auth::user(),
+                    $validated['status_note'] ?? null
+                );
+            }
+
+            // Parties have no attached files, so a full replace is simplest and safe.
+            $incident->parties()->delete();
+            foreach ($parties as $party) {
+                $incident->parties()->create($party);
+            }
 
             // Collect the IDs of motorists being kept/updated
             $submittedIds = collect($request->input('motorists', []))
@@ -521,7 +541,7 @@ class IncidentController extends Controller
 
     public function printRecord(Incident $incident): View
     {
-        $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'motorists.ownerViolator', 'media', 'recorder']);
+        $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'motorists.ownerViolator', 'media', 'recorder', 'parties']);
 
         return view('incidents.print', compact('incident'));
     }
@@ -681,7 +701,7 @@ class IncidentController extends Controller
             return '';
         }
 
-        return in_array($value, ['under_investigation', 'cleared', 'solved', 'settled'], true)
+        return array_key_exists($value, Incident::STATUSES)
             ? $value
             : '';
     }

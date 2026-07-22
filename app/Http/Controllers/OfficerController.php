@@ -12,6 +12,7 @@ use App\Models\Violation;
 use App\Models\ViolationVehiclePhoto;
 use App\Models\Violator;
 use App\Models\ViolationType;
+use App\Services\IncidentStatusService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,7 +34,7 @@ class OfficerController extends Controller
         $motoristCount      = Violator::count();
         $violationCount     = Violation::count();
         $incidentCount      = Incident::count();
-        $openIncidentCount  = Incident::where('status', 'under_investigation')->count();
+        $openIncidentCount  = Incident::whereNotIn('status', ['resolved', 'closed'])->count();
         $overdueCount       = Violation::overdue()->count();
         $overdueViolations  = Violation::overdue()
             ->with(['violator', 'violationType', 'vehicle'])
@@ -835,12 +836,12 @@ class OfficerController extends Controller
             'media_types.*'                       => 'in:scene,ticket,document,other',
             'captions'                            => 'nullable|array',
             'captions.*'                          => 'nullable|string|max:200',
-            'other_involved'                      => 'nullable|array|max:20',
-            'other_involved.*.type'               => 'required|string|max:50',
-            'other_involved.*.name'               => 'nullable|string|max:200',
-            'other_involved.*.contact'            => 'nullable|string|max:100',
-            'other_involved.*.charge'             => 'nullable|string|max:200',
-            'other_involved.*.notes'              => 'nullable|string|max:500',
+            'parties'                              => 'nullable|array|max:20',
+            'parties.*.role'                       => 'required|in:passenger,witness,reporting_party,responding_personnel,other',
+            'parties.*.name'                       => 'nullable|string|max:200',
+            'parties.*.contact_number'             => 'nullable|string|max:100',
+            'parties.*.address'                    => 'nullable|string|max:255',
+            'parties.*.description'                => 'nullable|string|max:1000',
         ]);
 
         foreach ($request->input('motorists', []) as $i => $m) {
@@ -851,10 +852,10 @@ class OfficerController extends Controller
             }
         }
 
-        $otherInvolved = collect($request->input('other_involved', []))
-            ->filter(fn($o) => !empty($o['type']))->values()->toArray();
+        $parties = collect($request->input('parties', []))
+            ->filter(fn($p) => !empty($p['role']))->values()->toArray();
 
-        $incident = DB::transaction(function () use ($request, $otherInvolved) {
+        $incident = DB::transaction(function () use ($request, $parties) {
             $incident = Incident::create([
                 'date_of_incident' => $request->input('date_of_incident'),
                 'time_of_incident' => $request->input('time_of_incident'),
@@ -863,10 +864,15 @@ class OfficerController extends Controller
                 'gps_lng'          => $request->input('gps_lng'),
                 'lgu_id'           => Lgu::findByPsgcCityCode($request->input('_loc_city_code'))?->id,
                 'description'      => $request->input('description'),
-                'other_involved'   => !empty($otherInvolved) ? $otherInvolved : null,
-                'status'           => 'under_investigation',
+                'status'           => 'reported',
                 'recorded_by'      => Auth::id(),
             ]);
+
+            app(IncidentStatusService::class)->recordInitialStatus($incident, Auth::user());
+
+            foreach ($parties as $party) {
+                $incident->parties()->create($party);
+            }
 
             $vehiclePhotos    = $request->file('motorist_photos', []);
             $motoristIdPhotos = $request->file('motorist_id_photos', []);
@@ -1077,7 +1083,7 @@ class OfficerController extends Controller
 
     public function showIncident(Incident $incident): View
     {
-        $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'recorder', 'media']);
+        $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'recorder', 'media', 'parties', 'statusHistories.changedBy']);
 
         return view('officer.incidents.show', compact('incident'));
     }
@@ -1085,7 +1091,7 @@ class OfficerController extends Controller
     public function editIncident(Incident $incident): View
     {
         $this->authorize('update', $incident);
-        $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'media']);
+        $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'media', 'parties']);
         $chargeTypes = Cache::remember('incident_charge_types', 600, fn() => IncidentChargeType::orderBy('name')->get());
 
         return view('officer.incidents.edit', compact('incident', 'chargeTypes'));
@@ -1102,18 +1108,20 @@ class OfficerController extends Controller
             'gps_lat'               => 'nullable|numeric|between:-90,90',
             'gps_lng'               => 'nullable|numeric|between:-180,180',
             'description'           => 'nullable|string|max:2000',
+            'status'                => 'required|in:' . implode(',', array_keys(Incident::STATUSES)),
+            'status_note'           => 'nullable|string|max:500',
             'incident_photos'       => 'nullable|array|max:6',
             'incident_photos.*'     => 'image|mimes:jpg,jpeg,png|max:20480',
-            'other_involved'           => 'nullable|array|max:20',
-            'other_involved.*.type'    => 'required|string|max:50',
-            'other_involved.*.name'    => 'nullable|string|max:200',
-            'other_involved.*.contact' => 'nullable|string|max:100',
-            'other_involved.*.charge'  => 'nullable|string|max:200',
-            'other_involved.*.notes'   => 'nullable|string|max:500',
+            'parties'               => 'nullable|array|max:20',
+            'parties.*.role'        => 'required|in:passenger,witness,reporting_party,responding_personnel,other',
+            'parties.*.name'        => 'nullable|string|max:200',
+            'parties.*.contact_number' => 'nullable|string|max:100',
+            'parties.*.address'     => 'nullable|string|max:255',
+            'parties.*.description' => 'nullable|string|max:1000',
         ]);
 
-        $otherInvolved = collect($request->input('other_involved', []))
-            ->filter(fn($o) => !empty($o['type']))->values()->toArray();
+        $parties = collect($request->input('parties', []))
+            ->filter(fn($p) => !empty($p['role']))->values()->toArray();
 
         $incidentUpdate = [
             'date_of_incident' => $validated['date_of_incident'],
@@ -1122,7 +1130,6 @@ class OfficerController extends Controller
             'gps_lat'          => $validated['gps_lat'] ?? null,
             'gps_lng'          => $validated['gps_lng'] ?? null,
             'description'      => $validated['description'] ?? null,
-            'other_involved'   => !empty($otherInvolved) ? $otherInvolved : null,
         ];
         // Only touch lgu_id when the location selector actually resolved a city —
         // editing without re-picking a location must not wipe the existing LGU tag.
@@ -1130,6 +1137,21 @@ class OfficerController extends Controller
             $incidentUpdate['lgu_id'] = Lgu::findByPsgcCityCode($cityCode)?->id;
         }
         $incident->update($incidentUpdate);
+
+        if ($validated['status'] !== $incident->status) {
+            app(IncidentStatusService::class)->changeStatus(
+                $incident,
+                $validated['status'],
+                Auth::user(),
+                $validated['status_note'] ?? null
+            );
+        }
+
+        // Parties have no attached files, so a full replace is simplest and safe.
+        $incident->parties()->delete();
+        foreach ($parties as $party) {
+            $incident->parties()->create($party);
+        }
 
         if ($request->hasFile('incident_photos')) {
             foreach (array_slice($request->file('incident_photos'), 0, 6) as $file) {

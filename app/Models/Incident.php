@@ -16,6 +16,16 @@ class Incident extends Model
 {
     use HasFactory, SoftDeletes, LogsActivity, BelongsToLgu;
 
+    /** The spec's 6-state workflow, in typical progression order. */
+    public const STATUSES = [
+        'reported'                   => 'Reported',
+        'under_assessment'           => 'Under Assessment',
+        'assigned_for_investigation' => 'Assigned for Investigation',
+        'resolved'                   => 'Resolved',
+        'closed'                     => 'Closed',
+        'referred_to_authority'      => 'Referred to Authority',
+    ];
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -34,14 +44,12 @@ class Incident extends Model
         'gps_lng',
         'lgu_id',
         'description',
-        'other_involved',
         'status',
         'recorded_by',
     ];
 
     protected $casts = [
         'date_of_incident' => 'date',
-        'other_involved'   => 'array',
     ];
 
     protected static function boot(): void
@@ -86,6 +94,16 @@ class Incident extends Model
         return $this->hasMany(IncidentMedia::class);
     }
 
+    public function parties(): HasMany
+    {
+        return $this->hasMany(IncidentParty::class);
+    }
+
+    public function statusHistories(): HasMany
+    {
+        return $this->hasMany(IncidentStatusHistory::class)->orderByDesc('created_at');
+    }
+
     public function recorder(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recorded_by');
@@ -94,5 +112,10 @@ class Incident extends Model
     public function lgu(): BelongsTo
     {
         return $this->belongsTo(Lgu::class);
+    }
+
+    public function statusLabel(): string
+    {
+        return self::STATUSES[$this->status] ?? ucfirst(str_replace('_', ' ', (string) $this->status));
     }
 }

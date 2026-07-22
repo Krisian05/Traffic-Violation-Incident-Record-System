@@ -22,7 +22,7 @@ class OfficerApiController extends Controller
             'motoristCount'     => Violator::count(),
             'violationCount'    => Violation::count(),
             'incidentCount'     => Incident::count(),
-            'openIncidentCount' => Incident::where('status', 'under_investigation')->count(),
+            'openIncidentCount' => Incident::whereNotIn('status', ['resolved', 'closed'])->count(),
             'overdueCount'      => Violation::overdue()->count(),
         ]);
     }
@@ -250,13 +250,16 @@ class OfficerApiController extends Controller
             'gps_lat'          => ['nullable', 'numeric', 'between:-90,90'],
             'gps_lng'          => ['nullable', 'numeric', 'between:-180,180'],
             'description'      => ['required', 'string'],
-            'status'           => ['required', 'in:under_investigation,cleared,solved,settled'],
+            'status'           => ['nullable', 'in:' . implode(',', array_keys(Incident::STATUSES))],
         ]);
 
+        $data['status']       = $data['status'] ?? 'reported';
         $data['recorded_by'] = Auth::id();
         $data['lgu_id']      = Auth::user()->lgu_id;
 
         $incident = Incident::create($data);
+
+        app(\App\Services\IncidentStatusService::class)->recordInitialStatus($incident, Auth::user());
 
         return response()->json([
             'message' => 'Incident reported successfully.',

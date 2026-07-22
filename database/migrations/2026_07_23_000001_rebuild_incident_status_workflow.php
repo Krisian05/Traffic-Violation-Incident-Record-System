@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE incidents DROP CONSTRAINT IF EXISTS incidents_status_check");
+        }
+
         DB::statement("
             UPDATE incidents SET status = CASE status
                 WHEN 'under_investigation' THEN 'assigned_for_investigation'
@@ -23,7 +27,6 @@ return new class extends Migration
         ");
 
         if (DB::getDriverName() === 'pgsql') {
-            DB::statement("ALTER TABLE incidents DROP CONSTRAINT IF EXISTS incidents_status_check");
             DB::statement("ALTER TABLE incidents ADD CONSTRAINT incidents_status_check CHECK (status IN ('reported', 'under_assessment', 'assigned_for_investigation', 'resolved', 'closed', 'referred_to_authority'))");
             DB::statement("ALTER TABLE incidents ALTER COLUMN status SET DEFAULT 'reported'");
         }
@@ -31,6 +34,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE incidents DROP CONSTRAINT IF EXISTS incidents_status_check");
+        }
+
         DB::statement("
             UPDATE incidents SET status = CASE status
                 WHEN 'reported'                   THEN 'under_investigation'
@@ -44,7 +51,6 @@ return new class extends Migration
         ");
 
         if (DB::getDriverName() === 'pgsql') {
-            DB::statement("ALTER TABLE incidents DROP CONSTRAINT IF EXISTS incidents_status_check");
             DB::statement("ALTER TABLE incidents ADD CONSTRAINT incidents_status_check CHECK (status IN ('under_investigation', 'cleared', 'solved', 'settled'))");
             DB::statement("ALTER TABLE incidents ALTER COLUMN status SET DEFAULT 'under_investigation'");
         }
