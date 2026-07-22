@@ -113,16 +113,6 @@
             </div>
 
             <div class="mb-4">
-                <label class="lgu-label">Citation Statement (Printed on Ticket)</label>
-                <textarea name="citation_statement"
-                          class="form-control lgu-input @error('citation_statement') is-invalid @enderror"
-                          rows="5" placeholder="e.g. You are directed to report to the Traffic Operation Management Office within 3 days..."
-                          style="border-left: 1px solid #ced4da; border-radius: 10px !important;">{{ old('citation_statement', $lgu->citation_statement ?? "You are directed to report to the Traffic Operation Management Office within 3 days from the date hereof for disposition appropriation in the citation.\n\nFailure to appear or report within the period stipulated will mean a waiver and criminal complaint against you will be filed in court pursuant to the provisions of Ordinance No. 2005-09 otherwise known as the Municipal Traffic Enforcement Code 2005.") }}</textarea>
-                @error('citation_statement')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                <div class="form-text">This exact text will be printed at the bottom of the citation ticket.</div>
-            </div>
-
-            <div class="mb-4">
                 <label class="lgu-label">GCash QR Code Image (Optional)</label>
                 @if($lgu->gcash_qr_path)
                     <div class="mb-2">

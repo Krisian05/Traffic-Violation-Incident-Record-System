@@ -185,7 +185,9 @@
     </div>
     
     <div class="footer-text">
-        {!! nl2br(e($lgu?->citation_statement ?? "You are directed to report to the " . ($lgu?->name ?? 'Balamban') . " Traffic Operation Management Office within 3 days from the date hereof for disposition appropriation in the citation.\n\nFailure to appear or report within the period stipulated will mean a waiver and criminal complaint against you will be filed in court pursuant to the provisions of Ordinance No. 2005-09 otherwise known as the Municipal Traffic Enforcement Code 2005.")) !!}
+        You are directed to report to the {{ $lgu?->name ?? 'Balamban' }} Traffic Operation Management Office within 3 days from the date hereof for disposition appropriation in the citation.
+        <br><br>
+        Failure to appear or report within the period stipulated will mean a waiver and criminal complaint against you will be filed in court pursuant to the provisions of Ordinance No. 2005-09 otherwise known as the Municipal Traffic Enforcement Code 2005.
     </div>
     
     <div class="text-left" style="font-size: 24px; font-weight: 900; margin: 25px 0; word-break: break-word; line-height: 1.2; text-align: left;">
