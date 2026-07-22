@@ -1217,6 +1217,7 @@
 @php
     $mobileOfflineVersion = file_exists(public_path('mobile-offline.js')) ? filemtime(public_path('mobile-offline.js')) : time();
     $officerSwVersion = file_exists(public_path('officer-sw.js')) ? filemtime(public_path('officer-sw.js')) : time();
+    $tvirsOcrVersion = file_exists(public_path('tvirs-ocr.js')) ? filemtime(public_path('tvirs-ocr.js')) : time();
 @endphp
 <body
     data-auth-user-id="{{ Auth::id() }}"
@@ -1820,7 +1821,7 @@ document.addEventListener('keydown', function (e) {
                     <canvas id="tvirs_scanner_canvas" class="d-none"></canvas>
                     <div style="position:absolute;inset:15%;border:2px solid #60a5fa;border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.45);pointer-events:none;"></div>
                 </div>
-                <div id="tvirs_scanner_status" style="margin-top:.7rem;font-size:.78rem;color:#94a3b8;font-weight:600;">Point camera at Driver's License Barcode or Ticket QR code</div>
+                <div id="tvirs_scanner_status" style="margin-top:.7rem;font-size:.78rem;color:#94a3b8;font-weight:600;">Point camera at a barcode/QR code, or tap "Snap &amp; Read" to capture any driver's license or valid ID</div>
 
                 <div class="d-flex gap-2 justify-content-center mt-3">
                     <button type="button" id="tvirs_snap_btn" class="btn btn-primary btn-sm px-3 fw-bold rounded-3" style="font-size:.8rem;" onclick="tvirsSnapAndRead()">
@@ -1882,32 +1883,33 @@ function tvirsParseLicenseBarcode(code) {
     return data;
 }
 
-function tvirsProcessScannedCode(code) {
-    if (!code) return;
-    var parsed = tvirsParseLicenseBarcode(code);
+function tvirsProcessScannedCode(code, preParsed) {
+    if (!code && !preParsed) return;
+    var parsed = preParsed || tvirsParseLicenseBarcode(code);
     var targetInputId = tvirsScannerTargetInput;
     var inputEl = targetInputId ? document.getElementById(targetInputId) : null;
     var status = document.getElementById('tvirs_scanner_status');
+    var fillValue = parsed.license_number || code || '';
 
     if (navigator.vibrate) {
         navigator.vibrate(80);
     }
 
-    if (inputEl) {
-        inputEl.value = parsed.license_number || code;
+    if (inputEl && fillValue) {
+        inputEl.value = fillValue;
         inputEl.dispatchEvent(new Event('input', { bubbles: true }));
         inputEl.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
     document.dispatchEvent(new CustomEvent('tvirs:license-scanned', {
-        detail: { code: code, parsed: parsed, targetId: targetInputId }
+        detail: { code: code || null, parsed: parsed, targetId: targetInputId, source: preParsed ? 'ocr' : 'barcode' }
     }));
 
     if (typeof tvirsScannerCallback === 'function') {
         tvirsScannerCallback(code, parsed);
     }
 
-    if (status) status.textContent = '✓ Scanned: ' + (parsed.license_number || code);
+    if (status) status.textContent = '✓ ' + (preParsed ? 'Text recognized from ID.' : 'Scanned: ' + (parsed.license_number || code));
     tvirsStopScanner();
 
     var modalEl = document.getElementById('cameraScannerModal');
@@ -1915,6 +1917,33 @@ function tvirsProcessScannedCode(code) {
         var bsModal = bootstrap.Modal.getInstance(modalEl);
         if (bsModal) bsModal.hide();
     }
+}
+
+function tvirsRunOcrFallback(canvas) {
+    var status = document.getElementById('tvirs_scanner_status');
+    var snapBtn = document.getElementById('tvirs_snap_btn');
+
+    if (!window.TvirsOcr || typeof window.TvirsOcr.recognizeIdFromCanvas !== 'function') {
+        if (status) status.textContent = 'Text reader is not available on this device.';
+        return;
+    }
+
+    if (snapBtn) snapBtn.disabled = true;
+
+    window.TvirsOcr.recognizeIdFromCanvas(canvas, function (message) {
+        if (status) status.textContent = message;
+    }).then(function (result) {
+        if (snapBtn) snapBtn.disabled = false;
+        var parsed = result.parsed;
+        if (parsed && (parsed.first_name || parsed.last_name || parsed.license_number)) {
+            tvirsProcessScannedCode(null, parsed);
+        } else if (status) {
+            status.textContent = 'Could not read enough text from that ID. Try steadier framing / better lighting, or enter details manually.';
+        }
+    }).catch(function () {
+        if (snapBtn) snapBtn.disabled = false;
+        if (status) status.textContent = 'Text reading failed. Try again or enter details manually.';
+    });
 }
 
 function tvirsSnapAndRead() {
@@ -1933,12 +1962,17 @@ function tvirsSnapAndRead() {
         detector.detect(canvas).then(function(barcodes) {
             if (barcodes.length > 0) {
                 tvirsProcessScannedCode(barcodes[0].rawValue);
-            } else if (status) {
-                status.textContent = 'No barcode detected in photo snap. Hold closer or adjust lighting.';
+            } else {
+                if (status) status.textContent = 'No barcode found — reading printed text instead…';
+                tvirsRunOcrFallback(canvas);
             }
         }).catch(function() {
-            if (status) status.textContent = 'Scanning frame... Adjust distance.';
+            tvirsRunOcrFallback(canvas);
         });
+    } else {
+        // Safari and some older/embedded browsers have no BarcodeDetector at all —
+        // text reading is the only path for them.
+        tvirsRunOcrFallback(canvas);
     }
 }
 
@@ -1958,6 +1992,12 @@ function tvirsStartScanner(targetInputId, callback) {
     var video = document.getElementById('tvirs_scanner_video');
     var status = document.getElementById('tvirs_scanner_status');
     var torchBtn = document.getElementById('tvirs_torch_btn');
+
+    // Warm up the (lightweight) OCR engine script in the background so it's
+    // likely ready by the time "Snap & Read" needs its text-reading fallback.
+    if (window.TvirsOcr && typeof window.TvirsOcr.preload === 'function') {
+        window.TvirsOcr.preload();
+    }
 
     if (!modalEl || !video) return;
 
@@ -2041,6 +2081,8 @@ function tvirsStopScanner() {
         tvirsScannerStream.getTracks().forEach(function(track) { track.stop(); });
         tvirsScannerStream = null;
     }
+    var snapBtn = document.getElementById('tvirs_snap_btn');
+    if (snapBtn) snapBtn.disabled = false;
 }
 </script>
 
@@ -2211,6 +2253,7 @@ function initPhotoPicker(wrapperId, inputName, options) {
     galInput.addEventListener('change', () => handleFiles(galInput));
 }
 </script>
+<script src="{{ asset('tvirs-ocr.js') }}?v={{ $tvirsOcrVersion }}"></script>
 <script src="{{ asset('mobile-offline.js') }}?v={{ $mobileOfflineVersion }}"></script>
 <script>
 // iOS Safari bfcache fix: when a page is restored from back-forward cache,

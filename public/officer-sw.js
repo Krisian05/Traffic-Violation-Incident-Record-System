@@ -1,13 +1,19 @@
-var STATIC_CACHE = 'tvirs-mobile-static-v8';
-var PAGE_CACHE = 'tvirs-mobile-pages-v8';
-var EXTERNAL_CACHE = 'tvirs-mobile-external-v8';
+var STATIC_CACHE = 'tvirs-mobile-static-v9';
+var PAGE_CACHE = 'tvirs-mobile-pages-v9';
+var EXTERNAL_CACHE = 'tvirs-mobile-external-v9';
 var OFFLINE_FALLBACK = '/offline-mobile.html';
 var STATIC_URLS = [
     '/manifest.json',
     '/favicon.ico',
     '/images/Balamban.png',
     '/images/PNP.png',
-    OFFLINE_FALLBACK
+    OFFLINE_FALLBACK,
+    '/tvirs-ocr.js',
+    '/vendor/tesseract/tesseract.min.js',
+    '/vendor/tesseract/worker.min.js',
+    '/vendor/tesseract/tesseract-core-simd-lstm.wasm.js',
+    '/vendor/tesseract/tesseract-core-lstm.wasm.js',
+    '/vendor/tesseract/eng.traineddata.gz'
 ];
 var PAGE_URLS = [
     '/officer/dashboard',
@@ -99,8 +105,9 @@ function isOfficerNavigation(request, url) {
 
 function isStaticAsset(url) {
     if (url.origin !== self.location.origin) return false;
-    return /^\/(manifest\.json|favicon\.ico|offline-mobile\.html)/.test(url.pathname)
-        || url.pathname.indexOf('/images/') === 0;
+    return /^\/(manifest\.json|favicon\.ico|offline-mobile\.html|tvirs-ocr\.js)/.test(url.pathname)
+        || url.pathname.indexOf('/images/') === 0
+        || url.pathname.indexOf('/vendor/') === 0;
 }
 
 function isExternalCacheable(url) {

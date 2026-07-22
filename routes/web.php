@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\DashboardController;
@@ -162,6 +163,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.exportPdf');
     Route::get('/reports/export/excel', [ReportController::class, 'exportExcel'])->name('reports.exportExcel');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+    // ── AUDIT LOGS ────────────────────────────────────────────────────────────
+    Route::middleware('role:admin,province_admin,operator')->group(function () {
+        Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    });
 
     // ── USERS (admin only) ───────────────────────────────────────────────────
     Route::middleware('role:admin')->group(function () {

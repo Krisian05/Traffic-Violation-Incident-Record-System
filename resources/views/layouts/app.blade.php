@@ -1037,6 +1037,9 @@
         <a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">
             <i class="bi bi-bar-chart-fill"></i> Reports
         </a>
+        <a href="{{ route('audit-logs.index') }}" class="{{ request()->routeIs('audit-logs.*') ? 'active' : '' }}">
+            <i class="bi bi-clock-history"></i> Audit Trail
+        </a>
 
         @if(Auth::user()->isAdmin())
         <div class="nav-label">Administration</div>
