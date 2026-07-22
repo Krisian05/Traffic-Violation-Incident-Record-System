@@ -21,7 +21,7 @@
     </div>
 
     <div class="lgu-form-body">
-        <form method="POST" action="{{ route('lgus.store') }}">
+        <form method="POST" action="{{ route('lgus.store') }}" enctype="multipart/form-data">
             @csrf
 
             <div class="mb-3">
@@ -110,6 +110,20 @@
                            maxlength="255" placeholder="e.g. Municipal Treasurer's Office - Balamban">
                     @error('treasurer_office')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="lgu-label">GCash QR Code Image (Optional)</label>
+                <div class="input-group">
+                    <span class="input-group-text lgu-ig-icon" style="background:#f3f4f6;border-color:#d1d5db;">
+                        <i class="bi bi-qr-code-scan" style="color:#4b5563;"></i>
+                    </span>
+                    <input type="file" name="gcash_qr_image"
+                           class="form-control lgu-input @error('gcash_qr_image') is-invalid @enderror"
+                           accept="image/png, image/jpeg, image/jpg">
+                    @error('gcash_qr_image')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-text">Upload the official LGU GCash QR code. It will be printed directly on the citation ticket.</div>
             </div>
 
             <div class="d-flex gap-2 pt-2">

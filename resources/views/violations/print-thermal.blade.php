@@ -99,7 +99,6 @@
         }
     </style>
     <!-- Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
@@ -209,14 +208,9 @@
     
     <div class="divider"></div>
     
+    @if($lgu?->gcash_qr_path)
     <div class="qr-container">
-        <canvas id="citQr"></canvas>
-        <div>SCAN TO VERIFY</div>
-    </div>
-    
-    @if($gcashQrPayload)
-    <div class="qr-container">
-        <canvas id="gcashQr"></canvas>
+        <img src="{{ Storage::url($lgu->gcash_qr_path) }}" alt="GCash Payment" style="width: 180px; height: 180px; margin-bottom: 8px;">
         <div>GCASH PAYMENT</div>
         <div style="font-size: 16px; margin-top: 5px;">PHP {{ number_format($violation->violationType?->fine_amount ?? 0, 2) }}</div>
     </div>
@@ -233,19 +227,6 @@
 </div>
 
 <script>
-window.addEventListener('load', function () {
-    var qrData = @json($violation->ticket_number ? $violation->ticket_number . " — " . ($violation->violator?->full_name ?? "") : url("/violations/" . $violation->id));
-    QRCode.toCanvas(document.getElementById('citQr'), qrData, {
-        width: 180, margin: 1, color: { dark: '#000000', light: '#ffffff' }
-    });
-
-    @if($gcashQrPayload)
-    QRCode.toCanvas(document.getElementById('gcashQr'), @json($gcashQrPayload), {
-        width: 180, margin: 1, color: { dark: '#000000', light: '#ffffff' }
-    });
-    @endif
-});
-
 // --- Web Bluetooth ESC/POS Driver ---
 
 function updateStatus(msg) {

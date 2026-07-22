@@ -17,6 +17,7 @@ class Lgu extends Model
         'psgc_city_code',
         'ordinance_reference',
         'treasurer_office',
+        'gcash_qr_path',
     ];
 
     public function users(): HasMany

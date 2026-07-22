@@ -187,11 +187,7 @@ class ViolationController extends Controller
     {
         $violation->load(['violator', 'vehicle', 'violationType', 'recorder', 'lgu']);
 
-        // Placeholder only — swap for the LGU's real InstaPay/GCash merchant payload once
-        // the treasurer's office confirms the account. Do not ship a sample QR to production.
-        $gcashQrPayload = 'SAMPLE-GCASH-QR-FOR-PRINT-TESTING-ONLY-NOT-A-REAL-ACCOUNT';
-
-        return view('violations.print-thermal', compact('violation', 'gcashQrPayload'));
+        return view('violations.print-thermal', compact('violation'));
     }
 
     public function edit(Violation $violation)
