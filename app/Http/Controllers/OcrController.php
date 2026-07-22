@@ -68,14 +68,14 @@ class OcrController extends Controller
 
         $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . $apiKey;
 
-        $prompt = "Extract the following details from this driver's license or ID card. Return ONLY a pure JSON object, without any markdown formatting or backticks. If a field cannot be found, return an empty string for it. The JSON must exactly match these keys:\n"
-                . "- first_name\n"
-                . "- last_name\n"
-                . "- middle_name\n"
-                . "- license_number (or ID number)\n"
+        $prompt = "Extract the actual personal details of the cardholder from this driver's license or ID card. CRITICAL: Do NOT extract the printed field labels (like 'Last Name' or 'First Name' or 'Middle Name' or 'Address'), you must extract the actual TRUE value of the person's name and details. Return ONLY a pure JSON object, without any markdown formatting or backticks. If a field cannot be found or is unreadable, return an empty string for it. The JSON must exactly match these keys:\n"
+                . "- first_name (The person's actual given name, e.g. KRIS IAN or JUAN)\n"
+                . "- last_name (The person's actual surname, e.g. CALIDA or DELA CRUZ)\n"
+                . "- middle_name (The person's actual middle name, e.g. SAPOTALO)\n"
+                . "- license_number (The actual ID/License number, e.g. G25-24-005686)\n"
                 . "- date_of_birth (Format: YYYY-MM-DD)\n"
-                . "- gender\n"
-                . "- address";
+                . "- gender (Male or Female)\n"
+                . "- address (The person's actual home address)";
 
         $response = Http::post($url, [
             'contents' => [

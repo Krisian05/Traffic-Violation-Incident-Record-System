@@ -1823,10 +1823,14 @@ document.addEventListener('keydown', function (e) {
                 </div>
                 <div id="tvirs_scanner_status" style="margin-top:.7rem;font-size:.78rem;color:#94a3b8;font-weight:600;">Point camera at a barcode/QR code, or tap "Snap &amp; Read" to capture any driver's license or valid ID</div>
 
-                <div class="d-flex gap-2 justify-content-center mt-3">
+                <div class="d-flex gap-2 justify-content-center mt-3 flex-wrap">
                     <button type="button" id="tvirs_snap_btn" class="btn btn-primary btn-sm px-3 fw-bold rounded-3" style="font-size:.8rem;" onclick="tvirsSnapAndRead()">
                         <i class="ph ph-camera me-1"></i> Snap & Read
                     </button>
+                    <button type="button" class="btn btn-secondary btn-sm px-3 fw-bold rounded-3" style="font-size:.8rem;" onclick="document.getElementById('tvirs_upload_input').click()">
+                        <i class="ph ph-upload me-1"></i> Take Photo / Upload
+                    </button>
+                    <input type="file" id="tvirs_upload_input" accept="image/*" capture="environment" class="d-none" onchange="tvirsHandleUpload(this)">
                     <button type="button" id="tvirs_torch_btn" class="btn btn-outline-light btn-sm px-3 fw-bold rounded-3 d-none" style="font-size:.8rem;" onclick="tvirsToggleTorch()">
                         <i class="ph ph-lightning me-1"></i> Torch
                     </button>
@@ -1930,7 +1934,7 @@ function tvirsRunOcrFallback(canvas) {
 
     if (snapBtn) snapBtn.disabled = true;
 
-    window.TvirsOcr.recognizeIdFromCanvas(canvas, function (message) {
+    return window.TvirsOcr.recognizeIdFromCanvas(canvas, function (message) {
         if (status) status.textContent = message;
     }).then(function (result) {
         if (snapBtn) snapBtn.disabled = false;
@@ -1939,10 +1943,12 @@ function tvirsRunOcrFallback(canvas) {
             tvirsProcessScannedCode(null, parsed);
         } else if (status) {
             status.textContent = 'Could not read enough text from that ID. Try steadier framing / better lighting, or enter details manually.';
+            throw new Error('Not enough text read');
         }
-    }).catch(function () {
+    }).catch(function(err) {
         if (snapBtn) snapBtn.disabled = false;
         if (status) status.textContent = 'Text reading failed. Try again or enter details manually.';
+        throw err;
     });
 }
 
@@ -1951,6 +1957,9 @@ function tvirsSnapAndRead() {
     var canvas = document.getElementById('tvirs_scanner_canvas');
     var status = document.getElementById('tvirs_scanner_status');
     if (!video || !canvas || video.readyState < 2) return;
+
+    // Freeze frame so user sees what was snapped
+    video.pause();
 
     canvas.width = video.videoWidth || 1280;
     canvas.height = video.videoHeight || 720;
@@ -1964,16 +1973,46 @@ function tvirsSnapAndRead() {
                 tvirsProcessScannedCode(barcodes[0].rawValue);
             } else {
                 if (status) status.textContent = 'No barcode found — reading printed text instead…';
-                tvirsRunOcrFallback(canvas);
+                tvirsRunOcrFallback(canvas).catch(function() { video.play(); });
             }
         }).catch(function() {
-            tvirsRunOcrFallback(canvas);
+            tvirsRunOcrFallback(canvas).catch(function() { video.play(); });
         });
     } else {
-        // Safari and some older/embedded browsers have no BarcodeDetector at all —
-        // text reading is the only path for them.
-        tvirsRunOcrFallback(canvas);
+        tvirsRunOcrFallback(canvas).catch(function() { video.play(); });
     }
+}
+
+function tvirsHandleUpload(input) {
+    if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
+    var status = document.getElementById('tvirs_scanner_status');
+    var video = document.getElementById('tvirs_scanner_video');
+    
+    if (status) status.textContent = 'Processing uploaded photo...';
+    if (video) video.pause(); // Freeze video while processing
+    
+    var img = new Image();
+    img.onload = function() {
+        var canvas = document.getElementById('tvirs_scanner_canvas');
+        if (!canvas) return;
+        
+        // Scale down massive 12MP+ photos slightly to avoid memory crash
+        var maxDim = 1920;
+        var scale = 1;
+        if (img.width > maxDim || img.height > maxDim) {
+            scale = Math.min(maxDim / img.width, maxDim / img.height);
+        }
+        
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        tvirsRunOcrFallback(canvas).catch(function() { if (video) video.play(); });
+        input.value = ''; // Reset input
+    };
+    img.src = URL.createObjectURL(file);
 }
 
 function tvirsToggleTorch() {
