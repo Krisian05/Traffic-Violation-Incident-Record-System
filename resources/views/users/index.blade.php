@@ -74,8 +74,12 @@
                                 <i class="bi bi-shield-fill-check me-1"></i>Operator
                             </span>
                         @elseif($user->isCashier())
-                            <span class="usr-role-badge usr-role-cashier" style="background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                            <span class="usr-role-badge usr-role-cashier">
                                 <i class="bi bi-wallet2 me-1"></i>Cashier
+                            </span>
+                        @elseif($user->isTreasurer())
+                            <span class="usr-role-badge usr-role-treasurer">
+                                <i class="bi bi-bank me-1"></i>Treasurer
                             </span>
                         @else
                             <span class="usr-role-badge usr-role-to">
@@ -241,6 +245,8 @@
 .usr-role-admin { background:#fdf4ff;color:#7c3aed;border-color:#e9d5ff; }
 .usr-role-prov { background:#f0f9ff;color:#0369a1;border-color:#7dd3fc; }
 .usr-role-op { background:#fef2f2;color:#b91c1c;border-color:#fca5a5; }
+.usr-role-cashier { background:#f0fdf4;color:#15803d;border-color:#86efac; }
+.usr-role-treasurer { background:#fffbeb;color:#b45309;border-color:#fde68a; }
 .usr-role-to { background:#f0fdf4;color:#15803d;border-color:#86efac; }
 
 /* ─── ACTION BUTTONS ─── */
