@@ -124,7 +124,8 @@
         /* ── SIDEBAR ── */
         .sidebar {
             width: 270px;
-            min-height: 100vh;
+            height: 100vh;
+            overflow-y: auto;
             background: #1d4ed8;
             border-right: 1px solid rgba(0,0,0,0.08);
             position: fixed;
