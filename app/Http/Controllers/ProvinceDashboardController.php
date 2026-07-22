@@ -3,48 +3,89 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lgu;
+use App\Models\Payment;
 use App\Models\User;
 use App\Models\Violation;
 use App\Models\Violator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProvinceDashboardController extends Controller
 {
     public function index(Request $request)
     {
         $year = (int) $request->input('year', now()->year);
+        $selectedLguId = $request->input('lgu_id');
 
         $lgus = Lgu::orderBy('name')->get();
 
-        // One grouped query for every LGU's violation counts this year
+        // Query for every LGU's violation counts and financial totals this year
         $countsByLgu = Violation::whereYear('date_of_violation', $year)
+            ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))
             ->selectRaw("lgu_id, COUNT(*) as total_violations, SUM(CASE WHEN status = 'settled' THEN 1 ELSE 0 END) as settled_violations")
             ->groupBy('lgu_id')
             ->get()
             ->keyBy('lgu_id');
 
-        $municipalityStats = $lgus->map(function ($lgu) use ($countsByLgu) {
-            $row = $countsByLgu->get($lgu->id);
-            $total = (int) ($row->total_violations ?? 0);
-            $settled = (int) ($row->settled_violations ?? 0);
+        $municipalityStats = $lgus->when($selectedLguId, fn($collection) => $collection->where('id', $selectedLguId))
+            ->map(function ($lgu) use ($countsByLgu) {
+                $row = $countsByLgu->get($lgu->id);
+                $total = (int) ($row->total_violations ?? 0);
+                $settled = (int) ($row->settled_violations ?? 0);
 
-            return (object) [
-                'municipality_name'  => $lgu->name,
-                'total_violations'   => $total,
-                'settled_violations' => $settled,
-                'settled_rate'       => $total > 0 ? round(($settled / $total) * 100) : 0,
-            ];
-        })->sortByDesc('total_violations')->values();
+                return (object) [
+                    'id'                 => $lgu->id,
+                    'municipality_name'  => $lgu->name,
+                    'code'               => $lgu->code,
+                    'total_violations'   => $total,
+                    'settled_violations' => $settled,
+                    'settled_rate'       => $total > 0 ? round(($settled / $total) * 100) : 0,
+                ];
+            })->sortByDesc('total_violations')->values();
 
-        $totalViolationsAllTime = Violation::count();
-        $totalViolations        = Violation::whereYear('date_of_violation', $year)->count();
-        $totalViolators         = Violator::count();
-        $totalActiveOfficers    = User::whereIn('role', ['traffic_officer', 'operator'])->count();
+        $baseViolationQuery = Violation::whereYear('date_of_violation', $year)
+            ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId));
 
-        $monthlyTrend = Violation::whereYear('date_of_violation', $year)
-            ->selectRaw("EXTRACT(MONTH FROM date_of_violation) as month, COUNT(*) as total")
-            ->groupBy('month')
-            ->pluck('total', 'month');
+        $totalViolationsAllTime = Violation::when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))->count();
+        $totalViolations        = (clone $baseViolationQuery)->count();
+        $totalViolators         = Violator::when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))->count();
+        $totalActiveOfficers    = User::whereIn('role', ['traffic_officer', 'operator'])
+                                    ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))
+                                    ->count();
+
+        // Financial Metrics across Province
+        $totalRevenueCollected = Payment::whereHas('violation', function ($q) use ($year, $selectedLguId) {
+                $q->whereYear('date_of_violation', $year)
+                  ->when($selectedLguId, fn($sq) => $sq->where('lgu_id', $selectedLguId));
+            })->sum('amount_paid');
+
+        // If no direct payment records, fall back to settled violation fine amounts
+        if ($totalRevenueCollected == 0) {
+            $totalRevenueCollected = (clone $baseViolationQuery)
+                ->where('status', 'settled')
+                ->join('violation_types', 'violations.violation_type_id', '=', 'violation_types.id')
+                ->sum('violation_types.fine_amount');
+        }
+
+        $totalUncollectedFines = (clone $baseViolationQuery)
+            ->whereIn('status', ['pending', 'overdue'])
+            ->join('violation_types', 'violations.violation_type_id', '=', 'violation_types.id')
+            ->sum('violation_types.fine_amount');
+
+        // Location Hotspots
+        $provincialHotspots = (clone $baseViolationQuery)
+            ->whereNotNull('location')->where('location', '!=', '')
+            ->select('location', DB::raw('COUNT(*) as total'))
+            ->groupBy('location')
+            ->orderByDesc('total')
+            ->limit(5)
+            ->get();
+
+        // Monthly Trend
+        $monthlyTrend = (clone $baseViolationQuery)
+            ->get(['date_of_violation'])
+            ->groupBy(fn($v) => (int) ($v->date_of_violation?->format('n') ?? 0))
+            ->map(fn($group) => $group->count());
 
         $chartLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         $chartData = [];
@@ -52,8 +93,8 @@ class ProvinceDashboardController extends Controller
             $chartData[] = $monthlyTrend[$m] ?? 0;
         }
 
-        // Violation category distribution (top 5 categories, rest grouped as Other)
-        $categoriesQuery = Violation::whereYear('date_of_violation', $year)
+        // Violation Category Distribution
+        $categoriesQuery = (clone $baseViolationQuery)
             ->join('violation_types', 'violations.violation_type_id', '=', 'violation_types.id')
             ->selectRaw('violation_types.name, COUNT(*) as total')
             ->groupBy('violation_types.name')
@@ -74,8 +115,9 @@ class ProvinceDashboardController extends Controller
         }
 
         return view('province.dashboard', compact(
-            'year', 'municipalityStats', 'totalViolations', 'totalViolationsAllTime', 'totalViolators',
-            'totalActiveOfficers', 'chartLabels', 'chartData', 'categoryLabels', 'categoryData'
+            'year', 'lgus', 'selectedLguId', 'municipalityStats', 'totalViolations', 'totalViolationsAllTime',
+            'totalViolators', 'totalActiveOfficers', 'totalRevenueCollected', 'totalUncollectedFines',
+            'provincialHotspots', 'chartLabels', 'chartData', 'categoryLabels', 'categoryData'
         ));
     }
 }
