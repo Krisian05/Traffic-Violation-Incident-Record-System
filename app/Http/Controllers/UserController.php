@@ -36,6 +36,9 @@ class UserController extends Controller
             'name'     => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', 'unique:users,username', 'alpha_dash'],
             'role'     => ['required', 'in:admin,super_admin,province_admin,operator,lgu_admin,treasurer,cashier,traffic_supervisor,supervisor,traffic_officer,issuing_officer,records_officer,auditor,view_only'],
+            'agency'   => ['nullable', 'string', 'max:100'],
+            'badge_id' => ['nullable', 'string', 'max:50'],
+            'status'   => ['nullable', 'in:active,inactive'],
             'lgu_id'   => ['nullable', 'exists:lgus,id'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
@@ -59,6 +62,9 @@ class UserController extends Controller
             'name'     => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', "unique:users,username,{$user->id}", 'alpha_dash'],
             'role'     => ['required', 'in:admin,super_admin,province_admin,operator,lgu_admin,treasurer,cashier,traffic_supervisor,supervisor,traffic_officer,issuing_officer,records_officer,auditor,view_only'],
+            'agency'   => ['nullable', 'string', 'max:100'],
+            'badge_id' => ['nullable', 'string', 'max:50'],
+            'status'   => ['nullable', 'in:active,inactive'],
             'lgu_id'   => ['nullable', 'exists:lgus,id'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);

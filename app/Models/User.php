@@ -26,6 +26,9 @@ class User extends Authenticatable
         'username',
         'email',
         'role',
+        'agency',
+        'badge_id',
+        'status',
         'lgu_id',
         'password',
     ];
