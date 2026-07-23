@@ -259,13 +259,15 @@
                                 <i class="bi bi-eye-fill"></i>
                                 <span>View</span>
                             </a>
-                            @if(Auth::user()->isOperator())
+                            @can('update', $v)
                             <a href="{{ route('violations.edit', $v) }}"
                                class="act-btn act-edit"
                                title="Edit Record"
                                aria-label="Edit violation for {{ $v->violator?->full_name ?? 'motorist' }}">
                                 <i class="bi bi-pencil-fill" aria-hidden="true"></i>
                             </a>
+                            @endcan
+                            @can('settle', $v)
                             @if($v->status === 'pending')
                             <button type="button" class="act-btn act-settle" title="Settle Violation"
                                 data-id="{{ $v->id }}"
@@ -275,7 +277,7 @@
                                 <i class="bi bi-receipt"></i>
                             </button>
                             @endif
-                            @endif
+                            @endcan
                         </div>
                     </td>
                 </tr>

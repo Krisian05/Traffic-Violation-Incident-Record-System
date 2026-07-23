@@ -187,14 +187,14 @@
                                 <i class="bi bi-eye-fill"></i>
                                 <span>View</span>
                             </a>
-                            @if(Auth::user()->isOperator())
+                            @can('update', $v)
                             <a href="{{ route('violators.edit', $v) }}"
                                class="vlt-act-btn vlt-act-edit"
                                title="Edit Record"
                                aria-label="Edit {{ $v->full_name }}">
                                 <i class="bi bi-pencil-fill" aria-hidden="true"></i>
                             </a>
-                            @endif
+                            @endcan
                         </div>
                     </td>
                 </tr>

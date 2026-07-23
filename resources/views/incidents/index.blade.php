@@ -219,13 +219,15 @@
                                 <i class="bi bi-eye-fill"></i>
                                 <span>View</span>
                             </a>
-                            @if(Auth::user()->isOperator())
+                            @can('update', $incident)
                             <a href="{{ route('incidents.edit', $incident) }}"
                                class="act-btn act-edit"
                                title="Edit Record"
                                aria-label="Edit incident {{ $incident->incident_number }}">
                                 <i class="bi bi-pencil-fill" aria-hidden="true"></i>
                             </a>
+                            @endcan
+                            @can('delete', $incident)
                             <form method="POST" action="{{ route('incidents.destroy', $incident) }}"
                                   data-confirm="Delete incident {{ $incident->incident_number }}? All motorists, media, and related data will be permanently removed."
                                   class="d-inline">
@@ -236,7 +238,7 @@
                                     <i class="bi bi-trash-fill"></i>
                                 </button>
                             </form>
-                            @endif
+                            @endcan
                         </div>
                     </td>
                 </tr>
