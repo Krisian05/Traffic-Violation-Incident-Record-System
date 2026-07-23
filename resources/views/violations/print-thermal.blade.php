@@ -208,6 +208,11 @@
     
     <div class="divider"></div>
     
+    <div class="qr-container">
+        <canvas id="thermalTicketQr"></canvas>
+        <div style="font-size: 14px; font-weight: 700; margin-top: 5px;">SCAN TO VERIFY CITATION</div>
+    </div>
+
     @if($lgu?->gcash_qr_path)
     <div class="qr-container">
         <img src="{{ Storage::url($lgu->gcash_qr_path) }}" alt="GCash Payment" style="width: 260px; height: 260px; margin-bottom: 8px; object-fit: contain;">
@@ -226,6 +231,16 @@
     
     <div style="height: 60px;"></div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+<script>
+if (document.getElementById('thermalTicketQr')) {
+    QRCode.toCanvas(document.getElementById('thermalTicketQr'), '{{ $violation->ticket_number ?: url("/violations/" . $violation->id) }}', {
+        width: 180,
+        margin: 1
+    });
+}
+</script>
 
 <div class="toolbar">
     <button type="button" id="btn-print" onclick="printViaWebBluetooth()">
