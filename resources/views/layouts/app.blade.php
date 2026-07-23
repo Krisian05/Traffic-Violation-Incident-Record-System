@@ -1163,7 +1163,6 @@
                 <i class="bi bi-box-arrow-in-right me-1"></i> Log In
             </a>
             @endauth
-            </div>
         </div>
     </div>
 
