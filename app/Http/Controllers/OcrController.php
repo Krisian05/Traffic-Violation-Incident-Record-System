@@ -20,6 +20,12 @@ class OcrController extends Controller
 
     private const VALID_BLOOD_TYPES = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
 
+    private const EXTRACTED_FIELDS = [
+        'first_name', 'last_name', 'middle_name', 'license_number', 'date_of_birth',
+        'gender', 'address', 'license_expiry_date', 'license_issued_date',
+        'license_type', 'blood_type', 'height', 'weight', 'license_conditions',
+    ];
+
     /**
      * Handle the incoming scan request using Smart Fallback OCR
      */
@@ -81,23 +87,31 @@ class OcrController extends Controller
     {
         $instructions = "You are an expert OCR AI specializing in Philippine Driver's Licenses. Extract the TRUE personal details of the cardholder"
                 . ($fromRawOcrText ? " from the raw OCR text provided below.\n\n" : " from the provided image.\n\n")
-                . "CRITICAL INSTRUCTIONS:\n"
-                . "1. DO NOT extract the printed field labels (e.g. 'Last Name', 'First Name', 'Address', 'License No', 'Date of Birth', 'Sex'). Look for the actual personal data written near or below these labels.\n"
-                . "2. Name Format: On a PH Driver's License, the name is printed immediately BELOW the label 'Last Name, First Name, Middle Name'. For example, if it says 'CALIDA, KRIS IAN SAPOTALO', the last_name is 'CALIDA', the first_name is 'KRIS IAN', and the middle_name is 'SAPOTALO'.\n"
-                . "3. License No: Look below the label 'License No', usually formatted like 'G25-24-005686' or similar.\n"
-                . "4. Date of Birth: Look below the label 'Date of Birth' (Format: YYYY/MM/DD). You MUST return it as YYYY-MM-DD.\n"
-                . "5. Address: Look below the label 'Address'. It is usually a full address like 'SAN JUAN, TUBURAN, CEBU, 6043'.\n"
-                . "6. Gender: Look below 'Sex'. 'M' means Male, 'F' means Female.\n"
-                . "7. License Expiry Date: Look below 'Expiration Date' (Format: YYYY/MM/DD). You MUST return it as YYYY-MM-DD.\n"
-                . "8. License Issued Date: Some cards print a small issue/renewal date separate from the expiration date (often near the signature or barcode, NOT the same value as Expiration Date). If you can identify one, return it as YYYY-MM-DD, otherwise return an empty string.\n"
-                . "9. License Type: If the card's title/header says 'PROFESSIONAL DRIVER'S LICENSE', return exactly 'Professional'. If the header is just 'DRIVER'S LICENSE' (no 'Professional'), return exactly 'Non-Professional'. If you cannot tell, return an empty string.\n"
-                . "10. Blood Type: Look below 'Blood Type'. It MUST be one of: O+, O-, A+, A-, B+, B-, AB+, AB-. If it doesn't clearly match one of these, return an empty string.\n"
-                . "11. Height: Look below 'Height'. PH licenses usually print this in METERS (e.g. '1.68'). Convert it to CENTIMETERS and return only the number as a string (e.g. '168'). If it's already printed in cm, return the number as-is.\n"
-                . "12. Weight: Look below 'Weight' (already in kilograms). Return only the number as a string (e.g. '70').\n"
-                . "13. Conditions: Look below 'Conditions' or 'Remarks'. If it says 'NONE' or is blank/illegible, return an empty string.\n";
+                . "CRITICAL INSTRUCTIONS:\n";
 
         if ($fromRawOcrText) {
-            $instructions .= "14. This text came from a generic OCR engine, not a vision model, so layout is lossy: a label and its value are usually on two separate whole lines, in that order. Some rows are a MERGED multi-column header naming several fields at once (e.g. 'Nationality Sex Date of Birth Weight(kg) Height(m)') immediately followed by ONE values line with the corresponding values in the same left-to-right order (e.g. 'PHL M 2001/10/05 58 1.64'). When you see this pattern, match each value to its column by position.\n";
+            $instructions .= "1. DO NOT extract the printed field labels (e.g. 'Last Name', 'First Name', 'Address', 'License No', 'Date of Birth', 'Sex'). Look for the actual personal data written near or below these labels.\n";
+        } else {
+            $instructions .= "1. THE MOST IMPORTANT RULE: on this card, printed field LABELS (e.g. 'Last Name', 'First Name', 'Sex', 'Date of Birth', 'Address') are always printed in a SMALL, thin, regular-weight font. The actual VALUE for every field is always printed in BOLD, LARGER, ALL-CAPS text, positioned directly below or beside its label. Judge whether a piece of text is a label or a value primarily by this font styling — bold/large/caps means it IS the value — not by position alone, since a label and its value can sit very close together.\n"
+                    . "2. DO NOT extract the printed field labels themselves under any circumstances (e.g. never return 'Last Name', 'First Name', 'Address', 'License No', 'Date of Birth', 'Sex' as if they were real data).\n"
+                    . "EXAMPLE of what NOT to do: if the small-font caption line reads 'Last Name, First Name, Middle Name' and the bold line directly below it reads 'DELA CRUZ, JUAN REYES', the correct output is last_name='DELA CRUZ', first_name='JUAN', middle_name='REYES'. The words 'Last Name', 'First Name', and 'Middle Name' must NEVER appear anywhere in your output — they are only the caption, never data, even if they happen to be the nearest text to look at.\n";
+        }
+
+        $instructions .= "3. Name Format: On a PH Driver's License, the name is printed immediately BELOW the label 'Last Name, First Name, Middle Name'. For example, if it says 'CALIDA, KRIS IAN SAPOTALO', the last_name is 'CALIDA', the first_name is 'KRIS IAN', and the middle_name is 'SAPOTALO'.\n"
+                . "4. License No: Look below the label 'License No', usually formatted like 'G25-24-005686' or similar.\n"
+                . "5. Date of Birth: Look below the label 'Date of Birth' (Format: YYYY/MM/DD). You MUST return it as YYYY-MM-DD.\n"
+                . "6. Address: Look below the label 'Address'. It is usually a full address like 'SAN JUAN, TUBURAN, CEBU, 6043'.\n"
+                . "7. Gender: Look below 'Sex'. 'M' means Male, 'F' means Female.\n"
+                . "8. License Expiry Date: Look below 'Expiration Date' (Format: YYYY/MM/DD). You MUST return it as YYYY-MM-DD.\n"
+                . "9. License Issued Date: Some cards print a small issue/renewal date separate from the expiration date (often near the signature or barcode, NOT the same value as Expiration Date). If you can identify one, return it as YYYY-MM-DD, otherwise return an empty string.\n"
+                . "10. License Type: If the card's title/header says 'PROFESSIONAL DRIVER'S LICENSE', return exactly 'Professional'. If the header is just 'DRIVER'S LICENSE' (no 'Professional'), return exactly 'Non-Professional'. If you cannot tell, return an empty string.\n"
+                . "11. Blood Type: Look below 'Blood Type'. It MUST be one of: O+, O-, A+, A-, B+, B-, AB+, AB-. If it doesn't clearly match one of these, return an empty string.\n"
+                . "12. Height: Look below 'Height'. PH licenses usually print this in METERS (e.g. '1.68'). Convert it to CENTIMETERS and return only the number as a string (e.g. '168'). If it's already printed in cm, return the number as-is.\n"
+                . "13. Weight: Look below 'Weight' (already in kilograms). Return only the number as a string (e.g. '70').\n"
+                . "14. Conditions: Look below 'Conditions' or 'Remarks'. If it says 'NONE' or is blank/illegible, return an empty string.\n";
+
+        if ($fromRawOcrText) {
+            $instructions .= "15. This text came from a generic OCR engine, not a vision model, so layout is lossy: a label and its value are usually on two separate whole lines, in that order. Some rows are a MERGED multi-column header naming several fields at once (e.g. 'Nationality Sex Date of Birth Weight(kg) Height(m)') immediately followed by ONE values line with the corresponding values in the same left-to-right order (e.g. 'PHL M 2001/10/05 58 1.64'). When you see this pattern, match each value to its column by position.\n";
         }
 
         $instructions .= "\nReturn ONLY a pure JSON object, without any markdown formatting or backticks. If a field cannot be found, return an empty string. The JSON must exactly match these keys:\n"
@@ -117,6 +131,28 @@ class OcrController extends Controller
                 . "- license_conditions";
 
         return $instructions;
+    }
+
+    /**
+     * Gemini's structured-output schema for the same field contract described
+     * in buildExtractionInstructions()'s JSON key list — a secondary
+     * robustness layer (every field is guaranteed to be a present string,
+     * never a missing key or wrong type) alongside responseMimeType, since a
+     * malformed response fails the whole tier the same way "no relevant
+     * data" does.
+     */
+    private function buildResponseSchema(): array
+    {
+        $properties = [];
+        foreach (self::EXTRACTED_FIELDS as $field) {
+            $properties[$field] = ['type' => 'string'];
+        }
+
+        return [
+            'type' => 'object',
+            'properties' => $properties,
+            'required' => self::EXTRACTED_FIELDS,
+        ];
     }
 
     private function scanWithGemini($base64Image)
@@ -171,6 +207,7 @@ class OcrController extends Controller
             'generationConfig' => [
                 'temperature' => 0.0,
                 'responseMimeType' => 'application/json',
+                'responseSchema' => $this->buildResponseSchema(),
             ]
         ]);
 
@@ -300,16 +337,29 @@ class OcrController extends Controller
      * itself instead of its value (e.g. an OCR/positional mismatch handing
      * back "Sex" or "Address" verbatim) — this is silently wrong data, not
      * "found nothing", so it must fail the tier rather than be saved.
+     *
+     * Checks both an exact match (the whole value IS a label, e.g. "Sex")
+     * and a "contains" match (a label leaked INTO an otherwise-real-looking
+     * value, e.g. ". First Name. Middle Name" from a merged caption line) —
+     * the same failure mode public/tvirs-ocr.js guards against client-side,
+     * which this previously did not.
      */
     private function assertNoLabelArtifacts(array $data): void
     {
         foreach ([
-            'first_name', 'last_name', 'gender', 'date_of_birth', 'address',
-            'license_type', 'blood_type', 'license_conditions',
+            'first_name', 'last_name', 'middle_name', 'gender', 'date_of_birth',
+            'address', 'license_type', 'blood_type', 'license_conditions',
         ] as $field) {
-            $value = strtolower(trim((string) ($data[$field] ?? '')));
-            if ($value !== '' && in_array($value, self::LABEL_ARTIFACTS, true)) {
-                throw new \Exception("Extraction returned a label artifact for '{$field}': " . $data[$field]);
+            $rawValue = (string) ($data[$field] ?? '');
+            $value = strtolower(trim($rawValue));
+            if ($value === '') {
+                continue;
+            }
+            if (in_array($value, self::LABEL_ARTIFACTS, true)) {
+                throw new \Exception("Extraction returned a label artifact for '{$field}': " . $rawValue);
+            }
+            if ($this->looksContaminatedByLabel($rawValue)) {
+                throw new \Exception("Extraction returned a label-contaminated value for '{$field}': " . $rawValue);
             }
         }
     }
@@ -335,7 +385,10 @@ class OcrController extends Controller
     private function looksContaminatedByLabel($value): bool
     {
         return preg_match(
-            '/\b(last\s*name|first\s*name|middle\s*name|sex|gender|date\s*of\s*birth|birth\s*date|license\s*no|nationality|weight|height)\b/i',
+            '/\b(last\s*name|first\s*name|middle\s*name|given\s*name|apelyido|pangalan|surname|sex|gender'
+                . '|date\s*of\s*birth|birth\s*date|dob|address|license\s*no|lic\s*no|id\s*no|control\s*no|card\s*no'
+                . '|nationality|expir\w*|valid\s*until|weight|height|blood\s*type|license\s*type|conditions'
+                . '|remarks|restrictions|agency\s*code)\b/i',
             (string) $value
         ) === 1;
     }

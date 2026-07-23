@@ -360,16 +360,25 @@
 
     // Trims very large captures down to a size that recognizes noticeably faster
     // without losing enough detail to hurt accuracy — ID card text stays legible
-    // well below the ~1920px long edge the camera can capture at.
+    // well below the ~1920px long edge the camera can capture at. This budget is
+    // for the on-device Tesseract path specifically, where higher resolution
+    // means a slower, hotter CPU/WASM workload on the officer's phone.
     var OCR_MAX_DIMENSION = 1280;
 
-    function prepareCanvasForOcr(sourceCanvas) {
+    // The cloud path (Gemini/OCR.Space) has no local compute cost, so small
+    // print — license number, DOB, blood type — benefits from noticeably more
+    // pixels and less compression than the on-device budget above allows.
+    var OCR_SERVER_MAX_DIMENSION = 2200;
+    var OCR_SERVER_JPEG_QUALITY = 0.92;
+
+    function prepareCanvasForOcr(sourceCanvas, maxDimension) {
+        var limit = maxDimension || OCR_MAX_DIMENSION;
         var longestEdge = Math.max(sourceCanvas.width, sourceCanvas.height);
-        if (longestEdge <= OCR_MAX_DIMENSION) {
+        if (longestEdge <= limit) {
             return sourceCanvas;
         }
 
-        var scale = OCR_MAX_DIMENSION / longestEdge;
+        var scale = limit / longestEdge;
         var scaledCanvas = document.createElement('canvas');
         scaledCanvas.width = Math.round(sourceCanvas.width * scale);
         scaledCanvas.height = Math.round(sourceCanvas.height * scale);
@@ -429,8 +438,8 @@
         var setStatus = typeof onStatus === 'function' ? onStatus : function () {};
         setStatus('Reading ID (cloud)…');
 
-        var ocrCanvas = prepareCanvasForOcr(canvas);
-        var imageData = ocrCanvas.toDataURL('image/jpeg', 0.85);
+        var ocrCanvas = prepareCanvasForOcr(canvas, OCR_SERVER_MAX_DIMENSION);
+        var imageData = ocrCanvas.toDataURL('image/jpeg', OCR_SERVER_JPEG_QUALITY);
 
         var controller = ('AbortController' in window) ? new AbortController() : null;
         var timeoutId = controller ? setTimeout(function () { controller.abort(); }, OCR_SERVER_TIMEOUT_MS) : null;
