@@ -14,7 +14,11 @@ class OcrController extends Controller
         'last name', 'first name', 'middle name', 'sex', 'gender',
         'date of birth', 'birth date', 'dob', 'address', 'aduress',
         'license no', 'license number', 'nationality', 'apelyido', 'pangalan',
+        'blood type', 'height', 'weight', 'license type', 'conditions',
+        'restrictions', 'expiration date', 'agency code', 'date issued',
     ];
+
+    private const VALID_BLOOD_TYPES = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
 
     /**
      * Handle the incoming scan request using Smart Fallback OCR
@@ -83,10 +87,17 @@ class OcrController extends Controller
                 . "3. License No: Look below the label 'License No', usually formatted like 'G25-24-005686' or similar.\n"
                 . "4. Date of Birth: Look below the label 'Date of Birth' (Format: YYYY/MM/DD). You MUST return it as YYYY-MM-DD.\n"
                 . "5. Address: Look below the label 'Address'. It is usually a full address like 'SAN JUAN, TUBURAN, CEBU, 6043'.\n"
-                . "6. Gender: Look below 'Sex'. 'M' means Male, 'F' means Female.\n";
+                . "6. Gender: Look below 'Sex'. 'M' means Male, 'F' means Female.\n"
+                . "7. License Expiry Date: Look below 'Expiration Date' (Format: YYYY/MM/DD). You MUST return it as YYYY-MM-DD.\n"
+                . "8. License Issued Date: Some cards print a small issue/renewal date separate from the expiration date (often near the signature or barcode, NOT the same value as Expiration Date). If you can identify one, return it as YYYY-MM-DD, otherwise return an empty string.\n"
+                . "9. License Type: If the card's title/header says 'PROFESSIONAL DRIVER'S LICENSE', return exactly 'Professional'. If the header is just 'DRIVER'S LICENSE' (no 'Professional'), return exactly 'Non-Professional'. If you cannot tell, return an empty string.\n"
+                . "10. Blood Type: Look below 'Blood Type'. It MUST be one of: O+, O-, A+, A-, B+, B-, AB+, AB-. If it doesn't clearly match one of these, return an empty string.\n"
+                . "11. Height: Look below 'Height'. PH licenses usually print this in METERS (e.g. '1.68'). Convert it to CENTIMETERS and return only the number as a string (e.g. '168'). If it's already printed in cm, return the number as-is.\n"
+                . "12. Weight: Look below 'Weight' (already in kilograms). Return only the number as a string (e.g. '70').\n"
+                . "13. Conditions: Look below 'Conditions' or 'Remarks'. If it says 'NONE' or is blank/illegible, return an empty string.\n";
 
         if ($fromRawOcrText) {
-            $instructions .= "7. This text came from a generic OCR engine, not a vision model, so layout is lossy: a label and its value are usually on two separate whole lines, in that order. Some rows are a MERGED multi-column header naming several fields at once (e.g. 'Nationality Sex Date of Birth Weight(kg) Height(m)') immediately followed by ONE values line with the corresponding values in the same left-to-right order (e.g. 'PHL M 2001/10/05 58 1.64'). When you see this pattern, match each value to its column by position.\n";
+            $instructions .= "14. This text came from a generic OCR engine, not a vision model, so layout is lossy: a label and its value are usually on two separate whole lines, in that order. Some rows are a MERGED multi-column header naming several fields at once (e.g. 'Nationality Sex Date of Birth Weight(kg) Height(m)') immediately followed by ONE values line with the corresponding values in the same left-to-right order (e.g. 'PHL M 2001/10/05 58 1.64'). When you see this pattern, match each value to its column by position.\n";
         }
 
         $instructions .= "\nReturn ONLY a pure JSON object, without any markdown formatting or backticks. If a field cannot be found, return an empty string. The JSON must exactly match these keys:\n"
@@ -96,7 +107,14 @@ class OcrController extends Controller
                 . "- license_number\n"
                 . "- date_of_birth\n"
                 . "- gender\n"
-                . "- address";
+                . "- address\n"
+                . "- license_expiry_date\n"
+                . "- license_issued_date\n"
+                . "- license_type\n"
+                . "- blood_type\n"
+                . "- height\n"
+                . "- weight\n"
+                . "- license_conditions";
 
         return $instructions;
     }
@@ -192,13 +210,22 @@ class OcrController extends Controller
             throw new \Exception('Gemini found no relevant data.');
         }
 
-        // Validate BEFORE normalizing gender — normalizeGender() would
-        // otherwise silently rewrite a leaked "Sex" label into "Other",
-        // hiding exactly the failure this guard exists to catch.
+        // Validate BEFORE normalizing gender/license_type — those normalizers
+        // would otherwise silently rewrite a leaked label into a fallback
+        // value, hiding exactly the failure this guard exists to catch.
         $this->assertNoLabelArtifacts($data);
 
         if (isset($data['gender'])) {
             $data['gender'] = $this->normalizeGender($data['gender']);
+        }
+        if (isset($data['license_type'])) {
+            $data['license_type'] = $this->normalizeLicenseType($data['license_type']);
+        }
+        if (isset($data['blood_type'])) {
+            $data['blood_type'] = $this->normalizeBloodType($data['blood_type']);
+        }
+        if (isset($data['height'])) {
+            $data['height'] = $this->normalizeHeightToCm($data['height']);
         }
 
         return $data;
@@ -221,6 +248,54 @@ class OcrController extends Controller
     }
 
     /**
+     * Map free-form license-type text to the form's exact <option> values.
+     * Unlike gender, there's no sensible "Other" fallback here — the form
+     * only offers these two options, so anything that doesn't clearly match
+     * one of them is left blank rather than guessed.
+     */
+    private function normalizeLicenseType($value)
+    {
+        $value = trim((string) $value);
+        if (preg_match('/^non[\s\-]?professional$/i', $value)) {
+            return 'Non-Professional';
+        }
+        if (preg_match('/^professional$/i', $value)) {
+            return 'Professional';
+        }
+        return '';
+    }
+
+    /**
+     * Only the 8 standard blood types are valid <select> options — anything
+     * else (including an OCR misread) is rejected rather than saved, since a
+     * wrong blood type is a patient-safety-adjacent risk, not a cosmetic one.
+     */
+    private function normalizeBloodType($value)
+    {
+        $value = strtoupper(trim((string) $value));
+        return in_array($value, self::VALID_BLOOD_TYPES, true) ? $value : '';
+    }
+
+    /**
+     * PH licenses print height in meters (e.g. "1.68"); the form field wants
+     * whole centimeters. A value under 3 is assumed to be meters (no adult
+     * is 3m tall, but plenty are between 1-2m); anything else is assumed to
+     * already be centimeters and passed through unchanged.
+     */
+    private function normalizeHeightToCm($value)
+    {
+        $value = trim((string) $value);
+        if ($value === '' || !is_numeric($value)) {
+            return '';
+        }
+        $num = (float) $value;
+        if ($num > 0 && $num < 3) {
+            $num *= 100;
+        }
+        return (string) (int) round($num);
+    }
+
+    /**
      * Guards against extractors that latch onto the printed field label
      * itself instead of its value (e.g. an OCR/positional mismatch handing
      * back "Sex" or "Address" verbatim) — this is silently wrong data, not
@@ -228,7 +303,10 @@ class OcrController extends Controller
      */
     private function assertNoLabelArtifacts(array $data): void
     {
-        foreach (['first_name', 'last_name', 'gender', 'date_of_birth', 'address'] as $field) {
+        foreach ([
+            'first_name', 'last_name', 'gender', 'date_of_birth', 'address',
+            'license_type', 'blood_type', 'license_conditions',
+        ] as $field) {
             $value = strtolower(trim((string) ($data[$field] ?? '')));
             if ($value !== '' && in_array($value, self::LABEL_ARTIFACTS, true)) {
                 throw new \Exception("Extraction returned a label artifact for '{$field}': " . $data[$field]);
@@ -328,6 +406,12 @@ class OcrController extends Controller
             'date_of_birth' => '',
             'gender' => '',
             'address' => '',
+            'license_expiry_date' => '',
+            'license_type' => '',
+            'blood_type' => '',
+            'height' => '',
+            'weight' => '',
+            'license_conditions' => '',
         ];
 
         $fullText = implode(' ', $lines);
@@ -335,6 +419,15 @@ class OcrController extends Controller
         // Find License Number (Format: N01-23-456789 or similar)
         if (preg_match('/[A-Z]\d{2}-\d{2}-\d{6}/', $fullText, $matches)) {
             $data['license_number'] = $matches[0];
+        }
+
+        // License Type: derived from the card's own title/header rather than
+        // a labeled field — a plain "DRIVER'S LICENSE" heading (no
+        // "Professional") means Non-Professional.
+        if (preg_match('/professional\s*driver.?s\s*licen[sc]e/i', $fullText)) {
+            $data['license_type'] = 'Professional';
+        } elseif (preg_match('/driver.?s\s*licen[sc]e/i', $fullText)) {
+            $data['license_type'] = 'Non-Professional';
         }
 
         foreach ($lines as $i => $line) {
@@ -394,6 +487,41 @@ class OcrController extends Controller
                 }
             }
 
+            // Standalone "Expiration Date" label, same-line or next-line value.
+            if (
+                $data['license_expiry_date'] === ''
+                && preg_match('/^Expiration\s*Date\s*[:\-]?\s*(.*)$/i', $line, $m)
+            ) {
+                $expRaw = trim($m[1]) !== '' ? trim($m[1]) : ($lines[$i + 1] ?? '');
+                if (preg_match('#(\d{4})/(\d{1,2})/(\d{1,2})#', $expRaw, $dm)) {
+                    $data['license_expiry_date'] = sprintf('%04d-%02d-%02d', $dm[1], $dm[2], $dm[3]);
+                }
+            }
+
+            // Standalone "Blood Type" label, same-line value only — one of the
+            // 8 known types, never a whole trailing line.
+            if (
+                $data['blood_type'] === ''
+                && preg_match('/^Blood\s*Type\s*[:\-]?\s*(\S+)/i', $line, $m)
+            ) {
+                $bt = strtoupper(trim($m[1]));
+                if (in_array($bt, self::VALID_BLOOD_TYPES, true)) {
+                    $data['blood_type'] = $bt;
+                }
+            }
+
+            // Standalone "Conditions"/"Remarks" label. "NONE" is the card's
+            // own explicit "nothing to report" value, not real data.
+            if (
+                $data['license_conditions'] === ''
+                && preg_match('/^(Conditions|Remarks)\s*[:\-]?\s*(.*)$/i', $line, $m)
+            ) {
+                $cond = trim($m[2]) !== '' ? trim($m[2]) : trim($lines[$i + 1] ?? '');
+                if ($cond !== '' && strtolower($cond) !== 'none') {
+                    $data['license_conditions'] = $cond;
+                }
+            }
+
             // Merged multi-column header row, e.g.
             // "Nationality Sex Date of Birth Weight(kg) Height(m)" followed
             // by a values row like "PHL M 2001/10/05 58 1.64". Match each
@@ -424,6 +552,12 @@ class OcrController extends Controller
                             if (preg_match('#(\d{4})/(\d{1,2})/(\d{1,2})#', $val, $dm)) {
                                 $data['date_of_birth'] = sprintf('%04d-%02d-%02d', $dm[1], $dm[2], $dm[3]);
                             }
+                        }
+                        if ($data['weight'] === '' && str_contains($col, 'weight') && is_numeric($val)) {
+                            $data['weight'] = (string) (int) round((float) $val);
+                        }
+                        if ($data['height'] === '' && str_contains($col, 'height') && is_numeric($val)) {
+                            $data['height'] = $this->normalizeHeightToCm($val);
                         }
                     }
                 }

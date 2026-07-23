@@ -149,6 +149,18 @@
         return '';
     }
 
+    var VALID_BLOOD_TYPES = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
+
+    // PH licenses print height in meters (e.g. "1.68"); the form field wants
+    // whole centimeters. A value under 3 is assumed to be meters (no adult is
+    // 3m tall); anything else is assumed to already be centimeters.
+    function normalizeHeightToCm(value) {
+        var num = parseFloat(value);
+        if (!isFinite(num) || num <= 0) return '';
+        if (num < 3) num *= 100;
+        return String(Math.round(num));
+    }
+
     function isPlausibleBirthDate(isoDate) {
         var parts = isoDate.split('-');
         var asDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
@@ -166,7 +178,7 @@
     // "value" that is actually still one of these labels must be rejected,
     // not accepted — mirroring OcrController.php's server-side label guards,
     // which have no client-side equivalent otherwise.
-    var LABEL_WORDS_RE = /\b(last\s*name|first\s*name|middle\s*name|given\s*name|apelyido|pangalan|surname|sex|gender|date\s*of\s*birth|birth\s*date|dob|address|license\s*no|lic\s*no|id\s*no|control\s*no|card\s*no|nationality|expir\w*|valid\s*until|weight|height)\b/i;
+    var LABEL_WORDS_RE = /\b(last\s*name|first\s*name|middle\s*name|given\s*name|apelyido|pangalan|surname|sex|gender|date\s*of\s*birth|birth\s*date|dob|address|license\s*no|lic\s*no|id\s*no|control\s*no|card\s*no|nationality|expir\w*|valid\s*until|weight|height|blood\s*type|license\s*type|conditions|remarks|restrictions|agency\s*code)\b/i;
 
     function isLabelContaminated(value) {
         return LABEL_WORDS_RE.test(value);
@@ -266,6 +278,82 @@
 
         var addressText = findAfterLabel(lines, 'address');
         if (addressText) data.address = addressText;
+
+        // License Type: derived from the card's own title/header rather than
+        // a labeled field — a plain "DRIVER'S LICENSE" heading (no
+        // "Professional") means Non-Professional.
+        if (/professional\s*driver.?s\s*licen[sc]e/i.test(text)) {
+            data.license_type = 'Professional';
+        } else if (/driver.?s\s*licen[sc]e/i.test(text)) {
+            data.license_type = 'Non-Professional';
+        }
+
+        var bloodTypeText = findAfterLabel(lines, 'blood\\s*type');
+        if (bloodTypeText) {
+            var bt = bloodTypeText.trim().toUpperCase().match(/^(O|A|B|AB)[+\-]/);
+            if (bt && VALID_BLOOD_TYPES.indexOf(bt[0]) !== -1) {
+                data.blood_type = bt[0];
+            }
+        }
+
+        var heightText = findAfterLabel(lines, 'height');
+        var heightMatch = heightText && heightText.match(/\d+(\.\d+)?/);
+        if (heightMatch) {
+            var heightCm = normalizeHeightToCm(heightMatch[0]);
+            if (heightCm) data.height = heightCm;
+        }
+
+        var weightText = findAfterLabel(lines, 'weight');
+        var weightMatch = weightText && weightText.match(/\d+(\.\d+)?/);
+        if (weightMatch) data.weight = String(Math.round(parseFloat(weightMatch[0])));
+
+        // "NONE" is the card's own explicit "nothing to report" value, not
+        // real data worth autofilling.
+        var conditionsText = findAfterLabel(lines, 'conditions|remarks');
+        if (conditionsText && conditionsText.trim().toLowerCase() !== 'none') {
+            data.license_conditions = conditionsText.trim();
+        }
+
+        // Fallback: a merged multi-column header row, e.g. "Nationality Sex
+        // Date of Birth Weight(kg) Height(m)" immediately followed by ONE
+        // values line in the same order (e.g. "PHL M 1975/06/28 70 1.68") —
+        // the standard PH driver's license layout. The label-based lookups
+        // above miss this because no single field's label stands alone on
+        // its own line; match each header to the value at the same ORDINAL
+        // position instead, same approach as OcrController.php's regex tier.
+        if (!data.gender || !data.date_of_birth || !data.weight || !data.height) {
+            for (var ci = 0; ci < lines.length - 1; ci++) {
+                var colMatches = lines[ci].match(/Nationality|Sex|Date\s+of\s+Birth|Weight(?:\s*\(kg\))?|Height(?:\s*\(m\))?/gi);
+                if (!colMatches || colMatches.length < 2) continue;
+
+                var columns = colMatches.map(function (c) { return c.toLowerCase().replace(/\s+/g, ' ').trim(); });
+                var values = lines[ci + 1].trim().split(/\s+/).filter(Boolean);
+                if (values.length < columns.length) continue;
+
+                columns.forEach(function (col, idx) {
+                    var val = values[idx] || '';
+                    if (!val) return;
+                    if (!data.gender && col.indexOf('sex') !== -1 && /^(m|f|male|female)$/i.test(val)) {
+                        data.gender = /^m/i.test(val) ? 'Male' : 'Female';
+                    }
+                    if (!data.date_of_birth && col.indexOf('date of birth') !== -1) {
+                        var dm = val.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+                        if (dm) {
+                            var iso = normalizeDate(dm[1] + '-' + dm[2] + '-' + dm[3]);
+                            if (iso && isPlausibleBirthDate(iso)) data.date_of_birth = iso;
+                        }
+                    }
+                    if (!data.weight && col.indexOf('weight') !== -1 && /^\d+(\.\d+)?$/.test(val)) {
+                        data.weight = String(Math.round(parseFloat(val)));
+                    }
+                    if (!data.height && col.indexOf('height') !== -1 && /^\d+(\.\d+)?$/.test(val)) {
+                        var hcm = normalizeHeightToCm(val);
+                        if (hcm) data.height = hcm;
+                    }
+                });
+                break;
+            }
+        }
 
         return data;
     }

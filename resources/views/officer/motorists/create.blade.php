@@ -1087,6 +1087,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (parsed.gender)         fill('gender', parsed.gender);
         if (parsed.address)        fill('address', parsed.address);
         if (parsed.license_expiry_date) fill('license_expiry_date', parsed.license_expiry_date);
+        if (parsed.license_issued_date) fill('license_issued_date', parsed.license_issued_date);
+        if (parsed.license_type)   fill('license_type', parsed.license_type);
+        if (parsed.blood_type)     fill('blood_type', parsed.blood_type);
+        if (parsed.height)         fill('height', parsed.height);
+        if (parsed.weight)         fill('weight', parsed.weight);
+        if (parsed.license_conditions) fill('license_conditions', parsed.license_conditions);
 
         // Instant duplicate/existing motorist check by license number
         if (parsed.license_number && (!parsed.first_name || !parsed.last_name)) {
