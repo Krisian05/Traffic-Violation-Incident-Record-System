@@ -22,10 +22,14 @@ use App\Http\Controllers\ViolationController;
 use App\Http\Controllers\ViolationTypeController;
 use App\Http\Controllers\ViolationVehiclePhotoController;
 use App\Http\Controllers\ViolatorController;
+use App\Http\Controllers\PrivacyController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('welcome'))->name('home');
 Route::get('/health', [HealthCheckController::class, 'check'])->name('health');
+Route::get('/privacy-policy', [PrivacyController::class, 'policy'])->name('privacy.policy');
+Route::get('/privacy/data-subject-request', [PrivacyController::class, 'showDsrForm'])->name('privacy.dsr');
+Route::post('/privacy/data-subject-request', [PrivacyController::class, 'submitDsr'])->name('privacy.dsr.submit');
 
 // Guest-only
 Route::middleware('guest')->group(function () {

@@ -988,6 +988,8 @@
 
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 <div class="profile-sheet-backdrop" id="profileSheetBackdrop"></div>
+
+@auth
 <div class="sidebar" id="appSidebar">
     <div class="sidebar-brand">
         <img src="{{ asset('images/PNP.png') }}" alt="PNP Logo" class="sidebar-logo">
@@ -1043,6 +1045,9 @@
         <a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">
             <i class="bi bi-bar-chart-fill"></i> Reports
         </a>
+        <a href="{{ route('privacy.policy') }}" class="{{ request()->routeIs('privacy.*') ? 'active' : '' }}">
+            <i class="bi bi-shield-check"></i> Data Privacy Policy
+        </a>
         @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin() || Auth::user()->isLguAdmin() || Auth::user()->isAuditor())
         <a href="{{ route('audit-logs.index') }}" class="{{ request()->routeIs('audit-logs.*') ? 'active' : '' }}">
             <i class="bi bi-clock-history"></i> Audit Trail
@@ -1083,13 +1088,16 @@
         </form>
     </div>
 </div>
+@endauth
 
 <div class="main-wrapper">
     <div class="topbar">
         <div class="d-flex align-items-center gap-2">
+            @auth
             <button class="hamburger-btn" id="sidebarToggle" aria-label="Open navigation menu" aria-expanded="false">
                 <i class="bi bi-list" style="font-size:1.25rem;"></i>
             </button>
+            @endauth
             <img src="{{ asset('images/PNP.png') }}" alt="PNP" style="width:24px;height:24px;object-fit:contain;">
             <div>
                 <div class="topbar-title">@yield('title', 'Dashboard')</div>
@@ -1108,6 +1116,7 @@
         <div class="d-flex align-items-center gap-3">
             <span class="topbar-date">{{ now()->format('F d, Y') }}</span>
             
+            @auth
             <!-- Profile Dropdown / Mobile Bottom Sheet -->
             <div class="topbar-profile-menu">
                 <button class="topbar-profile-btn" id="profileMenuToggle" title="Profile & Logout">
@@ -1147,8 +1156,13 @@
                             </button>
                         </form>
                     </div>
-
                 </div>
+            </div>
+            @else
+            <a href="{{ route('login') }}" class="btn btn-sm btn-outline-primary fw-600">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Log In
+            </a>
+            @endauth
             </div>
         </div>
     </div>
