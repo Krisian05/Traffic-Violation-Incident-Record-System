@@ -129,13 +129,71 @@
         </div>
 
         @if($logs->hasPages())
-            <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center">
-                <div class="text-muted style-small" style="font-size:0.78rem;">
+            <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="text-muted" style="font-size:0.78rem;">
                     Showing {{ $logs->firstItem() }} to {{ $logs->lastItem() }} of {{ $logs->total() }} audit entries
                 </div>
-                <div>{{ $logs->links('vendor.pagination.bootstrap-4') }}</div>
+                <nav>
+                    <ul class="aud-pager">
+                        <li>
+                            @if($logs->onFirstPage())
+                                <span class="aud-page aud-page-disabled"><i class="bi bi-chevron-left"></i></span>
+                            @else
+                                <a class="aud-page" href="{{ $logs->previousPageUrl() }}"><i class="bi bi-chevron-left"></i></a>
+                            @endif
+                        </li>
+                        @php
+                            $cur = $logs->currentPage();
+                            $last = $logs->lastPage();
+                            $pages = collect();
+                            for ($p = 1; $p <= $last; $p++) {
+                                if ($p === 1 || $p === $last || abs($p - $cur) <= 2) $pages->push($p);
+                            }
+                            $pages = $pages->unique()->sort()->values();
+                        @endphp
+                        @foreach($pages as $i => $p)
+                            @if($i > 0 && $p - $pages[$i - 1] > 1)
+                                <li><span class="aud-page aud-page-ellipsis">&hellip;</span></li>
+                            @endif
+                            <li>
+                                @if($p === $cur)
+                                    <span class="aud-page aud-page-active">{{ $p }}</span>
+                                @else
+                                    <a class="aud-page" href="{{ $logs->url($p) }}">{{ $p }}</a>
+                                @endif
+                            </li>
+                        @endforeach
+                        <li>
+                            @if($logs->hasMorePages())
+                                <a class="aud-page" href="{{ $logs->nextPageUrl() }}"><i class="bi bi-chevron-right"></i></a>
+                            @else
+                                <span class="aud-page aud-page-disabled"><i class="bi bi-chevron-right"></i></span>
+                            @endif
+                        </li>
+                    </ul>
+                </nav>
             </div>
         @endif
     </div>
 </div>
+
+<style>
+.aud-pager { display: flex; align-items: center; gap: .25rem; list-style: none; margin: 0; padding: 0; }
+.aud-page {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 32px; height: 32px; padding: 0 .55rem;
+    border-radius: 8px;
+    font-size: .78rem; font-weight: 600;
+    border: 1.5px solid #e7dfd5;
+    color: #57534e;
+    background: #fff;
+    text-decoration: none;
+    transition: all .15s;
+    cursor: pointer;
+}
+a.aud-page:hover { background: #fdf8f0; border-color: #dc2626; color: #dc2626; }
+.aud-page-active { background: linear-gradient(135deg, #dc2626, #b91c1c); border-color: #dc2626; color: #fff; box-shadow: 0 2px 8px rgba(220,38,38,.3); cursor: default; }
+.aud-page-disabled { color: #d6d3d1; border-color: #f0ebe3; background: #fafaf9; cursor: default; }
+.aud-page-ellipsis { border-color: transparent; background: transparent; color: #a8a29e; cursor: default; font-size: .85rem; }
+</style>
 @endsection
