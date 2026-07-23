@@ -210,6 +210,8 @@ Route::middleware('auth')->group(function () {
     // ── TRAFFIC OFFICER MOBILE ────────────────────────────────────────────────
     Route::middleware('role:traffic_officer')->prefix('officer')->name('officer.')->group(function () {
         Route::get('/dashboard', [OfficerController::class, 'dashboard'])->name('dashboard');
+        Route::get('/profile', [OfficerController::class, 'profile'])->name('profile');
+        Route::get('/sync', [OfficerController::class, 'sync'])->name('sync');
         Route::put('/password', [OfficerController::class, 'updatePassword'])->name('password.update');
         Route::get('/offline/violations/create', [OfficerController::class, 'createOfflineViolation'])->name('offline.violations.create');
         Route::get('/offline/vehicles/create', [OfficerController::class, 'createOfflineVehicle'])->name('offline.vehicles.create');

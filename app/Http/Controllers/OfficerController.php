@@ -1168,6 +1168,36 @@ class OfficerController extends Controller
             ->with('success', 'Incident updated successfully.');
     }
 
+    public function profile(): View
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $user->load(['lgu', 'devices']);
+
+        $issuedViolations = Violation::where('recorded_by', $user->id)
+            ->with(['violator', 'violationType'])
+            ->orderByDesc('created_at')
+            ->take(10)
+            ->get();
+
+        $submittedIncidents = Incident::where('recorded_by', $user->id)
+            ->orderByDesc('created_at')
+            ->take(10)
+            ->get();
+
+        $activities = \Spatie\Activitylog\Models\Activity::where('causer_id', $user->id)
+            ->orderByDesc('created_at')
+            ->take(10)
+            ->get();
+
+        return view('officer.profile', compact('user', 'issuedViolations', 'submittedIncidents', 'activities'));
+    }
+
+    public function sync(): View
+    {
+        return view('officer.sync');
+    }
+
     public function updatePassword(Request $request): RedirectResponse
     {
         $request->validate([

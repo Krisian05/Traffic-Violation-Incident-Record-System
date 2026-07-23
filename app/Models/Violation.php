@@ -74,40 +74,39 @@ class Violation extends Model
             }
 
             // Auto-generate ticket number only if none was manually entered
-            if (!empty($model->ticket_number)) {
-                return;
+            if (empty($model->ticket_number)) {
+                $model->ticket_number = static::generateTicketNumber($model->lgu_id);
             }
-
-            $year    = now()->year;
-            $isMysql = \DB::getDriverName() === 'mysql';
-
-            // LGU code drives the ticket number segment (e.g. TVIRS-CEB-BAL-2026-000001).
-            // Falls back to BAL — the current single-pilot LGU — when no LGU could be
-            // resolved for this record (e.g. PSGC lookup unavailable at capture time).
-            $lguCode = $model->lgu_id ? (Lgu::find($model->lgu_id)?->code) : null;
-            $lguCode = $lguCode ?: 'BAL';
-            $prefix  = "TVIRS-CEB-{$lguCode}-{$year}-";
-
-            if ($isMysql) {
-                $maxNum = Violation::withTrashed()
-                    ->whereYear('created_at', $year)
-                    ->whereNotNull('ticket_number')
-                    ->where('ticket_number', 'like', $prefix . '%')
-                    ->selectRaw("MAX(CAST(SUBSTRING_INDEX(ticket_number, '-', -1) AS UNSIGNED)) as max_num")
-                    ->value('max_num') ?? 0;
-            } else {
-                // PostgreSQL
-                $maxNum = Violation::withTrashed()
-                    ->whereYear('created_at', $year)
-                    ->whereNotNull('ticket_number')
-                    ->where('ticket_number', 'like', $prefix . '%')
-                    ->pluck('ticket_number')
-                    ->map(fn($n) => (int) last(explode('-', $n)))
-                    ->max() ?? 0;
-            }
-
-            $model->ticket_number = $prefix . str_pad($maxNum + 1, 6, '0', STR_PAD_LEFT);
         });
+    }
+
+    public static function generateTicketNumber(?int $lguId = null): string
+    {
+        $year    = now()->year;
+        $isMysql = \DB::getDriverName() === 'mysql';
+
+        $lguCode = $lguId ? (Lgu::find($lguId)?->code) : null;
+        $lguCode = $lguCode ?: 'BAL';
+        $prefix  = "TVIRS-CEB-{$lguCode}-{$year}-";
+
+        if ($isMysql) {
+            $maxNum = static::withTrashed()
+                ->whereYear('created_at', $year)
+                ->whereNotNull('ticket_number')
+                ->where('ticket_number', 'like', $prefix . '%')
+                ->selectRaw("MAX(CAST(SUBSTRING_INDEX(ticket_number, '-', -1) AS UNSIGNED)) as max_num")
+                ->value('max_num') ?? 0;
+        } else {
+            $maxNum = static::withTrashed()
+                ->whereYear('created_at', $year)
+                ->whereNotNull('ticket_number')
+                ->where('ticket_number', 'like', $prefix . '%')
+                ->pluck('ticket_number')
+                ->map(fn($n) => (int) last(explode('-', $n)))
+                ->max() ?? 0;
+        }
+
+        return $prefix . str_pad($maxNum + 1, 6, '0', STR_PAD_LEFT);
     }
 
     public function violator()
