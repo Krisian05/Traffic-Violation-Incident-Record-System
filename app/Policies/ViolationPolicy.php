@@ -49,14 +49,18 @@ class ViolationPolicy
         return $user->isLguAdmin();
     }
 
-    // Settling violations: LGU Admin / Super Admin, or Cashier / Treasurer for their LGU
+    // Settling violations: Exclusively Cashier and Treasurer for their assigned LGU
     public function settle(User $user, Violation $violation): bool
     {
-        if ($user->isLguAdmin()) {
-            return true;
+        if (!$user->isCashier() && !$user->isTreasurer()) {
+            return false;
         }
 
-        return ($user->isCashier() || $user->isTreasurer()) && $user->lgu_id && $violation->lgu_id === $user->lgu_id;
+        if ($user->lgu_id && $violation->lgu_id && $user->lgu_id !== $violation->lgu_id) {
+            return false;
+        }
+
+        return true;
     }
 
     public function restore(User $user, Violation $violation): bool

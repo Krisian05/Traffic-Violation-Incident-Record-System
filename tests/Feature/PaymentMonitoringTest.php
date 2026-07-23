@@ -162,9 +162,9 @@ class PaymentMonitoringTest extends TestCase
         $this->assertSame('pending', $violationB->fresh()->status);
     }
 
-    // ── Authorization: the fixed dual-path bug ───────────────────────────────
+    // ── Authorization: settlement restricted to Cashier and Treasurer ─────────
 
-    public function test_operator_can_settle_a_violation_directly(): void
+    public function test_operator_cannot_settle_a_violation_directly(): void
     {
         $operator  = User::factory()->operator()->create();
         $violation = $this->makeViolation();
@@ -175,16 +175,32 @@ class PaymentMonitoringTest extends TestCase
             'payment_method' => 'cash',
         ]);
 
+        $response->assertForbidden();
+        $this->assertSame('pending', $violation->fresh()->status);
+        $this->assertSame(0, Payment::where('violation_id', $violation->id)->count());
+    }
+
+    public function test_treasurer_can_settle_a_violation_in_their_lgu(): void
+    {
+        $lgu       = Lgu::factory()->create();
+        $treasurer = User::factory()->treasurer()->create(['lgu_id' => $lgu->id]);
+        $violation = $this->makeViolation(['lgu_id' => $lgu->id]);
+
+        $response = $this->actingAs($treasurer)->patch(route('violations.settle', $violation), [
+            'or_number'      => 'OR-TREAS-01',
+            'cashier_name'   => 'Treasurer Office',
+            'payment_method' => 'cash',
+        ]);
+
         $response->assertRedirect();
         $this->assertSame('settled', $violation->fresh()->status);
-        $this->assertSame(1, Payment::where('violation_id', $violation->id)->count());
     }
 
     public function test_cashier_cannot_settle_violation_outside_their_lgu(): void
     {
-        $lguA    = Lgu::factory()->create();
-        $lguB    = Lgu::factory()->create();
-        $cashier = User::factory()->cashier()->create(['lgu_id' => $lguA->id]);
+        $lguA      = Lgu::factory()->create();
+        $lguB      = Lgu::factory()->create();
+        $cashier   = User::factory()->cashier()->create(['lgu_id' => $lguA->id]);
         $violation = $this->makeViolation(['lgu_id' => $lguB->id]);
 
         $response = $this->actingAs($cashier)->patch(route('violations.settle', $violation), [
@@ -193,19 +209,18 @@ class PaymentMonitoringTest extends TestCase
             'payment_method' => 'cash',
         ]);
 
-        // Violation::BelongsToLgu's global scope excludes the other LGU's row from
-        // route-model-binding entirely for a non-admin, LGU-scoped user — surfacing
-        // as 404 (existing tenant-isolation behavior) rather than a policy 403.
         $response->assertNotFound();
         $this->assertSame(0, Payment::count());
     }
 
     public function test_edit_form_cannot_change_status_away_from_settled(): void
     {
-        $operator  = User::factory()->operator()->create();
-        $violation = $this->makeViolation();
+        $lgu       = Lgu::factory()->create();
+        $cashier   = User::factory()->cashier()->create(['lgu_id' => $lgu->id]);
+        $operator  = User::factory()->operator()->create(['lgu_id' => $lgu->id]);
+        $violation = $this->makeViolation(['lgu_id' => $lgu->id]);
 
-        $this->actingAs($operator)->patch(route('violations.settle', $violation), [
+        $this->actingAs($cashier)->patch(route('violations.settle', $violation), [
             'or_number'      => 'OR-5001',
             'cashier_name'   => 'Front Desk',
             'payment_method' => 'cash',
@@ -234,19 +249,20 @@ class PaymentMonitoringTest extends TestCase
 
     public function test_treasurer_is_scoped_to_their_own_lgu_on_collection_report(): void
     {
-        $lguA = Lgu::factory()->create();
-        $lguB = Lgu::factory()->create();
+        $lguA      = Lgu::factory()->create();
+        $lguB      = Lgu::factory()->create();
+        $cashierA  = User::factory()->cashier()->create(['lgu_id' => $lguA->id]);
+        $cashierB  = User::factory()->cashier()->create(['lgu_id' => $lguB->id]);
         $treasurer = User::factory()->treasurer()->create(['lgu_id' => $lguA->id]);
-        $operator  = User::factory()->operator()->create();
 
         $violationA = $this->makeViolation(['lgu_id' => $lguA->id]);
         $violationB = $this->makeViolation(['lgu_id' => $lguB->id]);
 
-        $this->actingAs($operator)->patch(route('violations.settle', $violationA), [
+        $this->actingAs($cashierA)->patch(route('violations.settle', $violationA), [
             'or_number' => 'OR-LGU-A', 'cashier_name' => 'A', 'payment_method' => 'cash',
         ])->assertRedirect();
 
-        $this->actingAs($operator)->patch(route('violations.settle', $violationB), [
+        $this->actingAs($cashierB)->patch(route('violations.settle', $violationB), [
             'or_number' => 'OR-LGU-B', 'cashier_name' => 'B', 'payment_method' => 'cash',
         ])->assertRedirect();
 

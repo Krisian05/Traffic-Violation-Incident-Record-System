@@ -104,7 +104,7 @@ class RbacFrameworkTest extends TestCase
         $cashier = User::factory()->cashier()->create(['lgu_id' => 1]);
 
         $this->actingAs($treasurer)
-            ->get('/payments/report')
+            ->get('/cashier')
             ->assertOk();
 
         $this->actingAs($cashier)

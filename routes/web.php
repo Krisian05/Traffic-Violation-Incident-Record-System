@@ -136,13 +136,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/violation-vehicle-photos/{violationVehiclePhoto}', [ViolationVehiclePhotoController::class, 'destroy'])->name('violation-vehicle-photos.destroy');
     });
 
-    Route::middleware('role:cashier')->group(function () {
+    Route::middleware('role:cashier,treasurer')->group(function () {
         Route::get('/cashier', [ViolationController::class, 'cashier'])->name('violations.cashier');
-    });
-
-    // Operators can also settle violations directly (LGUs without a dedicated cashier
-    // account) — see ViolationPolicy::settle() for the actual per-request authorization.
-    Route::middleware('role:cashier,operator')->group(function () {
         Route::patch('/violations/{violation}/settle', [ViolationController::class, 'settle'])->name('violations.settle');
     });
 
