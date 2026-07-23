@@ -158,16 +158,30 @@
         return ageYears >= 0 && ageYears <= 120;
     }
 
+    // Field-label captions that can end up on the same OCR'd line as, or
+    // immediately after, the label being searched for — most notably the PH
+    // driver's license's own merged "Last Name, First Name, Middle Name"
+    // caption row, whose commas Tesseract commonly misreads as periods,
+    // making it look like a single line of prose rather than a header. A
+    // "value" that is actually still one of these labels must be rejected,
+    // not accepted — mirroring OcrController.php's server-side label guards,
+    // which have no client-side equivalent otherwise.
+    var LABEL_WORDS_RE = /\b(last\s*name|first\s*name|middle\s*name|given\s*name|apelyido|pangalan|surname|sex|gender|date\s*of\s*birth|birth\s*date|dob|address|license\s*no|lic\s*no|id\s*no|control\s*no|card\s*no|nationality|expir\w*|valid\s*until|weight|height)\b/i;
+
+    function isLabelContaminated(value) {
+        return LABEL_WORDS_RE.test(value);
+    }
+
     function findAfterLabel(lines, labelPattern) {
         var re = new RegExp('(?:' + labelPattern + ')\\s*[:\\-]?\\s*(.+)', 'i');
         var labelOnlyRe = new RegExp('^(?:' + labelPattern + ')\\s*[:\\-]?\\s*$', 'i');
 
         for (var i = 0; i < lines.length; i++) {
             var match = lines[i].match(re);
-            if (match && match[1] && match[1].trim()) {
+            if (match && match[1] && match[1].trim() && !isLabelContaminated(match[1].trim())) {
                 return match[1].trim();
             }
-            if (labelOnlyRe.test(lines[i]) && lines[i + 1]) {
+            if (labelOnlyRe.test(lines[i]) && lines[i + 1] && !isLabelContaminated(lines[i + 1])) {
                 return lines[i + 1].trim();
             }
         }
@@ -207,7 +221,7 @@
         // the front of driver's licenses and several other PH ID cards.
         if (!data.last_name && !data.first_name) {
             var nameLine = lines.find(function (l) {
-                return /,/.test(l) && /^[A-Z\s,.'\-]+$/.test(l) && l.length > 5 && l.length < 60;
+                return /,/.test(l) && /^[A-Z\s,.'\-]+$/.test(l) && l.length > 5 && l.length < 60 && !isLabelContaminated(l);
             });
             if (nameLine) {
                 var parts = nameLine.split(',');
