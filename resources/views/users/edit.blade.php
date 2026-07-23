@@ -70,12 +70,15 @@
                         <i class="bi bi-shield-fill-check" style="color:#7c3aed;"></i>
                     </span>
                     <select name="role" class="form-select usr-input @error('role') is-invalid @enderror" required>
-                        <option value="traffic_officer" {{ old('role', $user->role) == 'traffic_officer' ? 'selected' : '' }}>Traffic Officer — Mobile</option>
-                        <option value="operator"        {{ old('role', $user->role) == 'operator'        ? 'selected' : '' }}>Operator — Full Access (except User Management)</option>
-                        <option value="admin"           {{ old('role', $user->role) == 'admin'           ? 'selected' : '' }}>Admin — Full Access + User Management</option>
-                        <option value="province_admin"  {{ old('role', $user->role) == 'province_admin'  ? 'selected' : '' }}>Province Admin — Province-wide Monitoring Only</option>
-                        <option value="cashier"         {{ old('role', $user->role) == 'cashier'         ? 'selected' : '' }}>Cashier — Collect Payments for Assigned LGU</option>
-                        <option value="treasurer"       {{ old('role', $user->role) == 'treasurer'       ? 'selected' : '' }}>Treasurer — Collection Monitoring for Assigned LGU</option>
+                        <option value="admin"              {{ old('role', $user->role) == 'admin'              ? 'selected' : '' }}>Super Administrator — Full System Administration & Management</option>
+                        <option value="province_admin"     {{ old('role', $user->role) == 'province_admin'     ? 'selected' : '' }}>Provincial Administrator — Province-wide Monitoring & Dashboards</option>
+                        <option value="operator"           {{ old('role', $user->role) == 'operator'           ? 'selected' : '' }}>LGU Administrator — Local System Settings & LGU Management</option>
+                        <option value="treasurer"          {{ old('role', $user->role) == 'treasurer'          ? 'selected' : '' }}>Treasurer — Collection Monitoring & Financial Reports</option>
+                        <option value="cashier"            {{ old('role', $user->role) == 'cashier'            ? 'selected' : '' }}>Cashier — Payment Validation & Collection Settlement</option>
+                        <option value="traffic_supervisor" {{ old('role', $user->role) == 'traffic_supervisor' ? 'selected' : '' }}>Police / Traffic Supervisor — Citation Review & Officer Monitoring</option>
+                        <option value="traffic_officer"    {{ old('role', $user->role) == 'traffic_officer'    ? 'selected' : '' }}>Issuing Officer / Field Personnel — Citation Ticket & Incident Issuance (Mobile)</option>
+                        <option value="records_officer"    {{ old('role', $user->role) == 'records_officer'    ? 'selected' : '' }}>Records Officer — Record Management, Encoding & Documentation</option>
+                        <option value="auditor"            {{ old('role', $user->role) == 'auditor'            ? 'selected' : '' }}>Auditor / View-Only User — Read-only Access to Reports, Logs & Records</option>
                     </select>
                     @error('role')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>

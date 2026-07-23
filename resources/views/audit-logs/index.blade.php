@@ -133,7 +133,7 @@
                 <div class="text-muted style-small" style="font-size:0.78rem;">
                     Showing {{ $logs->firstItem() }} to {{ $logs->lastItem() }} of {{ $logs->total() }} audit entries
                 </div>
-                <div>{{ $logs->links() }}</div>
+                <div>{{ $logs->links('vendor.pagination.bootstrap-4') }}</div>
             </div>
         @endif
     </div>

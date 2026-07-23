@@ -8,7 +8,6 @@ use Illuminate\Auth\Access\Response;
 
 class VehiclePolicy
 {
-    // Any authenticated user can view vehicles (shown on violator profile)
     public function viewAny(User $user): bool
     {
         return true;
@@ -19,30 +18,36 @@ class VehiclePolicy
         return true;
     }
 
-    // Both roles can register vehicles
     public function create(User $user): bool
     {
-        return $user->isOperator() || $user->isTrafficOfficer();
+        if ($user->isAuditor() || $user->isCashier() || $user->isTreasurer()) {
+            return false;
+        }
+
+        return true;
     }
 
-    // Only operators can edit or delete vehicles
     public function update(User $user, Vehicle $vehicle): bool
     {
-        return $user->isOperator();
+        if ($user->isAuditor() || $user->isCashier() || $user->isTreasurer()) {
+            return false;
+        }
+
+        return $user->isLguAdmin() || $user->isRecordsOfficer() || $user->isTrafficSupervisor() || $user->isIssuingOfficer();
     }
 
     public function delete(User $user, Vehicle $vehicle): bool
     {
-        return $user->isOperator();
+        return $user->isLguAdmin();
     }
 
     public function restore(User $user, Vehicle $vehicle): bool
     {
-        return $user->isOperator();
+        return $user->isLguAdmin();
     }
 
     public function forceDelete(User $user, Vehicle $vehicle): bool
     {
-        return $user->isOperator();
+        return $user->isLguAdmin();
     }
 }

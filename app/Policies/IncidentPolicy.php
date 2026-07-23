@@ -19,37 +19,48 @@ class IncidentPolicy
         return true;
     }
 
-    // Both roles can record incidents
+    // Creating incidents: Super Admin, LGU Admin, Records Officer, Traffic Supervisor, Issuing Officer
     public function create(User $user): bool
     {
-        return $user->isOperator() || $user->isTrafficOfficer();
+        if ($user->isAuditor() || $user->isCashier() || $user->isTreasurer()) {
+            return false;
+        }
+
+        return true;
     }
 
-    // Operators can edit any incident; traffic officers can edit only the ones they recorded.
+    // Editing incidents: Super Admin, LGU Admin, Records Officer, Traffic Supervisor, or Issuing Officer for own record
     public function update(User $user, Incident $incident): bool
     {
-        return $user->isOperator()
-            || ($user->isTrafficOfficer() && $incident->recorded_by === $user->id);
+        if ($user->isAuditor() || $user->isCashier() || $user->isTreasurer()) {
+            return false;
+        }
+
+        if ($user->isLguAdmin() || $user->isRecordsOfficer() || $user->isTrafficSupervisor()) {
+            return true;
+        }
+
+        return $user->isIssuingOfficer() && $incident->recorded_by === $user->id;
     }
 
-    // Only operators can delete incidents or their media
+    // Only LGU Admin / Super Admin can delete incidents or their media
     public function delete(User $user, Incident $incident): bool
     {
-        return $user->isOperator();
+        return $user->isLguAdmin();
     }
 
     public function deleteMedia(User $user, Incident $incident): bool
     {
-        return $user->isOperator();
+        return $user->isLguAdmin();
     }
 
     public function restore(User $user, Incident $incident): bool
     {
-        return $user->isOperator();
+        return $user->isLguAdmin();
     }
 
     public function forceDelete(User $user, Incident $incident): bool
     {
-        return $user->isOperator();
+        return $user->isLguAdmin();
     }
 }

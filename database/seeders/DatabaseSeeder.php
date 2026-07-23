@@ -23,15 +23,38 @@ class DatabaseSeeder extends Seeder
         $adminUser = User::firstOrCreate(
             ['username' => 'admin'],
             [
-                'name'     => 'Administrator',
+                'name'     => 'Super Administrator',
                 'role'     => 'admin',
                 'password' => Hash::make($adminPassword),
             ]
         );
 
-        // Ensure existing admin user has the admin role
         if ($adminUser->role !== 'admin') {
             $adminUser->update(['role' => 'admin']);
+        }
+
+        // Seed default demo accounts for all 8 RBAC framework roles
+        $rolesToSeed = [
+            ['username' => 'province_admin',     'name' => 'Provincial Administrator',      'role' => 'province_admin',     'lgu_id' => null],
+            ['username' => 'lgu_admin',          'name' => 'LGU Administrator (Balamban)',   'role' => 'operator',           'lgu_id' => 1],
+            ['username' => 'treasurer',          'name' => 'Municipal Treasurer',           'role' => 'treasurer',          'lgu_id' => 1],
+            ['username' => 'cashier',            'name' => 'Collection Cashier',            'role' => 'cashier',            'lgu_id' => 1],
+            ['username' => 'traffic_supervisor', 'name' => 'Police Traffic Supervisor',     'role' => 'traffic_supervisor', 'lgu_id' => 1],
+            ['username' => 'traffic_officer',    'name' => 'Issuing Traffic Officer',       'role' => 'traffic_officer',    'lgu_id' => 1],
+            ['username' => 'records_officer',    'name' => 'Records Management Officer',    'role' => 'records_officer',    'lgu_id' => 1],
+            ['username' => 'auditor',            'name' => 'Compliance Auditor (View Only)', 'role' => 'auditor',            'lgu_id' => null],
+        ];
+
+        foreach ($rolesToSeed as $usr) {
+            User::firstOrCreate(
+                ['username' => $usr['username']],
+                [
+                    'name'     => $usr['name'],
+                    'role'     => $usr['role'],
+                    'lgu_id'   => $usr['lgu_id'],
+                    'password' => Hash::make($adminPassword),
+                ]
+            );
         }
 
         // Seed the pilot LGU — Balamban is the current single-LGU rollout (Phase 1).

@@ -998,7 +998,7 @@
 
     <nav class="sidebar-nav">
         <div class="nav-label">Main Menu</div>
-        @if(auth()->user()->isProvinceAdmin() || auth()->user()->isAdmin())
+        @if(auth()->user()->isProvinceAdmin() || auth()->user()->isSuperAdmin())
         <a href="{{ route('province.dashboard') }}" class="{{ request()->routeIs('province.dashboard') ? 'active' : '' }}">
             <i class="bi bi-diagram-3"></i> Province Dashboard
         </a>
@@ -1024,7 +1024,7 @@
             <i class="bi bi-wallet2"></i> Cashier Portal
         </a>
         @endif
-        @if(Auth::user()->isAdmin() || Auth::user()->isOperator() || Auth::user()->isProvinceAdmin() || Auth::user()->isTreasurer())
+        @if(Auth::user()->isSuperAdmin() || Auth::user()->isLguAdmin() || Auth::user()->isProvinceAdmin() || Auth::user()->isTreasurer() || Auth::user()->isAuditor())
         <a href="{{ route('payments.report') }}" class="{{ request()->routeIs('payments.report') ? 'active' : '' }}">
             <i class="bi bi-cash-coin"></i> Collection Reports
         </a>
@@ -1043,18 +1043,22 @@
         <a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">
             <i class="bi bi-bar-chart-fill"></i> Reports
         </a>
+        @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin() || Auth::user()->isLguAdmin() || Auth::user()->isAuditor())
         <a href="{{ route('audit-logs.index') }}" class="{{ request()->routeIs('audit-logs.*') ? 'active' : '' }}">
             <i class="bi bi-clock-history"></i> Audit Trail
         </a>
+        @endif
 
-        @if(Auth::user()->isAdmin())
+        @if(Auth::user()->isSuperAdmin() || Auth::user()->isLguAdmin())
         <div class="nav-label">Administration</div>
         <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">
             <i class="bi bi-people-fill"></i> Users
         </a>
+        @if(Auth::user()->isSuperAdmin())
         <a href="{{ route('lgus.index') }}" class="{{ request()->routeIs('lgus.*') ? 'active' : '' }}">
             <i class="bi bi-building"></i> LGUs
         </a>
+        @endif
         @endif
 
         <div class="nav-label">Account</div>
@@ -1067,8 +1071,8 @@
         <div class="user-info">Logged in as</div>
         <div class="user-name">{{ Auth::user()->name }}</div>
         <div class="mt-1">
-            <span class="badge {{ Auth::user()->isOperator() ? 'badge-operator' : 'badge-viewer' }}">
-                {{ ucfirst(Auth::user()->role) }}
+            <span class="badge bg-primary text-white" style="font-size: 0.7rem;">
+                {{ Auth::user()->role_label }}
             </span>
         </div>
         <form method="POST" action="{{ route('logout') }}" class="mt-2">
@@ -1123,9 +1127,9 @@
                     <div class="profile-sheet-body">
                         <div class="profile-sheet-name">{{ Auth::user()->name }}</div>
                         <div class="profile-sheet-meta">
-                            <span class="profile-sheet-role-badge {{ Auth::user()->isOperator() ? 'role-operator' : 'role-viewer' }}">
+                            <span class="profile-sheet-role-badge role-operator">
                                 <i class="bi bi-shield-fill" style="font-size:.6rem;"></i>
-                                {{ ucfirst(Auth::user()->role) }}
+                                {{ Auth::user()->role_label }}
                             </span>
                         </div>
                         <div class="profile-sheet-system">Traffic Violation Incident Record System</div>

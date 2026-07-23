@@ -33,19 +33,24 @@ class UserFactory extends Factory
         ];
     }
 
-    public function operator(): static
+    public function superAdmin(): static
+    {
+        return $this->state(fn (array $attributes) => ['role' => 'admin']);
+    }
+
+    public function provinceAdmin(): static
+    {
+        return $this->state(fn (array $attributes) => ['role' => 'province_admin']);
+    }
+
+    public function lguAdmin(): static
     {
         return $this->state(fn (array $attributes) => ['role' => 'operator']);
     }
 
-    public function trafficOfficer(): static
+    public function operator(): static
     {
-        return $this->state(fn (array $attributes) => ['role' => 'traffic_officer']);
-    }
-
-    public function cashier(): static
-    {
-        return $this->state(fn (array $attributes) => ['role' => 'cashier']);
+        return $this->lguAdmin();
     }
 
     public function treasurer(): static
@@ -53,8 +58,33 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => ['role' => 'treasurer']);
     }
 
-    public function provinceAdmin(): static
+    public function cashier(): static
     {
-        return $this->state(fn (array $attributes) => ['role' => 'province_admin']);
+        return $this->state(fn (array $attributes) => ['role' => 'cashier']);
+    }
+
+    public function trafficSupervisor(): static
+    {
+        return $this->state(fn (array $attributes) => ['role' => 'traffic_supervisor']);
+    }
+
+    public function issuingOfficer(): static
+    {
+        return $this->state(fn (array $attributes) => ['role' => 'traffic_officer']);
+    }
+
+    public function trafficOfficer(): static
+    {
+        return $this->issuingOfficer();
+    }
+
+    public function recordsOfficer(): static
+    {
+        return $this->state(fn (array $attributes) => ['role' => 'records_officer']);
+    }
+
+    public function auditor(): static
+    {
+        return $this->state(fn (array $attributes) => ['role' => 'auditor']);
     }
 }

@@ -44,7 +44,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 // All authenticated users
 Route::middleware('auth')->group(function () {
 
-    Route::middleware('role:admin,operator,traffic_officer,cashier,province_admin,treasurer')->group(function () {
+    Route::middleware('role:admin,operator,traffic_officer,cashier,province_admin,treasurer,traffic_supervisor,records_officer,auditor')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     });
 
@@ -73,7 +73,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/violators', [ViolatorController::class, 'index'])->name('violators.index');
 
     // Static paths MUST come before {violator} wildcard
-    Route::middleware('role:operator')->group(function () {
+    Route::middleware('role:operator,records_officer,traffic_supervisor')->group(function () {
         Route::get('/violators/create', [ViolatorController::class, 'create'])->name('violators.create');
         Route::get('/violators/create-from-incident/{motorist}', [ViolatorController::class, 'createFromIncident'])->name('violators.create-from-incident');
         Route::post('/violators', [ViolatorController::class, 'store'])->name('violators.store');
@@ -82,9 +82,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/violators/{violator}', [ViolatorController::class, 'show'])->name('violators.show');
     Route::get('/violators/{violator}/print', [ViolatorController::class, 'printRecord'])->name('violators.print');
 
-    Route::middleware('role:operator')->group(function () {
+    Route::middleware('role:operator,records_officer,traffic_supervisor')->group(function () {
         Route::get('/violators/{violator}/edit', [ViolatorController::class, 'edit'])->name('violators.edit');
         Route::put('/violators/{violator}', [ViolatorController::class, 'update'])->name('violators.update');
+    });
+
+    Route::middleware('role:operator')->group(function () {
         Route::delete('/violators/{violator}', [ViolatorController::class, 'destroy'])->name('violators.destroy');
     });
 
@@ -92,11 +95,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles.index');
     Route::get('/vehicles/{vehicle}', [VehicleController::class, 'show'])->name('vehicles.show');
 
-    Route::middleware('role:operator')->group(function () {
+    Route::middleware('role:operator,records_officer,traffic_supervisor')->group(function () {
         Route::get('/violators/{violator}/vehicles/create', [VehicleController::class, 'create'])->name('vehicles.create');
         Route::post('/violators/{violator}/vehicles', [VehicleController::class, 'store'])->name('vehicles.store');
         Route::get('/vehicles/{vehicle}/edit', [VehicleController::class, 'edit'])->name('vehicles.edit');
         Route::put('/vehicles/{vehicle}', [VehicleController::class, 'update'])->name('vehicles.update');
+    });
+
+    Route::middleware('role:operator')->group(function () {
         Route::delete('/vehicles/{vehicle}', [VehicleController::class, 'destroy'])->name('vehicles.destroy');
         Route::delete('/vehicle-photos/{vehiclePhoto}', [VehiclePhotoController::class, 'destroy'])->name('vehicle-photos.destroy');
     });
@@ -118,11 +124,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/violations/{violation}/print', [ViolationController::class, 'printRecord'])->name('violations.print');
     Route::get('/violations/{violation}/print-thermal', [ViolationController::class, 'printThermal'])->name('violations.print-thermal');
 
-    Route::middleware('role:operator')->group(function () {
+    Route::middleware('role:operator,records_officer,traffic_supervisor')->group(function () {
         Route::get('/violators/{violator}/violations/create', [ViolationController::class, 'create'])->name('violations.create');
         Route::post('/violators/{violator}/violations', [ViolationController::class, 'store'])->name('violations.store');
         Route::get('/violations/{violation}/edit', [ViolationController::class, 'edit'])->name('violations.edit');
         Route::put('/violations/{violation}', [ViolationController::class, 'update'])->name('violations.update');
+    });
+
+    Route::middleware('role:operator')->group(function () {
         Route::delete('/violations/{violation}', [ViolationController::class, 'destroy'])->name('violations.destroy');
         Route::delete('/violation-vehicle-photos/{violationVehiclePhoto}', [ViolationVehiclePhotoController::class, 'destroy'])->name('violation-vehicle-photos.destroy');
     });
@@ -152,17 +161,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/incidents', [IncidentController::class, 'index'])->name('incidents.index');
 
     // Static path before wildcard
-    Route::middleware('role:operator')->group(function () {
+    Route::middleware('role:operator,records_officer,traffic_supervisor')->group(function () {
         Route::get('/incidents/create', [IncidentController::class, 'create'])->name('incidents.create');
         Route::post('/incidents', [IncidentController::class, 'store'])->name('incidents.store');
+        Route::get('/incidents/{incident}/edit', [IncidentController::class, 'edit'])->name('incidents.edit');
+        Route::put('/incidents/{incident}', [IncidentController::class, 'update'])->name('incidents.update');
     });
 
     Route::get('/incidents/{incident}', [IncidentController::class, 'show'])->name('incidents.show');
     Route::get('/incidents/{incident}/print', [IncidentController::class, 'printRecord'])->name('incidents.print');
 
     Route::middleware('role:operator')->group(function () {
-        Route::get('/incidents/{incident}/edit', [IncidentController::class, 'edit'])->name('incidents.edit');
-        Route::put('/incidents/{incident}', [IncidentController::class, 'update'])->name('incidents.update');
         Route::delete('/incidents/{incident}', [IncidentController::class, 'destroy'])->name('incidents.destroy');
         Route::delete('/incident-media/{media}', [IncidentController::class, 'destroyMedia'])->name('incident-media.destroy');
     });
@@ -175,12 +184,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
     // ── AUDIT LOGS ────────────────────────────────────────────────────────────
-    Route::middleware('role:admin,province_admin,operator')->group(function () {
+    Route::middleware('role:admin,province_admin,operator,auditor')->group(function () {
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
     });
 
-    // ── USERS (admin only) ───────────────────────────────────────────────────
-    Route::middleware('role:admin')->group(function () {
+    // ── USERS (admin and LGU admin) ─────────────────────────────────────────
+    Route::middleware('role:admin,operator')->group(function () {
         Route::resource('users', UserController::class);
         Route::delete('/users/{user}/devices/{device}', [DeviceRegistrationController::class, 'destroy'])->name('users.devices.destroy');
     });
@@ -192,7 +201,7 @@ Route::middleware('auth')->group(function () {
 
     // ── PAYMENT MONITORING: Collection Reports & Reconciliation ─────────────
     // Treasurers are scoped to their own LGU inside PaymentReportController.
-    Route::middleware('role:admin,operator,province_admin,treasurer')->group(function () {
+    Route::middleware('role:admin,operator,province_admin,treasurer,auditor')->group(function () {
         Route::get('/payments/report', [PaymentReportController::class, 'index'])->name('payments.report');
         Route::get('/payments/report/export', [PaymentReportController::class, 'exportExcel'])->name('payments.report.export');
     });

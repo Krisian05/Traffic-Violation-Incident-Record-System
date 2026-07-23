@@ -61,31 +61,9 @@
                         <span class="usr-username">{{ $user->username }}</span>
                     </td>
                     <td>
-                        @if($user->isAdmin())
-                            <span class="usr-role-badge usr-role-admin">
-                                <i class="bi bi-person-fill-gear me-1"></i>Admin
-                            </span>
-                        @elseif($user->isProvinceAdmin())
-                            <span class="usr-role-badge usr-role-prov">
-                                <i class="bi bi-diagram-3-fill me-1"></i>Province Admin
-                            </span>
-                        @elseif($user->isOperator())
-                            <span class="usr-role-badge usr-role-op">
-                                <i class="bi bi-shield-fill-check me-1"></i>Operator
-                            </span>
-                        @elseif($user->isCashier())
-                            <span class="usr-role-badge usr-role-cashier">
-                                <i class="bi bi-wallet2 me-1"></i>Cashier
-                            </span>
-                        @elseif($user->isTreasurer())
-                            <span class="usr-role-badge usr-role-treasurer">
-                                <i class="bi bi-bank me-1"></i>Treasurer
-                            </span>
-                        @else
-                            <span class="usr-role-badge usr-role-to">
-                                <i class="bi bi-phone-fill me-1"></i>Traffic Officer
-                            </span>
-                        @endif
+                        <span class="usr-role-badge usr-role-admin">
+                            <i class="bi bi-shield-fill-check me-1"></i>{{ $user->role_label }}
+                        </span>
                     </td>
                     <td>
                         @if($user->lgu)

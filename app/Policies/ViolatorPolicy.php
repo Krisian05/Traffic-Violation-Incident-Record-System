@@ -8,7 +8,6 @@ use Illuminate\Auth\Access\Response;
 
 class ViolatorPolicy
 {
-    // Any authenticated user can list and view motorists
     public function viewAny(User $user): bool
     {
         return true;
@@ -19,31 +18,36 @@ class ViolatorPolicy
         return true;
     }
 
-    // Both operators and traffic officers can register motorists
     public function create(User $user): bool
     {
-        return $user->isOperator() || $user->isTrafficOfficer();
+        if ($user->isAuditor() || $user->isCashier() || $user->isTreasurer()) {
+            return false;
+        }
+
+        return true;
     }
 
-    // Both operators and traffic officers can edit motorist records
     public function update(User $user, Violator $violator): bool
     {
-        return $user->isOperator() || $user->isTrafficOfficer();
+        if ($user->isAuditor() || $user->isCashier() || $user->isTreasurer()) {
+            return false;
+        }
+
+        return $user->isLguAdmin() || $user->isRecordsOfficer() || $user->isTrafficSupervisor() || $user->isIssuingOfficer();
     }
 
-    // Only operators can soft-delete motorists
     public function delete(User $user, Violator $violator): bool
     {
-        return $user->isOperator();
+        return $user->isLguAdmin();
     }
 
     public function restore(User $user, Violator $violator): bool
     {
-        return $user->isOperator();
+        return $user->isLguAdmin();
     }
 
     public function forceDelete(User $user, Violator $violator): bool
     {
-        return $user->isOperator();
+        return $user->isLguAdmin();
     }
 }
