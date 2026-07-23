@@ -184,6 +184,11 @@ class OcrController extends Controller
 
         // If at least one crucial field is found, consider it a success
         if (empty($data['first_name']) && empty($data['last_name']) && empty($data['license_number'])) {
+            // TEMP DEBUG (see plan: the-still-cant-extract-snazzy-parnas): log the raw
+            // parsed payload so we can tell "Gemini genuinely saw nothing" apart from
+            // "Gemini returned data, just not in these 3 checked fields" or label junk
+            // that got silently dropped elsewhere. Remove once root cause is confirmed.
+            Log::debug('Gemini OCR raw parsed payload (no relevant data path): ' . json_encode($data));
             throw new \Exception('Gemini found no relevant data.');
         }
 
@@ -278,6 +283,10 @@ class OcrController extends Controller
 
         $json = $response->json();
         if (isset($json['IsErroredOnProcessing']) && $json['IsErroredOnProcessing'] == true) {
+            // TEMP DEBUG (see plan: the-still-cant-extract-snazzy-parnas): OCR.Space's
+            // free tier caps requests at 1MB; log the actual payload size so the next
+            // failure tells us whether this is a size-limit hit vs. a genuine engine error.
+            Log::debug('OCR.Space error payload size: base64 length=' . strlen($base64Image) . ' bytes, decoded approx=' . (int) (strlen($base64Image) * 3 / 4) . ' bytes');
             throw new \Exception('OCR.Space error: ' . ($json['ErrorMessage'][0] ?? 'Unknown'));
         }
 
@@ -380,7 +389,7 @@ class OcrController extends Controller
                 && preg_match('/^(Address|Aduress)\s*[:\-]?\s*(.*)$/i', $line, $m)
             ) {
                 $addr = trim($m[2]) !== '' ? trim($m[2]) : ($lines[$i + 1] ?? '');
-                if ($addr !== '' && !$this->looksContaminatedByLabel($addr)) {
+                if ($addr !== '') {
                     $data['address'] = $addr;
                 }
             }
