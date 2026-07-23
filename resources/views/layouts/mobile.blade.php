@@ -20,6 +20,7 @@
     <link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" rel="stylesheet">
     <link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" rel="stylesheet">
     <link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" rel="stylesheet">
+    <link href="{{ asset('vendor/cropperjs/cropper.min.css') }}" rel="stylesheet">
 
     <style>
         *, *::before, *::after { box-sizing: border-box; }
@@ -1349,6 +1350,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ asset('vendor/cropperjs/cropper.min.js') }}"></script>
 <script>
 (function () {
     var el   = document.getElementById('mob-flash-toast');
@@ -1816,24 +1818,42 @@ document.addEventListener('keydown', function (e) {
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="tvirsStopScanner()"></button>
             </div>
             <div style="padding:1rem;background:#0f172a;text-align:center;">
-                <div style="position:relative;width:100%;aspect-ratio:4/3;border-radius:14px;overflow:hidden;background:#000;border:2px dashed rgba(255,255,255,.2);">
-                    <video id="tvirs_scanner_video" style="width:100%;height:100%;object-fit:cover;" playsinline muted></video>
-                    <canvas id="tvirs_scanner_canvas" class="d-none"></canvas>
-                    <div style="position:absolute;inset:15%;border:2px solid #60a5fa;border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.45);pointer-events:none;"></div>
-                </div>
-                <div id="tvirs_scanner_status" style="margin-top:.7rem;font-size:.78rem;color:#94a3b8;font-weight:600;">Point camera at a barcode/QR code, or tap "Snap &amp; Read" to capture any driver's license or valid ID</div>
+                <div id="tvirs_capture_view">
+                    <div style="position:relative;width:100%;aspect-ratio:85.6/53.98;border-radius:14px;overflow:hidden;background:#000;border:2px dashed rgba(255,255,255,.2);">
+                        <video id="tvirs_scanner_video" style="width:100%;height:100%;object-fit:cover;" playsinline muted></video>
+                        <canvas id="tvirs_scanner_canvas" class="d-none"></canvas>
+                        <div style="position:absolute;inset:8%;border:2px solid #60a5fa;border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.45);pointer-events:none;"></div>
+                    </div>
+                    <div id="tvirs_scanner_status" style="margin-top:.7rem;font-size:.78rem;color:#94a3b8;font-weight:600;">Point camera at a barcode/QR code, or tap "Snap &amp; Read" to capture any driver's license or valid ID</div>
 
-                <div class="d-flex gap-2 justify-content-center mt-3 flex-wrap">
-                    <button type="button" id="tvirs_snap_btn" class="btn btn-primary btn-sm px-3 fw-bold rounded-3" style="font-size:.8rem;" onclick="tvirsSnapAndRead()">
-                        <i class="ph ph-camera me-1"></i> Snap & Read
-                    </button>
-                    <button type="button" class="btn btn-secondary btn-sm px-3 fw-bold rounded-3" style="font-size:.8rem;" onclick="document.getElementById('tvirs_upload_input').click()">
-                        <i class="ph ph-upload me-1"></i> Take Photo / Upload
-                    </button>
-                    <input type="file" id="tvirs_upload_input" accept="image/*" capture="environment" class="d-none" onchange="tvirsHandleUpload(this)">
-                    <button type="button" id="tvirs_torch_btn" class="btn btn-outline-light btn-sm px-3 fw-bold rounded-3 d-none" style="font-size:.8rem;" onclick="tvirsToggleTorch()">
-                        <i class="ph ph-lightning me-1"></i> Torch
-                    </button>
+                    <div class="d-flex gap-2 justify-content-center mt-3 flex-wrap">
+                        <button type="button" id="tvirs_snap_btn" class="btn btn-primary btn-sm px-3 fw-bold rounded-3" style="font-size:.8rem;" onclick="tvirsSnapAndRead()">
+                            <i class="ph ph-camera me-1"></i> Snap & Read
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm px-3 fw-bold rounded-3" style="font-size:.8rem;" onclick="document.getElementById('tvirs_upload_input').click()">
+                            <i class="ph ph-upload me-1"></i> Take Photo / Upload
+                        </button>
+                        <input type="file" id="tvirs_upload_input" accept="image/*" capture="environment" class="d-none" onchange="tvirsHandleUpload(this)">
+                        <button type="button" id="tvirs_torch_btn" class="btn btn-outline-light btn-sm px-3 fw-bold rounded-3 d-none" style="font-size:.8rem;" onclick="tvirsToggleTorch()">
+                            <i class="ph ph-lightning me-1"></i> Torch
+                        </button>
+                    </div>
+                </div>
+
+                <div id="tvirs_crop_view" class="d-none">
+                    <div style="max-height:60vh;overflow:hidden;border-radius:14px;background:#000;">
+                        <img id="tvirs_crop_image" style="display:block;max-width:100%;" alt="Captured ID — adjust crop">
+                    </div>
+                    <div style="margin-top:.7rem;font-size:.78rem;color:#94a3b8;font-weight:600;">Adjust the box to fit the ID card exactly, then confirm.</div>
+
+                    <div class="d-flex gap-2 justify-content-center mt-3 flex-wrap">
+                        <button type="button" class="btn btn-primary btn-sm px-3 fw-bold rounded-3" style="font-size:.8rem;" onclick="tvirsConfirmCrop()">
+                            <i class="ph ph-check me-1"></i> Confirm Crop
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm px-3 fw-bold rounded-3" style="font-size:.8rem;" onclick="tvirsRetakeFromCrop()">
+                            <i class="ph ph-arrow-counter-clockwise me-1"></i> Retake
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1846,6 +1866,78 @@ var tvirsScannerAnim = null;
 var tvirsScannerTargetInput = null;
 var tvirsScannerCallback = null;
 var tvirsTorchState = false;
+var tvirsCropper = null;
+var tvirsCropOnConfirm = null;
+
+// PH ID cards (driver's license, PhilSys, UMID, etc.) are ~85.6mm x 53.98mm —
+// used both for the live-preview guide box and to lock the crop tool's
+// aspect ratio, so officers get a naturally card-shaped box instead of a
+// free-form rectangle to draw from scratch.
+var TVIRS_ID_CARD_ASPECT_RATIO = 85.6 / 53.98;
+
+// Mandatory crop step shown after every capture, before OCR ever runs — the
+// full, uncropped frame otherwise wastes most of its pixel budget on
+// background (hand, table, etc.) rather than the card's actual text. Called
+// from both tvirsSnapAndRead() (OCR branch only — a detected barcode is
+// already precise data and skips this) and tvirsHandleUpload().
+function tvirsShowCropStep(canvas, onConfirm) {
+    var captureView = document.getElementById('tvirs_capture_view');
+    var cropView = document.getElementById('tvirs_crop_view');
+    var img = document.getElementById('tvirs_crop_image');
+    if (!captureView || !cropView || !img) {
+        // Crop UI unavailable for some reason — fail open rather than strand
+        // the officer with no way to complete the scan.
+        onConfirm(canvas);
+        return;
+    }
+
+    tvirsCropOnConfirm = onConfirm;
+
+    img.onload = function () {
+        if (tvirsCropper) {
+            tvirsCropper.destroy();
+        }
+        tvirsCropper = new Cropper(img, {
+            aspectRatio: TVIRS_ID_CARD_ASPECT_RATIO,
+            viewMode: 1,
+            autoCropArea: 0.9,
+            background: false,
+            responsive: true
+        });
+    };
+    img.src = canvas.toDataURL('image/jpeg', 0.95);
+
+    captureView.classList.add('d-none');
+    cropView.classList.remove('d-none');
+}
+
+function tvirsConfirmCrop() {
+    if (!tvirsCropper) return;
+    var croppedCanvas = tvirsCropper.getCroppedCanvas();
+    var onConfirm = tvirsCropOnConfirm;
+    tvirsTeardownCropView();
+    if (onConfirm && croppedCanvas) {
+        onConfirm(croppedCanvas);
+    }
+}
+
+function tvirsRetakeFromCrop() {
+    tvirsTeardownCropView();
+    var video = document.getElementById('tvirs_scanner_video');
+    if (video) video.play();
+}
+
+function tvirsTeardownCropView() {
+    if (tvirsCropper) {
+        tvirsCropper.destroy();
+        tvirsCropper = null;
+    }
+    tvirsCropOnConfirm = null;
+    var captureView = document.getElementById('tvirs_capture_view');
+    var cropView = document.getElementById('tvirs_crop_view');
+    if (cropView) cropView.classList.add('d-none');
+    if (captureView) captureView.classList.remove('d-none');
+}
 
 function tvirsParseLicenseBarcode(code) {
     if (!code) return null;
@@ -1973,13 +2065,19 @@ function tvirsSnapAndRead() {
                 tvirsProcessScannedCode(barcodes[0].rawValue);
             } else {
                 if (status) status.textContent = 'No barcode found — reading printed text instead…';
-                tvirsRunOcrFallback(canvas).catch(function() { video.play(); });
+                tvirsShowCropStep(canvas, function (croppedCanvas) {
+                    tvirsRunOcrFallback(croppedCanvas).catch(function() { video.play(); });
+                });
             }
         }).catch(function() {
-            tvirsRunOcrFallback(canvas).catch(function() { video.play(); });
+            tvirsShowCropStep(canvas, function (croppedCanvas) {
+                tvirsRunOcrFallback(croppedCanvas).catch(function() { video.play(); });
+            });
         });
     } else {
-        tvirsRunOcrFallback(canvas).catch(function() { video.play(); });
+        tvirsShowCropStep(canvas, function (croppedCanvas) {
+            tvirsRunOcrFallback(croppedCanvas).catch(function() { video.play(); });
+        });
     }
 }
 
@@ -2008,8 +2106,10 @@ function tvirsHandleUpload(input) {
         canvas.height = img.height * scale;
         var ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        
-        tvirsRunOcrFallback(canvas).catch(function() { if (video) video.play(); });
+
+        tvirsShowCropStep(canvas, function (croppedCanvas) {
+            tvirsRunOcrFallback(croppedCanvas).catch(function() { if (video) video.play(); });
+        });
         input.value = ''; // Reset input
     };
     img.src = URL.createObjectURL(file);
@@ -2123,6 +2223,8 @@ function tvirsStopScanner() {
     }
     var snapBtn = document.getElementById('tvirs_snap_btn');
     if (snapBtn) snapBtn.disabled = false;
+    // Closing the modal mid-crop must not leak the Cropper instance.
+    tvirsTeardownCropView();
 }
 </script>
 
