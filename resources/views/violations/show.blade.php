@@ -616,11 +616,13 @@
                 </button>
                 @endif
                 @endcan
-                @if(Auth::user()->isOperator())
+                @can('update', $violation)
                 <a href="{{ route('violations.edit', $violation) }}"
                    class="btn btn-warning w-100 fw-600 d-inline-flex align-items-center justify-content-center gap-2">
                     <i class="bi bi-pencil-fill" style="font-size:.85rem;"></i> Edit Violation
                 </a>
+                @endcan
+                @can('delete', $violation)
                 <form method="POST" action="{{ route('violations.destroy', $violation) }}"
                       data-confirm="Permanently delete this violation record? This cannot be undone.">
                     @csrf @method('DELETE')
@@ -628,11 +630,9 @@
                         <i class="bi bi-trash" style="font-size:.85rem;"></i> Delete Record
                     </button>
                 </form>
-                @endif
+                @endcan
             </div>
         </div>
-
-    </div>{{-- /RIGHT COLUMN --}}
 
 </div>{{-- /row --}}
 

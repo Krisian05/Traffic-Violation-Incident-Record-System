@@ -474,10 +474,12 @@
                                         <a href="{{ route('violations.show', $viol) }}" class="vlt-act-btn vlt-act-view">
                                             <i class="bi bi-eye-fill"></i>
                                         </a>
-                                        @if(Auth::user()->isOperator())
+                                        @can('update', $viol)
                                         <a href="{{ route('violations.edit', $viol) }}" class="vlt-act-btn vlt-act-edit">
                                             <i class="bi bi-pencil-fill"></i>
                                         </a>
+                                        @endcan
+                                        @can('settle', $viol)
                                         @if($viol->status === 'pending')
                                         <button type="button" class="vlt-act-btn vlt-act-settle"
                                             data-id="{{ $viol->id }}"
@@ -487,7 +489,7 @@
                                             <i class="bi bi-receipt"></i> Settle
                                         </button>
                                         @endif
-                                        @endif
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>
