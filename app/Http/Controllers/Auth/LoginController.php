@@ -30,6 +30,16 @@ class LoginController extends Controller
         ]);
 
         if (! Auth::validate(['username' => $request->username, 'password' => $request->password])) {
+            activity()
+                ->useLog('auth')
+                ->event('login_failed')
+                ->withProperties([
+                    'ip'         => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'username'   => $request->username,
+                ])
+                ->log("Failed login attempt for username '{$request->username}'");
+
             return back()->withErrors([
                 'username' => 'The provided credentials do not match our records.',
             ])->onlyInput('username');
@@ -43,6 +53,17 @@ class LoginController extends Controller
             $deviceError = $this->enforceDeviceRegistration($request, $user);
 
             if ($deviceError) {
+                activity()
+                    ->causedBy($user)
+                    ->useLog('auth')
+                    ->event('login_blocked')
+                    ->withProperties([
+                        'ip'         => $request->ip(),
+                        'user_agent' => $request->userAgent(),
+                        'reason'     => 'max_devices_exceeded',
+                    ])
+                    ->log("Login blocked for officer '{$user->username}': Max devices reached.");
+
                 return back()->withErrors(['username' => $deviceError])->onlyInput('username');
             }
         }
@@ -56,6 +77,17 @@ class LoginController extends Controller
 
         Auth::login($user, $remember);
         $request->session()->regenerate();
+
+        activity()
+            ->causedBy($user)
+            ->useLog('auth')
+            ->event('login_success')
+            ->withProperties([
+                'ip'         => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'role'       => $user->role,
+            ])
+            ->log("Successful login for user '{$user->username}'");
 
         if ($user->isTrafficOfficer()) {
             return redirect()->route('officer.dashboard');
@@ -151,6 +183,16 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        $user = Auth::user();
+        if ($user) {
+            activity()
+                ->causedBy($user)
+                ->useLog('auth')
+                ->event('logout')
+                ->withProperties(['ip' => $request->ip()])
+                ->log("User '{$user->username}' logged out");
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();
