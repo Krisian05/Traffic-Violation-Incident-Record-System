@@ -1130,11 +1130,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 {{-- ── OFFICER PERFORMANCE ── --}}
 @if($officerPerformance->isNotEmpty())
-<div class="card border-0 shadow-sm mb-4" style="border-radius:14px;overflow:hidden;border:1px solid #e7e2db;">
-    <div class="card-header border-0 d-flex align-items-center gap-2" style="background:linear-gradient(135deg,#1e40af,#3b82f6);padding:.85rem 1.15rem;">
-        <i class="bi bi-person-badge-fill text-white" style="font-size:1.1rem;"></i>
-        <span class="fw-700 text-white" style="font-size:.925rem;">Officer Performance Report</span>
-        <span class="ms-auto badge" style="background:rgba(255,255,255,.2);color:#fff;font-size:.72rem;">{{ $periodLabel }}</span>
+<div class="rpt-card mb-4 rpt-printable" data-rpt-section="officer-performance">
+    <div class="rpt-card-header">
+        <span class="rpt-card-icon" style="background:linear-gradient(135deg,#1e40af,#3b82f6);box-shadow:0 3px 10px rgba(30,64,175,.3);">
+            <i class="bi bi-person-badge-fill" style="color:#fff;"></i>
+        </span>
+        <div>
+            <div class="rpt-card-title">Officer Performance Report</div>
+            <div class="rpt-card-sub">Issued, settled and contested tickets per officer</div>
+        </div>
+        <span class="rpt-total-badge ms-auto">{{ $periodLabel }}</span>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
