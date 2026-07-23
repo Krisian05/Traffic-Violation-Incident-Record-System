@@ -77,11 +77,13 @@
         }
         .status-overdue   { background:#fef2f2; color:#b91c1c; border:1.5px solid #fca5a5; }
         .status-pending   { background:#fef3c7; color:#92400e; border:1.5px solid #fcd34d; }
+        .status-partial   { background:#fff7ed; color:#c2410c; border:1.5px solid #fdba74; }
         .status-settled   { background:#f0fdf4; color:#15803d; border:1.5px solid #86efac; }
         .status-contested { background:#f8fafc; color:#475569; border:1.5px solid #cbd5e1; }
         .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
         .dot-overdue   { background:#dc2626; }
         .dot-pending   { background:#f59e0b; }
+        .dot-partial   { background:#f97316; }
         .dot-settled   { background:#22c55e; }
         .dot-contested { background:#94a3b8; }
         .fine-block { text-align: right; }
@@ -133,6 +135,19 @@
         }
         .info-val.empty { color: #d6d3d1; font-style: italic; font-weight: 400; }
         .info-val.mono  { font-family: 'Courier New', monospace; }
+
+        /* ─── DATA TABLE ─── */
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table thead tr { background: #1c1917; color: #fff; }
+        .data-table thead th {
+            padding: 4px 7px; font-size: 8.5px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .06em;
+            text-align: left; border: none;
+        }
+        .data-table thead th.center { text-align: center; }
+        .data-table tbody tr:nth-child(even) { background: #fafaf9; }
+        .data-table tbody td { padding: 4px 7px; border-bottom: 1px solid #f0ebe3; vertical-align: top; color: #1c1917; }
+        .data-table tbody td.center { text-align: center; }
 
         /* ─── TWO-COLUMN LAYOUT ─── */
         .two-col { display: flex; gap: 12px; }
@@ -240,7 +255,7 @@
 @php
     $isOverdue     = $violation->isOverdue();
     $displayStatus = $isOverdue ? 'overdue' : $violation->status;
-    $statusLabels  = ['overdue' => 'Overdue', 'pending' => 'Pending', 'settled' => 'Settled', 'contested' => 'Contested'];
+    $statusLabels  = ['overdue' => 'Overdue', 'pending' => 'Pending', 'partial' => 'Partial Payment', 'settled' => 'Settled', 'contested' => 'Contested'];
     $label         = $statusLabels[$displayStatus] ?? ucfirst($displayStatus);
     $vc            = $violation->violator->violations->count();
     if ($vc >= 3)      { $offLabel = 'Recidivist';      $offCls = 'off-recidivist'; }
@@ -286,6 +301,20 @@
             <div class="fine-label">Fine Amount</div>
             @if($violation->violationType->fine_amount)
                 <div class="fine-amount">₱{{ number_format($violation->violationType->fine_amount, 2) }}</div>
+                @if($isOverdue && $violation->latePenaltyAmount() > 0)
+                    <div style="font-size:9.5px;color:#b91c1c;font-weight:700;">+ ₱{{ number_format($violation->latePenaltyAmount(), 2) }} late penalty</div>
+                @endif
+                @if(in_array($violation->status, ['pending', 'partial', 'settled'], true))
+                    <div style="font-size:9px;color:#57534e;margin-top:2px;">
+                        @if($violation->totalAmountPaid() > 0)
+                            Paid: <strong style="color:#15803d;">₱{{ number_format($violation->totalAmountPaid(), 2) }}</strong>
+                        @endif
+                        @if($violation->status !== 'settled')
+                            @if($violation->totalAmountPaid() > 0) &middot; @endif
+                            Balance: <strong style="color:#b91c1c;">₱{{ number_format($violation->balanceRemaining(), 2) }}</strong>
+                        @endif
+                    </div>
+                @endif
             @else
                 <div style="font-size:11px;color:#a8a29e;font-style:italic;">No fine set</div>
             @endif
@@ -388,24 +417,47 @@
                 @endif
             </div>
 
-            {{-- Settlement Details --}}
-            @if($violation->status === 'settled')
+            {{-- Settlement / Payment Details --}}
+            @if(in_array($violation->status, ['settled', 'partial'], true))
             <div class="section">
-                <div class="section-title green">Settlement Details</div>
-                <div class="info-grid cols-2">
-                    <div class="info-cell">
-                        <span class="info-lbl">OR Number</span>
-                        <span class="info-val mono">{{ $violation->or_number ?? '—' }}</span>
+                <div class="section-title green">{{ $violation->status === 'settled' ? 'Settlement Details' : 'Payment History (Partial)' }}</div>
+                @if($violation->payments->isNotEmpty())
+                    <table class="data-table" style="font-size:9.5px;">
+                        <thead>
+                            <tr>
+                                <th>Date Paid</th>
+                                <th class="center">Amount</th>
+                                <th>OR Number</th>
+                                <th>Cashier</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($violation->payments->sortByDesc('paid_at') as $p)
+                            <tr>
+                                <td>{{ $p->paid_at->format('M d, Y g:i A') }}</td>
+                                <td class="center" style="font-weight:700;color:#15803d;">₱{{ number_format($p->amount_paid, 2) }}</td>
+                                <td style="font-family:'Courier New',monospace;">{{ $p->or_number ?? '—' }}</td>
+                                <td>{{ $p->cashier_name ?? '—' }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @else
+                    <div class="info-grid cols-2">
+                        <div class="info-cell">
+                            <span class="info-lbl">OR Number</span>
+                            <span class="info-val mono">{{ $violation->or_number ?? '—' }}</span>
+                        </div>
+                        <div class="info-cell">
+                            <span class="info-lbl">Cashier</span>
+                            <span class="info-val">{{ $violation->cashier_name ?? '—' }}</span>
+                        </div>
+                        <div class="info-cell" style="grid-column: 1 / -1; border-right: none;">
+                            <span class="info-lbl">Date Settled</span>
+                            <span class="info-val">{{ ($violation->settled_at ?? $violation->updated_at)->format('F d, Y  g:i A') }}</span>
+                        </div>
                     </div>
-                    <div class="info-cell">
-                        <span class="info-lbl">Cashier</span>
-                        <span class="info-val">{{ $violation->cashier_name ?? '—' }}</span>
-                    </div>
-                    <div class="info-cell" style="grid-column: 1 / -1; border-right: none;">
-                        <span class="info-lbl">Date Settled</span>
-                        <span class="info-val">{{ ($violation->settled_at ?? $violation->updated_at)->format('F d, Y  g:i A') }}</span>
-                    </div>
-                </div>
+                @endif
             </div>
             @endif
 

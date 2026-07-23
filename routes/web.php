@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeviceRegistrationController;
+use App\Http\Controllers\HealthCheckController;
 use App\Http\Controllers\IncidentChargeTypeController;
 use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\LguController;
@@ -24,6 +25,7 @@ use App\Http\Controllers\ViolatorController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('welcome'))->name('home');
+Route::get('/health', [HealthCheckController::class, 'check'])->name('health');
 
 // Guest-only
 Route::middleware('guest')->group(function () {

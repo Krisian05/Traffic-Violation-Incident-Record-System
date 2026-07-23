@@ -69,7 +69,7 @@ class ReportController extends Controller
                 'users.role as officer_role',
                 DB::raw('COUNT(*) as total_issued'),
                 DB::raw("SUM(CASE WHEN violations.status = 'settled' THEN 1 ELSE 0 END) as total_settled"),
-                DB::raw("SUM(CASE WHEN violations.status = 'pending' THEN 1 ELSE 0 END) as total_pending"),
+                DB::raw("SUM(CASE WHEN violations.status IN ('pending', 'partial') THEN 1 ELSE 0 END) as total_pending"),
                 DB::raw("SUM(CASE WHEN violations.status = 'contested' THEN 1 ELSE 0 END) as total_contested"),
             )
             ->groupBy('users.id', 'users.name', 'users.role')
@@ -384,7 +384,7 @@ class ReportController extends Controller
             ->map(fn($group) => [
                 'type'      => $group->first()->violationType,
                 'count'     => $group->count(),
-                'pending'   => $group->where('status', 'pending')->count(),
+                'pending'   => $group->whereIn('status', ['pending', 'partial'])->count(),
                 'settled'   => $group->where('status', 'settled')->count(),
                 'contested' => $group->where('status', 'contested')->count(),
             ])

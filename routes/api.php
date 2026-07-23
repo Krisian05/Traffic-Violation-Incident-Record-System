@@ -2,9 +2,13 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\OfficerApiController;
+use App\Http\Controllers\HealthCheckController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    // Health Check route
+    Route::get('/health', [HealthCheckController::class, 'check']);
+
     // Guest Auth route
     Route::post('/auth/login', [AuthController::class, 'login']);
 

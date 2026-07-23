@@ -168,6 +168,7 @@
         }
         .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
         .dot-pending  { background: #f59e0b; }
+        .dot-partial  { background: #f97316; }
         .dot-settled  { background: #22c55e; }
         .dot-contested{ background: #94a3b8; }
 
@@ -527,6 +528,8 @@
                     <td class="center">
                         @if($viol->status === 'settled')
                             <span class="status-dot"><span class="dot dot-settled"></span>Settled</span>
+                        @elseif($viol->status === 'partial')
+                            <span class="status-dot"><span class="dot dot-partial"></span>Partial</span>
                         @elseif($viol->status === 'contested')
                             <span class="status-dot"><span class="dot dot-contested"></span>Contested</span>
                         @else
