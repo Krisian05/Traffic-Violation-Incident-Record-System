@@ -12,9 +12,11 @@ class ViolationType extends Model
 
     protected $fillable = [
         'name',
+        'code',
         'description',
         'fine_amount',
         'late_penalty_amount',
+        'points',
     ];
 
     protected static function boot(): void
