@@ -180,8 +180,126 @@
     // which have no client-side equivalent otherwise.
     var LABEL_WORDS_RE = /\b(last\s*name|first\s*name|middle\s*name|given\s*name|apelyido|pangalan|surname|sex|gender|date\s*of\s*birth|birth\s*date|dob|address|license\s*no|lic\s*no|id\s*no|control\s*no|card\s*no|nationality|expir\w*|valid\s*until|weight|height|blood\s*type|license\s*type|conditions|remarks|restrictions|agency\s*code)\b/i;
 
+    // Standard iterative Levenshtein edit distance. Used to catch OCR noise
+    // in the LABEL text itself (e.g. Tesseract reading "Middle" as "Middie")
+    // that LABEL_WORDS_RE's exact regex can never anticipate, since it can
+    // only match spellings it was written to expect.
+    function levenshteinDistance(a, b) {
+        a = String(a);
+        b = String(b);
+        var m = a.length, n = b.length;
+        if (m === 0) return n;
+        if (n === 0) return m;
+
+        var prev = new Array(n + 1);
+        var curr = new Array(n + 1);
+        for (var j = 0; j <= n; j++) prev[j] = j;
+
+        for (var i = 1; i <= m; i++) {
+            curr[0] = i;
+            for (var k = 1; k <= n; k++) {
+                var cost = a[i - 1] === b[k - 1] ? 0 : 1;
+                curr[k] = Math.min(prev[k] + 1, curr[k - 1] + 1, prev[k - 1] + cost);
+            }
+            var tmp = prev; prev = curr; curr = tmp;
+        }
+        return prev[n];
+    }
+
+    // Shorter reference words tolerate less absolute noise (a 1-edit slip on
+    // "sex" would make it unrecognizable as anything else), longer phrases
+    // can absorb a bit more without becoming a plausible false match.
+    function fuzzyMaxDistance(referenceLength) {
+        return referenceLength <= 4 ? 1 : 2;
+    }
+
+    // Single-word labels — checked against each word in the captured value.
+    var FUZZY_LABEL_WORDS = [
+        'sex', 'gender', 'address', 'nationality', 'weight', 'height',
+        'conditions', 'remarks', 'restrictions', 'dob', 'apelyido', 'pangalan', 'surname'
+    ];
+
+    // Multi-word labels — checked against adjacent word-pairs, since a
+    // single-word fuzzy check can't recognize a two-word phrase.
+    var FUZZY_LABEL_PHRASES = [
+        'last name', 'first name', 'middle name', 'given name',
+        'date of birth', 'birth date', 'blood type', 'license type',
+        'license no', 'agency code', 'valid until'
+    ];
+
     function isLabelContaminated(value) {
-        return LABEL_WORDS_RE.test(value);
+        var str = String(value || '');
+        if (LABEL_WORDS_RE.test(str)) return true;
+
+        var words = str.toLowerCase().split(/[^a-z]+/).filter(Boolean);
+        if (!words.length) return false;
+
+        for (var i = 0; i < words.length; i++) {
+            for (var w = 0; w < FUZZY_LABEL_WORDS.length; w++) {
+                var ref = FUZZY_LABEL_WORDS[w];
+                if (levenshteinDistance(words[i], ref) <= fuzzyMaxDistance(ref.length)) {
+                    return true;
+                }
+            }
+            if (i + 1 < words.length) {
+                var pair = words[i] + ' ' + words[i + 1];
+                for (var p = 0; p < FUZZY_LABEL_PHRASES.length; p++) {
+                    var refPhrase = FUZZY_LABEL_PHRASES[p];
+                    if (levenshteinDistance(pair, refPhrase) <= fuzzyMaxDistance(refPhrase.length)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    var COLUMN_KEYWORDS = ['nationality', 'sex', 'date of birth', 'weight', 'height'];
+
+    // Finds the best fuzzy match position of `keyword` inside `line`, or -1
+    // if nothing is close enough. Slides a window sized to the keyword's own
+    // length (+/- a couple characters, since OCR can drop/add a stray
+    // character or merge/split a space) across the raw line rather than
+    // requiring clean whitespace tokenization first, since OCR spacing
+    // around these header words is itself unreliable (e.g. "Weight(kg)"
+    // with no space, or "Date ofBirth" with a dropped space).
+    function fuzzyFindKeywordIndex(line, keyword) {
+        var lower = line.toLowerCase();
+        var len = keyword.length;
+        var maxDist = fuzzyMaxDistance(len);
+        var bestIndex = -1;
+        var bestDist = maxDist + 1;
+
+        for (var start = 0; start < lower.length; start++) {
+            for (var delta = -2; delta <= 2; delta++) {
+                var windowLen = len + delta;
+                if (windowLen <= 0 || start + windowLen > lower.length) continue;
+                var chunk = lower.substr(start, windowLen);
+                var dist = levenshteinDistance(chunk, keyword);
+                if (dist <= maxDist && dist < bestDist) {
+                    bestDist = dist;
+                    bestIndex = start;
+                }
+            }
+        }
+        return bestIndex;
+    }
+
+    // Replaces an exact multi-keyword regex (which fails the ENTIRE row the
+    // moment any one column word is misread) with a fuzzy per-keyword search
+    // — each of Nationality/Sex/Date of Birth/Weight/Height is looked for
+    // independently, so one OCR misread (e.g. "Height" -> "Helght") no
+    // longer blanks out the other columns in the same row. Returns the
+    // recognized column keys in left-to-right order, matching the order
+    // their values appear on the following line.
+    function fuzzyFindHeaderColumns(line) {
+        var found = [];
+        COLUMN_KEYWORDS.forEach(function (kw) {
+            var idx = fuzzyFindKeywordIndex(line, kw);
+            if (idx !== -1) found.push({ key: kw, index: idx });
+        });
+        found.sort(function (a, b) { return a.index - b.index; });
+        return found.map(function (f) { return f.key; });
     }
 
     function findAfterLabel(lines, labelPattern) {
@@ -323,30 +441,29 @@
         // position instead, same approach as OcrController.php's regex tier.
         if (!data.gender || !data.date_of_birth || !data.weight || !data.height) {
             for (var ci = 0; ci < lines.length - 1; ci++) {
-                var colMatches = lines[ci].match(/Nationality|Sex|Date\s+of\s+Birth|Weight(?:\s*\(kg\))?|Height(?:\s*\(m\))?/gi);
-                if (!colMatches || colMatches.length < 2) continue;
+                var columns = fuzzyFindHeaderColumns(lines[ci]);
+                if (columns.length < 2) continue;
 
-                var columns = colMatches.map(function (c) { return c.toLowerCase().replace(/\s+/g, ' ').trim(); });
                 var values = lines[ci + 1].trim().split(/\s+/).filter(Boolean);
                 if (values.length < columns.length) continue;
 
                 columns.forEach(function (col, idx) {
                     var val = values[idx] || '';
                     if (!val) return;
-                    if (!data.gender && col.indexOf('sex') !== -1 && /^(m|f|male|female)$/i.test(val)) {
+                    if (!data.gender && col === 'sex' && /^(m|f|male|female)$/i.test(val)) {
                         data.gender = /^m/i.test(val) ? 'Male' : 'Female';
                     }
-                    if (!data.date_of_birth && col.indexOf('date of birth') !== -1) {
+                    if (!data.date_of_birth && col === 'date of birth') {
                         var dm = val.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
                         if (dm) {
                             var iso = normalizeDate(dm[1] + '-' + dm[2] + '-' + dm[3]);
                             if (iso && isPlausibleBirthDate(iso)) data.date_of_birth = iso;
                         }
                     }
-                    if (!data.weight && col.indexOf('weight') !== -1 && /^\d+(\.\d+)?$/.test(val)) {
+                    if (!data.weight && col === 'weight' && /^\d+(\.\d+)?$/.test(val)) {
                         data.weight = String(Math.round(parseFloat(val)));
                     }
-                    if (!data.height && col.indexOf('height') !== -1 && /^\d+(\.\d+)?$/.test(val)) {
+                    if (!data.height && col === 'height' && /^\d+(\.\d+)?$/.test(val)) {
                         var hcm = normalizeHeightToCm(val);
                         if (hcm) data.height = hcm;
                     }
