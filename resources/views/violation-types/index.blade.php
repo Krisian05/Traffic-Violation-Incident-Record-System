@@ -1,6 +1,11 @@
 @extends('layouts.app')
 @section('title', 'Violation Types')
 
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Violation Types</li>
+@endsection
+
 @section('content')
 
 {{-- ── Header card ── --}}

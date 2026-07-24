@@ -1,6 +1,11 @@
 @extends('layouts.app')
 @section('title', 'User Management')
 
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Users</li>
+@endsection
+
 @section('content')
 
 {{-- ── Header card ── --}}

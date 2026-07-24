@@ -1,6 +1,11 @@
 @extends('layouts.app')
 @section('title', 'Audit Trail & Activity Logs')
 
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Audit Trail</li>
+@endsection
+
 @section('content')
 <div class="container-fluid px-4 py-3">
     <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">

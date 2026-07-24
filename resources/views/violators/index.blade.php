@@ -1,6 +1,11 @@
 @extends('layouts.app')
 @section('title', 'Motorists')
 
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Motorists</li>
+@endsection
+
 @section('topbar-sub')
     <i class="bi bi-people-fill me-1" style="color:#dc2626;"></i>
     {{ $violators->total() }} total {{ Str::plural('record', $violators->total()) }}

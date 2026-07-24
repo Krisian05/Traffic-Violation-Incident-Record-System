@@ -2,6 +2,11 @@
 
 @section('title', 'Collection Reports')
 
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Collection Reports</li>
+@endsection
+
 @section('content')
 <div class="container-fluid px-4 py-3">
 

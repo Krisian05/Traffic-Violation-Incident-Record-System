@@ -1,6 +1,11 @@
 @extends('layouts.app')
 @section('title', 'Incidents')
 
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Incidents</li>
+@endsection
+
 @push('styles')
 <style>
 .inc-status-reported                    { display:inline-block;padding:.1rem .5rem;border-radius:20px;font-size:.66rem;font-weight:700;background:#eff6ff;color:#1d4ed8; }

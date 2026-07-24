@@ -1,6 +1,11 @@
 @extends('layouts.app')
 @section('title', 'Cashier Portal')
 
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Cashier Portal</li>
+@endsection
+
 @section('content')
 <div class="container-fluid py-4" style="max-width: 1000px; margin: 0 auto;">
     
