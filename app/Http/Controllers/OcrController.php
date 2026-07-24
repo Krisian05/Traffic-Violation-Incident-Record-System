@@ -359,14 +359,14 @@ class OcrController extends Controller
     private function normalizeBloodType($value)
     {
         $value = strtoupper(trim((string) $value));
+        $value = str_replace(['0', ' '], ['O', ''], $value);
         return in_array($value, self::VALID_BLOOD_TYPES, true) ? $value : '';
     }
 
     /**
      * PH licenses print height in meters (e.g. "1.68"); the form field wants
-     * whole centimeters. A value under 3 is assumed to be meters (no adult
-     * is 3m tall, but plenty are between 1-2m); anything else is assumed to
-     * already be centimeters and passed through unchanged.
+     * whole centimeters. A value in meters (0.50m to 2.50m) is converted to cm;
+     * values already in cm (50cm to 250cm) are passed through; stray noise (like 5) is rejected.
      */
     private function normalizeHeightToCm($value)
     {
@@ -375,10 +375,11 @@ class OcrController extends Controller
             return '';
         }
         $num = (float) $value;
-        if ($num > 0 && $num < 3) {
+        if ($num >= 0.5 && $num <= 2.5) {
             $num *= 100;
         }
-        return (string) (int) round($num);
+        $cm = (int) round($num);
+        return ($cm >= 50 && $cm <= 250) ? (string) $cm : '';
     }
 
     /**

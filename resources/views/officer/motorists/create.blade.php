@@ -592,7 +592,7 @@
                 @error('license_number')
                     <div class="field-error"><i class="ph ph-warning-circle"></i>{{ $message }}</div>
                 @else
-                    <div class="field-hint" id="hint-license">LTO format: N01-23-456789 or scan card barcode.</div>
+                    <div class="field-hint" id="hint-license">LTO format: e.g. N02-95-278514 or G25-24-005686.</div>
                 @enderror
             </div>
 
@@ -819,14 +819,31 @@ document.addEventListener('DOMContentLoaded', function () {
     if (licenseEl) {
         licenseEl.addEventListener('input', function () {
             var pos = this.selectionStart;
-            this.value = this.value.toUpperCase();
+            var val = this.value.toUpperCase();
+
+            // Auto-correct O/Q to 0 in numeric parts (e.g. NO2-95-278514 -> N02-95-278514)
+            var parts = val.split('-');
+            if (parts.length === 3) {
+                parts[0] = parts[0].slice(0, 1) + parts[0].slice(1).replace(/[OQ]/g, '0');
+                parts[1] = parts[1].replace(/[OQ]/g, '0');
+                parts[2] = parts[2].replace(/[OQ]/g, '0');
+                val = parts.join('-');
+            } else if (/^[A-Z][A-Z0-9]{2}\d{8}$/.test(val.replace(/\s/g, ''))) {
+                var clean = val.replace(/\s/g, '');
+                var agency = clean.slice(0, 1) + clean.slice(1, 3).replace(/[OQ]/g, '0');
+                var year = clean.slice(3, 5).replace(/[OQ]/g, '0');
+                var seq = clean.slice(5).replace(/[OQ]/g, '0');
+                val = agency + '-' + year + '-' + seq;
+            }
+            this.value = val;
             try { this.setSelectionRange(pos, pos); } catch(e) {}
+
             var v = this.value.trim();
-            if (!v) { setNeutral(licenseWrap, licenseHint, 'LTO format: N01-23-456789. Auto-uppercased.'); return; }
-            if (/^[A-Z]\d{2}-\d{2}-\d{6}$/.test(v)) {
+            if (!v) { setNeutral(licenseWrap, licenseHint, 'LTO format: e.g. N02-95-278514 or G25-24-005686.'); return; }
+            if (/^[A-Z][A-Z0-9]{2}-\d{2}-\d{6}$/.test(v)) {
                 setOk(licenseWrap, licenseHint, 'Valid LTO license number format.');
             } else {
-                setWarn(licenseWrap, licenseHint, 'Expected format: N01-23-456789');
+                setWarn(licenseWrap, licenseHint, 'Format e.g. N02-95-278514 or G25-24-005686');
             }
         });
     }

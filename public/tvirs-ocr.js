@@ -152,13 +152,19 @@
     var VALID_BLOOD_TYPES = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
 
     // PH licenses print height in meters (e.g. "1.68"); the form field wants
-    // whole centimeters. A value under 3 is assumed to be meters (no adult is
-    // 3m tall); anything else is assumed to already be centimeters.
+    // whole centimeters. A value in meters (0.50m to 2.50m) is converted to cm;
+    // values already in cm (50cm to 250cm) are passed through; stray noise (like 5) is rejected.
     function normalizeHeightToCm(value) {
         var num = parseFloat(value);
         if (!isFinite(num) || num <= 0) return '';
-        if (num < 3) num *= 100;
-        return String(Math.round(num));
+        if (num >= 0.5 && num <= 2.5) {
+            num *= 100;
+        }
+        var cm = Math.round(num);
+        if (cm >= 50 && cm <= 250) {
+            return String(cm);
+        }
+        return '';
     }
 
     function isPlausibleBirthDate(isoDate) {
@@ -428,11 +434,12 @@
 
         var bloodTypeText = findAfterLabel(lines, 'blood\\s*type');
         if (!bloodTypeText) {
-            var btMatch = text.match(/\b(O|A|B|AB)[+\-]\b/i);
+            var btMatch = text.match(/\b([0OA-B]|AB)\s*[\+\-]\b/i);
             if (btMatch) bloodTypeText = btMatch[0];
         }
         if (bloodTypeText) {
-            var bt = bloodTypeText.trim().toUpperCase().match(/^(O|A|B|AB)[+\-]/);
+            var cleanedBt = bloodTypeText.trim().toUpperCase().replace(/0/g, 'O').replace(/\s+/g, '');
+            var bt = cleanedBt.match(/^(O|A|B|AB)[\+\-]/);
             if (bt && VALID_BLOOD_TYPES.indexOf(bt[0]) !== -1) {
                 data.blood_type = bt[0];
             }
@@ -449,18 +456,15 @@
         var weightMatch = weightText && weightText.match(/\d+(\.\d+)?/);
         if (weightMatch && !data.weight) data.weight = String(Math.round(parseFloat(weightMatch[0])));
 
-        // DL Codes / Restrictions
+        // DL Codes / Restrictions (Must ONLY match lines containing "DL Codes" or "Restrictions")
         var dlCodesText = findAfterLabel(lines, 'dl\\s*codes?|restrictions?');
         if (!dlCodesText) {
             for (var i = 0; i < lines.length; i++) {
-                if (/dl\s*codes?/i.test(lines[i])) {
+                if (/dl\s*codes?|restrictions?/i.test(lines[i])) {
                     dlCodesText = lines[i] + ' ' + (lines[i + 1] || '');
                     break;
                 }
             }
-        }
-        if (!dlCodesText) {
-            dlCodesText = text;
         }
         if (dlCodesText) {
             var foundRc = dlCodesText.match(/\b(A1?|B[12]?|C|D|BE|CE)\b/gi);
