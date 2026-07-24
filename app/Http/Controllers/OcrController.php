@@ -37,15 +37,17 @@ class OcrController extends Controller
         ]);
 
         $imageBase64 = $request->input('image');
+        $mimeType = 'image/jpeg';
 
         // Remove data URI prefix if present
-        if (preg_match('/^data:image\/(\w+);base64,/', $imageBase64, $type)) {
+        if (preg_match('/^data:(image\/\w+);base64,/', $imageBase64, $typeMatch)) {
+            $mimeType = $typeMatch[1];
             $imageBase64 = substr($imageBase64, strpos($imageBase64, ',') + 1);
         }
 
         // Tier 1: Try Gemini
         try {
-            $parsedData = $this->scanWithGemini($imageBase64);
+            $parsedData = $this->scanWithGemini($imageBase64, $mimeType);
             if ($parsedData) {
                 return response()->json([
                     'success' => true,
@@ -160,7 +162,7 @@ class OcrController extends Controller
         ];
     }
 
-    private function scanWithGemini($base64Image)
+    private function scanWithGemini($base64Image, $mimeType = 'image/jpeg')
     {
         $prompt = $this->buildExtractionInstructions(false);
 
@@ -168,7 +170,7 @@ class OcrController extends Controller
             ['text' => $prompt],
             [
                 'inlineData' => [
-                    'mimeType' => 'image/jpeg',
+                    'mimeType' => $mimeType,
                     'data' => $base64Image
                 ]
             ]
