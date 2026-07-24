@@ -690,12 +690,6 @@ class OcrController extends Controller
                     $data['license_restriction'] = implode(', ', $uniqueRc);
                 }
             }
-        }
-
-        if ($data['place_of_birth'] === '' && $data['address'] !== '') {
-            $data['place_of_birth'] = $data['address'];
-        }
-
         // Validate BEFORE normalizing gender, same reasoning as callGemini().
         $this->assertNoLabelArtifacts($data);
 

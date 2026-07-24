@@ -1120,8 +1120,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 prevDiv.style.display = '';
             }
         }
-        var pobVal = parsed.place_of_birth || parsed.address;
-        if (pobVal) fill('place_of_birth', pobVal);
+        if (parsed.place_of_birth) fill('place_of_birth', parsed.place_of_birth);
 
         if (parsed.license_expiry_date) fill('license_expiry_date', parsed.license_expiry_date);
         if (parsed.license_issued_date) fill('license_issued_date', parsed.license_issued_date);

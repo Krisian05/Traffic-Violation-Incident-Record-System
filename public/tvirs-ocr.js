@@ -328,10 +328,10 @@
         var lines = text.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
         var data = { raw: text };
 
-        // License Number: G25-24-005686 or N01-23-456789 (fixing O/Q typos for 0)
-        var licenseMatch = text.match(/\b([A-Z0-9]{3}[-\s]?[0-9OQ]{2}[-\s]?[0-9OQ]{6})\b/i);
+        // License Number: G25-24-005686 or N01-23-456789 (handling loose spacing around hyphens and fixing O/Q typos)
+        var licenseMatch = text.match(/(?:License\s*No\.?\s*)?([A-Z0-9]{3}[-\s]*[0-9OQ]{2}[-\s]*[0-9OQ]{6})\b/i);
         if (licenseMatch) {
-            var rawLic = licenseMatch[1].replace(/\s/g, '-').toUpperCase();
+            var rawLic = licenseMatch[1].replace(/\s+/g, '-').toUpperCase();
             var licParts = rawLic.split('-');
             if (licParts.length === 3) {
                 licParts[1] = licParts[1].replace(/[OQ]/g, '0');
@@ -389,7 +389,7 @@
 
         var dobLabelText = findAfterLabel(lines, 'date\\s*of\\s*birth|birth\\s*date|dob');
         var dobSource = dobLabelText || text;
-        var dobMatch = dobSource.match(/\b(\d{4}-\d{1,2}-\d{1,2})\b/)
+        var dobMatch = dobSource.match(/\b(\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2})\b/)
             || dobSource.match(/\b(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})\b/)
             || dobSource.match(/\b([A-Za-z]{3,9}\.?\s+\d{1,2},?\s+\d{4})\b/);
         if (dobMatch && !data.date_of_birth) {
@@ -400,13 +400,12 @@
         }
 
         var expiryLabelText = findAfterLabel(lines, 'expir\\w*|exp\\s*date|valid\\s*until');
-        if (expiryLabelText) {
-            var expMatch = expiryLabelText.match(/\b(\d{4}-\d{1,2}-\d{1,2})\b/)
-                || expiryLabelText.match(/\b(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})\b/);
-            if (expMatch) {
-                var normalizedExpiry = normalizeDate(expMatch[1]);
-                if (normalizedExpiry) data.license_expiry_date = normalizedExpiry;
-            }
+        var expSource = expiryLabelText || text;
+        var expMatch = expSource.match(/\b(\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2})\b/)
+            || expSource.match(/\b(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})\b/);
+        if (expMatch && !data.license_expiry_date) {
+            var normalizedExpiry = normalizeDate(expMatch[1]);
+            if (normalizedExpiry) data.license_expiry_date = normalizedExpiry;
         }
 
         var sexText = findAfterLabel(lines, 'sex|gender');
@@ -418,7 +417,6 @@
         var addressText = findAfterLabel(lines, 'address');
         if (addressText) {
             data.address = addressText;
-            data.place_of_birth = addressText;
         }
 
         // License Type
@@ -430,7 +428,6 @@
 
         var bloodTypeText = findAfterLabel(lines, 'blood\\s*type');
         if (!bloodTypeText) {
-            // Check standalone blood type in text
             var btMatch = text.match(/\b(O|A|B|AB)[+\-]\b/i);
             if (btMatch) bloodTypeText = btMatch[0];
         }
@@ -455,8 +452,15 @@
         // DL Codes / Restrictions
         var dlCodesText = findAfterLabel(lines, 'dl\\s*codes?|restrictions?');
         if (!dlCodesText) {
-            var dlMatch = text.match(/DL\s*Codes?\s*([A-Z0-9,\s]+)/i);
-            if (dlMatch) dlCodesText = dlMatch[1];
+            for (var i = 0; i < lines.length; i++) {
+                if (/dl\s*codes?/i.test(lines[i])) {
+                    dlCodesText = lines[i] + ' ' + (lines[i + 1] || '');
+                    break;
+                }
+            }
+        }
+        if (!dlCodesText) {
+            dlCodesText = text;
         }
         if (dlCodesText) {
             var foundRc = dlCodesText.match(/\b(A1?|B[12]?|C|D|BE|CE)\b/gi);
