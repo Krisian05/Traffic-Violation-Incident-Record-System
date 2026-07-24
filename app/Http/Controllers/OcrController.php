@@ -500,7 +500,7 @@ class OcrController extends Controller
 
         // Direct pattern for standard PH License row: "PHL M 2001/10/05 58 1.64" or "M 2001/10/05 58 1.64"
         if (preg_match('/\b(?:PHL\s+)?(M|F|Male|Female)\s+(\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2})\s+(\d{2,3})\s+(\d+(?:\.\d+)?)\b/i', $fullText, $phRow)) {
-            if ($data['gender'] === '') $data['gender'] = /^m/i.test($phRow[1]) ? 'Male' : 'Female';
+            if ($data['gender'] === '') $data['gender'] = preg_match('/^m/i', $phRow[1]) ? 'Male' : 'Female';
             if ($data['date_of_birth'] === '') {
                 $dm = explode('/', str_replace('-', '/', $phRow[2]));
                 if (count($dm) === 3) {
