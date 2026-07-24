@@ -1086,7 +1086,25 @@ document.addEventListener('DOMContentLoaded', function () {
         if (parsed.last_name)      fill('last_name', parsed.last_name);
         if (parsed.date_of_birth)  fill('date_of_birth', parsed.date_of_birth);
         if (parsed.gender)         fill('gender', parsed.gender);
-        if (parsed.address)        fill('address', parsed.address);
+        if (parsed.address) {
+            fill('address', parsed.address);
+            var specInput = document.getElementById('loc_address_specific') || document.querySelector('[name="_loc_specific"]');
+            if (specInput && (!specInput.value || specInput.classList.contains('field-autofilled'))) {
+                specInput.value = parsed.address;
+                specInput.dispatchEvent(new Event('input', { bubbles: true }));
+                specInput.classList.add('field-autofilled');
+                autofilledFields.push(specInput);
+            }
+            var prevText = document.getElementById('loc_address_preview_text');
+            var prevDiv = document.getElementById('loc_address_preview');
+            if (prevText && prevDiv) {
+                prevText.textContent = parsed.address;
+                prevDiv.style.display = '';
+            }
+        }
+        var pobVal = parsed.place_of_birth || parsed.address;
+        if (pobVal) fill('place_of_birth', pobVal);
+
         if (parsed.license_expiry_date) fill('license_expiry_date', parsed.license_expiry_date);
         if (parsed.license_issued_date) fill('license_issued_date', parsed.license_issued_date);
         if (parsed.license_type)   fill('license_type', parsed.license_type);
@@ -1094,6 +1112,31 @@ document.addEventListener('DOMContentLoaded', function () {
         if (parsed.height)         fill('height', parsed.height);
         if (parsed.weight)         fill('weight', parsed.weight);
         if (parsed.license_conditions) fill('license_conditions', parsed.license_conditions);
+
+        // Autofill Restriction Code Checkboxes (DL Codes)
+        var restrictionVal = parsed.license_restriction;
+        if (restrictionVal) {
+            var codes = Array.isArray(restrictionVal)
+                ? restrictionVal
+                : String(restrictionVal).split(/[\s,]+/).filter(Boolean);
+
+            codes.forEach(function (code) {
+                var cleanCode = code.toUpperCase().trim();
+                var cb = document.querySelector('input[name="license_restriction[]"][value="' + cleanCode + '"]');
+                if (cb) {
+                    cb.checked = true;
+                    cb.dispatchEvent(new Event('change', { bubbles: true }));
+                    var chip = cb.closest('.rc-chip');
+                    if (chip) {
+                        chip.classList.add('checked');
+                        var icon = chip.querySelector('.rc-chip-icon i');
+                        if (icon) icon.className = 'ph ph-fill ph-check';
+                        chip.classList.add('field-autofilled');
+                        autofilledFields.push(chip);
+                    }
+                }
+            });
+        }
 
         // Instant duplicate/existing motorist check by license number
         if (parsed.license_number && (!parsed.first_name || !parsed.last_name)) {

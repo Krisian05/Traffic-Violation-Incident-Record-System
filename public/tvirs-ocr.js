@@ -328,14 +328,23 @@
         var lines = text.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
         var data = { raw: text };
 
-        var licenseMatch = text.match(/\b([A-Z]\d{2}[-\s]?\d{2}[-\s]?\d{6})\b/);
+        // License Number: G25-24-005686 or N01-23-456789 (fixing O/Q typos for 0)
+        var licenseMatch = text.match(/\b([A-Z0-9]{3}[-\s]?[0-9OQ]{2}[-\s]?[0-9OQ]{6})\b/i);
         if (licenseMatch) {
-            data.license_number = licenseMatch[1].replace(/\s/g, '-');
+            var rawLic = licenseMatch[1].replace(/\s/g, '-').toUpperCase();
+            var licParts = rawLic.split('-');
+            if (licParts.length === 3) {
+                licParts[1] = licParts[1].replace(/[OQ]/g, '0');
+                licParts[2] = licParts[2].replace(/[OQ]/g, '0');
+                data.license_number = licParts.join('-');
+            } else {
+                data.license_number = rawLic.replace(/[OQ]/g, '0');
+            }
         } else {
             var idNoText = findAfterLabel(lines, 'license\\s*no|lic\\s*no|id\\s*no|control\\s*no|card\\s*no');
             if (idNoText) {
                 var cleanedId = idNoText.match(/[A-Z0-9\-]{6,}/i);
-                if (cleanedId) data.license_number = cleanedId[0];
+                if (cleanedId) data.license_number = cleanedId[0].toUpperCase().replace(/[OQ]/g, '0');
             }
         }
 
@@ -347,11 +356,10 @@
         if (firstName) data.first_name = titleCase(firstName);
         if (middleName) data.middle_name = titleCase(middleName);
 
-        // Fallback: a standalone "LAST NAME, FIRST NAME MIDDLE" line, common on
-        // the front of driver's licenses and several other PH ID cards.
+        // Fallback: standalone "LAST NAME, FIRST NAME MIDDLE" line
         if (!data.last_name && !data.first_name) {
             var nameLine = lines.find(function (l) {
-                return /,/.test(l) && /^[A-Z\s,.'\-]+$/.test(l) && l.length > 5 && l.length < 60 && !isLabelContaminated(l);
+                return /,/.test(l) && /^[A-Z\s,.'\-]+$/i.test(l) && l.length > 5 && l.length < 60 && !isLabelContaminated(l);
             });
             if (nameLine) {
                 var parts = nameLine.split(',');
@@ -364,15 +372,28 @@
             }
         }
 
+        // Direct pattern for standard PH License row: "PHL M 2001/10/05 58 1.64" or "M 2001/10/05 58 1.64"
+        var phRowMatch = text.match(/\b(?:PHL\s+)?(M|F|Male|Female)\s+(\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2})\s+(\d{2,3})\s+(\d+(?:\.\d+)?)\b/i);
+        if (phRowMatch) {
+            if (!data.gender) data.gender = /^m/i.test(phRowMatch[1]) ? 'Male' : 'Female';
+            if (!data.date_of_birth) {
+                var normDob = normalizeDate(phRowMatch[2]);
+                if (normDob && isPlausibleBirthDate(normDob)) data.date_of_birth = normDob;
+            }
+            if (!data.weight) data.weight = String(Math.round(parseFloat(phRowMatch[3])));
+            if (!data.height) {
+                var hcm = normalizeHeightToCm(phRowMatch[4]);
+                if (hcm) data.height = hcm;
+            }
+        }
+
         var dobLabelText = findAfterLabel(lines, 'date\\s*of\\s*birth|birth\\s*date|dob');
         var dobSource = dobLabelText || text;
         var dobMatch = dobSource.match(/\b(\d{4}-\d{1,2}-\d{1,2})\b/)
             || dobSource.match(/\b(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})\b/)
             || dobSource.match(/\b([A-Za-z]{3,9}\.?\s+\d{1,2},?\s+\d{4})\b/);
-        if (dobMatch) {
+        if (dobMatch && !data.date_of_birth) {
             var normalizedDob = normalizeDate(dobMatch[1]);
-            // Calendar-valid but implausible as a birth date (in the future, or
-            // implying an age over 120) is still almost certainly an OCR misread.
             if (normalizedDob && isPlausibleBirthDate(normalizedDob)) {
                 data.date_of_birth = normalizedDob;
             }
@@ -389,17 +410,18 @@
         }
 
         var sexText = findAfterLabel(lines, 'sex|gender');
-        if (sexText) {
+        if (sexText && !data.gender) {
             if (/^m(ale)?$/i.test(sexText.trim())) data.gender = 'Male';
             else if (/^f(emale)?$/i.test(sexText.trim())) data.gender = 'Female';
         }
 
         var addressText = findAfterLabel(lines, 'address');
-        if (addressText) data.address = addressText;
+        if (addressText) {
+            data.address = addressText;
+            data.place_of_birth = addressText;
+        }
 
-        // License Type: derived from the card's own title/header rather than
-        // a labeled field — a plain "DRIVER'S LICENSE" heading (no
-        // "Professional") means Non-Professional.
+        // License Type
         if (/professional\s*driver.?s\s*licen[sc]e/i.test(text)) {
             data.license_type = 'Professional';
         } else if (/driver.?s\s*licen[sc]e/i.test(text)) {
@@ -407,6 +429,11 @@
         }
 
         var bloodTypeText = findAfterLabel(lines, 'blood\\s*type');
+        if (!bloodTypeText) {
+            // Check standalone blood type in text
+            var btMatch = text.match(/\b(O|A|B|AB)[+\-]\b/i);
+            if (btMatch) bloodTypeText = btMatch[0];
+        }
         if (bloodTypeText) {
             var bt = bloodTypeText.trim().toUpperCase().match(/^(O|A|B|AB)[+\-]/);
             if (bt && VALID_BLOOD_TYPES.indexOf(bt[0]) !== -1) {
@@ -416,43 +443,55 @@
 
         var heightText = findAfterLabel(lines, 'height');
         var heightMatch = heightText && heightText.match(/\d+(\.\d+)?/);
-        if (heightMatch) {
+        if (heightMatch && !data.height) {
             var heightCm = normalizeHeightToCm(heightMatch[0]);
             if (heightCm) data.height = heightCm;
         }
 
         var weightText = findAfterLabel(lines, 'weight');
         var weightMatch = weightText && weightText.match(/\d+(\.\d+)?/);
-        if (weightMatch) data.weight = String(Math.round(parseFloat(weightMatch[0])));
+        if (weightMatch && !data.weight) data.weight = String(Math.round(parseFloat(weightMatch[0])));
 
-        // "NONE" is the card's own explicit "nothing to report" value, not
-        // real data worth autofilling. A genuine remark ("Must wear corrective
-        // lenses") is always a real multi-character phrase — a bare 2-3 letter
-        // fragment is far more likely a Tesseract misread of "NONE" or noise
-        // than an actual condition, so it's rejected rather than saved.
+        // DL Codes / Restrictions
+        var dlCodesText = findAfterLabel(lines, 'dl\\s*codes?|restrictions?');
+        if (!dlCodesText) {
+            var dlMatch = text.match(/DL\s*Codes?\s*([A-Z0-9,\s]+)/i);
+            if (dlMatch) dlCodesText = dlMatch[1];
+        }
+        if (dlCodesText) {
+            var foundRc = dlCodesText.match(/\b(A1?|B[12]?|C|D|BE|CE)\b/gi);
+            if (foundRc && foundRc.length) {
+                var uniqueCodes = [];
+                foundRc.forEach(function (c) {
+                    var uc = c.toUpperCase();
+                    if (uniqueCodes.indexOf(uc) === -1) uniqueCodes.push(uc);
+                });
+                data.license_restriction = uniqueCodes.join(', ');
+            }
+        }
+
+        // Conditions / Remarks (Filter out "NONE", short noise, and signature text)
         var conditionsText = findAfterLabel(lines, 'conditions|remarks');
         if (conditionsText) {
             var trimmedConditions = conditionsText.trim();
-            if (trimmedConditions.toLowerCase() !== 'none' && trimmedConditions.length >= 5) {
+            var lowerCond = trimmedConditions.toLowerCase();
+            if (
+                lowerCond !== 'none'
+                && trimmedConditions.length >= 5
+                && !/(attorney|atty|assistant|secretary|vigor|mendoza|signature|licensee)/i.test(trimmedConditions)
+            ) {
                 data.license_conditions = trimmedConditions;
             }
         }
 
-        // Fallback: a merged multi-column header row, e.g. "Nationality Sex
-        // Date of Birth Weight(kg) Height(m)" immediately followed by ONE
-        // values line in the same order (e.g. "PHL M 1975/06/28 70 1.68") —
-        // the standard PH driver's license layout. The label-based lookups
-        // above miss this because no single field's label stands alone on
-        // its own line; match each header to the value at the same ORDINAL
-        // position instead, same approach as OcrController.php's regex tier.
-        if (!data.gender || !data.date_of_birth || !data.weight || !data.height) {
-            for (var ci = 0; ci < lines.length - 1; ci++) {
-                var columns = fuzzyFindHeaderColumns(lines[ci]);
-                if (columns.length < 2) continue;
+        // Merged multi-column header rows fallback
+        for (var ci = 0; ci < lines.length - 1; ci++) {
+            var lineLower = lines[ci].toLowerCase();
 
+            // Row 1: "Nationality Sex Date of Birth Weight(kg) Height(m)"
+            var columns = fuzzyFindHeaderColumns(lines[ci]);
+            if (columns.length >= 2) {
                 var values = lines[ci + 1].trim().split(/\s+/).filter(Boolean);
-                if (values.length < columns.length) continue;
-
                 columns.forEach(function (col, idx) {
                     var val = values[idx] || '';
                     if (!val) return;
@@ -474,7 +513,38 @@
                         if (hcm) data.height = hcm;
                     }
                 });
-                break;
+            }
+
+            // Row 2: "License No. Expiration Date Agency Code"
+            if (/license\s*no.*expiration\s*date/i.test(lines[ci])) {
+                var valLine = lines[ci + 1];
+                if (!data.license_number) {
+                    var lm = valLine.match(/[A-Z0-9]{3}[-\s]?[0-9OQ]{2}[-\s]?[0-9OQ]{6}/i);
+                    if (lm) data.license_number = lm[0].toUpperCase().replace(/\s/g, '-').replace(/[OQ]/g, '0');
+                }
+                if (!data.license_expiry_date) {
+                    var em = valLine.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+                    if (em) {
+                        var isoExp = normalizeDate(em[1] + '-' + em[2] + '-' + em[3]);
+                        if (isoExp) data.license_expiry_date = isoExp;
+                    }
+                }
+            }
+
+            // Row 4: "DL Codes Conditions"
+            if (/dl\s*codes.*conditions/i.test(lines[ci])) {
+                var valLineRc = lines[ci + 1];
+                if (!data.license_restriction) {
+                    var rcm = valLineRc.match(/\b(A1?|B[12]?|C|D|BE|CE)\b/gi);
+                    if (rcm && rcm.length) {
+                        var uRc = [];
+                        rcm.forEach(function (c) {
+                            var uc = c.toUpperCase();
+                            if (uRc.indexOf(uc) === -1) uRc.push(uc);
+                        });
+                        data.license_restriction = uRc.join(', ');
+                    }
+                }
             }
         }
 

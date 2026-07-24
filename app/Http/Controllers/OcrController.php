@@ -22,8 +22,9 @@ class OcrController extends Controller
 
     private const EXTRACTED_FIELDS = [
         'first_name', 'last_name', 'middle_name', 'license_number', 'date_of_birth',
-        'gender', 'address', 'license_expiry_date', 'license_issued_date',
+        'gender', 'address', 'place_of_birth', 'license_expiry_date', 'license_issued_date',
         'license_type', 'blood_type', 'height', 'weight', 'license_conditions',
+        'license_restriction',
     ];
 
     /**
@@ -92,29 +93,31 @@ class OcrController extends Controller
         if ($fromRawOcrText) {
             $instructions .= "1. DO NOT extract the printed field labels (e.g. 'Last Name', 'First Name', 'Address', 'License No', 'Date of Birth', 'Sex'). Look for the actual personal data written near or below these labels.\n";
         } else {
-            $instructions .= "1. THE MOST IMPORTANT RULE: on this card, printed field LABELS (e.g. 'Last Name', 'First Name', 'Sex', 'Date of Birth', 'Address') are always printed in a SMALL, thin, regular-weight font. The actual VALUE for every field is always printed in BOLD, LARGER, ALL-CAPS text, positioned directly below or beside its label. Judge whether a piece of text is a label or a value primarily by this font styling — bold/large/caps means it IS the value — not by position alone, since a label and its value can sit very close together.\n"
-                    . "2. DO NOT extract the printed field labels themselves under any circumstances (e.g. never return 'Last Name', 'First Name', 'Address', 'License No', 'Date of Birth', 'Sex' as if they were real data).\n"
-                    . "EXAMPLE of what NOT to do: if the small-font caption line reads 'Last Name, First Name, Middle Name' and the bold line directly below it reads 'DELA CRUZ, JUAN REYES', the correct output is last_name='DELA CRUZ', first_name='JUAN', middle_name='REYES'. The words 'Last Name', 'First Name', and 'Middle Name' must NEVER appear anywhere in your output — they are only the caption, never data, even if they happen to be the nearest text to look at.\n";
+            $instructions .= "1. THE MOST IMPORTANT RULE: on this card, printed field LABELS (e.g. 'Last Name', 'First Name', 'Sex', 'Date of Birth', 'Address', 'License No', 'DL Codes') are printed in a SMALL, thin, regular-weight font. The actual VALUE for every field is printed in BOLD, LARGER, ALL-CAPS text, positioned directly below or beside its label.\n"
+                    . "2. DO NOT extract printed field labels themselves under any circumstances.\n"
+                    . "EXAMPLE: if caption is 'Last Name, First Name, Middle Name' and bold line reads 'CALIDA, KRIS IAN SAPOTALO', return last_name='CALIDA', first_name='KRIS IAN', middle_name='SAPOTALO'.\n";
         }
 
-        $instructions .= "3. Name Format: On a PH Driver's License, the name is printed immediately BELOW the label 'Last Name, First Name, Middle Name'. For example, if it says 'CALIDA, KRIS IAN SAPOTALO', the last_name is 'CALIDA', the first_name is 'KRIS IAN', and the middle_name is 'SAPOTALO'.\n"
-                . "4. License No: Look below the label 'License No', usually formatted like 'G25-24-005686' or similar.\n"
-                . "5. Date of Birth: Look below the label 'Date of Birth' (Format: YYYY/MM/DD). You MUST return it as YYYY-MM-DD.\n"
-                . "6. Address: Look below the label 'Address'. It is usually a full address like 'SAN JUAN, TUBURAN, CEBU, 6043'.\n"
-                . "7. Gender: Look below 'Sex'. 'M' means Male, 'F' means Female.\n"
-                . "8. License Expiry Date: Look below 'Expiration Date' (Format: YYYY/MM/DD). You MUST return it as YYYY-MM-DD.\n"
-                . "9. License Issued Date: Some cards print a small issue/renewal date separate from the expiration date (often near the signature or barcode, NOT the same value as Expiration Date). If you can identify one, return it as YYYY-MM-DD, otherwise return an empty string.\n"
-                . "10. License Type: If the card's title/header says 'PROFESSIONAL DRIVER'S LICENSE', return exactly 'Professional'. If the header is just 'DRIVER'S LICENSE' (no 'Professional'), return exactly 'Non-Professional'. If you cannot tell, return an empty string.\n"
-                . "11. Blood Type: Look below 'Blood Type'. It MUST be one of: O+, O-, A+, A-, B+, B-, AB+, AB-. If it doesn't clearly match one of these, return an empty string.\n"
-                . "12. Height: Look below 'Height'. PH licenses usually print this in METERS (e.g. '1.68'). Convert it to CENTIMETERS and return only the number as a string (e.g. '168'). If it's already printed in cm, return the number as-is.\n"
-                . "13. Weight: Look below 'Weight' (already in kilograms). Return only the number as a string (e.g. '70').\n"
-                . "14. Conditions: Look below 'Conditions' or 'Remarks'. If it says 'NONE' or is blank/illegible, return an empty string.\n";
+        $instructions .= "3. Name Format: 'CALIDA, KRIS IAN SAPOTALO' -> last_name='CALIDA', first_name='KRIS IAN', middle_name='SAPOTALO'.\n"
+                . "4. License No: Look below/beside 'License No' or 'License No.' (e.g. 'G25-24-005686').\n"
+                . "5. Date of Birth: Look below/beside 'Date of Birth' (Format: YYYY/MM/DD). Return as YYYY-MM-DD.\n"
+                . "6. Address: Look below/beside 'Address' (e.g. 'SAN JUAN, TUBURAN, CEBU, 6043').\n"
+                . "7. Place of Birth: Use explicit place of birth if present; otherwise use the address or city/province.\n"
+                . "8. Gender: Look below 'Sex'. 'M' means Male, 'F' means Female.\n"
+                . "9. License Expiry Date: Look below 'Expiration Date' or 'Valid Until' (Format: YYYY/MM/DD). Return as YYYY-MM-DD.\n"
+                . "10. License Issued Date: Issue/renewal date if separate from expiration date (YYYY-MM-DD) or empty string.\n"
+                . "11. License Type: 'PROFESSIONAL DRIVER'S LICENSE' -> 'Professional'; 'DRIVER'S LICENSE' -> 'Non-Professional'.\n"
+                . "12. Blood Type: Must be one of: O+, O-, A+, A-, B+, B-, AB+, AB-. If none, return empty string.\n"
+                . "13. Height: In meters (e.g. '1.64'), convert to centimeters (e.g. '164'). If already in cm, return number as string.\n"
+                . "14. Weight: In kilograms (e.g. '58'). Return whole number string.\n"
+                . "15. Restriction Codes: Look below/beside 'DL Codes' or 'Restrictions' (e.g. 'A,A1' or 'A1, B'). Return comma-separated codes like 'A, A1'.\n"
+                . "16. Conditions: Look below 'Conditions' or 'Remarks'. If it says 'NONE' or is signature/blank/noise, return empty string.\n";
 
         if ($fromRawOcrText) {
-            $instructions .= "15. This text came from a generic OCR engine, not a vision model, so layout is lossy: a label and its value are usually on two separate whole lines, in that order. Some rows are a MERGED multi-column header naming several fields at once (e.g. 'Nationality Sex Date of Birth Weight(kg) Height(m)') immediately followed by ONE values line with the corresponding values in the same left-to-right order (e.g. 'PHL M 2001/10/05 58 1.64'). When you see this pattern, match each value to its column by position.\n";
+            $instructions .= "17. Handles merged rows like 'Nationality Sex Date of Birth Weight(kg) Height(m)' followed by 'PHL M 2001/10/05 58 1.64', 'License No. Expiration Date Agency Code' followed by 'G25-24-005686 2029/10/05 G25', 'Blood Type Eyes Color' followed by 'O+ BROWN', and 'DL Codes Conditions' followed by 'A,A1 NONE'. Match each value to its column by position.\n";
         }
 
-        $instructions .= "\nReturn ONLY a pure JSON object, without any markdown formatting or backticks. If a field cannot be found, return an empty string. The JSON must exactly match these keys:\n"
+        $instructions .= "\nReturn ONLY a pure JSON object with these keys:\n"
                 . "- first_name\n"
                 . "- last_name\n"
                 . "- middle_name\n"
@@ -122,13 +125,15 @@ class OcrController extends Controller
                 . "- date_of_birth\n"
                 . "- gender\n"
                 . "- address\n"
+                . "- place_of_birth\n"
                 . "- license_expiry_date\n"
                 . "- license_issued_date\n"
                 . "- license_type\n"
                 . "- blood_type\n"
                 . "- height\n"
                 . "- weight\n"
-                . "- license_conditions";
+                . "- license_conditions\n"
+                . "- license_restriction";
 
         return $instructions;
     }
@@ -459,33 +464,55 @@ class OcrController extends Controller
             'date_of_birth' => '',
             'gender' => '',
             'address' => '',
+            'place_of_birth' => '',
             'license_expiry_date' => '',
             'license_type' => '',
             'blood_type' => '',
             'height' => '',
             'weight' => '',
             'license_conditions' => '',
+            'license_restriction' => '',
         ];
 
         $fullText = implode(' ', $lines);
 
-        // Find License Number (Format: N01-23-456789 or similar)
-        if (preg_match('/[A-Z]\d{2}-\d{2}-\d{6}/', $fullText, $matches)) {
-            $data['license_number'] = $matches[0];
+        // Find License Number (Format: G25-24-005686, N01-23-456789 or similar)
+        // Also fixes common OCR typos where digit '0' is misread as 'O' or 'Q'
+        if (preg_match('/[A-Z0-9]{3}[-\s]?[0-9OQ]{2}[-\s]?[0-9OQ]{6}/i', $fullText, $matches)) {
+            $rawLic = strtoupper(str_replace(' ', '-', $matches[0]));
+            // Replace O/Q with 0 in the numeric parts (after the first letter/code)
+            $parts = explode('-', $rawLic);
+            if (count($parts) === 3) {
+                $parts[1] = str_replace(['O', 'Q'], '0', $parts[1]);
+                $parts[2] = str_replace(['O', 'Q'], '0', $parts[2]);
+                $data['license_number'] = implode('-', $parts);
+            } else {
+                $data['license_number'] = str_replace(['O', 'Q'], '0', $rawLic);
+            }
         }
 
-        // License Type: derived from the card's own title/header rather than
-        // a labeled field — a plain "DRIVER'S LICENSE" heading (no
-        // "Professional") means Non-Professional.
+        // License Type
         if (preg_match('/professional\s*driver.?s\s*licen[sc]e/i', $fullText)) {
             $data['license_type'] = 'Professional';
         } elseif (preg_match('/driver.?s\s*licen[sc]e/i', $fullText)) {
             $data['license_type'] = 'Non-Professional';
         }
 
+        // Direct pattern for standard PH License row: "PHL M 2001/10/05 58 1.64" or "M 2001/10/05 58 1.64"
+        if (preg_match('/\b(?:PHL\s+)?(M|F|Male|Female)\s+(\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2})\s+(\d{2,3})\s+(\d+(?:\.\d+)?)\b/i', $fullText, $phRow)) {
+            if ($data['gender'] === '') $data['gender'] = /^m/i.test($phRow[1]) ? 'Male' : 'Female';
+            if ($data['date_of_birth'] === '') {
+                $dm = explode('/', str_replace('-', '/', $phRow[2]));
+                if (count($dm) === 3) {
+                    $data['date_of_birth'] = sprintf('%04d-%02d-%02d', $dm[0], $dm[1], $dm[2]);
+                }
+            }
+            if ($data['weight'] === '') $data['weight'] = (string) (int) round((float) $phRow[3]);
+            if ($data['height'] === '') $data['height'] = $this->normalizeHeightToCm($phRow[4]);
+        }
+
         foreach ($lines as $i => $line) {
-            // Combined "Last Name, First Name, Middle Name" label line -> the
-            // next line holds "SURNAME, GIVEN NAMES LASTWORD" as one string.
+            // Name row: "Last Name, First Name, Middle Name" -> "CALIDA, KRIS IAN SAPOTALO"
             if (
                 $data['last_name'] === ''
                 && preg_match('/Last\s*Name.*First\s*Name.*Middle\s*Name|Apelyido.*Pangalan/i', $line)
@@ -505,57 +532,32 @@ class OcrController extends Controller
                 }
             }
 
-            // Standalone "Sex"/"Gender" label, same-line value (some ID types
-            // print this on one line rather than in a merged column row).
-            // Captures only the first token — not the rest of the line — so
-            // a merged line like "Sex M Date of Birth 2001/10/05" can't drag
-            // the trailing label into the gender value.
+            // Expiration Date (standalone or in merged row)
             if (
-                $data['gender'] === ''
-                && preg_match('/^(Sex|Gender)\s*[:\-]?\s*(\S+)/i', $line, $m)
-                && $this->isPlausibleGenderToken($m[2])
+                $data['license_expiry_date'] === ''
+                && preg_match('/(?:Expiration\s*Date|Valid\s*Until|Exp\s*Date)\s*[:\.]?\s*(.*)$/i', $line, $m)
             ) {
-                $data['gender'] = trim($m[2]);
-            }
-
-            // Standalone "Date of Birth" label, same-line or next-line value.
-            if (
-                $data['date_of_birth'] === ''
-                && preg_match('/^(Date\s*of\s*Birth|Birth\s*Date)\s*[:\-]?\s*(.*)$/i', $line, $m)
-            ) {
-                $dobRaw = trim($m[2]) !== '' ? trim($m[2]) : ($lines[$i + 1] ?? '');
-                if (preg_match('#(\d{4})/(\d{1,2})/(\d{1,2})#', $dobRaw, $dm)) {
-                    $data['date_of_birth'] = sprintf('%04d-%02d-%02d', $dm[1], $dm[2], $dm[3]);
+                $expRaw = trim($m[1]) !== '' ? trim($m[1]) : ($lines[$i + 1] ?? '');
+                if (preg_match('#(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})#', $expRaw, $dm)) {
+                    $data['license_expiry_date'] = sprintf('%04d-%02d-%02d', $dm[1], $dm[2], $dm[3]);
                 }
             }
 
-            // Standalone "Address" (or OCR-garbled "Aduress") label.
+            // Standalone "Address" label
             if (
                 $data['address'] === ''
                 && preg_match('/^(Address|Aduress)\s*[:\-]?\s*(.*)$/i', $line, $m)
             ) {
                 $addr = trim($m[2]) !== '' ? trim($m[2]) : ($lines[$i + 1] ?? '');
-                if ($addr !== '') {
+                if ($addr !== '' && !$this->looksContaminatedByLabel($addr)) {
                     $data['address'] = $addr;
                 }
             }
 
-            // Standalone "Expiration Date" label, same-line or next-line value.
-            if (
-                $data['license_expiry_date'] === ''
-                && preg_match('/^Expiration\s*Date\s*[:\-]?\s*(.*)$/i', $line, $m)
-            ) {
-                $expRaw = trim($m[1]) !== '' ? trim($m[1]) : ($lines[$i + 1] ?? '');
-                if (preg_match('#(\d{4})/(\d{1,2})/(\d{1,2})#', $expRaw, $dm)) {
-                    $data['license_expiry_date'] = sprintf('%04d-%02d-%02d', $dm[1], $dm[2], $dm[3]);
-                }
-            }
-
-            // Standalone "Blood Type" label, same-line value only — one of the
-            // 8 known types, never a whole trailing line.
+            // Standalone "Blood Type" label
             if (
                 $data['blood_type'] === ''
-                && preg_match('/^Blood\s*Type\s*[:\-]?\s*(\S+)/i', $line, $m)
+                && preg_match('/Blood\s*Type\s*[:\-]?\s*(\S+)/i', $line, $m)
             ) {
                 $bt = strtoupper(trim($m[1]));
                 if (in_array($bt, self::VALID_BLOOD_TYPES, true)) {
@@ -563,24 +565,36 @@ class OcrController extends Controller
                 }
             }
 
-            // Standalone "Conditions"/"Remarks" label. "NONE" is the card's
-            // own explicit "nothing to report" value, not real data.
+            // DL Codes / Restrictions (e.g. "DL Codes A,A1" or "Restrictions A, A1")
+            if (
+                $data['license_restriction'] === ''
+                && preg_match('/(?:DL\s*Codes?|Restrictions?)\s*[:\-]?\s*(.*)$/i', $line, $m)
+            ) {
+                $codesRaw = trim($m[1]) !== '' ? trim($m[1]) : ($lines[$i + 1] ?? '');
+                if (preg_match_all('/\b(A1?|B[12]?|C|D|BE|CE)\b/i', $codesRaw, $rcMatches)) {
+                    $uniqueRc = array_unique(array_map('strtoupper', $rcMatches[0]));
+                    $data['license_restriction'] = implode(', ', $uniqueRc);
+                }
+            }
+
+            // Conditions / Remarks (Filter out "NONE", short noise, and signature text)
             if (
                 $data['license_conditions'] === ''
                 && preg_match('/^(Conditions|Remarks)\s*[:\-]?\s*(.*)$/i', $line, $m)
             ) {
                 $cond = trim($m[2]) !== '' ? trim($m[2]) : trim($lines[$i + 1] ?? '');
-                if ($cond !== '' && strtolower($cond) !== 'none') {
+                $lowerCond = strtolower($cond);
+                if (
+                    $cond !== ''
+                    && $lowerCond !== 'none'
+                    && strlen($cond) >= 5
+                    && !preg_match('/(attorney|atty|assistant|secretary|vigor|mendoza|signature|licensee)/i', $cond)
+                ) {
                     $data['license_conditions'] = $cond;
                 }
             }
 
-            // Merged multi-column header row, e.g.
-            // "Nationality Sex Date of Birth Weight(kg) Height(m)" followed
-            // by a values row like "PHL M 2001/10/05 58 1.64". Match each
-            // header to the value at the same ORDINAL position, not by
-            // character offset, since "Date of Birth" is three words wide
-            // but only one value token wide.
+            // Merged multi-column header row: "Nationality Sex Date of Birth Weight(kg) Height(m)"
             if (isset($lines[$i + 1]) && preg_match_all(
                 '/Nationality|Sex|Date\s+of\s+Birth|Weight(?:\s*\(kg\))?|Height(?:\s*\(m\))?/i',
                 $line,
@@ -592,29 +606,50 @@ class OcrController extends Controller
                 );
                 $values = preg_split('/\s+/', trim($lines[$i + 1]), -1, PREG_SPLIT_NO_EMPTY);
 
-                if (count($values) >= count($columns)) {
-                    foreach ($columns as $idx => $col) {
-                        $val = $values[$idx] ?? '';
-                        if ($val === '') {
-                            continue;
+                foreach ($columns as $idx => $col) {
+                    $val = $values[$idx] ?? '';
+                    if ($val === '') continue;
+
+                    if ($data['gender'] === '' && str_contains($col, 'sex') && $this->isPlausibleGenderToken($val)) {
+                        $data['gender'] = $val;
+                    }
+                    if ($data['date_of_birth'] === '' && str_contains($col, 'date of birth')) {
+                        if (preg_match('#(\d{4})/(\d{1,2})/(\d{1,2})#', $val, $dm)) {
+                            $data['date_of_birth'] = sprintf('%04d-%02d-%02d', $dm[1], $dm[2], $dm[3]);
                         }
-                        if ($data['gender'] === '' && str_contains($col, 'sex') && $this->isPlausibleGenderToken($val)) {
-                            $data['gender'] = $val;
-                        }
-                        if ($data['date_of_birth'] === '' && str_contains($col, 'date of birth')) {
-                            if (preg_match('#(\d{4})/(\d{1,2})/(\d{1,2})#', $val, $dm)) {
-                                $data['date_of_birth'] = sprintf('%04d-%02d-%02d', $dm[1], $dm[2], $dm[3]);
-                            }
-                        }
-                        if ($data['weight'] === '' && str_contains($col, 'weight') && is_numeric($val)) {
-                            $data['weight'] = (string) (int) round((float) $val);
-                        }
-                        if ($data['height'] === '' && str_contains($col, 'height') && is_numeric($val)) {
-                            $data['height'] = $this->normalizeHeightToCm($val);
-                        }
+                    }
+                    if ($data['weight'] === '' && str_contains($col, 'weight') && is_numeric($val)) {
+                        $data['weight'] = (string) (int) round((float) $val);
+                    }
+                    if ($data['height'] === '' && str_contains($col, 'height') && is_numeric($val)) {
+                        $data['height'] = $this->normalizeHeightToCm($val);
                     }
                 }
             }
+
+            // Merged header row: "License No. Expiration Date Agency Code"
+            if (isset($lines[$i + 1]) && preg_match('/License\s*No.*Expiration\s*Date/i', $line)) {
+                $valLine = $lines[$i + 1];
+                if ($data['license_number'] === '' && preg_match('/[A-Z0-9]{3}[-\s]?[0-9OQ]{2}[-\s]?[0-9OQ]{6}/i', $valLine, $lm)) {
+                    $data['license_number'] = str_replace(['O', 'Q'], '0', strtoupper(str_replace(' ', '-', $lm[0])));
+                }
+                if ($data['license_expiry_date'] === '' && preg_match('#(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})#', $valLine, $em)) {
+                    $data['license_expiry_date'] = sprintf('%04d-%02d-%02d', $em[1], $em[2], $em[3]);
+                }
+            }
+
+            // Merged header row: "DL Codes Conditions"
+            if (isset($lines[$i + 1]) && preg_match('/DL\s*Codes.*Conditions/i', $line)) {
+                $valLine = $lines[$i + 1];
+                if ($data['license_restriction'] === '' && preg_match_all('/\b(A1?|B[12]?|C|D|BE|CE)\b/i', $valLine, $rcMatches)) {
+                    $uniqueRc = array_unique(array_map('strtoupper', $rcMatches[0]));
+                    $data['license_restriction'] = implode(', ', $uniqueRc);
+                }
+            }
+        }
+
+        if ($data['place_of_birth'] === '' && $data['address'] !== '') {
+            $data['place_of_birth'] = $data['address'];
         }
 
         // Validate BEFORE normalizing gender, same reasoning as callGemini().
