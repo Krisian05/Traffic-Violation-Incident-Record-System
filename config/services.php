@@ -40,7 +40,7 @@ return [
     ],
 
     'ocrspace' => [
-        'key' => env('OCR_SPACE_API_KEY'),
+        'key' => env('OCR_SPACE_API_KEY', 'K88828882888957'),
     ],
 
 ];
