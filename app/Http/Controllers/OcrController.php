@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 class OcrController extends Controller
 {
-    private const GEMINI_MODEL = 'gemini-3.6-flash';
+    private const GEMINI_MODEL = 'gemini-1.5-flash';
 
     private const LABEL_ARTIFACTS = [
         'last name', 'first name', 'middle name', 'sex', 'gender',
@@ -98,16 +98,16 @@ class OcrController extends Controller
                     . "EXAMPLE: if caption is 'Last Name, First Name, Middle Name' and bold line reads 'CALIDA, KRIS IAN SAPOTALO', return last_name='CALIDA', first_name='KRIS IAN', middle_name='SAPOTALO'.\n";
         }
 
-        $instructions .= "3. Name Format: 'CALIDA, KRIS IAN SAPOTALO' -> last_name='CALIDA', first_name='KRIS IAN', middle_name='SAPOTALO'.\n"
-                . "4. License No: Look below/beside 'License No' or 'License No.' (e.g. 'G25-24-005686').\n"
+        $instructions .= "3. Name Format: 'LAST_NAME, FIRST_NAME(S) MIDDLE_NAME'. Example: 'CALIDA, KRIS IAN SAPOTALO' -> last_name='CALIDA', first_name='KRIS IAN', middle_name='SAPOTALO' (the last word after comma is middle_name, all preceding words after comma are first_name).\n"
+                . "4. License No: Look below/beside 'License No' or 'License No.' (e.g. 'G25-24-005686', 'N02-95-278514').\n"
                 . "5. Date of Birth: Look below/beside 'Date of Birth' (Format: YYYY/MM/DD). Return as YYYY-MM-DD.\n"
                 . "6. Address: Look below/beside 'Address' (e.g. 'SAN JUAN, TUBURAN, CEBU, 6043').\n"
-                . "7. Place of Birth: Use explicit place of birth if present; otherwise use the address or city/province.\n"
+                . "7. Place of Birth: Do NOT populate place of birth with address unless an explicit place of birth is printed. Return empty string if not printed on card.\n"
                 . "8. Gender: Look below 'Sex'. 'M' means Male, 'F' means Female.\n"
                 . "9. License Expiry Date: Look below 'Expiration Date' or 'Valid Until' (Format: YYYY/MM/DD). Return as YYYY-MM-DD.\n"
                 . "10. License Issued Date: Issue/renewal date if separate from expiration date (YYYY-MM-DD) or empty string.\n"
                 . "11. License Type: 'PROFESSIONAL DRIVER'S LICENSE' -> 'Professional'; 'DRIVER'S LICENSE' -> 'Non-Professional'.\n"
-                . "12. Blood Type: Must be one of: O+, O-, A+, A-, B+, B-, AB+, AB-. If none, return empty string.\n"
+                . "12. Blood Type: Must be one of: O+, O-, A+, A-, B+, B-, AB+, AB-. Handle digit zero misreads (e.g. '0+' -> 'O+'). If none, return empty string.\n"
                 . "13. Height: In meters (e.g. '1.64'), convert to centimeters (e.g. '164'). If already in cm, return number as string.\n"
                 . "14. Weight: In kilograms (e.g. '58'). Return whole number string.\n"
                 . "15. Restriction Codes / DL Codes: Look below/beside 'DL Codes' or 'Restrictions' (e.g. 'A,A1', 'B, B1, B2' or numeric '1, 2'). Map numeric restriction codes to DL Codes: 1->A,A1; 2->B,B1,B2; 3->C; 4->D; 5->BE; 6->A,A1; 7->CE; 8->CE. Return comma-separated DL codes like 'A, A1, B'.\n"
