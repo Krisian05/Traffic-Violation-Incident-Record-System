@@ -1002,12 +1002,12 @@
         <div class="nav-label">Main Menu</div>
         @if(auth()->user()->isProvinceAdmin() || auth()->user()->isSuperAdmin())
         <a href="{{ route('province.dashboard') }}" class="{{ request()->routeIs('province.dashboard') ? 'active' : '' }}">
-            <i class="bi bi-diagram-3"></i> Province Dashboard
+            <i class="bi bi-diagram-3"></i> Provincial Command Dashboard
         </a>
         @endif
         @if(!auth()->user()->isProvinceAdmin())
         <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
-            <i class="bi bi-speedometer2"></i> Dashboard
+            <i class="bi bi-speedometer2"></i> LGU Operational Dashboard
         </a>
         @endif
 
