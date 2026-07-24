@@ -110,7 +110,7 @@ class OcrController extends Controller
                 . "12. Blood Type: Must be one of: O+, O-, A+, A-, B+, B-, AB+, AB-. If none, return empty string.\n"
                 . "13. Height: In meters (e.g. '1.64'), convert to centimeters (e.g. '164'). If already in cm, return number as string.\n"
                 . "14. Weight: In kilograms (e.g. '58'). Return whole number string.\n"
-                . "15. Restriction Codes: Look below/beside 'DL Codes' or 'Restrictions' (e.g. 'A,A1' or 'A1, B'). Return comma-separated codes like 'A, A1'.\n"
+                . "15. Restriction Codes / DL Codes: Look below/beside 'DL Codes' or 'Restrictions' (e.g. 'A,A1', 'B, B1, B2' or numeric '1, 2'). Map numeric restriction codes to DL Codes: 1->A,A1; 2->B,B1,B2; 3->C; 4->D; 5->BE; 6->A,A1; 7->CE; 8->CE. Return comma-separated DL codes like 'A, A1, B'.\n"
                 . "16. Conditions: Look below 'Conditions' or 'Remarks'. If it says 'NONE' or is signature/blank/noise, return empty string.\n";
 
         if ($fromRawOcrText) {
@@ -269,8 +269,52 @@ class OcrController extends Controller
         if (isset($data['height'])) {
             $data['height'] = $this->normalizeHeightToCm($data['height']);
         }
+        if (isset($data['license_restriction'])) {
+            $data['license_restriction'] = $this->normalizeRestrictionCodes($data['license_restriction']);
+        }
 
         return $data;
+    }
+
+    /**
+     * Map numeric legacy restriction codes (1, 2, 3, etc.) to standard DL Codes
+     * (A, A1, B, B1, B2, C, D, BE, CE) so checkboxes auto-select reliably.
+     */
+    private function normalizeRestrictionCodes($value)
+    {
+        $value = strtoupper(trim((string) $value));
+        if ($value === '') return '';
+
+        $numericMap = [
+            '1' => ['A', 'A1'],
+            '2' => ['B', 'B1', 'B2'],
+            '3' => ['C'],
+            '4' => ['D'],
+            '5' => ['BE'],
+            '6' => ['A', 'A1'],
+            '7' => ['CE'],
+            '8' => ['CE'],
+        ];
+
+        $tokens = preg_split('/[\s,\-\.]+/', $value);
+        $result = [];
+
+        foreach ($tokens as $token) {
+            $token = trim($token);
+            if (isset($numericMap[$token])) {
+                foreach ($numericMap[$token] as $dl) {
+                    if (!in_array($dl, $result, true)) {
+                        $result[] = $dl;
+                    }
+                }
+            } else if (in_array($token, ['A','A1','B','B1','B2','C','D','BE','CE'], true)) {
+                if (!in_array($token, $result, true)) {
+                    $result[] = $token;
+                }
+            }
+        }
+
+        return !empty($result) ? implode(', ', $result) : $value;
     }
 
     /**

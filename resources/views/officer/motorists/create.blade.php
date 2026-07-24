@@ -325,16 +325,34 @@
     </div>
     @endif
 
-    {{-- ── SCAN TO AUTOFILL ── --}}
-    <div class="edit-section" style="border:1.5px dashed #93c5fd;background:linear-gradient(135deg,#eff6ff,#f8fafc);">
-        <div class="edit-section-body text-center" style="padding:1.15rem 1rem;">
-            <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#1d4ed8,#1e40af);display:flex;align-items:center;justify-content:center;margin:0 auto .7rem;box-shadow:0 4px 16px rgba(29,78,216,.3);">
-                <i class="ph-bold ph-camera" style="font-size:1.5rem;color:#fff;"></i>
+    {{-- ── SCAN TO AUTOFILL (AI MULTIMODAL VISION) ── --}}
+    <div class="edit-section shadow-sm mb-3" style="border:1.5px dashed #3b82f6;background:linear-gradient(135deg,#eff6ff 0%,#f0f9ff 100%);border-radius:18px;">
+        <div class="edit-section-body text-center" style="padding:1.25rem 1rem;">
+            <div class="d-inline-flex align-items-center justify-content-center mb-2"
+                 style="width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;box-shadow:0 6px 20px rgba(37,99,235,.35);">
+                <i class="ph-bold ph-aperture" style="font-size:1.75rem;"></i>
             </div>
-            <div style="font-size:.9rem;font-weight:800;color:#0f172a;margin-bottom:.2rem;">Scan Driver's License or Valid ID</div>
-            <div style="font-size:.74rem;color:#64748b;margin-bottom:.9rem;">Fills in the details below automatically — review before saving</div>
-            <button type="button" class="mob-btn-primary" onclick="tvirsStartScanner('license_number')">
-                <i class="ph-bold ph-qr-code"></i> Scan ID
+            <div style="font-size:1rem;font-weight:800;color:#0f172a;margin-bottom:.25rem;letter-spacing:-.01em;">
+                Smart AI ID Scanner &amp; Auto-Fill
+            </div>
+            <div style="font-size:.76rem;color:#475569;margin-bottom:.85rem;max-width:320px;margin-left:auto;margin-right:auto;line-height:1.45;">
+                Snap or upload a photo of a Driver's License or Government ID to instantly extract personal details &amp; DL codes.
+            </div>
+            
+            <div class="d-flex align-items-center justify-content-center gap-1 flex-wrap mb-3" style="font-size:.68rem;font-weight:700;">
+                <span class="badge bg-white text-primary border border-primary-subtle rounded-pill px-2 py-1 shadow-2xs">
+                    <i class="ph-bold ph-sparkle me-1"></i>Gemini AI Vision
+                </span>
+                <span class="badge bg-white text-success border border-success-subtle rounded-pill px-2 py-1 shadow-2xs">
+                    <i class="ph-bold ph-check-circle me-1"></i>Auto-Fills Form
+                </span>
+                <span class="badge bg-white text-dark border border-secondary-subtle rounded-pill px-2 py-1 shadow-2xs">
+                    <i class="ph-bold ph-card-holder me-1"></i>DL &amp; Restriction Codes
+                </span>
+            </div>
+
+            <button type="button" class="mob-btn-primary py-2 px-4 shadow-sm" style="font-size:.9rem;border-radius:14px;" onclick="tvirsStartScanner('license_number')">
+                <i class="ph-bold ph-camera me-1" style="font-size:1.1rem;"></i> Scan Driver's License / Valid ID
             </button>
         </div>
     </div>
