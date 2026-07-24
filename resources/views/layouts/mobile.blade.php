@@ -1979,7 +1979,7 @@ function tvirsParseLicenseBarcode(code) {
     return data;
 }
 
-function tvirsProcessScannedCode(code, preParsed) {
+function tvirsProcessScannedCode(code, preParsed, tier) {
     if (!code && !preParsed) return;
     var parsed = preParsed || tvirsParseLicenseBarcode(code);
     var targetInputId = tvirsScannerTargetInput;
@@ -1998,7 +1998,7 @@ function tvirsProcessScannedCode(code, preParsed) {
     }
 
     document.dispatchEvent(new CustomEvent('tvirs:license-scanned', {
-        detail: { code: code || null, parsed: parsed, targetId: targetInputId, source: preParsed ? 'ocr' : 'barcode' }
+        detail: { code: code || null, parsed: parsed, targetId: targetInputId, source: preParsed ? 'ocr' : 'barcode', tier: tier || null }
     }));
 
     if (typeof tvirsScannerCallback === 'function') {
@@ -2032,7 +2032,7 @@ function tvirsRunOcrFallback(canvas) {
         if (snapBtn) snapBtn.disabled = false;
         var parsed = result.parsed;
         if (parsed && (parsed.first_name || parsed.last_name || parsed.license_number)) {
-            tvirsProcessScannedCode(null, parsed);
+            tvirsProcessScannedCode(null, parsed, result.tier);
         } else if (status) {
             status.textContent = 'Could not read enough text from that ID. Try steadier framing / better lighting, or enter details manually.';
             throw new Error('Not enough text read');

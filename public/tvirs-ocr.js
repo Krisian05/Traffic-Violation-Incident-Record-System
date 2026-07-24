@@ -426,10 +426,16 @@
         if (weightMatch) data.weight = String(Math.round(parseFloat(weightMatch[0])));
 
         // "NONE" is the card's own explicit "nothing to report" value, not
-        // real data worth autofilling.
+        // real data worth autofilling. A genuine remark ("Must wear corrective
+        // lenses") is always a real multi-character phrase — a bare 2-3 letter
+        // fragment is far more likely a Tesseract misread of "NONE" or noise
+        // than an actual condition, so it's rejected rather than saved.
         var conditionsText = findAfterLabel(lines, 'conditions|remarks');
-        if (conditionsText && conditionsText.trim().toLowerCase() !== 'none') {
-            data.license_conditions = conditionsText.trim();
+        if (conditionsText) {
+            var trimmedConditions = conditionsText.trim();
+            if (trimmedConditions.toLowerCase() !== 'none' && trimmedConditions.length >= 5) {
+                data.license_conditions = trimmedConditions;
+            }
         }
 
         // Fallback: a merged multi-column header row, e.g. "Nationality Sex
@@ -532,9 +538,9 @@
         }).then(function (result) {
             var text = (result && result.data && result.data.text) || '';
             if (text.trim().length < MIN_USABLE_TEXT_LENGTH) {
-                return finish({ text: text, parsed: { raw: text } });
+                return finish({ text: text, parsed: { raw: text }, tier: 'tesseract' });
             }
-            return finish({ text: text, parsed: parseIdText(text) });
+            return finish({ text: text, parsed: parseIdText(text), tier: 'tesseract' });
         }).catch(function (error) {
             finish();
             throw error;
@@ -581,7 +587,7 @@
             if (!json || !json.success || !json.data) {
                 throw new Error((json && json.message) || 'OCR server returned no data.');
             }
-            return { text: '', parsed: json.data };
+            return { text: '', parsed: json.data, tier: json.source };
         }).catch(function (error) {
             if (timeoutId) clearTimeout(timeoutId);
             throw error;

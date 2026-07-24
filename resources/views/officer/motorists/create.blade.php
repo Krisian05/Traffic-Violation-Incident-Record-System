@@ -1054,6 +1054,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!parsed) return;
 
         var source = e.detail.source === 'ocr' ? 'ocr' : 'barcode';
+        var tier = e.detail.tier || null;
         var autofilledFields = [];
 
         function fill(name, value) {
@@ -1115,9 +1116,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (autofilledFields.length > 0 && scanReviewBanner && scanReviewText) {
             var count = autofilledFields.length;
+            var TIER_LABELS = {
+                gemini: 'Read via Cloud AI (Gemini) — usually accurate, but always double-check —',
+                ocrspace: 'Read via Cloud AI (OCR.Space) —',
+                tesseract: 'Read via on-device text reader — small print (dates, license no., blood type) is less reliable this way —'
+            };
             var confidenceNote = source === 'barcode'
                 ? 'Read from the ID\'s barcode (usually reliable, but cards can be damaged or outdated) —'
-                : 'Read from the photo using text recognition, which can misread characters —';
+                : (TIER_LABELS[tier] || 'Read from the photo using text recognition, which can misread characters —');
             scanReviewText.textContent = confidenceNote + ' filled ' + count + ' field' + (count === 1 ? '' : 's') + '. Compare each one against the physical ID.';
             scanReviewBanner.style.display = '';
 
