@@ -372,8 +372,13 @@
                 if (parts.length >= 2) {
                     data.last_name = titleCase(parts[0].trim());
                     var rest = parts[1].trim().split(/\s+/).filter(Boolean);
-                    if (rest[0]) data.first_name = titleCase(rest[0]);
-                    if (rest.length > 1) data.middle_name = titleCase(rest.slice(1).join(' '));
+                    if (rest.length === 1) {
+                        data.first_name = titleCase(rest[0]);
+                    } else if (rest.length > 1) {
+                        var midToken = rest.pop();
+                        data.middle_name = titleCase(midToken);
+                        data.first_name = titleCase(rest.join(' '));
+                    }
                 }
             }
         }
