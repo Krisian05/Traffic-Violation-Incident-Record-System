@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin\PlatformMonitoringController;
+use App\Http\Controllers\Admin\SecuritySettingsController;
+use App\Http\Controllers\Admin\SystemConfigController;
+use App\Http\Controllers\Admin\TechnicalAdminController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
@@ -192,12 +196,44 @@ Route::middleware('auth')->group(function () {
     // ── USERS (admin and LGU admin) ─────────────────────────────────────────
     Route::middleware('role:admin,operator')->group(function () {
         Route::resource('users', UserController::class);
+        Route::post('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
+        Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
+        Route::post('/users/{user}/revoke-sessions', [UserController::class, 'revokeSessions'])->name('users.revoke-sessions');
         Route::delete('/users/{user}/devices/{device}', [DeviceRegistrationController::class, 'destroy'])->name('users.devices.destroy');
     });
 
-    // ── LGUs (admin only) ────────────────────────────────────────────────────
+    // ── SUPER ADMINISTRATOR SUITE (admin only) ──────────────────────────────
     Route::middleware('role:admin')->group(function () {
         Route::resource('lgus', LguController::class)->except(['show']);
+    });
+
+    Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+        // Overall System Configuration
+        Route::get('/system-config', [SystemConfigController::class, 'index'])->name('system-config.index');
+        Route::post('/system-config', [SystemConfigController::class, 'update'])->name('system-config.update');
+
+        // Security Settings & Active Sessions
+        Route::get('/security', [SecuritySettingsController::class, 'index'])->name('security.index');
+        Route::post('/security/policy', [SecuritySettingsController::class, 'updatePolicy'])->name('security.policy.update');
+        Route::get('/security/active-sessions', [SecuritySettingsController::class, 'activeSessions'])->name('security.sessions');
+        Route::delete('/security/sessions/{id}', [SecuritySettingsController::class, 'terminateSession'])->name('security.sessions.terminate');
+        Route::post('/security/sessions/terminate-all-others', [SecuritySettingsController::class, 'terminateAllOthers'])->name('security.sessions.terminate-all-others');
+
+        // Platform Monitoring
+        Route::get('/monitoring', [PlatformMonitoringController::class, 'index'])->name('monitoring.index');
+        Route::get('/monitoring/api/stats', [PlatformMonitoringController::class, 'getStats'])->name('monitoring.stats');
+
+        // Technical Administration
+        Route::get('/technical', [TechnicalAdminController::class, 'index'])->name('technical.index');
+        Route::post('/technical/maintenance', [TechnicalAdminController::class, 'toggleMaintenance'])->name('technical.maintenance.toggle');
+        Route::get('/technical/logs', [TechnicalAdminController::class, 'logsIndex'])->name('technical.logs.index');
+        Route::post('/technical/logs/clear', [TechnicalAdminController::class, 'logsClear'])->name('technical.logs.clear');
+        Route::get('/technical/logs/download', [TechnicalAdminController::class, 'logsDownload'])->name('technical.logs.download');
+        Route::get('/technical/backups', [TechnicalAdminController::class, 'backupsIndex'])->name('technical.backups.index');
+        Route::post('/technical/backups/create', [TechnicalAdminController::class, 'backupsCreate'])->name('technical.backups.create');
+        Route::get('/technical/backups/{filename}/download', [TechnicalAdminController::class, 'backupsDownload'])->name('technical.backups.download');
+        Route::delete('/technical/backups/{filename}', [TechnicalAdminController::class, 'backupsDestroy'])->name('technical.backups.destroy');
+        Route::post('/technical/artisan', [TechnicalAdminController::class, 'runArtisan'])->name('technical.artisan');
     });
 
     // ── PAYMENT MONITORING: Collection Reports & Reconciliation ─────────────

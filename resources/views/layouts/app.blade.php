@@ -1054,21 +1054,36 @@
         </a>
         @endif
 
-        @if(Auth::user()->isSuperAdmin() || Auth::user()->isLguAdmin())
+        @if(Auth::user()->isSuperAdmin())
+        <div class="nav-label">Super Admin Suite</div>
+        <a href="{{ route('admin.system-config.index') }}" class="{{ request()->routeIs('admin.system-config.*') ? 'active' : '' }}">
+            <i class="bi bi-sliders"></i> System Config
+        </a>
+        <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">
+            <i class="bi bi-people-fill"></i> User Accounts
+        </a>
+        <a href="{{ route('lgus.index') }}" class="{{ request()->routeIs('lgus.*') ? 'active' : '' }}">
+            <i class="bi bi-building"></i> LGUs
+        </a>
+        <a href="{{ route('admin.security.index') }}" class="{{ request()->routeIs('admin.security.*') ? 'active' : '' }}">
+            <i class="bi bi-shield-lock-fill"></i> Security Settings
+        </a>
+        <a href="{{ route('admin.monitoring.index') }}" class="{{ request()->routeIs('admin.monitoring.*') ? 'active' : '' }}">
+            <i class="bi bi-activity"></i> Platform Monitoring
+        </a>
+        <a href="{{ route('admin.technical.index') }}" class="{{ request()->routeIs('admin.technical.*') ? 'active' : '' }}">
+            <i class="bi bi-tools"></i> Technical Admin
+        </a>
+        @elseif(Auth::user()->isLguAdmin())
         <div class="nav-label">Administration</div>
         <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">
             <i class="bi bi-people-fill"></i> Users
         </a>
-        @if(Auth::user()->isSuperAdmin())
-        <a href="{{ route('lgus.index') }}" class="{{ request()->routeIs('lgus.*') ? 'active' : '' }}">
-            <i class="bi bi-building"></i> LGUs
-        </a>
-        @endif
         @endif
 
         <div class="nav-label">Account</div>
         <a href="{{ route('security.two-factor.show') }}" class="{{ request()->routeIs('security.two-factor.*') ? 'active' : '' }}">
-            <i class="bi bi-shield-lock-fill"></i> Security
+            <i class="bi bi-shield-lock"></i> My Security
         </a>
     </nav>
 
