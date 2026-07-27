@@ -73,15 +73,26 @@
                     <span class="input-group-text usr-ig-icon" style="background:#f0f9ff;border-color:#bae6fd;">
                         <i class="bi bi-building" style="color:#0369a1;"></i>
                     </span>
-                    <select name="lgu_id" class="form-select usr-input @error('lgu_id') is-invalid @enderror">
-                        <option value="">— None / Province-wide —</option>
-                        @foreach($lgus as $lgu)
-                        <option value="{{ $lgu->id }}" {{ (string) old('lgu_id') === (string) $lgu->id ? 'selected' : '' }}>{{ $lgu->name }} ({{ $lgu->code }})</option>
-                        @endforeach
-                    </select>
-                    @error('lgu_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    @if(!auth()->user()->isSuperAdmin() && !auth()->user()->isProvinceAdmin() && auth()->user()->lgu_id)
+                        <input type="text" class="form-control usr-input" value="{{ auth()->user()->lgu?->name }} ({{ auth()->user()->lgu?->code }})" readonly disabled style="background:#f8fafc;color:#334155;font-weight:600;">
+                        <input type="hidden" name="lgu_id" value="{{ auth()->user()->lgu_id }}">
+                    @else
+                        <select name="lgu_id" class="form-select usr-input @error('lgu_id') is-invalid @enderror">
+                            <option value="">— None / Province-wide —</option>
+                            @foreach($lgus as $lgu)
+                            <option value="{{ $lgu->id }}" {{ (string) old('lgu_id') === (string) $lgu->id ? 'selected' : '' }}>{{ $lgu->name }} ({{ $lgu->code }})</option>
+                            @endforeach
+                        </select>
+                        @error('lgu_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    @endif
                 </div>
-                <div class="form-text">Only needed for accounts that should be scoped to a single LGU.</div>
+                <div class="form-text">
+                    @if(!auth()->user()->isSuperAdmin() && !auth()->user()->isProvinceAdmin() && auth()->user()->lgu_id)
+                        Accounts created by LGU Administrators are automatically assigned to your LGU.
+                    @else
+                        Only needed for accounts that should be scoped to a single LGU.
+                    @endif
+                </div>
             </div>
 
             <div class="mb-3">

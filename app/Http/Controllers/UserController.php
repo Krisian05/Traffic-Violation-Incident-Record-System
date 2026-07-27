@@ -39,6 +39,10 @@ class UserController extends Controller
             $allowedRoleKeys = array_merge($allowedRoleKeys, ['super_admin', 'lgu_admin']);
         }
 
+        if (!$currentUser->isSuperAdmin() && !$currentUser->isProvinceAdmin() && $currentUser->lgu_id) {
+            $request->merge(['lgu_id' => $currentUser->lgu_id]);
+        }
+
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', 'unique:users,username', 'alpha_dash'],
@@ -49,6 +53,10 @@ class UserController extends Controller
             'lgu_id'   => ['nullable', 'exists:lgus,id'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
+
+        if (!$currentUser->isSuperAdmin() && !$currentUser->isProvinceAdmin() && $currentUser->lgu_id) {
+            $data['lgu_id'] = $currentUser->lgu_id;
+        }
 
         User::create($data);
 
@@ -76,6 +84,10 @@ class UserController extends Controller
             $allowedRoleKeys = array_merge($allowedRoleKeys, ['super_admin', 'lgu_admin']);
         }
 
+        if (!$currentUser->isSuperAdmin() && !$currentUser->isProvinceAdmin() && $currentUser->lgu_id) {
+            $request->merge(['lgu_id' => $currentUser->lgu_id]);
+        }
+
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', "unique:users,username,{$user->id}", 'alpha_dash'],
@@ -89,6 +101,10 @@ class UserController extends Controller
 
         if (empty($data['password'])) {
             unset($data['password']);
+        }
+
+        if (!$currentUser->isSuperAdmin() && !$currentUser->isProvinceAdmin() && $currentUser->lgu_id) {
+            $data['lgu_id'] = $currentUser->lgu_id;
         }
 
         $user->update($data);

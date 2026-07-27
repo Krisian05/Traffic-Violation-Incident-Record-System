@@ -284,4 +284,37 @@ class RbacFrameworkTest extends TestCase
 
         $this->assertDatabaseHas('users', ['username' => 'valid_prov_admin', 'role' => 'province_admin']);
     }
+
+    public function test_lgu_admin_creates_user_locked_to_own_lgu_and_super_admin_sees_dropdown(): void
+    {
+        $lguAdmin = User::factory()->lguAdmin()->create(['lgu_id' => 1]);
+        $superAdmin = User::factory()->superAdmin()->create();
+
+        // 1. LGU Admin view shows locked input note
+        $responseLgu = $this->actingAs($lguAdmin)->get('/users/create');
+        $responseLgu->assertOk();
+        $responseLgu->assertSee('Accounts created by LGU Administrators are automatically assigned to your LGU.');
+
+        // LGU Admin posting user automatically assigns LGU id 1
+        $this->actingAs($lguAdmin)
+            ->post('/users', [
+                'name' => 'LGU Cashier',
+                'username' => 'lgu_cashier_balamban',
+                'role' => 'cashier',
+                'lgu_id' => 999, // Attempts to set another LGU, but should be overridden
+                'password' => 'Password123!',
+                'password_confirmation' => 'Password123!',
+            ])
+            ->assertRedirect(route('users.index'));
+
+        $this->assertDatabaseHas('users', [
+            'username' => 'lgu_cashier_balamban',
+            'lgu_id' => 1,
+        ]);
+
+        // 2. Super Admin view shows full dropdown text hint
+        $responseSuper = $this->actingAs($superAdmin)->get('/users/create');
+        $responseSuper->assertOk();
+        $responseSuper->assertSee('Only needed for accounts that should be scoped to a single LGU.');
+    }
 }
