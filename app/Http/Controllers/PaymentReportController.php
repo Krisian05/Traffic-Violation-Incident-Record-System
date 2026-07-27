@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Exports\PaymentsExport;
+use App\Models\IncidentChargeType;
+use App\Models\IncidentMotorist;
 use App\Models\Lgu;
 use App\Models\Payment;
 use App\Models\Violation;
+use App\Models\ViolationType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -64,6 +67,52 @@ class PaymentReportController extends Controller
         $monthlyData   = [];
         for ($m = 1; $m <= 12; $m++) {
             $monthlyData[] = (float) ($monthlyRaw[$m] ?? 0);
+        }
+
+        // ── Monthly Violation & Incident Charge Breakdown ───────────────────
+        $violationDateExpr = $isPgsql ? 'EXTRACT(MONTH FROM date_of_violation)::int' : "CAST(strftime('%m', date_of_violation) AS INTEGER)";
+        $incidentDateExpr  = $isPgsql ? 'EXTRACT(MONTH FROM date_of_incident)::int' : "CAST(strftime('%m', date_of_incident) AS INTEGER)";
+
+        $violationTypes      = ViolationType::orderBy('name')->get();
+        $incidentChargeTypes = IncidentChargeType::orderBy('name')->get();
+
+        $violationsByMonth = Violation::whereYear('date_of_violation', $year)
+            ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))
+            ->selectRaw("$violationDateExpr as m, violation_type_id, COUNT(*) as total")
+            ->groupBy('m', 'violation_type_id')
+            ->get()
+            ->groupBy('m');
+
+        $incidentsByMonth = IncidentMotorist::join('incidents', 'incident_motorists.incident_id', '=', 'incidents.id')
+            ->whereYear('incidents.date_of_incident', $year)
+            ->when($selectedLguId, fn($q) => $q->where('incidents.lgu_id', $selectedLguId))
+            ->selectRaw("$incidentDateExpr as m, incident_motorists.incident_charge_type_id, COUNT(*) as total")
+            ->groupBy('m', 'incident_motorists.incident_charge_type_id')
+            ->get()
+            ->groupBy('m');
+
+        $monthlyViolationsSummary = [];
+        $monthlyIncidentsSummary  = [];
+
+        for ($m = 1; $m <= 12; $m++) {
+            $mViolationsMap = isset($violationsByMonth[$m]) ? $violationsByMonth[$m]->pluck('total', 'violation_type_id') : collect();
+            $mIncidentsMap  = isset($incidentsByMonth[$m]) ? $incidentsByMonth[$m]->pluck('total', 'incident_charge_type_id') : collect();
+
+            $monthlyViolationsSummary[$m] = $violationTypes->map(function ($type) use ($mViolationsMap) {
+                return [
+                    'id'    => $type->id,
+                    'name'  => $type->name,
+                    'total' => (int) ($mViolationsMap[$type->id] ?? 0),
+                ];
+            })->values();
+
+            $monthlyIncidentsSummary[$m] = $incidentChargeTypes->map(function ($charge) use ($mIncidentsMap) {
+                return [
+                    'id'    => $charge->id,
+                    'name'  => $charge->name,
+                    'total' => (int) ($mIncidentsMap[$charge->id] ?? 0),
+                ];
+            })->values();
         }
 
         // ── Annual summary (last 5 years) ────────────────────────────────────
@@ -141,7 +190,8 @@ class PaymentReportController extends Controller
             'monthlyLabels', 'monthlyData',
             'annualCollection',
             'statusCounts', 'paidAmount', 'unpaidAmount',
-            'lguPerformance', 'payments'
+            'lguPerformance', 'payments',
+            'monthlyViolationsSummary', 'monthlyIncidentsSummary'
         ));
     }
 

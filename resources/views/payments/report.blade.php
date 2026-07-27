@@ -57,6 +57,28 @@
         padding: 0.75rem 1rem;
         vertical-align: middle;
     }
+    .pm-month-btn {
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 0.4rem 0.85rem;
+        border-radius: 0.5rem;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        color: #475569;
+        transition: all 0.15s ease;
+        cursor: pointer;
+    }
+    .pm-month-btn:hover {
+        background: #f1f5f9;
+        color: #0f172a;
+        border-color: #cbd5e1;
+    }
+    .pm-month-btn.active {
+        background: linear-gradient(135deg, #059669, #047857);
+        color: #ffffff;
+        border-color: #047857;
+        box-shadow: 0 4px 10px rgba(5, 150, 105, 0.25);
+    }
 </style>
 
 <div class="container-fluid px-4 py-3">
@@ -70,7 +92,7 @@
             </div>
             <div>
                 <div class="text-uppercase fw-bold text-success" style="font-size:.7rem;letter-spacing:.09em;">Financial Reporting</div>
-                <h3 class="mb-0 fw-extrabold text-dark" style="letter-spacing:-0.02em;">Payment &amp; Collection Reports</h3>
+                <h3 class="mb-0 fw-extrabold text-dark" style="letter-spacing:-0.02em;">Collection Reports &amp; Payment Analytics</h3>
             </div>
         </div>
 
@@ -170,34 +192,95 @@
         </div>
     </div>
 
-    {{-- Interactive Charts Row --}}
-    <div class="row g-3 mb-4">
-        <div class="col-lg-7">
-            <div class="card border-0 shadow-sm pm-card h-100">
-                <div class="card-header bg-white border-0 pt-3 px-3.5 d-flex align-items-center justify-content-between">
-                    <div>
-                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-graph-up-arrow text-success me-1.5"></i> Daily Collections (Last 30 Days)</h6>
-                        <span class="text-muted" style="font-size:0.75rem;">Daily revenue trend in Philippine Pesos</span>
-                    </div>
-                    <span class="badge bg-light text-muted border font-monospace">30-Day Window</span>
+    {{-- Interactive Monthly Summary Section (Replaces Charts) --}}
+    <div class="card border-0 shadow-sm pm-card mb-4 overflow-hidden">
+        <div class="card-header bg-white border-0 pt-3.5 px-3.5 pb-2">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <div>
+                    <h5 class="fw-extrabold text-dark mb-0 d-flex align-items-center gap-2" style="letter-spacing:-0.01em;">
+                        <i class="bi bi-table text-success fs-5"></i>
+                        <span>Monthly Summary - Numbers of Violations and Incident For the Month of <span id="summaryMonthName" class="text-success">June</span> <span id="summaryYearDisplay">{{ $year }}</span></span>
+                    </h5>
+                    <span class="text-muted" style="font-size:0.78rem;">Click any month below to inspect exact records of violations and incident charges</span>
                 </div>
-                <div class="card-body p-3">
-                    <canvas id="dailyChart" height="110"></canvas>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle font-monospace px-2.5 py-1.5" style="font-size:0.75rem;">
+                        Year {{ $year }} Data
+                    </span>
                 </div>
+            </div>
+
+            {{-- 12-Month Interactive Bar --}}
+            <div class="d-flex align-items-center gap-1.5 flex-wrap pb-2 border-bottom">
+                @php
+                    $monthsList = [
+                        1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
+                        5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
+                        9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
+                    ];
+                    // Default to current month or June if current month is in range
+                    $defaultMonth = (date('Y') == $year) ? (int) date('m') : 6;
+                @endphp
+                @foreach($monthsList as $mNum => $mName)
+                    <button type="button" 
+                            class="pm-month-btn {{ $mNum === $defaultMonth ? 'active' : '' }}" 
+                            onclick="selectSummaryMonth({{ $mNum }}, '{{ $mName }}')">
+                        {{ substr($mName, 0, 3) }}
+                    </button>
+                @endforeach
             </div>
         </div>
 
-        <div class="col-lg-5">
-            <div class="card border-0 shadow-sm pm-card h-100">
-                <div class="card-header bg-white border-0 pt-3 px-3.5 d-flex align-items-center justify-content-between">
-                    <div>
-                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-bar-chart-line-fill text-primary me-1.5"></i> Monthly Breakdown ({{ $year }})</h6>
-                        <span class="text-muted" style="font-size:0.75rem;">Collection volume by calendar month</span>
+        <div class="card-body p-3.5">
+            <div class="row g-3">
+                {{-- Table 1: Type of Violation --}}
+                <div class="col-lg-6">
+                    <div class="border rounded-3 overflow-hidden h-100 bg-white shadow-sm">
+                        <div class="bg-light px-3 py-2.5 border-bottom d-flex align-items-center justify-content-between">
+                            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size:0.88rem;">
+                                <i class="bi bi-exclamation-triangle-fill text-amber me-1" style="color:#d97706;"></i> Violations Summary
+                            </h6>
+                            <span class="badge bg-secondary-subtle text-secondary font-monospace" id="totalViolationsCountBadge">0 Total</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table pm-table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-3.5">Type of Violation</th>
+                                        <th class="text-end pe-3.5" style="width:140px;">Total Number</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="violationsSummaryBody">
+                                    {{-- Dynamically populated via JS --}}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <span class="badge bg-light text-muted border font-monospace">{{ $year }}</span>
                 </div>
-                <div class="card-body p-3">
-                    <canvas id="monthlyChart" height="150"></canvas>
+
+                {{-- Table 2: Type of Charges Incidents --}}
+                <div class="col-lg-6">
+                    <div class="border rounded-3 overflow-hidden h-100 bg-white shadow-sm">
+                        <div class="bg-light px-3 py-2.5 border-bottom d-flex align-items-center justify-content-between">
+                            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size:0.88rem;">
+                                <i class="bi bi-shield-exclamation text-primary me-1"></i> Type of Charges Incidents
+                            </h6>
+                            <span class="badge bg-secondary-subtle text-secondary font-monospace" id="totalIncidentsCountBadge">0 Total</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table pm-table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-3.5">Types of Incident</th>
+                                        <th class="text-end pe-3.5" style="width:140px;">Total Number</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="incidentsSummaryBody">
+                                    {{-- Dynamically populated via JS --}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -412,122 +495,89 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Custom Peso formatter for Chart tooltips
-    const formatPeso = (value) => '₱' + Number(value).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    // Embedded monthly data from controller
+    const monthlyViolationsData = @json($monthlyViolationsSummary);
+    const monthlyIncidentsData  = @json($monthlyIncidentsSummary);
+    const defaultMonthNum = {{ $defaultMonth }};
 
-    // Daily Collection Chart
-    const dailyCtx = document.getElementById('dailyChart');
-    if (dailyCtx) {
-        new Chart(dailyCtx, {
-            type: 'line',
-            data: {
-                labels: @json($dailyLabels),
-                datasets: [{
-                    label: 'Daily Revenue',
-                    data: @json($dailyData),
-                    borderColor: '#10b981',
-                    borderWidth: 2.5,
-                    backgroundColor: (context) => {
-                        const bg = context.chart.ctx.createLinearGradient(0, 0, 0, 200);
-                        bg.addColorStop(0, 'rgba(16, 185, 129, 0.25)');
-                        bg.addColorStop(1, 'rgba(16, 185, 129, 0.00)');
-                        return bg;
-                    },
-                    fill: true,
-                    tension: 0.35,
-                    pointBackgroundColor: '#10b981',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    pointRadius: 3,
-                    pointHoverRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#0f172a',
-                        padding: 10,
-                        cornerRadius: 8,
-                        callbacks: {
-                            label: function(context) {
-                                return ' Revenue: ' + formatPeso(context.raw);
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: { display: false },
-                        ticks: { font: { size: 10 }, color: '#64748b' }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: '#f1f5f9' },
-                        ticks: {
-                            font: { size: 10 },
-                            color: '#64748b',
-                            callback: (val) => '₱' + Number(val).toLocaleString()
-                        }
-                    }
-                }
-            }
+    function selectSummaryMonth(monthNum, monthName) {
+        // 1. Update month buttons active state
+        document.querySelectorAll('.pm-month-btn').forEach(btn => {
+            btn.classList.remove('active');
         });
+        const clickedBtn = document.querySelector(`.pm-month-btn:nth-child(${monthNum})`);
+        if (clickedBtn) clickedBtn.classList.add('active');
+
+        // 2. Update Header Title
+        document.getElementById('summaryMonthName').innerText = monthName;
+
+        // 3. Render Violations Table (Left)
+        const vBody = document.getElementById('violationsSummaryBody');
+        const vList = monthlyViolationsData[monthNum] || [];
+        let vHtml = '';
+        let vTotalCount = 0;
+
+        if (vList.length === 0) {
+            vHtml = `<tr><td colspan="2" class="text-center py-4 text-muted">No violation records for ${monthName}.</td></tr>`;
+        } else {
+            vList.forEach(item => {
+                vTotalCount += item.total;
+                const badgeClass = item.total > 0 ? 'bg-amber-subtle text-amber-emphasis border fw-bold' : 'bg-light text-muted border-0';
+                const badgeStyle = item.total > 0 ? 'background:#fef3c7;color:#b45309;border-color:#fde68a;' : '';
+
+                vHtml += `
+                    <tr>
+                        <td class="ps-3.5 fw-semibold text-dark">${escapeHtml(item.name)}</td>
+                        <td class="text-end pe-3.5">
+                            <span class="badge px-2.5 py-1 rounded-2" style="${badgeStyle}">
+                                ${item.total}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        vBody.innerHTML = vHtml;
+        document.getElementById('totalViolationsCountBadge').innerText = `${vTotalCount} Total`;
+
+        // 4. Render Incident Charges Table (Right)
+        const iBody = document.getElementById('incidentsSummaryBody');
+        const iList = monthlyIncidentsData[monthNum] || [];
+        let iHtml = '';
+        let iTotalCount = 0;
+
+        if (iList.length === 0) {
+            iHtml = `<tr><td colspan="2" class="text-center py-4 text-muted">No incident charges for ${monthName}.</td></tr>`;
+        } else {
+            iList.forEach(item => {
+                iTotalCount += item.total;
+                const badgeStyle = item.total > 0 ? 'background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;' : 'background:#f8fafc;color:#94a3b8;';
+
+                iHtml += `
+                    <tr>
+                        <td class="ps-3.5 fw-semibold text-dark">${escapeHtml(item.name)}</td>
+                        <td class="text-end pe-3.5">
+                            <span class="badge px-2.5 py-1 rounded-2 fw-bold" style="${badgeStyle}">
+                                ${item.total}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        iBody.innerHTML = iHtml;
+        document.getElementById('totalIncidentsCountBadge').innerText = `${iTotalCount} Total`;
     }
 
-    // Monthly Collection Chart
-    const monthlyCtx = document.getElementById('monthlyChart');
-    if (monthlyCtx) {
-        new Chart(monthlyCtx, {
-            type: 'bar',
-            data: {
-                labels: @json($monthlyLabels),
-                datasets: [{
-                    label: 'Monthly Revenue',
-                    data: @json($monthlyData),
-                    backgroundColor: '#3b82f6',
-                    hoverBackgroundColor: '#2563eb',
-                    borderRadius: 6,
-                    borderSkipped: false
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#0f172a',
-                        padding: 10,
-                        cornerRadius: 8,
-                        callbacks: {
-                            label: function(context) {
-                                return ' Revenue: ' + formatPeso(context.raw);
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: { display: false },
-                        ticks: { font: { size: 10 }, color: '#64748b' }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: '#f1f5f9' },
-                        ticks: {
-                            font: { size: 10 },
-                            color: '#64748b',
-                            callback: (val) => '₱' + Number(val).toLocaleString()
-                        }
-                    }
-                }
-            }
-        });
+    function escapeHtml(str) {
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        selectSummaryMonth(defaultMonthNum, monthNames[defaultMonthNum]);
+    });
 </script>
 @endpush
