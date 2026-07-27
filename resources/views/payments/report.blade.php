@@ -249,7 +249,7 @@
                                 <tr>
                                     <th class="ps-3.5">Type of Violation</th>
                                     <th class="text-center" style="width:200px;">Total Number</th>
-                                    <th class="text-end pe-3.5" style="width:320px;">Total Revenue per violations being recorded</th>
+                                    <th class="text-end pe-3.5" style="width:360px;">Total Collection based on by the total number of Violations</th>
                                 </tr>
                             </thead>
                             <tbody id="violationsSummaryBody">
