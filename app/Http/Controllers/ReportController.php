@@ -37,6 +37,34 @@ class ReportController extends Controller
         return response()->json($violators->map(fn($v) => $v->full_name)->values());
     }
 
+    private function resolveReportLgu(Request $request): array
+    {
+        $user = Auth::user();
+        if ($user && $user->lgu_id && !$user->isSuperAdmin() && !$user->isProvinceAdmin()) {
+            return [
+                'lgu_id'       => (int) $user->lgu_id,
+                'municipality' => $user->lgu?->name ?? '',
+                'isScoped'     => true,
+            ];
+        }
+
+        $lguId = $request->input('lgu_id') ? (int) $request->input('lgu_id') : null;
+        $municipality = trim((string) $request->input('municipality', ''));
+
+        if (!$lguId && $municipality !== '') {
+            $matchedLgu = \App\Models\Lgu::where('name', 'ilike', '%' . $municipality . '%')->first();
+            if ($matchedLgu) {
+                $lguId = $matchedLgu->id;
+            }
+        }
+
+        return [
+            'lgu_id'       => $lguId,
+            'municipality' => $municipality,
+            'isScoped'     => false,
+        ];
+    }
+
     public function index(Request $request)
     {
         if (Auth::user()->isCashier() || Auth::user()->isTreasurer()) {
@@ -46,17 +74,23 @@ class ReportController extends Controller
         $year         = (int) $request->input('year', now()->year);
         $search       = trim($request->input('search', ''));
         $typeFilter   = (string) ($request->input('type_filter') ?? '');
-        $municipality = trim($request->input('municipality', ''));
+
+        $lguInfo      = $this->resolveReportLgu($request);
+        $lguId        = $lguInfo['lgu_id'];
+        $municipality = $lguInfo['municipality'];
+        $isScoped     = $lguInfo['isScoped'];
         $showAll      = $month == 0;
 
-        $baseData   = $this->loadBaseData($municipality);
+        $baseData   = $this->loadBaseData($lguId, $municipality);
         $allTypes   = $baseData['allTypes'];
         $incBase    = Incident::whereYear('date_of_incident', $year)
-                        ->when(!$showAll, fn($q) => $q->whereMonth('date_of_incident', $month));
-        $commonData = $this->gatherCommonReportData($year, $month, $showAll, $allTypes, $incBase, $baseData['overdueViolations'], $municipality);
+                        ->when(!$showAll, fn($q) => $q->whereMonth('date_of_incident', $month))
+                        ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+                        ->when(!$lguId && $municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'));
+        $commonData = $this->gatherCommonReportData($year, $month, $showAll, $allTypes, $incBase, $baseData['overdueViolations'], $lguId, $municipality);
         $data       = $showAll
-                        ? $this->buildYearlyData($year, $search, $typeFilter, $allTypes, $municipality)
-                        : $this->buildMonthlyData((int) $month, $year, $search, $typeFilter, $municipality);
+                        ? $this->buildYearlyData($year, $search, $typeFilter, $allTypes, $lguId, $municipality)
+                        : $this->buildMonthlyData((int) $month, $year, $search, $typeFilter, $lguId, $municipality);
 
         $topViolators = collect($data['yearViolatorMatrix'] ?? [])->take(8)->mapWithKeys(
             fn($item) => [$item['violator']->full_name ?? 'Unknown' => $item['total'] ?? 0]
@@ -65,7 +99,8 @@ class ReportController extends Controller
         // B1: Officer Performance Report
         $officerPerformance = Violation::whereYear('date_of_violation', $year)
             ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
-            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->when($lguId, fn($q) => $q->where('violations.lgu_id', $lguId))
+            ->when(!$lguId && $municipality, fn($q) => $q->where('violations.location', 'ilike', '%' . $municipality . '%'))
             ->join('users', 'violations.recorded_by', '=', 'users.id')
             ->select(
                 'users.id as user_id',
@@ -87,6 +122,8 @@ class ReportController extends Controller
             'search'             => $search,
             'typeFilter'         => $typeFilter,
             'municipality'       => $municipality,
+            'lguId'              => $lguId,
+            'isScoped'           => $isScoped,
             'showAll'            => $showAll,
             'allTypes'           => $allTypes,
             'minYear'            => $baseData['minYear'],
@@ -96,13 +133,16 @@ class ReportController extends Controller
         ], $commonData, $data));
     }
 
-    private function loadBaseData(string $municipality): array
+    private function loadBaseData(?int $lguId, string $municipality): array
     {
-        $repeatOffenders = Violator::withCount(['violations' => fn($q) =>
-                $q->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+        $repeatOffenders = Violator::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->withCount(['violations' => fn($q) =>
+                $q->when($lguId, fn($sq) => $sq->where('lgu_id', $lguId))
+                  ->when(!$lguId && $municipality, fn($sq) => $sq->where('location', 'ilike', '%' . $municipality . '%'))
             ])
             ->whereHas('violations', fn($q) =>
-                $q->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+                $q->when($lguId, fn($sq) => $sq->where('lgu_id', $lguId))
+                  ->when(!$lguId && $municipality, fn($sq) => $sq->where('location', 'ilike', '%' . $municipality . '%'))
             , '>', 1)
             ->orderByDesc('violations_count')
             ->get();
@@ -113,14 +153,15 @@ class ReportController extends Controller
 
         $overdueViolations = Violation::with(['violator', 'violationType', 'vehicle'])
             ->overdue()
-            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->when(!$lguId && $municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
             ->orderBy('created_at')
             ->get();
 
         return compact('repeatOffenders', 'allTypes', 'minYear', 'overdueViolations');
     }
 
-    private function gatherCommonReportData(int $year, int $month, bool $showAll, $allTypes, $incBase, $overdueViolations, string $municipality = ''): array
+    private function gatherCommonReportData(int $year, int $month, bool $showAll, $allTypes, $incBase, $overdueViolations, ?int $lguId = null, string $municipality = ''): array
     {
         $totalIncidents     = $incBase->count();
         $incidentsByStatus  = (clone $incBase)->select('status', DB::raw('COUNT(*) as total'))
@@ -132,14 +173,16 @@ class ReportController extends Controller
 
         $violationHotspots  = Violation::whereYear('date_of_violation', $year)
                                 ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
-                                ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+                                ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+                                ->when(!$lguId && $municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
                                 ->whereNotNull('location')->where('location', '!=', '')
                                 ->select('location', DB::raw('COUNT(*) as total'))
                                 ->groupBy('location')->orderByDesc('total')->limit(7)->get();
 
         $violationMapPoints = Violation::whereYear('date_of_violation', $year)
                                 ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
-                                ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+                                ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+                                ->when(!$lguId && $municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
                                 ->whereNotNull('gps_lat')->whereNotNull('gps_lng')
                                 ->select('id', 'gps_lat', 'gps_lng', 'location', 'violation_type_id', 'date_of_violation')
                                 ->with('violationType:id,name')
@@ -147,7 +190,8 @@ class ReportController extends Controller
 
         $aggCounts = Violation::whereYear('date_of_violation', $year)
                         ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
-                        ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+                        ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+                        ->when(!$lguId && $municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
                         ->selectRaw("
                             SUM(CASE WHEN status = 'settled' THEN 1 ELSE 0 END) as settled,
                             SUM(CASE WHEN status = 'contested' THEN 1 ELSE 0 END) as contested,
@@ -165,7 +209,8 @@ class ReportController extends Controller
 
         $violationsByType = Violation::whereYear('date_of_violation', $year)
             ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
-            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->when(!$lguId && $municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
             ->select('violation_type_id', DB::raw('COUNT(*) as total'))
             ->groupBy('violation_type_id')
             ->pluck('total', 'violation_type_id');
@@ -178,7 +223,8 @@ class ReportController extends Controller
 
         $violationStatusCounts = Violation::whereYear('date_of_violation', $year)
             ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
-            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->when(!$lguId && $municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
             ->select('status', DB::raw('COUNT(*) as total'))
             ->groupBy('status')
             ->pluck('total', 'status');
@@ -190,7 +236,8 @@ class ReportController extends Controller
             ->get()
             ->pluck('total', 'day');
 
-        $roleDistribution = \App\Models\User::select('role', DB::raw('COUNT(*) as total'))
+        $roleDistribution = \App\Models\User::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->select('role', DB::raw('COUNT(*) as total'))
             ->groupBy('role')
             ->pluck('total', 'role');
 
@@ -202,14 +249,15 @@ class ReportController extends Controller
         );
     }
 
-    private function buildYearlyData(int $year, string $search, string $typeFilter, Collection $allTypes, string $municipality = ''): array
+    private function buildYearlyData(int $year, string $search, string $typeFilter, Collection $allTypes, ?int $lguId = null, string $municipality = ''): array
     {
         $yearViolations = Violation::with([
                 'violator:id,first_name,middle_name,last_name',
                 'violationType:id,name',
             ])
             ->whereYear('date_of_violation', $year)
-            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->when(!$lguId && $municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
             ->get(['id', 'violator_id', 'violation_type_id', 'date_of_violation', 'location']);
 
         // Single pass: build month×type matrix AND group by violator simultaneously
@@ -295,6 +343,10 @@ class ReportController extends Controller
         $month  = (int) $request->input('month', now()->month);
         $date   = $request->input('date', now()->toDateString());
 
+        $lguInfo      = $this->resolveReportLgu($request);
+        $lguId        = $lguInfo['lgu_id'];
+        $municipality = $lguInfo['municipality'];
+
         if ($period === 'week') {
             // $date is either YYYY-Www (from type="week" input) or a plain date string
             if (preg_match('/^(\d{4})-W(\d{2})$/', $date, $m)) {
@@ -321,6 +373,8 @@ class ReportController extends Controller
 
         $incidents = Incident::with(['motorists.chargeType'])
             ->whereBetween('date_of_incident', [$from, $to])
+            ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->when(!$lguId && $municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
             ->get(['id', 'date_of_incident', 'time_of_incident', 'status', 'location']);
 
         $byHour       = array_fill(0, 24, 0);
@@ -368,13 +422,14 @@ class ReportController extends Controller
         ]);
     }
 
-    private function buildMonthlyData(int $month, int $year, string $search, string $typeFilter, string $municipality = ''): array
+    private function buildMonthlyData(int $month, int $year, string $search, string $typeFilter, ?int $lguId = null, string $municipality = ''): array
     {
         $monthViolations = Violation::with(['violator', 'violationType'])
             ->whereMonth('date_of_violation', $month)
             ->whereYear('date_of_violation', $year)
             ->when($typeFilter, fn($q) => $q->where('violation_type_id', $typeFilter))
-            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->when(!$lguId && $municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
             ->get();
 
         if ($search !== '') {
@@ -418,10 +473,13 @@ class ReportController extends Controller
 
     public function exportPdf(Request $request)
     {
+        $lguInfo      = $this->resolveReportLgu($request);
+        $lguId        = $lguInfo['lgu_id'];
+        $municipality = $lguInfo['municipality'];
+
         $month        = $request->input('month', 0);
         $year         = (int) $request->input('year', now()->year);
         $typeFilter   = (string) ($request->input('type_filter') ?? '');
-        $municipality = trim($request->input('municipality', ''));
         $showAll      = $month == 0;
 
         $periodLabel = $showAll
@@ -433,23 +491,27 @@ class ReportController extends Controller
 
         $totalViolationsCount = Violation::whereYear('date_of_violation', $year)
             ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
-            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->when(!$lguId && $municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
             ->when($typeFilter, fn($q) => $q->where('violation_type_id', $typeFilter))
             ->count();
 
         $settledCount = Violation::whereYear('date_of_violation', $year)
             ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
-            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->when(!$lguId && $municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
             ->where('status', 'settled')
             ->count();
 
         $overdueCount = Violation::overdue()
-            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->when(!$lguId && $municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
             ->count();
 
         $violationsByType = Violation::whereYear('date_of_violation', $year)
             ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
-            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->when(!$lguId && $municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
             ->when($typeFilter, fn($q) => $q->where('violation_type_id', $typeFilter))
             ->select('violation_type_id', DB::raw('COUNT(*) as total'))
             ->groupBy('violation_type_id')
@@ -463,7 +525,8 @@ class ReportController extends Controller
 
         $violationHotspots = Violation::whereYear('date_of_violation', $year)
             ->when(!$showAll, fn($q) => $q->whereMonth('date_of_violation', $month))
-            ->when($municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
+            ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->when(!$lguId && $municipality, fn($q) => $q->where('location', 'ilike', '%' . $municipality . '%'))
             ->whereNotNull('location')->where('location', '!=', '')
             ->select('location', DB::raw('COUNT(*) as total'))
             ->groupBy('location')->orderByDesc('total')->limit(7)->get();
@@ -480,12 +543,15 @@ class ReportController extends Controller
 
     public function exportExcel(Request $request)
     {
+        $lguInfo = $this->resolveReportLgu($request);
+
         $filters = [
             'year'        => $request->input('year', now()->year),
             'month'       => $request->input('month', 0),
             'search'      => trim($request->input('search', '')),
             'type_filter' => $request->input('type_filter', ''),
-            'municipality'=> trim($request->input('municipality', '')),
+            'municipality'=> $lguInfo['municipality'],
+            'lgu_id'      => $lguInfo['lgu_id'],
         ];
 
         $year  = $filters['year'];

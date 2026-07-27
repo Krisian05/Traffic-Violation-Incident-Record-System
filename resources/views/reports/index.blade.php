@@ -20,30 +20,31 @@
     }
 
     // Pre-built URLs for KPI cards
-    $kpiViolationsUrl = route('violations.index', $showAll
-        ? ['year' => $year]
-        : ['year' => $year, 'month' => $month]);
+    $kpiViolationsUrl = route('violations.index', array_filter($showAll
+        ? ['year' => $year, 'lgu_id' => $lguId ?? null]
+        : ['year' => $year, 'month' => $month, 'lgu_id' => $lguId ?? null]));
 
-    $kpiIncidentsUrl = route('incidents.index', [
+    $kpiIncidentsUrl = route('incidents.index', array_filter([
         'date_from' => $dateFrom,
         'date_to'   => $dateTo,
-    ]);
+        'lgu_id'    => $lguId ?? null,
+    ]));
 
-    $kpiSettledUrl = route('violations.index', $showAll
-        ? ['year' => $year, 'status' => 'settled']
-        : ['year' => $year, 'month' => $month, 'status' => 'settled']);
+    $kpiSettledUrl = route('violations.index', array_filter($showAll
+        ? ['year' => $year, 'status' => 'settled', 'lgu_id' => $lguId ?? null]
+        : ['year' => $year, 'month' => $month, 'status' => 'settled', 'lgu_id' => $lguId ?? null]));
 
-    $kpiOverdueUrl = route('violations.index', ['status' => 'overdue']);
+    $kpiOverdueUrl = route('violations.index', array_filter(['status' => 'overdue', 'lgu_id' => $lguId ?? null]));
 
-    $kpiContestedUrl = route('violations.index', $showAll
-        ? ['year' => $year, 'status' => 'contested']
-        : ['year' => $year, 'month' => $month, 'status' => 'contested']);
+    $kpiContestedUrl = route('violations.index', array_filter($showAll
+        ? ['year' => $year, 'status' => 'contested', 'lgu_id' => $lguId ?? null]
+        : ['year' => $year, 'month' => $month, 'status' => 'contested', 'lgu_id' => $lguId ?? null]));
 
-    $kpiPendingActiveUrl = route('violations.index', $showAll
-        ? ['year' => $year, 'status' => 'pending']
-        : ['year' => $year, 'month' => $month, 'status' => 'pending']);
+    $kpiPendingActiveUrl = route('violations.index', array_filter($showAll
+        ? ['year' => $year, 'status' => 'pending', 'lgu_id' => $lguId ?? null]
+        : ['year' => $year, 'month' => $month, 'status' => 'pending', 'lgu_id' => $lguId ?? null]));
 
-    $kpiViolatorsUrl = route('violators.index');
+    $kpiViolatorsUrl = route('violators.index', array_filter(['lgu_id' => $lguId ?? null]));
 @endphp
 
 {{-- ── FILTER CARD ── --}}
@@ -81,14 +82,21 @@
                 </select>
             </div>
 
-            <div style="flex:2;min-width:0;">
-                <label class="rpt-flabel">Municipality</label>
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text rpt-ig"><i class="bi bi-geo-alt-fill"></i></span>
-                    <input type="text" name="municipality" class="form-control rpt-finput"
-                           placeholder="e.g. Balamban" value="{{ $municipality }}" autocomplete="off">
+            @if(!empty($isScoped))
+                <input type="hidden" name="municipality" value="{{ $municipality }}">
+                @if(!empty($lguId))
+                    <input type="hidden" name="lgu_id" value="{{ $lguId }}">
+                @endif
+            @else
+                <div style="flex:2;min-width:0;">
+                    <label class="rpt-flabel">Municipality</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text rpt-ig"><i class="bi bi-geo-alt-fill"></i></span>
+                        <input type="text" name="municipality" class="form-control rpt-finput"
+                               placeholder="e.g. Balamban" value="{{ $municipality }}" autocomplete="off">
+                    </div>
                 </div>
-            </div>
+            @endif
 
             <div style="flex:1.5;min-width:0;">
                 <label class="rpt-flabel">Month</label>
@@ -204,6 +212,16 @@
         </form>
     </div>
 </div>
+
+@if(!empty($isScoped))
+<div class="alert alert-emerald border-0 shadow-sm mb-4 d-flex align-items-center justify-content-between" style="background:#ecfdf5;color:#047857;border-radius:12px;font-size:.875rem;">
+    <div>
+        <i class="bi bi-shield-check me-2 fs-5 align-middle"></i>
+        <span>Showing reports &amp; statistics for <strong>{{ $municipality ?: 'assigned municipality' }}</strong> only.</span>
+    </div>
+    <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 text-uppercase fw-bold" style="font-size:0.68rem;">LGU Scoped</span>
+</div>
+@endif
 
 {{-- ── PRINT HEADER (hidden on screen, visible on print) ── --}}
 <div class="print-header" id="printHeader">
