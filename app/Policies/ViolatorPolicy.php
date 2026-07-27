@@ -38,16 +38,24 @@ class ViolatorPolicy
 
     public function delete(User $user, Violator $violator): bool
     {
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($user->lgu_id && $violator->lgu_id && (int) $user->lgu_id !== (int) $violator->lgu_id) {
+            return false;
+        }
+
         return $user->isLguAdmin();
     }
 
     public function restore(User $user, Violator $violator): bool
     {
-        return $user->isLguAdmin();
+        return $this->delete($user, $violator);
     }
 
     public function forceDelete(User $user, Violator $violator): bool
     {
-        return $user->isLguAdmin();
+        return $this->delete($user, $violator);
     }
 }

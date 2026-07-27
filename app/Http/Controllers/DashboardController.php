@@ -19,6 +19,9 @@ class DashboardController extends Controller
     {
         $request->validate(['q' => ['nullable', 'string', 'max:100']]);
 
+        $user  = Auth::user();
+        $lguId = ($user && $user->lgu_id && !$user->isSuperAdmin() && !$user->isProvinceAdmin()) ? $user->lgu_id : null;
+
         $q  = trim($request->input('q', ''));
         if ($q === '') {
             return response()->json([]);
@@ -26,7 +29,7 @@ class DashboardController extends Controller
         $ql = mb_strtolower($q); // lowercase once for all LOWER() comparisons
         $lk = "%{$ql}%";
 
-        // Motorists — name, license, address, contact, plate number, vehicle make/model
+        // Motorists — searchable globally across all LGUs
         $motorists = Violator::with(['vehicles' => fn($q) => $q->limit(1)])
             ->where(function ($query) use ($lk) {
                 $query->whereRaw('LOWER(first_name) LIKE ?', [$lk])
@@ -63,11 +66,11 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Violations — ticket, location, plate, vehicle make, motorist name, type name, status, notes
-        // "overdue" is a virtual status: pending violations older than 72 hours
+        // Violations — scoped by lgu_id for LGU Admins
         $isOverdueSearch = str_contains($ql, 'overdue');
 
         $violations = Violation::with(['violator', 'violationType'])
+            ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
             ->where(function ($query) use ($lk, $isOverdueSearch) {
                 $query->whereRaw('LOWER(ticket_number) LIKE ?', [$lk])
                       ->orWhereRaw('LOWER(location) LIKE ?', [$lk])
@@ -86,7 +89,6 @@ class DashboardController extends Controller
                           $tq->whereRaw('LOWER(name) LIKE ?', [$lk])
                       );
 
-                // Virtual "overdue" keyword → pending violations past 72 hours
                 if ($isOverdueSearch) {
                     $query->orWhere(function ($q) {
                         $q->overdue();
@@ -111,7 +113,7 @@ class DashboardController extends Controller
 
         // Violation types
         $types = ViolationType::whereRaw('LOWER(name) LIKE ?', [$lk])
-            ->withCount('violations')
+            ->withCount(['violations' => fn($q) => $lguId ? $q->where('lgu_id', $lguId) : $q])
             ->orderByDesc('violations_count')
             ->limit(4)
             ->get()
@@ -124,8 +126,9 @@ class DashboardController extends Controller
                 'url'   => route('violations.index', ['type' => $t->id]),
             ]);
 
-        // Vehicles — direct plate/make/model search
+        // Vehicles — scoped by lgu_id for LGU Admins
         $vehicles = Vehicle::with('violator')
+            ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
             ->where(function ($query) use ($lk) {
                 $query->whereRaw('LOWER(plate_number) LIKE ?', [$lk])
                       ->orWhereRaw('LOWER(make) LIKE ?', [$lk])
@@ -151,8 +154,9 @@ class DashboardController extends Controller
                 'url'   => $vh->violator ? route('violators.show', $vh->violator_id) : '#',
             ]);
 
-        // Incidents — incident_number, location, description, status, motorist name/plate
+        // Incidents — scoped by lgu_id for LGU Admins
         $incidents = Incident::with(['motorists' => fn($q) => $q->limit(2)])
+            ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
             ->where(function ($query) use ($lk) {
                 $query->whereRaw('LOWER(incident_number) LIKE ?', [$lk])
                       ->orWhereRaw('LOWER(location) LIKE ?', [$lk])
@@ -194,17 +198,18 @@ class DashboardController extends Controller
 
     public function analytics(Request $request)
     {
-        $period = $request->input('period', 'weekly');
-        $cacheKey = 'dashboard_analytics_' . $period . '_' . now()->format('Y-m-d');
+        $period   = $request->input('period', 'weekly');
+        $user     = Auth::user();
+        $lguId    = ($user && $user->lgu_id && !$user->isSuperAdmin() && !$user->isProvinceAdmin()) ? $user->lgu_id : null;
+        $cacheKey = 'dashboard_analytics_' . $period . '_' . ($lguId ?? 'all') . '_' . now()->format('Y-m-d');
 
         return response()->json(
-            Cache::remember($cacheKey, 300, fn() => $this->buildAnalytics($period))
+            Cache::remember($cacheKey, 300, fn() => $this->buildAnalytics($period, $lguId))
         );
     }
 
-    private function buildAnalytics(string $period): array
+    private function buildAnalytics(string $period, ?int $lguId = null): array
     {
-
         switch ($period) {
             case 'monthly':
                 $start     = now()->startOfMonth();
@@ -230,21 +235,22 @@ class DashboardController extends Controller
         $prevStartDate = $prevStart->toDateString();
         $prevEndDate   = $prevEnd->toDateString();
 
-        $violationsCount = Violation::whereBetween('date_of_violation', [$startDate, $endDate])->count();
-        $incidentsCount  = Incident::whereBetween('date_of_incident',  [$startDate, $endDate])->count();
-        $overdueCount    = Violation::overdue()->count();
+        $violationsCount = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->whereBetween('date_of_violation', [$startDate, $endDate])->count();
+        $incidentsCount  = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->whereBetween('date_of_incident',  [$startDate, $endDate])->count();
+        $overdueCount    = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->overdue()->count();
 
         // Previous period for trend comparison
-        $prevViolations  = Violation::whereBetween('date_of_violation', [$prevStartDate, $prevEndDate])->count();
-        $prevIncidents   = Incident::whereBetween('date_of_incident',  [$prevStartDate, $prevEndDate])->count();
+        $prevViolations  = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->whereBetween('date_of_violation', [$prevStartDate, $prevEndDate])->count();
+        $prevIncidents   = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->whereBetween('date_of_incident',  [$prevStartDate, $prevEndDate])->count();
         $violationsDelta = $violationsCount - $prevViolations;
         $incidentsDelta  = $incidentsCount  - $prevIncidents;
         $violationsTrend = $prevViolations > 0 ? round(($violationsDelta / $prevViolations) * 100) : null;
         $incidentsTrend  = $prevIncidents  > 0 ? round(($incidentsDelta  / $prevIncidents)  * 100) : null;
 
-        // Build chart data using a single GROUP BY query (no N+1)
+        // Build chart data using a single GROUP BY query
         if ($period === 'weekly') {
-            $rawData = Violation::selectRaw('DATE(date_of_violation) as d, COUNT(*) as cnt')
+            $rawData = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+                ->selectRaw('DATE(date_of_violation) as d, COUNT(*) as cnt')
                 ->whereBetween('date_of_violation', [$startDate, $endDate])
                 ->groupBy('d')
                 ->pluck('cnt', 'd')
@@ -260,7 +266,8 @@ class DashboardController extends Controller
             $dayExpr = \DB::getDriverName() === 'pgsql'
                 ? 'EXTRACT(DAY FROM date_of_violation)::int as d'
                 : 'DAY(date_of_violation) as d';
-            $rawData = Violation::selectRaw("$dayExpr, COUNT(*) as cnt")
+            $rawData = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+                ->selectRaw("$dayExpr, COUNT(*) as cnt")
                 ->whereBetween('date_of_violation', [$startDate, $endDate])
                 ->groupBy('d')
                 ->pluck('cnt', 'd')
@@ -275,7 +282,8 @@ class DashboardController extends Controller
             $monthExpr = \DB::getDriverName() === 'pgsql'
                 ? 'EXTRACT(MONTH FROM date_of_violation)::int as m'
                 : 'MONTH(date_of_violation) as m';
-            $rawData = Violation::selectRaw("$monthExpr, COUNT(*) as cnt")
+            $rawData = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+                ->selectRaw("$monthExpr, COUNT(*) as cnt")
                 ->whereYear('date_of_violation', now()->year)
                 ->groupBy('m')
                 ->pluck('cnt', 'm')
@@ -289,7 +297,8 @@ class DashboardController extends Controller
         }
 
         // Top locations by incident count for the period
-        $topBarangays = Incident::whereBetween('date_of_incident', [$startDate, $endDate])
+        $topBarangays = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->whereBetween('date_of_incident', [$startDate, $endDate])
             ->whereNotNull('location')
             ->where('location', '!=', '')
             ->select('location', DB::raw('COUNT(*) as total'))
@@ -330,14 +339,18 @@ class DashboardController extends Controller
 
     public function stats()
     {
-        $data = Cache::remember('dashboard_stats', 60, function () {
+        $user  = Auth::user();
+        $lguId = ($user && $user->lgu_id && !$user->isSuperAdmin() && !$user->isProvinceAdmin()) ? $user->lgu_id : null;
+        $cacheKey = 'dashboard_stats_' . ($lguId ?? 'all');
+
+        $data = Cache::remember($cacheKey, 60, function () use ($lguId) {
             return [
-                'totalViolators'      => Violator::count(),
-                'pendingCount'        => Violator::whereHas('violations', fn($q) => $q->pendingActive())->count(),
-                'overdueCount'        => Violation::overdue()->count(),
-                'violationsThisMonth' => Violation::whereMonth('date_of_violation', now()->month)
+                'totalViolators'      => $lguId ? Violator::where('lgu_id', $lguId)->count() : Violator::count(),
+                'pendingCount'        => $lguId ? Violator::where('lgu_id', $lguId)->whereHas('violations', fn($q) => $q->where('lgu_id', $lguId)->pendingActive())->count() : Violator::whereHas('violations', fn($q) => $q->pendingActive())->count(),
+                'overdueCount'        => $lguId ? Violation::where('lgu_id', $lguId)->overdue()->count() : Violation::overdue()->count(),
+                'violationsThisMonth' => Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->whereMonth('date_of_violation', now()->month)
                                             ->whereYear('date_of_violation', now()->year)->count(),
-                'incidentsThisMonth'  => Incident::whereMonth('date_of_incident', now()->month)
+                'incidentsThisMonth'  => Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->whereMonth('date_of_incident', now()->month)
                                             ->whereYear('date_of_incident', now()->year)->count(),
             ];
         });
@@ -362,43 +375,48 @@ class DashboardController extends Controller
             return redirect()->route('payments.report');
         }
 
-        $totalViolators      = Violator::count();
-        $totalVehicles       = Vehicle::count();
-        $pendingCount        = Violator::whereHas('violations', fn($q) => $q->pendingActive())->count();
-        $violationsThisMonth = Violation::whereMonth('date_of_violation', now()->month)
+        $lguId = ($user->lgu_id && !$user->isSuperAdmin() && !$user->isProvinceAdmin()) ? $user->lgu_id : null;
+
+        $totalViolators      = $lguId ? Violator::where('lgu_id', $lguId)->count() : Violator::count();
+        $totalVehicles       = $lguId ? Vehicle::where('lgu_id', $lguId)->count() : Vehicle::count();
+        $pendingCount        = $lguId ? Violator::where('lgu_id', $lguId)->whereHas('violations', fn($q) => $q->where('lgu_id', $lguId)->pendingActive())->count() : Violator::whereHas('violations', fn($q) => $q->pendingActive())->count();
+        $violationsThisMonth = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->whereMonth('date_of_violation', now()->month)
                                    ->whereYear('date_of_violation', now()->year)->count();
-        $incidentsThisMonth  = Incident::whereMonth('date_of_incident', now()->month)
+        $incidentsThisMonth  = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->whereMonth('date_of_incident', now()->month)
                                    ->whereYear('date_of_incident', now()->year)->count();
 
-        $topViolations = ViolationType::withCount('violations')
+        $topViolations = ViolationType::withCount(['violations' => fn($q) => $lguId ? $q->where('lgu_id', $lguId) : $q])
             ->orderByDesc('violations_count')
             ->limit(5)
             ->get();
 
-        $repeatOffenders = Violator::withCount('violations')
+        $repeatOffenders = Violator::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->withCount(['violations' => fn($q) => $lguId ? $q->where('lgu_id', $lguId) : $q])
             ->has('violations', '>=', 2)
             ->orderByDesc('violations_count')
             ->limit(8)
             ->get();
 
         // Cap table at 20 rows; pass total separately for "View all" link
-        $overdueTotal      = Violation::overdue()->count();
+        $overdueTotal      = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->overdue()->count();
         $overdueViolations = Violation::with(['violator', 'violationType'])
+            ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
             ->overdue()
             ->orderBy('date_of_violation')
             ->limit(20)
             ->get();
 
-        $freshPendingTotal      = Violation::pendingActive()->count();
+        $freshPendingTotal      = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->pendingActive()->count();
         $freshPendingViolations = Violation::with(['violator', 'violationType'])
+            ->when($lguId, fn($q) => $q->where('lgu_id', $lguId))
             ->pendingActive()
             ->orderBy('date_of_violation')
             ->limit(20)
             ->get();
 
         // All-time settlement breakdown
-        $totalViolationsAll = Violation::count();
-        $settledCount       = Violation::where('status', 'settled')->count();
+        $totalViolationsAll = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->count();
+        $settledCount       = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->where('status', 'settled')->count();
         $settlementRate     = $totalViolationsAll > 0
             ? round(($settledCount / $totalViolationsAll) * 100)
             : 0;
@@ -417,7 +435,7 @@ class DashboardController extends Controller
             'freshPendingTotal',
             'totalViolationsAll',
             'settledCount',
-            'settlementRate',
+            'settlementRate'
         ));
     }
 }

@@ -317,4 +317,57 @@ class RbacFrameworkTest extends TestCase
         $responseSuper->assertOk();
         $responseSuper->assertSee('Only needed for accounts that should be scoped to a single LGU.');
     }
+
+    public function test_lgu_admin_dashboard_card_scoping_global_motorist_visibility_and_cross_lgu_record_protection(): void
+    {
+        $lgu2 = Lgu::factory()->create(['id' => 2, 'name' => 'Balamban', 'code' => 'BAL']);
+
+        $lguAdmin1 = User::factory()->lguAdmin()->create(['lgu_id' => 1]);
+        $lguAdmin2 = User::factory()->lguAdmin()->create(['lgu_id' => 2]);
+
+        $motorist1 = Violator::factory()->create(['lgu_id' => 1, 'first_name' => 'Alpha', 'middle_name' => null, 'last_name' => 'One']);
+        $motorist2 = Violator::factory()->create(['lgu_id' => 2, 'first_name' => 'Beta', 'middle_name' => null, 'last_name' => 'Two']);
+
+        $violation1 = Violation::factory()->create(['lgu_id' => 1, 'violator_id' => $motorist1->id, 'recorded_by' => $lguAdmin1->id, 'date_of_violation' => now()->toDateString()]);
+        $violation2 = Violation::factory()->create(['lgu_id' => 2, 'violator_id' => $motorist2->id, 'recorded_by' => $lguAdmin2->id, 'date_of_violation' => now()->toDateString()]);
+
+        $incident1 = Incident::factory()->create(['lgu_id' => 1, 'recorded_by' => $lguAdmin1->id, 'date_of_incident' => now()->toDateString()]);
+        $incident2 = Incident::factory()->create(['lgu_id' => 2, 'recorded_by' => $lguAdmin2->id, 'date_of_incident' => now()->toDateString()]);
+
+        // 1. Dashboard Scoping: LGU Admin 2 sees only LGU 2 counts on dashboard
+        $response = $this->actingAs($lguAdmin2)->get('/dashboard');
+        $response->assertOk();
+        $response->assertViewHas('totalViolators', 1);
+        $response->assertViewHas('violationsThisMonth', 1);
+        $response->assertViewHas('incidentsThisMonth', 1);
+
+        // 2. Global Motorist Directory: LGU Admin 2 can view both motorists
+        $responseMotorists = $this->actingAs($lguAdmin2)->get('/violators');
+        $responseMotorists->assertOk();
+        $responseMotorists->assertSee('Alpha One');
+        $responseMotorists->assertSee('Beta Two');
+
+        // 3. Cross-LGU Protection: LGU Admin 2 cannot edit or delete Violation 1 (LGU 1)
+        $resEditV = $this->actingAs($lguAdmin2)->get("/violations/{$violation1->id}/edit");
+        $this->assertTrue(in_array($resEditV->status(), [403, 404]));
+
+        $resDelV = $this->actingAs($lguAdmin2)->delete("/violations/{$violation1->id}");
+        $this->assertTrue(in_array($resDelV->status(), [403, 404]));
+
+        // LGU Admin 2 cannot edit or delete Incident 1 (LGU 1)
+        $resEditI = $this->actingAs($lguAdmin2)->get("/incidents/{$incident1->id}/edit");
+        $this->assertTrue(in_array($resEditI->status(), [403, 404]));
+
+        $resDelI = $this->actingAs($lguAdmin2)->delete("/incidents/{$incident1->id}");
+        $this->assertTrue(in_array($resDelI->status(), [403, 404]));
+
+        // LGU Admin 2 CAN edit own LGU violation and incident
+        $this->actingAs($lguAdmin2)
+            ->get("/violations/{$violation2->id}/edit")
+            ->assertOk();
+
+        $this->actingAs($lguAdmin2)
+            ->get("/incidents/{$incident2->id}/edit")
+            ->assertOk();
+    }
 }

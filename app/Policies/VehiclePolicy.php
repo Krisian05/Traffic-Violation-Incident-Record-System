@@ -33,21 +33,37 @@ class VehiclePolicy
             return false;
         }
 
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($user->lgu_id && $vehicle->lgu_id && (int) $user->lgu_id !== (int) $vehicle->lgu_id) {
+            return false;
+        }
+
         return $user->isLguAdmin() || $user->isRecordsOfficer() || $user->isTrafficSupervisor() || $user->isIssuingOfficer();
     }
 
     public function delete(User $user, Vehicle $vehicle): bool
     {
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($user->lgu_id && $vehicle->lgu_id && (int) $user->lgu_id !== (int) $vehicle->lgu_id) {
+            return false;
+        }
+
         return $user->isLguAdmin();
     }
 
     public function restore(User $user, Vehicle $vehicle): bool
     {
-        return $user->isLguAdmin();
+        return $this->delete($user, $vehicle);
     }
 
     public function forceDelete(User $user, Vehicle $vehicle): bool
     {
-        return $user->isLguAdmin();
+        return $this->delete($user, $vehicle);
     }
 }

@@ -59,7 +59,7 @@ class DesktopToMobileViolationSyncTest extends TestCase
         $response->assertSee('No Helmet');
         $response->assertSee('Balamban Public Market');
 
-        // Traffic Officer from ANOTHER LGU (e.g. Danao) cannot see Balamban motorist
+        // Traffic Officer from ANOTHER LGU can view motorist profile globally
         $otherLgu = Lgu::create(['name' => 'Danao', 'code' => 'DAN']);
         $otherOfficer = User::factory()->create([
             'role' => 'traffic_officer',
@@ -67,6 +67,6 @@ class DesktopToMobileViolationSyncTest extends TestCase
         ]);
 
         $responseOther = $this->actingAs($otherOfficer)->get(route('officer.motorists.show', $violator));
-        $responseOther->assertStatus(404);
+        $responseOther->assertStatus(200);
     }
 }

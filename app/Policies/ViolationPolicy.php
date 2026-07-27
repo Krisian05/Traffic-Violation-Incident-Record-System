@@ -29,10 +29,18 @@ class ViolationPolicy
         return true;
     }
 
-    // Editing violations: Super Admin, LGU Admin, Records Officer, Traffic Supervisor, or Issuing Officer for own record
+    // Editing violations: Super Admin, or LGU Admin / Records Officer / Traffic Supervisor for own LGU record
     public function update(User $user, Violation $violation): bool
     {
         if ($user->isAuditor() || $user->isCashier() || $user->isTreasurer()) {
+            return false;
+        }
+
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($user->lgu_id && $violation->lgu_id && (int) $user->lgu_id !== (int) $violation->lgu_id) {
             return false;
         }
 
@@ -43,9 +51,17 @@ class ViolationPolicy
         return $user->isIssuingOfficer() && $violation->recorded_by === $user->id;
     }
 
-    // Deleting violations: Only LGU Admin and Super Admin
+    // Deleting violations: Only owning LGU Admin and Super Admin
     public function delete(User $user, Violation $violation): bool
     {
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($user->lgu_id && $violation->lgu_id && (int) $user->lgu_id !== (int) $violation->lgu_id) {
+            return false;
+        }
+
         return $user->isLguAdmin();
     }
 
@@ -56,7 +72,7 @@ class ViolationPolicy
             return false;
         }
 
-        if ($user->lgu_id && $violation->lgu_id && $user->lgu_id !== $violation->lgu_id) {
+        if ($user->lgu_id && $violation->lgu_id && (int) $user->lgu_id !== (int) $violation->lgu_id) {
             return false;
         }
 
@@ -65,11 +81,11 @@ class ViolationPolicy
 
     public function restore(User $user, Violation $violation): bool
     {
-        return $user->isLguAdmin();
+        return $this->delete($user, $violation);
     }
 
     public function forceDelete(User $user, Violation $violation): bool
     {
-        return $user->isLguAdmin();
+        return $this->delete($user, $violation);
     }
 }

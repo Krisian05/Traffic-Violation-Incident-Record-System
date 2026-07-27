@@ -17,13 +17,15 @@
         @php $vc = $violator->violations->count(); @endphp
         <div class="vlt-profile-card mb-4">
             <div class="vlt-profile-banner">
-                @if(Auth::user()->isOperator())
                 <div class="vlt-banner-actions">
+                    @can('update', $violator)
                     <a href="{{ route('violators.edit', $violator) }}"
                        class="vlt-banner-btn"
                        data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Edit Profile">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
+                    @endcan
+                    @can('delete', $violator)
                     @php
                         $deleteConfirmMsg = $vc > 0
                             ? "This motorist has {$vc} violation record(s). Deleting will permanently remove the motorist AND all their violation records. This cannot be undone."
@@ -37,8 +39,8 @@
                             <i class="bi bi-trash-fill"></i>
                         </button>
                     </form>
+                    @endcan
                 </div>
-                @endif
             </div>
             <div class="vlt-profile-body text-center">
                 <div class="vlt-photo-wrap mx-auto">
