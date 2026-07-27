@@ -25,7 +25,14 @@
         @enderror
 
         <div class="text-center mb-3">
-            <canvas id="tfaQrCanvas"></canvas>
+            <div class="p-2.5 bg-white d-inline-block rounded-3 border shadow-sm">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ urlencode($qrCodeUrl) }}" 
+                     alt="2FA QR Code" 
+                     width="200" height="200"
+                     class="img-fluid"
+                     style="display:block;"
+                     onerror="this.onerror=null; this.src='https://quickchart.io/qr?size=200&text={{ urlencode($qrCodeUrl) }}';">
+            </div>
         </div>
 
         <div class="mb-3">
