@@ -573,7 +573,10 @@
                     </thead>
                     <tbody>
                         @foreach($overdueViolations as $v)
-                        @php $hrs = max(0, (int) now()->diffInHours($v->created_at) - 72); @endphp
+                        @php
+                            $dueDate = $v->due_date ? \Carbon\Carbon::parse($v->due_date)->endOfDay() : \Carbon\Carbon::parse($v->date_of_violation)->addDays(3)->endOfDay();
+                            $hrs = max(1, (int) $dueDate->diffInHours(now()));
+                        @endphp
                         <tr class="dash-pend-row dash-pend-overdue">
                             <td>
                                 @if($v->violator)
@@ -655,7 +658,10 @@
                     </thead>
                     <tbody>
                         @foreach($freshPendingViolations as $v)
-                        @php $hrs = (int) now()->diffInHours($v->created_at); @endphp
+                        @php
+                            $violationTime = \Carbon\Carbon::parse($v->date_of_violation)->startOfDay();
+                            $hrs = max(1, (int) $violationTime->diffInHours(now()));
+                        @endphp
                         <tr class="dash-pend-row">
                             <td>
                                 @if($v->violator)
