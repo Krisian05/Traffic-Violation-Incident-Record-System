@@ -202,7 +202,7 @@ Route::middleware('auth')->group(function () {
 
     // ── PAYMENT MONITORING: Collection Reports & Reconciliation ─────────────
     // Treasurers are scoped to their own LGU inside PaymentReportController.
-    Route::middleware('role:admin,operator,province_admin,treasurer,auditor')->group(function () {
+    Route::middleware('role:admin,operator,province_admin,treasurer,cashier,auditor')->group(function () {
         Route::get('/payments/report', [PaymentReportController::class, 'index'])->name('payments.report');
         Route::get('/payments/report/export', [PaymentReportController::class, 'exportExcel'])->name('payments.report.export');
     });

@@ -22,7 +22,7 @@ class PaymentReportController extends Controller
     private function resolveLguFilter(Request $request)
     {
         $user = Auth::user();
-        if ($user->isTreasurer()) {
+        if ($user->isTreasurer() || $user->isCashier()) {
             return $user->lgu_id;
         }
 

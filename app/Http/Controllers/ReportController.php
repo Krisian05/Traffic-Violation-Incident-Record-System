@@ -11,6 +11,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
@@ -36,8 +37,11 @@ class ReportController extends Controller
         return response()->json($violators->map(fn($v) => $v->full_name)->values());
     }
 
-    public function index(Request $request): View
+    public function index(Request $request)
     {
+        if (Auth::user()->isCashier() || Auth::user()->isTreasurer()) {
+            return redirect()->route('payments.report');
+        }
         $month        = $request->input('month', 0);
         $year         = (int) $request->input('year', now()->year);
         $search       = trim($request->input('search', ''));

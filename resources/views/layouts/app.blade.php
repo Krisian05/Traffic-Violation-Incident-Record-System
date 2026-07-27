@@ -1026,8 +1026,8 @@
             <i class="bi bi-wallet2"></i> Cashier Portal
         </a>
         @endif
-        @if(Auth::user()->isSuperAdmin() || Auth::user()->isLguAdmin() || Auth::user()->isProvinceAdmin() || Auth::user()->isTreasurer() || Auth::user()->isAuditor())
-        <a href="{{ route('payments.report') }}" class="{{ request()->routeIs('payments.report') ? 'active' : '' }}">
+        @if(Auth::user()->isSuperAdmin() || Auth::user()->isLguAdmin() || Auth::user()->isProvinceAdmin() || Auth::user()->isTreasurer() || Auth::user()->isCashier() || Auth::user()->isAuditor())
+        <a href="{{ route('payments.report') }}" class="{{ request()->routeIs('payments.report') && !request()->routeIs('reports.*') ? 'active' : '' }}">
             <i class="bi bi-cash-coin"></i> Collection Reports
         </a>
         @endif
@@ -1042,7 +1042,7 @@
         <a href="{{ route('incident-charge-types.index') }}" class="{{ request()->routeIs('incident-charge-types.*') ? 'active' : '' }}">
             <i class="bi bi-shield-exclamation"></i> Charge Types
         </a>
-        <a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">
+        <a href="{{ (Auth::user()->isCashier() || Auth::user()->isTreasurer()) ? route('payments.report') : route('reports.index') }}" class="{{ request()->routeIs('reports.*') || ((Auth::user()->isCashier() || Auth::user()->isTreasurer()) && request()->routeIs('payments.report')) ? 'active' : '' }}">
             <i class="bi bi-bar-chart-fill"></i> Reports
         </a>
         <a href="{{ route('privacy.policy') }}" class="{{ request()->routeIs('privacy.*') ? 'active' : '' }}">

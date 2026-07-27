@@ -274,12 +274,12 @@ class PaymentMonitoringTest extends TestCase
         $response->assertDontSee('OR-LGU-B');
     }
 
-    public function test_cashier_and_traffic_officer_cannot_access_collection_report(): void
+    public function test_cashier_can_access_collection_report_and_traffic_officer_cannot(): void
     {
         $cashier = User::factory()->cashier()->create();
         $officer = User::factory()->trafficOfficer()->create();
 
-        $this->actingAs($cashier)->get(route('payments.report'))->assertForbidden();
+        $this->actingAs($cashier)->get(route('payments.report'))->assertOk();
         $this->actingAs($officer)->get(route('payments.report'))->assertForbidden();
     }
 
