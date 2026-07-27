@@ -27,15 +27,22 @@ class UserController extends Controller
     public function create()
     {
         $lgus = Lgu::orderBy('name')->get();
-        return view('users.create', compact('lgus'));
+        $roles = Auth::user()->assignableRoles();
+        return view('users.create', compact('lgus', 'roles'));
     }
 
     public function store(Request $request)
     {
+        $currentUser = Auth::user();
+        $allowedRoleKeys = array_keys($currentUser->assignableRoles());
+        if ($currentUser->isSuperAdmin()) {
+            $allowedRoleKeys = array_merge($allowedRoleKeys, ['super_admin', 'lgu_admin']);
+        }
+
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', 'unique:users,username', 'alpha_dash'],
-            'role'     => ['required', 'in:admin,super_admin,province_admin,operator,lgu_admin,treasurer,cashier,traffic_supervisor,supervisor,traffic_officer,issuing_officer,records_officer,auditor,view_only'],
+            'role'     => ['required', 'in:' . implode(',', array_unique($allowedRoleKeys))],
             'agency'   => ['nullable', 'string', 'max:100'],
             'badge_id' => ['nullable', 'string', 'max:50'],
             'status'   => ['nullable', 'in:active,inactive'],
@@ -53,15 +60,26 @@ class UserController extends Controller
     {
         $lgus = Lgu::orderBy('name')->get();
         $user->loadMissing('devices');
-        return view('users.edit', compact('user', 'lgus'));
+        $roles = Auth::user()->assignableRoles();
+        if (!isset($roles[$user->role])) {
+            $roles[$user->role] = User::ROLES[$user->role] ?? ucfirst($user->role);
+        }
+        return view('users.edit', compact('user', 'lgus', 'roles'));
     }
 
     public function update(Request $request, User $user)
     {
+        $currentUser = Auth::user();
+        $allowedRoleKeys = array_keys($currentUser->assignableRoles());
+        $allowedRoleKeys[] = $user->role;
+        if ($currentUser->isSuperAdmin()) {
+            $allowedRoleKeys = array_merge($allowedRoleKeys, ['super_admin', 'lgu_admin']);
+        }
+
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:100'],
             'username' => ['required', 'string', 'max:50', "unique:users,username,{$user->id}", 'alpha_dash'],
-            'role'     => ['required', 'in:admin,super_admin,province_admin,operator,lgu_admin,treasurer,cashier,traffic_supervisor,supervisor,traffic_officer,issuing_officer,records_officer,auditor,view_only'],
+            'role'     => ['required', 'in:' . implode(',', array_unique($allowedRoleKeys))],
             'agency'   => ['nullable', 'string', 'max:100'],
             'badge_id' => ['nullable', 'string', 'max:50'],
             'status'   => ['nullable', 'in:active,inactive'],

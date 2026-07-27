@@ -245,4 +245,43 @@ class RbacFrameworkTest extends TestCase
             ->get('/users')
             ->assertStatus(403);
     }
+
+    public function test_super_admin_can_only_distribute_top_three_admin_roles(): void
+    {
+        $admin = User::factory()->superAdmin()->create();
+
+        $response = $this->actingAs($admin)->get('/users/create');
+        $response->assertOk();
+        $response->assertViewHas('roles', function ($roles) {
+            return count($roles) === 3
+                && isset($roles['admin'])
+                && isset($roles['province_admin'])
+                && isset($roles['operator'])
+                && !isset($roles['cashier']);
+        });
+
+        // Attempting to assign restricted role should fail validation
+        $this->actingAs($admin)
+            ->post('/users', [
+                'name' => 'Restricted Role User',
+                'username' => 'restricted_cashier',
+                'role' => 'cashier',
+                'password' => 'Password123!',
+                'password_confirmation' => 'Password123!',
+            ])
+            ->assertSessionHasErrors(['role']);
+
+        // Assigning valid administrative role should succeed
+        $this->actingAs($admin)
+            ->post('/users', [
+                'name' => 'Valid Province Admin',
+                'username' => 'valid_prov_admin',
+                'role' => 'province_admin',
+                'password' => 'Password123!',
+                'password_confirmation' => 'Password123!',
+            ])
+            ->assertRedirect(route('users.index'));
+
+        $this->assertDatabaseHas('users', ['username' => 'valid_prov_admin', 'role' => 'province_admin']);
+    }
 }

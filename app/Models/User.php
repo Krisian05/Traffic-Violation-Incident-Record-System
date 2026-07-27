@@ -75,6 +75,32 @@ class User extends Authenticatable
         'view_only'          => 'Auditor / View-Only User',
     ];
 
+    public const SUPER_ADMIN_ROLES = [
+        'admin'          => 'Super Administrator — Full System Administration & Management',
+        'province_admin' => 'Provincial Administrator — Province-wide Monitoring & Dashboards',
+        'operator'       => 'LGU Administrator — Local System Settings & LGU Management',
+    ];
+
+    public const LGU_ADMIN_ROLES = [
+        'operator'           => 'LGU Administrator — Local System Settings & LGU Management',
+        'treasurer'          => 'Treasurer — Collection Monitoring & Financial Reports',
+        'cashier'            => 'Cashier — Payment Validation & Collection Settlement',
+        'traffic_supervisor' => 'Police / Traffic Supervisor — Citation Review & Officer Monitoring',
+        'traffic_officer'    => 'Issuing Officer / Field Personnel — Citation Ticket & Incident Issuance (Mobile)',
+        'records_officer'    => 'Records Officer — Record Management, Encoding & Documentation',
+        'auditor'            => 'Auditor / View-Only User — Read-only Access to Reports, Logs & Records',
+    ];
+
+    public function assignableRoles(): array
+    {
+        if ($this->isSuperAdmin()) {
+            return self::SUPER_ADMIN_ROLES;
+        }
+
+        return self::LGU_ADMIN_ROLES;
+    }
+
+
     public function isSuperAdmin(): bool
     {
         return in_array($this->role, ['admin', 'super_admin']);
