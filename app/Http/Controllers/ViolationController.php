@@ -21,6 +21,10 @@ class ViolationController extends Controller
     {
         $query = Violation::with(['violator', 'violationType', 'vehicle', 'lgu']);
 
+        if ($lguId = $request->input('lgu_id')) {
+            $query->where('lgu_id', $lguId);
+        }
+
         if ($search = $request->input('search')) {
             $lk = '%' . mb_strtolower($search) . '%';
             $query->whereHas('violator', function ($q) use ($lk) {

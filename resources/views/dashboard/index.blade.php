@@ -5,6 +5,8 @@
 
 {{-- ── Dashboard Header: Greeting + Records Burger ── --}}
 @php
+    $usr    = Auth::user();
+    $lguId  = ($usr && $usr->lgu_id && !$usr->isSuperAdmin() && !$usr->isProvinceAdmin()) ? $usr->lgu_id : null;
     $grHour = now()->hour;
     $grWord = $grHour < 12 ? 'morning' : ($grHour < 18 ? 'afternoon' : 'evening');
 @endphp
@@ -43,7 +45,7 @@
 
                 <div class="records-panel-grid">
 
-                    <a href="{{ route('violators.index') }}" class="records-tile" role="menuitem">
+                    <a href="{{ route('violators.index', array_filter(['lgu_id' => $lguId])) }}" class="records-tile" role="menuitem">
                         <div class="records-tile-icon" style="background:linear-gradient(135deg,#60a5fa,#3b82f6);">
                             <i class="bi bi-person-lines-fill"></i>
                         </div>
@@ -54,7 +56,7 @@
                         <i class="bi bi-arrow-right-short records-tile-arrow"></i>
                     </a>
 
-                    <a href="{{ route('vehicles.index') }}" class="records-tile" role="menuitem">
+                    <a href="{{ route('vehicles.index', array_filter(['lgu_id' => $lguId])) }}" class="records-tile" role="menuitem">
                         <div class="records-tile-icon" style="background:linear-gradient(135deg,#38bdf8,#0284c7);">
                             <i class="bi bi-car-front-fill"></i>
                         </div>
@@ -65,7 +67,7 @@
                         <i class="bi bi-arrow-right-short records-tile-arrow"></i>
                     </a>
 
-                    <a href="{{ route('violations.index') }}" class="records-tile" role="menuitem">
+                    <a href="{{ route('violations.index', array_filter(['lgu_id' => $lguId])) }}" class="records-tile" role="menuitem">
                         <div class="records-tile-icon" style="background:linear-gradient(135deg,#fbbf24,#d97706);">
                             <i class="bi bi-exclamation-triangle-fill"></i>
                         </div>
@@ -78,7 +80,7 @@
                         <i class="bi bi-arrow-right-short records-tile-arrow"></i>
                     </a>
 
-                    <a href="{{ route('incidents.index') }}" class="records-tile" role="menuitem">
+                    <a href="{{ route('incidents.index', array_filter(['lgu_id' => $lguId])) }}" class="records-tile" role="menuitem">
                         <div class="records-tile-icon" style="background:linear-gradient(135deg,#f87171,#ef4444);">
                             <i class="bi bi-flag-fill"></i>
                         </div>
@@ -132,23 +134,23 @@
                         <i class="bi bi-printer-fill me-1"></i>Quick Filter &amp; Print
                     </div>
                     <div class="records-print-chips">
-                        <a href="{{ route('violations.index', ['status' => 'pending']) }}"
+                        <a href="{{ route('violations.index', array_filter(['status' => 'pending', 'lgu_id' => $lguId])) }}"
                            class="records-chip records-chip-warning">
                             <i class="bi bi-hourglass-split me-1"></i>Pending Violations
                         </a>
-                        <a href="{{ route('violations.index', ['status' => 'overdue']) }}"
+                        <a href="{{ route('violations.index', array_filter(['status' => 'overdue', 'lgu_id' => $lguId])) }}"
                            class="records-chip records-chip-danger">
                             <i class="bi bi-alarm-fill me-1"></i>Overdue Violations
                         </a>
-                        <a href="{{ route('violations.index', ['status' => 'settled']) }}"
+                        <a href="{{ route('violations.index', array_filter(['status' => 'settled', 'lgu_id' => $lguId])) }}"
                            class="records-chip records-chip-success">
                             <i class="bi bi-check-circle-fill me-1"></i>Settled Violations
                         </a>
-                        <a href="{{ route('violations.index', ['month' => now()->month, 'year' => now()->year]) }}"
+                        <a href="{{ route('violations.index', array_filter(['month' => now()->month, 'year' => now()->year, 'lgu_id' => $lguId])) }}"
                            class="records-chip records-chip-blue">
                             <i class="bi bi-calendar-fill me-1"></i>This Month's Violations
                         </a>
-                        <a href="{{ route('incidents.index', ['date_from' => now()->startOfMonth()->toDateString(), 'date_to' => now()->endOfMonth()->toDateString()]) }}"
+                        <a href="{{ route('incidents.index', array_filter(['date_from' => now()->startOfMonth()->toDateString(), 'date_to' => now()->endOfMonth()->toDateString(), 'lgu_id' => $lguId])) }}"
                            class="records-chip records-chip-blue">
                             <i class="bi bi-flag me-1"></i>This Month's Incidents
                         </a>
@@ -179,7 +181,7 @@
 <div class="row g-4 mb-4">
 
     <div class="col-6 col-xl-3 stat-card" data-delay="50">
-        <a href="{{ route('violators.index') }}" class="stat-card-link">
+        <a href="{{ route('violators.index', array_filter(['lgu_id' => $lguId])) }}" class="stat-card-link">
         <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative">
             <div class="stat-bg-blob" style="background:rgba(59,130,246,.06);"></div>
             <div class="card-body d-flex align-items-center gap-3 py-4">
@@ -198,7 +200,7 @@
     </div>
 
     <div class="col-6 col-xl-3 stat-card" data-delay="150">
-        <a href="{{ route('violations.index', ['status' => 'pending']) }}" class="stat-card-link">
+        <a href="{{ route('violators.index', array_filter(['status' => 'pending', 'lgu_id' => $lguId])) }}" class="stat-card-link">
         <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative">
             <div class="stat-bg-blob" style="background:rgba(245,158,11,.06);"></div>
             <div class="card-body d-flex align-items-center gap-3 py-4">
@@ -218,7 +220,7 @@
     </div>
 
     <div class="col-6 col-xl-3 stat-card" data-delay="250">
-        <a href="{{ route('violations.index', ['month' => now()->month, 'year' => now()->year]) }}" class="stat-card-link">
+        <a href="{{ route('violations.index', array_filter(['month' => now()->month, 'year' => now()->year, 'lgu_id' => $lguId])) }}" class="stat-card-link">
         <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative">
             <div class="stat-bg-blob" style="background:rgba(16,185,129,.06);"></div>
             <div class="card-body d-flex align-items-center gap-3 py-4">
@@ -237,7 +239,7 @@
     </div>
 
     <div class="col-6 col-xl-3 stat-card" data-delay="350">
-        <a href="{{ route('incidents.index', ['date_from' => now()->startOfMonth()->toDateString(), 'date_to' => now()->endOfMonth()->toDateString()]) }}" class="stat-card-link">
+        <a href="{{ route('incidents.index', array_filter(['date_from' => now()->startOfMonth()->toDateString(), 'date_to' => now()->endOfMonth()->toDateString(), 'lgu_id' => $lguId])) }}" class="stat-card-link">
         <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative">
             <div class="stat-bg-blob" style="background:rgba(99,102,241,.06);"></div>
             <div class="card-body d-flex align-items-center gap-3 py-4">
@@ -278,7 +280,7 @@
 
         {{-- Period Violations --}}
         <div class="col-sm-6 col-xl-4">
-            <a href="{{ route('violations.index') }}" id="aLink-violations" class="stat-card-link analytics-card-link">
+            <a href="{{ route('violations.index', array_filter(['lgu_id' => $lguId])) }}" id="aLink-violations" class="stat-card-link analytics-card-link">
             <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative analytics-card">
                 <div class="stat-bg-blob" style="background:rgba(245,158,11,.06);"></div>
                 <div class="card-body d-flex align-items-center gap-3 py-4">
@@ -301,7 +303,7 @@
 
         {{-- Period Traffic Incidents --}}
         <div class="col-sm-6 col-xl-4">
-            <a href="{{ route('incidents.index') }}" id="aLink-incidents" class="stat-card-link analytics-card-link">
+            <a href="{{ route('incidents.index', array_filter(['lgu_id' => $lguId])) }}" id="aLink-incidents" class="stat-card-link analytics-card-link">
             <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative analytics-card">
                 <div class="stat-bg-blob" style="background:rgba(99,102,241,.06);"></div>
                 <div class="card-body d-flex align-items-center gap-3 py-4">
@@ -324,7 +326,7 @@
 
         {{-- Overdue Violations --}}
         <div class="col-sm-6 col-xl-4">
-            <a href="{{ route('violations.index', ['status' => 'overdue']) }}" class="stat-card-link analytics-card-link">
+            <a href="{{ route('violations.index', array_filter(['status' => 'overdue', 'lgu_id' => $lguId])) }}" class="stat-card-link analytics-card-link">
             <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative analytics-card">
                 <div class="stat-bg-blob" style="background:rgba(220,38,38,.06);"></div>
                 <div class="card-body d-flex align-items-center gap-3 py-4">
@@ -399,13 +401,13 @@
         <div class="d-flex align-items-center gap-3 flex-wrap">
             <span class="fw-bold text-nowrap" style="font-size:.75rem;color:#57534e;">All-time Status:</span>
             <div class="d-flex gap-2 flex-wrap flex-grow-1">
-                <a href="{{ route('violations.index', ['status' => 'settled']) }}"
+                <a href="{{ route('violations.index', array_filter(['status' => 'settled', 'lgu_id' => $lguId])) }}"
                    class="settlement-pill settlement-settled text-decoration-none">
                     <i class="bi bi-check-circle-fill"></i>
                     Settled <strong>{{ $settlementRate }}%</strong>
                     <span class="opacity-75">({{ number_format($settledCount) }})</span>
                 </a>
-                <a href="{{ route('violations.index', ['status' => 'pending']) }}"
+                <a href="{{ route('violations.index', array_filter(['status' => 'pending', 'lgu_id' => $lguId])) }}"
                    class="settlement-pill settlement-pending-pill text-decoration-none">
                     <i class="bi bi-hourglass-split"></i>
                     Pending <strong>{{ $pendingAllRate }}%</strong>
@@ -937,7 +939,8 @@ setInterval(fetchStats, REFRESH_MS);
             const pct   = Math.round((b.count / max) * 100);
             const color = BRGY_COLORS[i % BRGY_COLORS.length];
             const safeLabel = (b.label || 'Unknown').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            const url   = '{{ route("incidents.index") }}?search=' + encodeURIComponent(b.label || '');
+            const lguParam  = '{{ $lguId ? "&lgu_id=" . $lguId : "" }}';
+            const url       = '{{ route("incidents.index") }}?search=' + encodeURIComponent(b.label || '') + lguParam;
             html += `<a href="${url}" class="brgy-row text-decoration-none">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <span class="brgy-name" title="${safeLabel}">${safeLabel}</span>

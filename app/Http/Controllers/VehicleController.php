@@ -16,6 +16,10 @@ class VehicleController extends Controller
         $query = Vehicle::with(['violator', 'photos', 'firstViolationPhoto', 'allViolationPhotos'])
             ->withCount('violations');
 
+        if ($lguId = $request->input('lgu_id')) {
+            $query->where('lgu_id', $lguId);
+        }
+
         if ($search = $request->input('search')) {
             $lk     = '%' . mb_strtolower($search) . '%';
             $plateLk = '%' . str_replace('-', '', mb_strtolower($search)) . '%';

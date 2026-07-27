@@ -16,6 +16,18 @@ class ViolatorController extends Controller
             ->withCount(['violations as pending_count' => fn($q) => $q->whereIn('status', ['pending', 'partial'])])
             ->withCount(['violations as overdue_count' => fn($q) => $q->whereIn('status', ['pending', 'partial'])->whereNotNull('due_date')->where('due_date', '<', now()->toDateString())]);
 
+        if ($lguId = $request->input('lgu_id')) {
+            $query->where('lgu_id', $lguId);
+        }
+
+        if ($status = $request->input('status')) {
+            if ($status === 'overdue') {
+                $query->whereHas('violations', fn($q) => $q->overdue());
+            } elseif ($status === 'pending') {
+                $query->whereHas('violations', fn($q) => $q->pendingActive());
+            }
+        }
+
         if ($search = $request->input('search')) {
             $lk = '%' . mb_strtolower($search) . '%';
             $query->where(function ($q) use ($lk) {
