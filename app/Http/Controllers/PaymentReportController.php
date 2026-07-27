@@ -25,7 +25,7 @@ class PaymentReportController extends Controller
     private function resolveLguFilter(Request $request)
     {
         $user = Auth::user();
-        if ($user->isTreasurer() || $user->isCashier()) {
+        if ($user && $user->lgu_id && !$user->isSuperAdmin() && !$user->isProvinceAdmin()) {
             return $user->lgu_id;
         }
 

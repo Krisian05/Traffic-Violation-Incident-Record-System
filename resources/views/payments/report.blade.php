@@ -98,7 +98,7 @@
 
         <div class="d-flex align-items-center gap-2 flex-wrap">
             <form method="GET" action="{{ route('payments.report') }}" class="d-flex align-items-center gap-2">
-                @if(!Auth::user()->isTreasurer() && !Auth::user()->isCashier())
+                @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin())
                 <select name="lgu_id" class="form-select form-select-sm shadow-sm pm-filter-input fw-semibold" onchange="this.form.submit()">
                     <option value="">All Municipalities / LGUs</option>
                     @foreach($lgus as $lgu)
@@ -119,13 +119,13 @@
         </div>
     </div>
 
-    @if(Auth::user()->isTreasurer() || Auth::user()->isCashier())
+    @if(Auth::user()->lgu_id && !Auth::user()->isSuperAdmin() && !Auth::user()->isProvinceAdmin())
     <div class="alert alert-emerald border-0 shadow-sm mb-4 d-flex align-items-center justify-content-between" style="background:#ecfdf5;color:#047857;border-radius:12px;font-size:.875rem;">
         <div>
             <i class="bi bi-shield-check me-2 fs-5 align-middle"></i>
             <span>Showing payment collection records for <strong>{{ Auth::user()->lgu?->name ?? 'assigned municipality' }}</strong> only.</span>
         </div>
-        <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 text-uppercase fw-bold" style="font-size:0.68rem;">Cashier Scoped</span>
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 text-uppercase fw-bold" style="font-size:0.68rem;">LGU Scoped</span>
     </div>
     @endif
 
@@ -369,7 +369,7 @@
             {{-- Filter Form --}}
             <form method="GET" action="{{ route('payments.report') }}" class="row g-2 mb-3 bg-light p-2.5 rounded-3 border">
                 <input type="hidden" name="year" value="{{ $year }}">
-                @if(!Auth::user()->isTreasurer() && !Auth::user()->isCashier())
+                @if($selectedLguId)
                     <input type="hidden" name="lgu_id" value="{{ $selectedLguId }}">
                 @endif
                 <div class="col-md-3 col-sm-6">
