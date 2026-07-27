@@ -305,12 +305,12 @@
                                 <th>Type</th>
                                 <th>Make / Model</th>
                                 <th>Color / Year</th>
-                                @if(Auth::user()->isOperator())<th class="text-center">Actions</th>@endif
+                                <th class="text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($violator->vehicles as $v)
-                            <tr class="vlt-tbl-row">
+                            <tr class="vlt-tbl-row vlt-veh-row" data-href="{{ route('vehicles.show', $v) }}">
                                 <td style="padding-left:1.25rem;min-width:80px;">
                                     @php
                                         if ($v->photos->isNotEmpty()) {
@@ -343,14 +343,20 @@
                                             <div class="vlt-gallery-overlay"><i class="bi bi-images"></i></div>
                                         </div>
                                     @else
-                                        <div class="d-inline-flex align-items-center justify-content-center"
-                                            style="width:64px;height:48px;background:#f5f0e8;border-radius:8px;border:1.5px solid #ddd0be;">
-                                            <i class="bi bi-car-front" style="color:#c4b8a8;"></i>
-                                        </div>
+                                        <a href="{{ route('vehicles.show', $v) }}"
+                                           class="d-inline-flex align-items-center justify-content-center text-decoration-none"
+                                           style="width:64px;height:48px;background:#f5f0e8;border-radius:8px;border:1.5px solid #ddd0be;cursor:pointer;"
+                                           title="View vehicle details">
+                                            <i class="bi bi-car-front" style="color:#854d0e;font-size:1.15rem;"></i>
+                                        </a>
                                     @endif
                                 </td>
                                 <td>
-                                    <span class="vlt-plate-chip">{{ $v->plate_number }}</span>
+                                    <a href="{{ route('vehicles.show', $v) }}"
+                                       class="vlt-plate-chip text-decoration-none"
+                                       title="View vehicle details">
+                                        {{ $v->plate_number }}
+                                    </a>
                                 </td>
                                 <td>
                                     <span class="vlt-type-chip">{{ $v->vehicle_type }}</span>
@@ -361,22 +367,27 @@
                                 <td style="font-size:.85rem;color:#57534e;">
                                     {{ implode(' / ', array_filter([$v->color, $v->year])) ?: '—' }}
                                 </td>
-                                @if(Auth::user()->isOperator())
-                                <td class="text-center">
+                                <td class="text-center vlt-veh-act">
                                     <div class="d-flex justify-content-center gap-2">
-                                        <a href="{{ route('vehicles.edit', $v) }}" class="vlt-act-btn vlt-act-edit">
+                                        <a href="{{ route('vehicles.show', $v) }}" class="vlt-act-btn vlt-act-view" title="View vehicle details">
+                                            <i class="bi bi-eye-fill"></i>
+                                        </a>
+                                        @can('update', $v)
+                                        <a href="{{ route('vehicles.edit', $v) }}" class="vlt-act-btn vlt-act-edit" title="Edit vehicle">
                                             <i class="bi bi-pencil-fill"></i>
                                         </a>
+                                        @endcan
+                                        @can('delete', $v)
                                         <form method="POST" action="{{ route('vehicles.destroy', $v) }}" class="d-inline"
                                               data-confirm="Remove this vehicle from the system?">
                                             @csrf @method('DELETE')
-                                            <button class="vlt-act-btn vlt-act-del">
+                                            <button type="submit" class="vlt-act-btn vlt-act-del" title="Delete vehicle">
                                                 <i class="bi bi-trash-fill"></i>
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </td>
-                                @endif
                             </tr>
                             @endforeach
                         </tbody>
@@ -1072,6 +1083,18 @@ document.querySelectorAll('.vlt-history-row[data-href]').forEach(function (row) 
         if (e.target.closest('a'))                return;
         if (e.target.closest('button'))           return;
         if (e.target.closest('form'))             return;
+        window.location.href = row.dataset.href;
+    });
+});
+
+// ── Clickable vehicle rows ──
+document.querySelectorAll('.vlt-veh-row[data-href]').forEach(function (row) {
+    row.addEventListener('click', function (e) {
+        if (e.target.closest('.vlt-gallery-thumb')) return;
+        if (e.target.closest('.vlt-veh-act'))       return;
+        if (e.target.closest('a'))                  return;
+        if (e.target.closest('button'))             return;
+        if (e.target.closest('form'))               return;
         window.location.href = row.dataset.href;
     });
 });
