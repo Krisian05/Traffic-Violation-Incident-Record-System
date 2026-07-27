@@ -21,24 +21,25 @@ class RefreshCurrentLguDataSeeder extends Seeder
     public function run(): void
     {
         // ── 1. Clear existing violation, motorist, incident, and payment records ──
-        if (DB::getDriverName() === 'mysql') {
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('TRUNCATE TABLE payments, violation_vehicle_photos, violations, incident_motorists, incidents, vehicle_photos, vehicles, violators RESTART IDENTITY CASCADE;');
+            if (DB::getSchemaBuilder()->hasTable('activity_log')) {
+                DB::statement('TRUNCATE TABLE activity_log RESTART IDENTITY CASCADE;');
+            }
+        } else {
             DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        }
+            Payment::truncate();
+            DB::table('violation_vehicle_photos')->truncate();
+            Violation::truncate();
+            IncidentMotorist::truncate();
+            Incident::truncate();
+            DB::table('vehicle_photos')->truncate();
+            Vehicle::truncate();
+            Violator::truncate();
 
-        Payment::truncate();
-        DB::table('violation_vehicle_photos')->truncate();
-        Violation::truncate();
-        IncidentMotorist::truncate();
-        Incident::truncate();
-        DB::table('vehicle_photos')->truncate();
-        Vehicle::truncate();
-        Violator::truncate();
-        
-        if (DB::getSchemaBuilder()->hasTable('activity_log')) {
-            DB::table('activity_log')->truncate();
-        }
-
-        if (DB::getDriverName() === 'mysql') {
+            if (DB::getSchemaBuilder()->hasTable('activity_log')) {
+                DB::table('activity_log')->truncate();
+            }
             DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         }
 
@@ -289,8 +290,26 @@ class RefreshCurrentLguDataSeeder extends Seeder
             }
         }
 
-        // ── 5. Seed Incidents per current LGU ──
+        // ── 5. Seed Incidents per current LGU (Focus on Balamban LGU) ──
         $incidentStatuses = ['reported', 'under_assessment', 'assigned_for_investigation', 'resolved', 'closed'];
+
+        $balambanDescriptions = [
+            'Head-on collision between a motorcycle and a light truck near Balamban Public Market due to slippery road conditions.',
+            'Side-swipe incident involving a PUJ and private vehicle along Transcentral Highway, Gaas, Balamban.',
+            'Stalled cargo truck causing major traffic obstruction and minor rear-end collision along Aliwanay Highway, Balamban.',
+            'Self-accident involving a motorcycle skidding off the curve at Nivel Hills, Transcentral Highway, Balamban.',
+            'Intersection collision at Poblacion Plaza, Balamban due to failure to yield right-of-way.',
+            'Three-vehicle pileup involving two motorcycles and an SUV near Prenza Bridge, Balamban.',
+            'Pedestrian knock-down near Bujan Street corner Highway, Balamban.',
+            'Vehicle rollover along Pondol Coastal Road, Balamban following brake failure.',
+            'T-bone collision at Arpili Road Junction, Balamban during heavy rain.',
+            'Collision between a delivery van and a tricycle along Cambuhawe Spring Access Road, Balamban.',
+            'Motorcycle collision with a parked vehicle near Cantuod Highway Intersection, Balamban.',
+            'Loss of control on steep slope along Transcentral Highway, Cansomoroy, Balamban resulting in property damage.',
+            'Minor side-impact collision at Nivel Hills Viewpoint Bend, Balamban.',
+            'Truck brake failure near Balamban Industrial Estate Road.',
+            'Motorcycle sideswipe near Prenza River Bridge, Balamban.',
+        ];
 
         foreach ($lgus as $lgu) {
             $lguViolators = $createdViolators->where('lgu_id', $lgu->id)->values();
@@ -298,17 +317,22 @@ class RefreshCurrentLguDataSeeder extends Seeder
                 $lguViolators = $createdViolators;
             }
 
-            $landmarks = $lguLandmarks[strtoupper($lgu->code)] ?? ["Highway Intersection, {$lgu->name}"];
-            $baseGps   = $lguGps[strtoupper($lgu->code)] ?? ['lat' => 10.3157, 'lng' => 123.8854];
+            $isBalamban = strtoupper($lgu->code) === 'BAL';
+            $landmarks  = $lguLandmarks[strtoupper($lgu->code)] ?? ["Highway Intersection, {$lgu->name}"];
+            $baseGps    = $lguGps[strtoupper($lgu->code)] ?? ['lat' => 10.3157, 'lng' => 123.8854];
 
-            $incCount = rand(2, 3);
+            $incCount   = $isBalamban ? rand(12, 15) : rand(3, 4);
 
             for ($i = 0; $i < $incCount; $i++) {
                 $incStatus = $incidentStatuses[array_rand($incidentStatuses)];
-                $incDate   = now()->subDays(rand(2, 60));
+                $incDate   = now()->subDays(rand(1, 90));
                 $loc       = $landmarks[array_rand($landmarks)];
 
                 $incNum = sprintf('INC-%d-%s-%04d', now()->year, strtoupper($lgu->code), $incidentCounter++);
+
+                $desc = $isBalamban
+                    ? $balambanDescriptions[$i % count($balambanDescriptions)]
+                    : 'Traffic incident reported at ' . $loc . ' involving multi-vehicle impact and minor property damage.';
 
                 $incident = Incident::create([
                     'lgu_id'           => $lgu->id,
@@ -316,17 +340,17 @@ class RefreshCurrentLguDataSeeder extends Seeder
                     'incident_number'  => $incNum,
                     'date_of_incident' => $incDate->toDateTimeString(),
                     'location'         => $loc,
-                    'gps_lat'          => $baseGps['lat'] + (rand(-10, 10) * 0.001),
-                    'gps_lng'          => $baseGps['lng'] + (rand(-10, 10) * 0.001),
+                    'gps_lat'          => $baseGps['lat'] + (rand(-15, 15) * 0.001),
+                    'gps_lng'          => $baseGps['lng'] + (rand(-15, 15) * 0.001),
                     'status'           => $incStatus,
-                    'description'      => 'Traffic collision reported at ' . $loc . ' involving multi-vehicle impact and minor property damage.',
+                    'description'      => $desc,
                 ]);
 
                 // Link 1-2 motorists to the incident
                 $partyCount = rand(1, 2);
                 for ($p = 0; $p < $partyCount; $p++) {
                     $partyViolator = $lguViolators->random();
-                    $partyVehicle  = $createdVehicles->where('violator_id', $partyViolator->id)->first();
+                    $partyVehicle  = $createdVehicles->where('violator_id', $partyViolator->id)->first() ?? $createdVehicles->random();
                     $charge        = $cTypes->isNotEmpty() ? $cTypes->random() : null;
 
                     IncidentMotorist::create([
