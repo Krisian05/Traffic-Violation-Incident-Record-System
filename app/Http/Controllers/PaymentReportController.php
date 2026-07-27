@@ -69,12 +69,11 @@ class PaymentReportController extends Controller
             $monthlyData[] = (float) ($monthlyRaw[$m] ?? 0);
         }
 
-        // ── Monthly Violation & Incident Charge Breakdown ───────────────────
+        // ── Monthly Violation Breakdown & Revenue ───────────────────────────
         $violationDateExpr = $isPgsql ? 'EXTRACT(MONTH FROM date_of_violation)::int' : "CAST(strftime('%m', date_of_violation) AS INTEGER)";
-        $incidentDateExpr  = $isPgsql ? 'EXTRACT(MONTH FROM date_of_incident)::int' : "CAST(strftime('%m', date_of_incident) AS INTEGER)";
+        $paymentDateExpr   = $isPgsql ? 'EXTRACT(MONTH FROM violations.date_of_violation)::int' : "CAST(strftime('%m', violations.date_of_violation) AS INTEGER)";
 
-        $violationTypes      = ViolationType::orderBy('name')->get();
-        $incidentChargeTypes = IncidentChargeType::orderBy('name')->get();
+        $violationTypes = ViolationType::orderBy('name')->get();
 
         $violationsByMonth = Violation::whereYear('date_of_violation', $year)
             ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))
@@ -83,34 +82,26 @@ class PaymentReportController extends Controller
             ->get()
             ->groupBy('m');
 
-        $incidentsByMonth = IncidentMotorist::join('incidents', 'incident_motorists.incident_id', '=', 'incidents.id')
-            ->whereYear('incidents.date_of_incident', $year)
-            ->when($selectedLguId, fn($q) => $q->where('incidents.lgu_id', $selectedLguId))
-            ->selectRaw("$incidentDateExpr as m, incident_motorists.incident_charge_type_id, COUNT(*) as total")
-            ->groupBy('m', 'incident_motorists.incident_charge_type_id')
+        $revenueByMonth = Payment::join('violations', 'payments.violation_id', '=', 'violations.id')
+            ->whereYear('violations.date_of_violation', $year)
+            ->when($selectedLguId, fn($q) => $q->where('violations.lgu_id', $selectedLguId))
+            ->selectRaw("$paymentDateExpr as m, violations.violation_type_id, SUM(payments.amount_paid) as total_revenue")
+            ->groupBy('m', 'violations.violation_type_id')
             ->get()
             ->groupBy('m');
 
         $monthlyViolationsSummary = [];
-        $monthlyIncidentsSummary  = [];
 
         for ($m = 1; $m <= 12; $m++) {
             $mViolationsMap = isset($violationsByMonth[$m]) ? $violationsByMonth[$m]->pluck('total', 'violation_type_id') : collect();
-            $mIncidentsMap  = isset($incidentsByMonth[$m]) ? $incidentsByMonth[$m]->pluck('total', 'incident_charge_type_id') : collect();
+            $mRevenueMap    = isset($revenueByMonth[$m]) ? $revenueByMonth[$m]->pluck('total_revenue', 'violation_type_id') : collect();
 
-            $monthlyViolationsSummary[$m] = $violationTypes->map(function ($type) use ($mViolationsMap) {
+            $monthlyViolationsSummary[$m] = $violationTypes->map(function ($type) use ($mViolationsMap, $mRevenueMap) {
                 return [
-                    'id'    => $type->id,
-                    'name'  => $type->name,
-                    'total' => (int) ($mViolationsMap[$type->id] ?? 0),
-                ];
-            })->values();
-
-            $monthlyIncidentsSummary[$m] = $incidentChargeTypes->map(function ($charge) use ($mIncidentsMap) {
-                return [
-                    'id'    => $charge->id,
-                    'name'  => $charge->name,
-                    'total' => (int) ($mIncidentsMap[$charge->id] ?? 0),
+                    'id'      => $type->id,
+                    'name'    => $type->name,
+                    'total'   => (int) ($mViolationsMap[$type->id] ?? 0),
+                    'revenue' => (float) ($mRevenueMap[$type->id] ?? 0),
                 ];
             })->values();
         }
@@ -191,7 +182,7 @@ class PaymentReportController extends Controller
             'annualCollection',
             'statusCounts', 'paidAmount', 'unpaidAmount',
             'lguPerformance', 'payments',
-            'monthlyViolationsSummary', 'monthlyIncidentsSummary'
+            'monthlyViolationsSummary'
         ));
     }
 
