@@ -380,16 +380,40 @@
                 </div>
             </div>
             <div class="d-flex align-items-center gap-2 ms-auto d-print-none">
-                <div class="input-group input-group-sm" style="width:auto;" title="Filter chart by week — pick any day">
-                    <span class="input-group-text" style="background:#f0fdfa;border-color:#99f6e4;color:#0d9488;font-size:.75rem;font-weight:600;">
-                        <i class="bi bi-calendar-week me-1"></i>Week
+                {{-- Period Mode Selector --}}
+                <div class="input-group input-group-sm" style="width:auto;" title="Filter incident charts by month, week, or year">
+                    <span class="input-group-text fw-semibold" style="background:#f0fdfa;border-color:#99f6e4;color:#0d9488;font-size:.75rem;">
+                        <i class="bi bi-funnel-fill me-1"></i>Period
                     </span>
-                    <input type="week" id="incWeekDateInput" class="form-control form-control-sm"
-                           style="max-width:165px;border-color:#99f6e4;">
-                    <button type="button" class="btn btn-sm" id="incWeekClear"
-                            style="display:none;background:#f0fdfa;border:1px solid #99f6e4;border-left:0;color:#0d9488;"
-                            title="Clear week filter"><i class="bi bi-x"></i></button>
+                    <select id="incPeriodSelect" class="form-select form-select-sm fw-semibold" style="border-color:#99f6e4;color:#0f172a;font-size:.78rem;">
+                        <option value="month" {{ $month != 0 ? 'selected' : '' }}>Per Month</option>
+                        <option value="week">Per Week</option>
+                        <option value="year" {{ $month == 0 ? 'selected' : '' }}>Per Year</option>
+                    </select>
                 </div>
+
+                {{-- Month Input --}}
+                <div id="incMonthWrap" class="input-group input-group-sm" style="width:auto;{{ $month == 0 ? 'display:none;' : '' }}">
+                    <input type="month" id="incMonthInput" class="form-control form-control-sm fw-semibold"
+                           value="{{ $year }}-{{ str_pad($month ?: date('n'), 2, '0', STR_PAD_LEFT) }}"
+                           style="max-width:165px;border-color:#99f6e4;font-size:.78rem;">
+                </div>
+
+                {{-- Week Input --}}
+                <div id="incWeekWrap" class="input-group input-group-sm" style="width:auto;display:none;">
+                    <input type="week" id="incWeekDateInput" class="form-control form-control-sm fw-semibold"
+                           style="max-width:165px;border-color:#99f6e4;font-size:.78rem;">
+                </div>
+
+                {{-- Year Input --}}
+                <div id="incYearWrap" class="input-group input-group-sm" style="width:auto;{{ $month != 0 ? 'display:none;' : '' }}">
+                    <select id="incYearInput" class="form-select form-select-sm fw-semibold" style="border-color:#99f6e4;font-size:.78rem;">
+                        @for($y = date('Y'); $y >= $minYear; $y--)
+                            <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>Year {{ $y }}</option>
+                        @endfor
+                    </select>
+                </div>
+
                 <button type="button" class="inc-print-btn" onclick="rptPrintSection('incident-analytics')" title="Print Incident Analytics">
                     <i class="bi bi-printer-fill"></i> Print
                 </button>
@@ -2430,17 +2454,54 @@ function rptToggleShowMore(btn) {
         else               { _statusChart  = makeBarChart(document.getElementById('incStatusChart'), statusLabels, statusData, CYAN); }
     }
 
+    // ── Period Mode Controls ──────────────────────────────────────────────────
+    var periodSelect = document.getElementById('incPeriodSelect');
+    var monthWrap    = document.getElementById('incMonthWrap');
+    var weekWrap     = document.getElementById('incWeekWrap');
+    var yearWrap     = document.getElementById('incYearWrap');
+    var monthInput   = document.getElementById('incMonthInput');
+    var weekInput    = document.getElementById('incWeekDateInput');
+    var yearInput    = document.getElementById('incYearInput');
+
+    function updatePeriodVisibility() {
+        var mode = periodSelect ? periodSelect.value : 'month';
+        if (monthWrap) monthWrap.style.display = (mode === 'month') ? '' : 'none';
+        if (weekWrap)  weekWrap.style.display  = (mode === 'week')  ? '' : 'none';
+        if (yearWrap)  yearWrap.style.display  = (mode === 'year')  ? '' : 'none';
+    }
+
+    if (periodSelect) {
+        periodSelect.addEventListener('change', function () {
+            updatePeriodVisibility();
+            fetchStats();
+        });
+    }
+
+    if (monthInput) monthInput.addEventListener('change', fetchStats);
+    if (weekInput)  weekInput.addEventListener('change', fetchStats);
+    if (yearInput)  yearInput.addEventListener('change', fetchStats);
+
     // ── Fetch ─────────────────────────────────────────────────────────────────
     function fetchStats() {
-        var weekInput = document.getElementById('incWeekDateInput');
-        var weekVal   = weekInput ? weekInput.value : '';
-        var url;
-        if (weekVal) {
-            url = '{{ route("reports.incidentStats") }}?period=week&date=' + encodeURIComponent(weekVal);
-        } else if (_pageMonth === 0) {
-            url = '{{ route("reports.incidentStats") }}?period=year&year=' + _pageYear;
-        } else {
-            url = '{{ route("reports.incidentStats") }}?period=month&year=' + _pageYear + '&month=' + _pageMonth;
+        var mode = periodSelect ? periodSelect.value : (_pageMonth === 0 ? 'year' : 'month');
+        var url  = '{{ route("reports.incidentStats") }}?period=' + mode;
+
+        if (mode === 'week') {
+            var weekVal = weekInput ? weekInput.value : '';
+            if (weekVal) {
+                url += '&date=' + encodeURIComponent(weekVal);
+            }
+        } else if (mode === 'month') {
+            var mVal = monthInput ? monthInput.value : '';
+            if (mVal && mVal.indexOf('-') !== -1) {
+                var parts = mVal.split('-');
+                url += '&year=' + parseInt(parts[0]) + '&month=' + parseInt(parts[1]);
+            } else {
+                url += '&year=' + _pageYear + '&month=' + (_pageMonth || 1);
+            }
+        } else if (mode === 'year') {
+            var yVal = yearInput ? yearInput.value : _pageYear;
+            url += '&year=' + yVal;
         }
 
         var mInput = document.querySelector('input[name="municipality"]');
@@ -2455,24 +2516,8 @@ function rptToggleShowMore(btn) {
             .catch(function () { document.getElementById('incAnalyticsPeriodLabel').textContent = 'Error loading data.'; });
     }
 
-    // ── Week input listener ────────────────────────────────────────────────────
-    var _weekInput = document.getElementById('incWeekDateInput');
-    var _weekClear = document.getElementById('incWeekClear');
-    if (_weekInput) {
-        _weekInput.addEventListener('change', function () {
-            if (_weekClear) _weekClear.style.display = this.value ? '' : 'none';
-            fetchStats();
-        });
-    }
-    if (_weekClear) {
-        _weekClear.addEventListener('click', function () {
-            if (_weekInput) _weekInput.value = '';
-            this.style.display = 'none';
-            fetchStats();
-        });
-    }
-
     // ── Init ───────────────────────────────────────────────────────────────────
+    updatePeriodVisibility();
     fetchStats();
 })();
 </script>
