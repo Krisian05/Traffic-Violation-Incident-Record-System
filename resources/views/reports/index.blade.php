@@ -1099,7 +1099,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 {{-- ── Repeat Offenders (always shown) ── --}}
-<div class="rpt-card rpt-printable" data-rpt-section="offenders">
+<div class="rpt-card mb-4 rpt-printable" data-rpt-section="offenders">
     <div class="rpt-card-header">
         <span class="rpt-card-icon" style="background:linear-gradient(135deg,#b91c1c,#991b1b);box-shadow:0 3px 10px rgba(185,28,28,.35);">
             <i class="bi bi-person-exclamation" style="color:#fff;"></i>
