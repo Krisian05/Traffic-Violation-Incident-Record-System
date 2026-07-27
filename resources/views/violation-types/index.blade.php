@@ -38,7 +38,7 @@
                     <th style="padding-left:1.4rem;"><span class="vt-th">Name</span></th>
                     <th><span class="vt-th">Description</span></th>
                     <th class="text-end"><span class="vt-th">Fine Amount</span></th>
-                    <th class="text-center"><span class="vt-th">Usage</span></th>
+                    @if(!Auth::user()->isCashier() && !Auth::user()->isTreasurer())<th class="text-center"><span class="vt-th">Usage</span></th>@endif
                     @if(Auth::user()->isOperator())<th class="text-center"><span class="vt-th">Actions</span></th>@endif
                 </tr>
             </thead>
@@ -62,6 +62,7 @@
                             <span class="vt-no-data">—</span>
                         @endif
                     </td>
+                    @if(!Auth::user()->isCashier() && !Auth::user()->isTreasurer())
                     <td class="text-center vt-act-cell">
                         @php
                             $uc    = $type->violations_count;
@@ -80,6 +81,7 @@
                             <span class="vt-use-badge {{ $ucCls }}">{{ $uc }}</span>
                         @endif
                     </td>
+                    @endif
                     @if(Auth::user()->isOperator())
                     <td class="text-center vt-act-cell">
                         <div class="d-flex justify-content-center gap-2">
@@ -104,7 +106,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="{{ Auth::user()->isOperator() ? 5 : 4 }}" class="py-5">
+                    <td colspan="{{ (Auth::user()->isOperator() ? 5 : 4) - (Auth::user()->isCashier() || Auth::user()->isTreasurer() ? 1 : 0) }}" class="py-5">
                         <div class="text-center">
                             <i class="bi bi-tags" style="font-size:2rem;color:#d6d3d1;display:block;margin-bottom:.5rem;"></i>
                             <span style="color:#a8a29e;font-size:.88rem;">No violation types defined yet.</span>

@@ -37,7 +37,7 @@
                 <tr>
                     <th style="padding-left:1.4rem;"><span class="ict-th">Charge / Offense</span></th>
                     <th><span class="ict-th">Legal Basis</span></th>
-                    <th class="text-center"><span class="ict-th">Usage</span></th>
+                    @if(!Auth::user()->isCashier() && !Auth::user()->isTreasurer())<th class="text-center"><span class="ict-th">Usage</span></th>@endif
                     @if(Auth::user()->isOperator())<th class="text-center"><span class="ict-th">Actions</span></th>@endif
                 </tr>
             </thead>
@@ -54,6 +54,7 @@
                         @endif
                     </td>
                     <td class="ict-desc">{{ $ct->description ?? '—' }}</td>
+                    @if(!Auth::user()->isCashier() && !Auth::user()->isTreasurer())
                     <td class="text-center ict-act-cell">
                         @php
                             $uc    = $ct->incident_motorists_count;
@@ -66,6 +67,7 @@
                         @endphp
                         <span class="ict-use-badge {{ $ucCls }}">{{ $uc }}</span>
                     </td>
+                    @endif
                     @if(Auth::user()->isOperator())
                     <td class="text-center ict-act-cell">
                         <div class="d-flex justify-content-center gap-2">
@@ -90,7 +92,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="{{ Auth::user()->isOperator() ? 4 : 3 }}" class="py-5">
+                    <td colspan="{{ (Auth::user()->isOperator() ? 4 : 3) - (Auth::user()->isCashier() || Auth::user()->isTreasurer() ? 1 : 0) }}" class="py-5">
                         <div class="text-center">
                             <i class="bi bi-shield-exclamation" style="font-size:2rem;color:#d6d3d1;display:block;margin-bottom:.5rem;"></i>
                             <span style="color:#a8a29e;font-size:.88rem;">No charge types defined yet.</span>
