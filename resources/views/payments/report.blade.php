@@ -468,8 +468,8 @@
                 </table>
             </div>
 
-            <div class="mt-3.5 px-2 d-flex justify-content-end">
-                {{ $payments->links() }}
+            <div class="mt-3.5 px-2">
+                {{ $payments->links('vendor.pagination.bootstrap-5') }}
             </div>
         </div>
     </div>
