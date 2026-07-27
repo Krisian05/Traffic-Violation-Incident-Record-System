@@ -302,12 +302,13 @@
         </div>
 
         {{-- LGU Performance Ranking --}}
+        {{-- LGU / Barangay Performance Ranking --}}
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm pm-card h-100">
                 <div class="card-header bg-white border-0 pt-3 px-3.5 d-flex align-items-center justify-content-between">
                     <div>
-                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-trophy-fill text-warning me-1.5"></i> LGU Collection Performance ({{ $year }})</h6>
-                        <span class="text-muted" style="font-size:0.75rem;">Settlement rates and total revenue per municipality</span>
+                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-trophy-fill text-warning me-1.5"></i> {{ $selectedLguId ? 'Barangay Collection Performance' : 'LGU Collection Performance' }} ({{ $year }})</h6>
+                        <span class="text-muted" style="font-size:0.75rem;">{{ $selectedLguId ? 'Settlement rates and total revenue per barangay / location' : 'Settlement rates and total revenue per municipality' }}</span>
                     </div>
                 </div>
                 <div class="card-body p-0">
@@ -315,7 +316,7 @@
                         <table class="table table-hover align-middle mb-0" style="font-size:.84rem;">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="ps-3.5">Municipality / LGU</th>
+                                    <th class="ps-3.5">{{ $selectedLguId ? 'Barangay / Location' : 'Municipality / LGU' }}</th>
                                     <th class="text-center">Total Issued</th>
                                     <th class="text-center">Settled</th>
                                     <th class="text-center">Settlement Rate</th>
@@ -323,11 +324,11 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($lguPerformance as $row)
+                                @forelse($selectedLguId ? $locationPerformance : $lguPerformance as $row)
                                 <tr>
                                     <td class="ps-3.5 fw-bold text-dark">
                                         <i class="bi bi-geo-alt-fill text-danger me-1" style="font-size:0.8rem;"></i>
-                                        {{ $row->name }} <span class="text-muted fw-normal">({{ $row->code }})</span>
+                                        {{ $row->name }} @if(!$selectedLguId && !empty($row->code))<span class="text-muted fw-normal">({{ $row->code }})</span>@endif
                                     </td>
                                     <td class="text-center fw-semibold">{{ number_format($row->total) }}</td>
                                     <td class="text-center fw-bold text-success">{{ number_format($row->settled) }}</td>
@@ -408,7 +409,7 @@
                             <th class="ps-3.5">Official Receipt (OR) #</th>
                             <th>Citation Ticket #</th>
                             <th>Violator Name</th>
-                            <th>LGU / Municipality</th>
+                            <th>{{ $selectedLguId ? 'Barangay / Location' : 'LGU / Municipality' }}</th>
                             <th class="text-end">Amount Paid</th>
                             <th>Payment Method</th>
                             <th>Cashier / Collector</th>
@@ -431,7 +432,15 @@
                                 @endif
                             </td>
                             <td class="fw-semibold text-dark">{{ $p->violation?->violator?->full_name ?? '—' }}</td>
-                            <td><span class="badge bg-light text-dark border">{{ $p->violation?->lgu?->name ?? '—' }}</span></td>
+                            <td>
+                                @if($selectedLguId)
+                                    <span class="badge bg-light text-dark border" title="{{ $p->violation?->lgu?->name }}">
+                                        <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ $p->violation?->location ?: ($p->violation?->lgu?->name ?? '—') }}
+                                    </span>
+                                @else
+                                    <span class="badge bg-light text-dark border">{{ $p->violation?->lgu?->name ?? '—' }}</span>
+                                @endif
+                            </td>
                             <td class="text-end fw-extrabold text-success" style="font-size:0.9rem;">₱{{ number_format($p->amount_paid, 2) }}</td>
                             <td>
                                 @php

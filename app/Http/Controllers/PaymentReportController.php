@@ -143,26 +143,64 @@ class PaymentReportController extends Controller
 
         $unpaidAmount = max(0, $dueAmount - $paidTowardOutstanding);
 
-        // ── LGU collection performance ranking ───────────────────────────────
-        $lguPerformance = $lgus
-            ->when($selectedLguId, fn($collection) => $collection->where('id', $selectedLguId))
-            ->map(function ($lgu) use ($year) {
-                $violations = Violation::whereYear('date_of_violation', $year)->where('lgu_id', $lgu->id);
-                $total      = (clone $violations)->count();
-                $settled    = (clone $violations)->where('status', 'settled')->count();
-                $revenue    = Payment::whereHas('violation', fn($q) => $q->whereYear('date_of_violation', $year)->where('lgu_id', $lgu->id))->sum('amount_paid');
+        // ── LGU / Barangay collection performance ranking ─────────────────────────
+        if ($selectedLguId) {
+            $locationPerformance = Violation::whereYear('date_of_violation', $year)
+                ->where('lgu_id', $selectedLguId)
+                ->whereNotNull('location')
+                ->where('location', '!=', '')
+                ->select('location', DB::raw('COUNT(*) as total'))
+                ->groupBy('location')
+                ->get()
+                ->map(function ($row) use ($year, $selectedLguId) {
+                    $loc        = $row->location;
+                    $violations = Violation::whereYear('date_of_violation', $year)
+                        ->where('lgu_id', $selectedLguId)
+                        ->where('location', $loc);
 
-                return (object) [
-                    'name'         => $lgu->name,
-                    'code'         => $lgu->code,
-                    'total'        => $total,
-                    'settled'      => $settled,
-                    'settled_rate' => $total > 0 ? round(($settled / $total) * 100) : 0,
-                    'revenue'      => (float) $revenue,
-                ];
-            })
-            ->sortByDesc('revenue')
-            ->values();
+                    $total   = (clone $violations)->count();
+                    $settled = (clone $violations)->where('status', 'settled')->count();
+
+                    $revenue = Payment::whereHas('violation', fn($q) =>
+                        $q->whereYear('date_of_violation', $year)
+                          ->where('lgu_id', $selectedLguId)
+                          ->where('location', $loc)
+                    )->sum('amount_paid');
+
+                    return (object) [
+                        'name'         => $loc,
+                        'code'         => 'BRGY',
+                        'total'        => $total,
+                        'settled'      => $settled,
+                        'settled_rate' => $total > 0 ? round(($settled / $total) * 100) : 0,
+                        'revenue'      => (float) $revenue,
+                    ];
+                })
+                ->sortByDesc('revenue')
+                ->values();
+
+            $lguPerformance = collect();
+        } else {
+            $locationPerformance = collect();
+            $lguPerformance = $lgus
+                ->map(function ($lgu) use ($year) {
+                    $violations = Violation::whereYear('date_of_violation', $year)->where('lgu_id', $lgu->id);
+                    $total      = (clone $violations)->count();
+                    $settled    = (clone $violations)->where('status', 'settled')->count();
+                    $revenue    = Payment::whereHas('violation', fn($q) => $q->whereYear('date_of_violation', $year)->where('lgu_id', $lgu->id))->sum('amount_paid');
+
+                    return (object) [
+                        'name'         => $lgu->name,
+                        'code'         => $lgu->code,
+                        'total'        => $total,
+                        'settled'      => $settled,
+                        'settled_rate' => $total > 0 ? round(($settled / $total) * 100) : 0,
+                        'revenue'      => (float) $revenue,
+                    ];
+                })
+                ->sortByDesc('revenue')
+                ->values();
+        }
 
         // ── Reconciliation table ─────────────────────────────────────────────
         $payments = Payment::with(['violation.violator', 'violation.lgu', 'collector'])
@@ -181,7 +219,7 @@ class PaymentReportController extends Controller
             'monthlyLabels', 'monthlyData',
             'annualCollection',
             'statusCounts', 'paidAmount', 'unpaidAmount',
-            'lguPerformance', 'payments',
+            'lguPerformance', 'locationPerformance', 'payments',
             'monthlyViolationsSummary'
         ));
     }
