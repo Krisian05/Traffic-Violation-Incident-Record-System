@@ -209,7 +209,7 @@ class PaymentMonitoringTest extends TestCase
             'payment_method' => 'cash',
         ]);
 
-        $response->assertNotFound();
+        $response->assertStatus(403);
         $this->assertSame(0, Payment::count());
     }
 

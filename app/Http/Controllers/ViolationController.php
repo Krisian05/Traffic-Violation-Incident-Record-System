@@ -19,7 +19,7 @@ class ViolationController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Violation::with(['violator', 'violationType', 'vehicle']);
+        $query = Violation::with(['violator', 'violationType', 'vehicle', 'lgu']);
 
         if ($search = $request->input('search')) {
             $lk = '%' . mb_strtolower($search) . '%';

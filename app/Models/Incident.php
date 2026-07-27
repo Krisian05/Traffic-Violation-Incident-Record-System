@@ -7,14 +7,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
-use App\Traits\BelongsToLgu;
-
 class Incident extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity, BelongsToLgu;
+    use HasFactory, SoftDeletes, LogsActivity;
+
+    protected static function booted(): void
+    {
+        static::creating(function ($model) {
+            if (empty($model->lgu_id) && Auth::check() && Auth::user()->lgu_id) {
+                $model->lgu_id = Auth::user()->lgu_id;
+            }
+        });
+    }
 
     /** The spec's 6-state workflow, in typical progression order. */
     public const STATUSES = [

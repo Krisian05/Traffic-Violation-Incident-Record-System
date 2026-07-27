@@ -559,8 +559,10 @@
 @endforelse
 
 {{-- Edit FAB --}}
+@can('update', $violator)
 <a href="{{ route('officer.motorists.edit', $violator) }}" class="mob-fab" title="Edit Motorist">
     <i class="ph-bold ph-pencil-simple"></i>
 </a>
+@endcan
 
 @endsection

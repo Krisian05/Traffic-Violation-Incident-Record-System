@@ -445,6 +445,11 @@
                                         <i class="bi bi-exclamation-octagon-fill me-1" style="font-size:.6rem;"></i>
                                         {{ $viol->violationType?->name ?? '—' }}
                                     </span>
+                                    @if($viol->lgu)
+                                        <span class="badge rounded-pill bg-light text-secondary border ms-1" style="font-size:.65rem;font-weight:600;" title="Encoded by {{ $viol->lgu->name }}">
+                                            <i class="bi bi-building me-1"></i>{{ $viol->lgu->code ?? $viol->lgu->name }}
+                                        </span>
+                                    @endif
                                 </td>
                                 <td style="font-size:.84rem;color:#57534e;">
                                     @if($viol->vehicle?->plate_number)
@@ -543,6 +548,11 @@
                             <tr class="vlt-tbl-row vlt-inc-row" data-href="{{ route('incidents.show', $im->incident) }}">
                                 <td style="padding-left:1.25rem;">
                                     <span class="font-monospace fw-600" style="font-size:.82rem;color:#1d4ed8;">{{ $im->incident->incident_number }}</span>
+                                    @if($im->incident->lgu)
+                                        <span class="badge rounded-pill bg-light text-secondary border ms-1" style="font-size:.65rem;font-weight:600;" title="Encoded by {{ $im->incident->lgu->name }}">
+                                            <i class="bi bi-building me-1"></i>{{ $im->incident->lgu->code ?? $im->incident->lgu->name }}
+                                        </span>
+                                    @endif
                                 </td>
                                 <td style="font-size:.84rem;color:#57534e;">
                                     <i class="bi bi-calendar-check me-1" style="color:#a8a29e;font-size:.72rem;"></i>

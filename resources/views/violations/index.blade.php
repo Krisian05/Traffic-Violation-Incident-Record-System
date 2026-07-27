@@ -205,6 +205,13 @@
                             <i class="bi bi-exclamation-octagon-fill me-1" style="font-size:.65rem;"></i>
                             {{ $v->violationType?->name ?? '—' }}
                         </span>
+                        @if($v->lgu)
+                            <div style="margin-top:2px;">
+                                <span class="badge rounded-pill bg-light text-secondary border" style="font-size:.62rem;font-weight:600;" title="Recorded by {{ $v->lgu->name }}">
+                                    <i class="bi bi-building me-1"></i>{{ $v->lgu->code ?? $v->lgu->name }}
+                                </span>
+                            </div>
+                        @endif
                     </td>
 
                     {{-- Date --}}

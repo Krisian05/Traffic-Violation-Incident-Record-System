@@ -347,27 +347,19 @@ class RbacFrameworkTest extends TestCase
         $responseMotorists->assertSee('Alpha One');
         $responseMotorists->assertSee('Beta Two');
 
-        // 3. Cross-LGU Protection: LGU Admin 2 cannot edit or delete Violation 1 (LGU 1)
-        $resEditV = $this->actingAs($lguAdmin2)->get("/violations/{$violation1->id}/edit");
-        $this->assertTrue(in_array($resEditV->status(), [403, 404]));
+        // 3. Cross-LGU Read Access: LGU Admin 2 CAN view Violation 1 and Incident 1 (LGU 1)
+        $this->actingAs($lguAdmin2)->get("/violations/{$violation1->id}")->assertOk();
+        $this->actingAs($lguAdmin2)->get("/incidents/{$incident1->id}")->assertOk();
 
-        $resDelV = $this->actingAs($lguAdmin2)->delete("/violations/{$violation1->id}");
-        $this->assertTrue(in_array($resDelV->status(), [403, 404]));
+        // 4. Cross-LGU Protection (No-Touch Rule): LGU Admin 2 CANNOT edit or delete Violation 1 or Incident 1 (LGU 1)
+        $this->actingAs($lguAdmin2)->get("/violations/{$violation1->id}/edit")->assertStatus(403);
+        $this->actingAs($lguAdmin2)->delete("/violations/{$violation1->id}")->assertStatus(403);
 
-        // LGU Admin 2 cannot edit or delete Incident 1 (LGU 1)
-        $resEditI = $this->actingAs($lguAdmin2)->get("/incidents/{$incident1->id}/edit");
-        $this->assertTrue(in_array($resEditI->status(), [403, 404]));
-
-        $resDelI = $this->actingAs($lguAdmin2)->delete("/incidents/{$incident1->id}");
-        $this->assertTrue(in_array($resDelI->status(), [403, 404]));
+        $this->actingAs($lguAdmin2)->get("/incidents/{$incident1->id}/edit")->assertStatus(403);
+        $this->actingAs($lguAdmin2)->delete("/incidents/{$incident1->id}")->assertStatus(403);
 
         // LGU Admin 2 CAN edit own LGU violation and incident
-        $this->actingAs($lguAdmin2)
-            ->get("/violations/{$violation2->id}/edit")
-            ->assertOk();
-
-        $this->actingAs($lguAdmin2)
-            ->get("/incidents/{$incident2->id}/edit")
-            ->assertOk();
+        $this->actingAs($lguAdmin2)->get("/violations/{$violation2->id}/edit")->assertOk();
+        $this->actingAs($lguAdmin2)->get("/incidents/{$incident2->id}/edit")->assertOk();
     }
 }
