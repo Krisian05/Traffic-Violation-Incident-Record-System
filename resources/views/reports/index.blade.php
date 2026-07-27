@@ -2442,6 +2442,12 @@ function rptToggleShowMore(btn) {
         } else {
             url = '{{ route("reports.incidentStats") }}?period=month&year=' + _pageYear + '&month=' + _pageMonth;
         }
+
+        var mInput = document.querySelector('input[name="municipality"]');
+        var lInput = document.querySelector('input[name="lgu_id"]');
+        if (mInput && mInput.value) url += '&municipality=' + encodeURIComponent(mInput.value);
+        if (lInput && lInput.value) url += '&lgu_id=' + encodeURIComponent(lInput.value);
+
         document.getElementById('incAnalyticsPeriodLabel').textContent = 'Loading…';
         fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function (r) { return r.json(); })

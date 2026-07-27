@@ -57,7 +57,7 @@ class IncidentMotorist extends Model
 
     public function chargeType(): BelongsTo
     {
-        return $this->belongsTo(IncidentChargeType::class);
+        return $this->belongsTo(IncidentChargeType::class, 'incident_charge_type_id');
     }
 
     public function ownerViolator(): BelongsTo

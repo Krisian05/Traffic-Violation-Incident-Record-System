@@ -385,8 +385,13 @@ class ReportController extends Controller
 
         foreach ($incidents as $inc) {
             if ($inc->time_of_incident) {
-                $hour = (int) substr($inc->time_of_incident, 0, 2);
-                if ($hour >= 0 && $hour <= 23) $byHour[$hour]++;
+                try {
+                    $hour = (int) \Carbon\Carbon::parse($inc->time_of_incident)->format('H');
+                    if ($hour >= 0 && $hour <= 23) $byHour[$hour]++;
+                } catch (\Throwable $e) {
+                    $hour = (int) substr((string)$inc->time_of_incident, 0, 2);
+                    if ($hour >= 0 && $hour <= 23) $byHour[$hour]++;
+                }
             }
             $dow = (int) $inc->date_of_incident->dayOfWeek;
             $byDay[$dow]++;
