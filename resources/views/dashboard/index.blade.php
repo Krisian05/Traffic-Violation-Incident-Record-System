@@ -574,6 +574,7 @@
                     <tbody>
                         @foreach($overdueViolations as $v)
                         @php
+                            {{-- Overdue hours calculated from official due_date --}}
                             $dueDate = $v->due_date ? \Carbon\Carbon::parse($v->due_date)->endOfDay() : \Carbon\Carbon::parse($v->date_of_violation)->addDays(3)->endOfDay();
                             $hrs = max(1, (int) $dueDate->diffInHours(now()));
                         @endphp
