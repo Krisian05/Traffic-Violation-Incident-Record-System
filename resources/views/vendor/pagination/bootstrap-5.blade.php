@@ -29,11 +29,11 @@
             font-weight: 600;
         }
         .mob-pager-row {
-            display: grid;
-            grid-template-columns: auto minmax(0, 1fr) auto;
-            align-items: start;
-            gap: .35rem;
-            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .4rem;
+            flex-wrap: wrap;
         }
         .mob-pager-pages {
             display: flex;
