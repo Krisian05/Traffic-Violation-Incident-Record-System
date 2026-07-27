@@ -185,7 +185,7 @@ class RefreshCurrentLguDataSeeder extends Seeder
 
         $lguGps = [
             'BAL' => ['lat' => 10.5015, 'lng' => 123.7170],
-            'CEB' => ['lat' => 10.3117, 'lng' => 123.8915],
+            'CEB' => ['lat' => 10.3117, 'lng' => 123.8815],
             'MAN' => ['lat' => 10.3340, 'lng' => 123.9357],
             'DAN' => ['lat' => 10.5255, 'lng' => 124.0270],
             'CAR' => ['lat' => 10.1062, 'lng' => 123.6388],
@@ -201,20 +201,36 @@ class RefreshCurrentLguDataSeeder extends Seeder
                 $lguViolators = $createdViolators;
             }
 
+            $primaryRepeatViolator   = $lguViolators->first();
+            $secondaryRepeatViolator = $lguViolators->skip(1)->first() ?? $primaryRepeatViolator;
+
             $landmarks = $lguLandmarks[strtoupper($lgu->code)] ?? ["Poblacion Main Road, {$lgu->name}", "National Highway, {$lgu->name}"];
             $baseGps   = $lguGps[strtoupper($lgu->code)] ?? ['lat' => 10.3157, 'lng' => 123.8854];
 
-            $violationCount = rand(5, 7);
+            $violationCount = rand(10, 14);
 
             for ($k = 0; $k < $violationCount; $k++) {
-                $violator = $lguViolators->random();
-                $vehicle  = $createdVehicles->where('violator_id', $violator->id)->first() ?? $createdVehicles->random();
+                // Force first 4 violations onto primaryRepeatViolator, next 3 onto secondaryRepeatViolator to create repeat offenders
+                if ($k < 4 && $primaryRepeatViolator) {
+                    $violator = $primaryRepeatViolator;
+                } elseif ($k < 7 && $secondaryRepeatViolator) {
+                    $violator = $secondaryRepeatViolator;
+                } else {
+                    $violator = $lguViolators->random();
+                }
+
+                $vehicle = $createdVehicles->where('violator_id', $violator->id)->first() ?? $createdVehicles->random();
 
                 $type = $vTypes->random();
                 $status = $violationStatuses[array_rand($violationStatuses)];
 
-                $daysAgo = rand(1, 90);
-                $violationDate = now()->subDays($daysAgo);
+                // Ensure violations land on each day of THIS CURRENT WEEK (Mon-Sun)
+                if ($k < 7) {
+                    $violationDate = now()->startOfWeek()->addDays($k);
+                } else {
+                    $violationDate = now()->subDays(rand(7, 90));
+                }
+
                 $dueDate = (clone $violationDate)->addDays(3);
 
                 if ($status === 'overdue') {
@@ -321,12 +337,19 @@ class RefreshCurrentLguDataSeeder extends Seeder
             $landmarks  = $lguLandmarks[strtoupper($lgu->code)] ?? ["Highway Intersection, {$lgu->name}"];
             $baseGps    = $lguGps[strtoupper($lgu->code)] ?? ['lat' => 10.3157, 'lng' => 123.8854];
 
-            $incCount   = $isBalamban ? rand(12, 15) : rand(3, 4);
+            $incCount   = $isBalamban ? rand(12, 15) : rand(4, 6);
 
             for ($i = 0; $i < $incCount; $i++) {
                 $incStatus = $incidentStatuses[array_rand($incidentStatuses)];
-                $incDate   = now()->subDays(rand(1, 90));
-                $loc       = $landmarks[array_rand($landmarks)];
+
+                // Ensure incidents land on days of THIS CURRENT WEEK (Mon-Sun) as well as past days
+                if ($i < 7) {
+                    $incDate = now()->startOfWeek()->addDays($i);
+                } else {
+                    $incDate = now()->subDays(rand(7, 90));
+                }
+
+                $loc = $landmarks[array_rand($landmarks)];
 
                 $incNum = sprintf('INC-%d-%s-%04d', now()->year, strtoupper($lgu->code), $incidentCounter++);
 
@@ -371,5 +394,8 @@ class RefreshCurrentLguDataSeeder extends Seeder
                 }
             }
         }
+
+        // Flush application cache so dashboard stats & analytics update instantly
+        \Illuminate\Support\Facades\Cache::flush();
     }
 }

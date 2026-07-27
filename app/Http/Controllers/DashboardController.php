@@ -230,12 +230,15 @@ class DashboardController extends Controller
                 $prevEnd   = now()->subWeek()->endOfWeek();
         }
 
-        $startDate     = $start->toDateString();
-        $endDate       = $end->toDateString();
-        $prevStartDate = $prevStart->toDateString();
-        $prevEndDate   = $prevEnd->toDateString();
+        $startDate     = $start->toDateTimeString();
+        $endDate       = $end->toDateTimeString();
+        $prevStartDate = $prevStart->toDateTimeString();
+        $prevEndDate   = $prevEnd->toDateTimeString();
 
-        $violationsCount = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->whereBetween('date_of_violation', [$startDate, $endDate])->count();
+        $startDateOnly = $start->toDateString();
+        $endDateOnly   = $end->toDateString();
+
+        $violationsCount = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->whereBetween('date_of_violation', [$startDateOnly, $endDateOnly])->count();
         $incidentsCount  = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->whereBetween('date_of_incident',  [$startDate, $endDate])->count();
         $overdueCount    = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->overdue()->count();
 
@@ -251,7 +254,7 @@ class DashboardController extends Controller
         if ($period === 'weekly') {
             $rawData = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
                 ->selectRaw('DATE(date_of_violation) as d, COUNT(*) as cnt')
-                ->whereBetween('date_of_violation', [$startDate, $endDate])
+                ->whereBetween('date_of_violation', [$startDateOnly, $endDateOnly])
                 ->groupBy('d')
                 ->pluck('cnt', 'd')
                 ->toArray();
@@ -268,7 +271,7 @@ class DashboardController extends Controller
                 : 'DAY(date_of_violation) as d';
             $rawData = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
                 ->selectRaw("$dayExpr, COUNT(*) as cnt")
-                ->whereBetween('date_of_violation', [$startDate, $endDate])
+                ->whereBetween('date_of_violation', [$startDateOnly, $endDateOnly])
                 ->groupBy('d')
                 ->pluck('cnt', 'd')
                 ->toArray();
@@ -317,7 +320,7 @@ class DashboardController extends Controller
         $violationsUrl = match ($period) {
             'monthly' => route('violations.index', ['month' => now()->month, 'year' => now()->year]),
             'yearly'  => route('violations.index', ['year' => now()->year]),
-            default   => route('violations.index', ['date_from' => $startDate, 'date_to' => $endDate]),
+            default   => route('violations.index', ['date_from' => $startDateOnly, 'date_to' => $endDateOnly]),
         };
 
         return [
@@ -392,7 +395,7 @@ class DashboardController extends Controller
 
         $repeatOffenders = Violator::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
             ->withCount(['violations' => fn($q) => $lguId ? $q->where('lgu_id', $lguId) : $q])
-            ->has('violations', '>=', 2)
+            ->whereHas('violations', fn($q) => $lguId ? $q->where('lgu_id', $lguId) : $q, '>=', 2)
             ->orderByDesc('violations_count')
             ->limit(8)
             ->get();
