@@ -476,7 +476,10 @@
                         $medalClass   = ['offender-rank-gold', 'offender-rank-silver', 'offender-rank-bronze'][$i] ?? '';
                     @endphp
                     <li class="list-group-item list-group-item-action px-3 py-2 offender-row border-0 border-bottom"
-                        data-row-delay="{{ $i * 60 }}">
+                        data-row-delay="{{ $i * 60 }}"
+                        data-href="{{ route('violators.show', $violator) }}"
+                        style="cursor:pointer;"
+                        onclick="if(!event.target.closest('a') && !event.target.closest('button')) window.location.href='{{ route('violators.show', $violator) }}';">
                         <div class="d-flex align-items-center gap-3">
 
                             {{-- Rank badge --}}

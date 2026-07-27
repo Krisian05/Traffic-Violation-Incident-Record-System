@@ -323,6 +323,12 @@ class DashboardController extends Controller
             default   => route('violations.index', ['date_from' => $startDateOnly, 'date_to' => $endDateOnly]),
         };
 
+        $incidentsUrl = match ($period) {
+            'monthly' => route('incidents.index', ['date_from' => $startDateOnly, 'date_to' => $endDateOnly]),
+            'yearly'  => route('incidents.index', ['date_from' => $startDateOnly, 'date_to' => $endDateOnly]),
+            default   => route('incidents.index', ['date_from' => $startDateOnly, 'date_to' => $endDateOnly]),
+        };
+
         return [
             'period'          => $period,
             'periodLabel'     => $periodLabel,
@@ -334,7 +340,7 @@ class DashboardController extends Controller
             'violationsTrend' => $violationsTrend,
             'incidentsTrend'  => $incidentsTrend,
             'violationsUrl'   => $violationsUrl,
-            'incidentsUrl'    => route('incidents.index'),
+            'incidentsUrl'    => $incidentsUrl,
             'chart'           => ['labels' => $labels, 'values' => $values],
             'topBarangays'    => $topBarangays->values()->toArray(),
         ];
