@@ -55,32 +55,12 @@
         </span>
         <div>
             <div class="rpt-filter-title">Reports &amp; Statistics</div>
-            <div class="rpt-filter-sub">Filter by name, violation type, month or year</div>
+            <div class="rpt-filter-sub">Filter statistics by month, year or municipality</div>
         </div>
     </div>
     <div class="rpt-filter-body">
-        <form method="GET" action="{{ route('reports.index') }}"
+        <form method="GET" action="{{ route('reports.index') }}" id="rpt-filter-form"
               class="d-flex flex-wrap align-items-end gap-2">
-
-            <div style="flex:2;min-width:0;position:relative;">
-                <label class="rpt-flabel">Violator Name</label>
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text rpt-ig"><i class="bi bi-search"></i></span>
-                    <input type="text" name="search" id="rptSearchInput" class="form-control rpt-finput"
-                           placeholder="Search by name…" value="{{ $search }}" autocomplete="off">
-                </div>
-                <div id="rptSearchDropdown"></div>
-            </div>
-
-            <div style="flex:2.2;min-width:0;">
-                <label class="rpt-flabel">Violation Type</label>
-                <select name="type_filter" class="form-select form-select-sm rpt-finput">
-                    <option value="">All Types</option>
-                    @foreach($allTypes as $t)
-                        <option value="{{ $t->id }}" {{ $typeFilter == $t->id ? 'selected' : '' }}>{{ $t->name }}</option>
-                    @endforeach
-                </select>
-            </div>
 
             @if(!empty($isScoped))
                 <input type="hidden" name="municipality" value="{{ $municipality }}">
@@ -93,14 +73,14 @@
                     <div class="input-group input-group-sm">
                         <span class="input-group-text rpt-ig"><i class="bi bi-geo-alt-fill"></i></span>
                         <input type="text" name="municipality" class="form-control rpt-finput"
-                               placeholder="e.g. Balamban" value="{{ $municipality }}" autocomplete="off">
+                               placeholder="e.g. Balamban" value="{{ $municipality }}" autocomplete="off" onchange="this.form.submit()">
                     </div>
                 </div>
             @endif
 
             <div style="flex:1.5;min-width:0;">
                 <label class="rpt-flabel">Month</label>
-                <select name="month" class="form-select form-select-sm rpt-finput">
+                <select name="month" class="form-select form-select-sm rpt-finput" onchange="this.form.submit()">
                     <option value="0" {{ $month == 0 ? 'selected' : '' }}>All Months</option>
                     @for($m = 1; $m <= 12; $m++)
                         <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>{{ date('F', mktime(0,0,0,$m)) }}</option>
@@ -110,7 +90,7 @@
 
             <div style="flex:1.2;min-width:70px;">
                 <label class="rpt-flabel">Year</label>
-                <select name="year" class="form-select form-select-sm rpt-finput">
+                <select name="year" class="form-select form-select-sm rpt-finput" onchange="this.form.submit()">
                     @for($y = date('Y'); $y >= $minYear; $y--)
                         <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
                     @endfor
@@ -119,17 +99,14 @@
 
 
             <div style="flex-shrink:0;" class="d-flex gap-2 align-items-end">
-                <button type="submit" class="rpt-filter-btn">
-                    <i class="bi bi-funnel-fill"></i> Apply
-                </button>
                 <a href="{{ route('reports.index') }}" class="rpt-reset-btn" title="Clear filters (ESC)">
                     <i class="bi bi-arrow-counterclockwise"></i>
                 </a>
-                <a href="{{ route('reports.exportPdf', request()->only(['month','year','type_filter','municipality'])) }}"
+                <a href="{{ route('reports.exportPdf', request()->only(['month','year','municipality'])) }}"
                    class="rpt-filter-btn" style="background:#b91c1c;color:#fff;text-decoration:none;border-color:#b91c1c;" title="Export PDF">
                     <i class="bi bi-file-earmark-pdf-fill"></i> PDF
                 </a>
-                <a href="{{ route('reports.exportExcel', request()->only(['month','year','search','type_filter','municipality'])) }}"
+                <a href="{{ route('reports.exportExcel', request()->only(['month','year','municipality'])) }}"
                    class="rpt-filter-btn" style="background:#15803d;color:#fff;text-decoration:none;border-color:#15803d;" title="Export Excel">
                     <i class="bi bi-file-earmark-spreadsheet-fill"></i> Excel
                 </a>
