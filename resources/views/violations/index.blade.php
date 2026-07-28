@@ -273,14 +273,12 @@
                             </a>
                             @endcan
                             @can('settle', $v)
-                            @if($v->status === 'pending')
-                            <button type="button" class="act-btn act-settle" title="Settle Violation"
-                                data-id="{{ $v->id }}"
-                                data-type="{{ $v->violationType?->name ?? '' }}"
-                                data-date="{{ $v->date_of_violation->format('M d, Y') }}"
-                                onclick="openSettleModal(this)">
-                                <i class="bi bi-receipt"></i>
-                            </button>
+                            @if(in_array($v->status, ['pending', 'partial']))
+                            <a href="{{ route('violations.cashier', ['search' => $v->ticket_number ?: $v->id]) }}"
+                               class="act-btn act-settle" title="Process in Cashier Portal"
+                               aria-label="Process payment for violation #{{ $v->id }}">
+                                <i class="bi bi-wallet2" aria-hidden="true"></i>
+                            </a>
                             @endif
                             @endcan
                         </div>
@@ -832,72 +830,8 @@ a.vio-page:hover {
 }
 </style>
 
-{{-- ── Settle Modal ── --}}
-<div class="modal fade" id="settleModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
-        <div class="modal-content border-0" style="border-radius:14px;overflow:hidden;">
-            <div class="modal-header border-0" style="background:linear-gradient(135deg,#15803d,#166534);padding:1rem 1.25rem;">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-receipt text-white" style="font-size:1.1rem;"></i>
-                    <h6 class="modal-title text-white fw-bold mb-0">Settle Violation</h6>
-                </div>
-                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
-            </div>
-            <div style="background:#f0fdf4;padding:.65rem 1.25rem;border-bottom:1px solid #bbf7d0;font-size:.8rem;">
-                <span class="fw-bold" style="color:#15803d;" id="settleViolationType">—</span>
-                <span style="color:#a8a29e;margin:0 .4rem;">·</span>
-                <span style="color:#57534e;" id="settleViolationDate">—</span>
-            </div>
-            <form id="settleForm" method="POST" enctype="multipart/form-data">
-                @csrf @method('PATCH')
-                <div class="modal-body" style="padding:1.25rem;">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold" style="font-size:.82rem;">OR Number <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-hash" style="color:#15803d;font-size:.8rem;"></i></span>
-                            <input type="text" name="or_number" class="form-control" placeholder="e.g. 1234567"
-                                style="font-family:ui-monospace,monospace;" required maxlength="50">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold" style="font-size:.82rem;">Cashier Name <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-person-badge-fill" style="color:#15803d;font-size:.8rem;"></i></span>
-                            <input type="text" name="cashier_name" class="form-control" placeholder="Full name of cashier" required maxlength="150">
-                        </div>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label fw-bold" style="font-size:.82rem;">Receipt Photo <span style="color:#a8a29e;font-weight:400;">(optional)</span></label>
-                        <input type="file" name="receipt_photo" id="idx_receipt_photo" class="form-control" accept="image/jpg,image/jpeg,image/png">
-                        <small style="font-size:.72rem;color:#a8a29e;">JPG/PNG, max 5 MB.</small>
-                        <div id="idxReceiptPreviewWrap" class="d-none mt-2 text-center">
-                            <img id="idxReceiptPreview" src="" alt="Receipt"
-                                style="max-width:100%;max-height:180px;border-radius:8px;border:1px solid #bbf7d0;object-fit:contain;">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0" style="padding:.75rem 1.25rem;">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="font-size:.82rem;">Cancel</button>
-                    <button type="submit" class="btn" style="background:linear-gradient(135deg,#15803d,#166534);color:#fff;font-size:.82rem;font-weight:700;padding:.45rem 1.2rem;border-radius:8px;">
-                        <i class="bi bi-check2-circle me-1"></i> Mark as Settled
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
-@push('scripts')
-<script>
-function openSettleModal(btn) {
-    document.getElementById('settleForm').action = '/violations/' + btn.dataset.id + '/settle';
-    document.getElementById('settleViolationType').textContent = btn.dataset.type;
-    document.getElementById('settleViolationDate').textContent = btn.dataset.date;
-    document.getElementById('settleForm').reset();
-    document.getElementById('idxReceiptPreview').src = '';
-    document.getElementById('idxReceiptPreviewWrap').classList.add('d-none');
-    new bootstrap.Modal(document.getElementById('settleModal')).show();
-}
+
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('idx_receipt_photo').addEventListener('change', function () {
         var file = this.files[0];
