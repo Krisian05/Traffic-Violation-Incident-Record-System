@@ -373,6 +373,8 @@ class ViolationController extends Controller
         $violation->loadMissing('violationType');
         $balance = $violation->balanceRemaining();
 
+        $request->merge(['cashier_name' => Auth::user()->name]);
+
         $data = $request->validate([
             'or_number'      => ['required', 'string', 'max:50', Rule::unique('payments', 'or_number')],
             'cashier_name'   => ['required', 'string', 'max:150'],
