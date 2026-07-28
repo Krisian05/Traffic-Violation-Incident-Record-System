@@ -25,19 +25,22 @@ class ViolationController extends Controller
             $query->where('lgu_id', $lguId);
         }
 
-        if ($search = $request->input('search')) {
-            $lk = '%' . mb_strtolower($search) . '%';
-            $query->whereHas('violator', function ($q) use ($lk) {
-                $q->whereRaw('LOWER(first_name) LIKE ?', [$lk])
-                  ->orWhereRaw('LOWER(last_name) LIKE ?', [$lk])
-                  ->orWhereRaw('LOWER(middle_name) LIKE ?', [$lk]);
-            });
-        }
-
-        if ($plate = $request->input('plate')) {
-            $plateLk = '%' . mb_strtolower($plate) . '%';
-            $query->whereHas('vehicle', function ($q) use ($plateLk) {
-                $q->whereRaw('LOWER(plate_number) LIKE ?', [$plateLk]);
+        $search = $request->input('search') ?: $request->input('plate');
+        if ($search) {
+            $lk = '%' . mb_strtolower(trim($search)) . '%';
+            $query->where(function ($q) use ($lk) {
+                $q->whereHas('violator', function ($sq) use ($lk) {
+                    $sq->whereRaw('LOWER(first_name) LIKE ?', [$lk])
+                      ->orWhereRaw('LOWER(last_name) LIKE ?', [$lk])
+                      ->orWhereRaw('LOWER(middle_name) LIKE ?', [$lk])
+                      ->orWhereRaw("LOWER(CONCAT(first_name, ' ', last_name)) LIKE ?", [$lk])
+                      ->orWhereRaw("LOWER(CONCAT(last_name, ' ', first_name)) LIKE ?", [$lk]);
+                })
+                ->orWhereHas('vehicle', function ($sq) use ($lk) {
+                    $sq->whereRaw('LOWER(plate_number) LIKE ?', [$lk]);
+                })
+                ->orWhereRaw('LOWER(vehicle_plate) LIKE ?', [$lk])
+                ->orWhereRaw('LOWER(ticket_number) LIKE ?', [$lk]);
             });
         }
 
@@ -48,8 +51,6 @@ class ViolationController extends Controller
         if ($status = $request->input('status')) {
             if ($status === 'overdue') {
                 $query->overdue();
-            } elseif ($status === 'pending') {
-                $query->pendingActive();
             } else {
                 $query->where('status', $status);
             }

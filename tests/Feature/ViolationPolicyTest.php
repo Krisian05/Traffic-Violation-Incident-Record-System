@@ -108,4 +108,51 @@ class ViolationPolicyTest extends TestCase
 
         $this->assertSoftDeleted('violations', ['id' => $violation->id]);
     }
+
+    public function test_violations_index_unified_search_and_strict_status_filters(): void
+    {
+        $operator = User::factory()->operator()->create();
+        $vType    = ViolationType::factory()->create();
+
+        $violatorA = Violator::factory()->create(['first_name' => 'Juan', 'last_name' => 'Dela Cruz']);
+        $violatorB = Violator::factory()->create(['first_name' => 'Maria', 'last_name' => 'Clara']);
+
+        $vPending = Violation::create([
+            'violator_id'       => $violatorA->id,
+            'violation_type_id' => $vType->id,
+            'recorded_by'       => $operator->id,
+            'date_of_violation' => now()->toDateString(),
+            'vehicle_plate'     => 'ABC 1234',
+            'status'            => 'pending',
+        ]);
+
+        $vPartial = Violation::create([
+            'violator_id'       => $violatorB->id,
+            'violation_type_id' => $vType->id,
+            'recorded_by'       => $operator->id,
+            'date_of_violation' => now()->toDateString(),
+            'vehicle_plate'     => 'XYZ 9876',
+            'status'            => 'partial',
+        ]);
+
+        // 1. Test Unified Search by Name
+        $resSearchName = $this->actingAs($operator)->get('/violations?search=Juan');
+        $resSearchName->assertSee('ABC 1234');
+        $resSearchName->assertDontSee('XYZ 9876');
+
+        // 2. Test Unified Search by Plate
+        $resSearchPlate = $this->actingAs($operator)->get('/violations?search=XYZ');
+        $resSearchPlate->assertSee('XYZ 9876');
+        $resSearchPlate->assertDontSee('ABC 1234');
+
+        // 3. Test Strict Pending Filter (MUST NOT include partial)
+        $resPending = $this->actingAs($operator)->get('/violations?status=pending');
+        $resPending->assertSee('ABC 1234');
+        $resPending->assertDontSee('XYZ 9876');
+
+        // 4. Test Partial Filter
+        $resPartial = $this->actingAs($operator)->get('/violations?status=partial');
+        $resPartial->assertSee('XYZ 9876');
+        $resPartial->assertDontSee('ABC 1234');
+    }
 }

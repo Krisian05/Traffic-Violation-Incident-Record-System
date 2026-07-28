@@ -11,8 +11,7 @@
     {{ $violations->total() }} total {{ Str::plural('record', $violations->total()) }}
     @php
         $activeFilters = [];
-        if (request('search'))    $activeFilters[] = ['label' => 'Name',   'value' => request('search')];
-        if (request('plate'))     $activeFilters[] = ['label' => 'Plate',  'value' => request('plate')];
+        if (request('search') || request('plate')) $activeFilters[] = ['label' => 'Search', 'value' => request('search') ?: request('plate')];
         if (request('type'))      $activeFilters[] = ['label' => 'Type',   'value' => ucfirst(request('type'))];
         if (request('status'))    $activeFilters[] = ['label' => 'Status', 'value' => ucfirst(request('status'))];
         if (request('month'))     $activeFilters[] = ['label' => 'Month',  'value' => \Carbon\Carbon::create(null, (int) request('month'))->format('F')];
@@ -51,23 +50,13 @@
         <form method="GET" action="{{ route('violations.index') }}" id="vio-filter-form">
             <div class="d-flex flex-wrap align-items-end gap-2">
 
-                <div style="flex:2.2;min-width:0;">
-                    <label class="filter-label"><i class="bi bi-person-vcard me-1"></i>Violator Name</label>
+                <div style="flex:3.2;min-width:200px;">
+                    <label class="filter-label"><i class="bi bi-search me-1"></i>Search Violator / Plate No.</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text filt-icon"><i class="bi bi-search"></i></span>
                         <input type="text" name="search" class="form-control filt-input"
-                            placeholder="e.g. Juan Dela Cruz"
-                            value="{{ request('search') }}">
-                    </div>
-                </div>
-
-                <div style="flex:1.4;min-width:0;">
-                    <label class="filter-label"><i class="bi bi-car-front me-1"></i>Plate No.</label>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text filt-icon"><i class="bi bi-upc-scan"></i></span>
-                        <input type="text" name="plate" class="form-control filt-input"
-                            placeholder="ABC 1234"
-                            value="{{ request('plate') }}">
+                            placeholder="Search Name or Plate No..."
+                            value="{{ request('search') ?: request('plate') }}">
                     </div>
                 </div>
 
@@ -81,13 +70,14 @@
                     </select>
                 </div>
 
-                <div style="flex:1.2;min-width:0;">
+                <div style="flex:1.3;min-width:110px;">
                     <label class="filter-label"><i class="bi bi-activity me-1"></i>Status</label>
                     <select name="status" class="form-select form-select-sm filt-input">
                         <option value="">All Statuses</option>
-                        @foreach(['pending','overdue','settled'] as $s)
-                            <option value="{{ $s }}" {{ request('status') == $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
-                        @endforeach
+                        <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
+                        <option value="partial" {{ request('status') === 'partial' ? 'selected' : '' }}>Partial</option>
+                        <option value="overdue" {{ request('status') === 'overdue' ? 'selected' : '' }}>Overdue</option>
+                        <option value="settled" {{ request('status') === 'settled' ? 'selected' : '' }}>Settled</option>
                     </select>
                 </div>
 
@@ -224,10 +214,10 @@
 
                     {{-- Plate --}}
                     <td class="text-center d-none d-md-table-cell">
-                        @if($v->vehicle?->plate_number)
+                        @if($v->vehicle?->plate_number || $v->vehicle_plate)
                             <span class="plate-pill">
                                 <i class="bi bi-upc me-1" style="font-size:.7rem;color:#a8a29e;"></i>
-                                {{ $v->vehicle->plate_number }}
+                                {{ $v->vehicle?->plate_number ?? $v->vehicle_plate }}
                             </span>
                         @else
                             <span class="no-data">—</span>
@@ -242,6 +232,7 @@
                             $statusConf = match($displayStatus) {
                                 'overdue'   => ['cls'=>'status-overdue',   'icon'=>'bi-exclamation-triangle-fill'],
                                 'pending'   => ['cls'=>'status-pending',   'icon'=>'bi-hourglass-split'],
+                                'partial'   => ['cls'=>'status-partial',   'icon'=>'bi-pie-chart-fill'],
                                 'settled'   => ['cls'=>'status-settled',   'icon'=>'bi-check2-circle'],
                                 'contested' => ['cls'=>'status-contested', 'icon'=>'bi-shield-slash'],
                                 default     => ['cls'=>'status-default',   'icon'=>'bi-circle'],
@@ -606,6 +597,7 @@
 .status-badge:hover { transform: scale(1.04); }
 .status-overdue   { background:#fef2f2;color:#b91c1c;border-color:#fca5a5;box-shadow:0 2px 8px rgba(185,28,28,.15); }
 .status-pending   { background:#fff8e6;color:#b45309;border-color:#fde68a;box-shadow:0 2px 8px rgba(180,83,9,.15); }
+.status-partial   { background:#f0f9ff;color:#0369a1;border-color:#7dd3fc;box-shadow:0 2px 8px rgba(3,105,161,.15); }
 .status-settled   { background:#f0fdf4;color:#15803d;border-color:#86efac;box-shadow:0 2px 8px rgba(21,128,61,.15); }
 .status-contested { background:#f8fafc;color:#475569;border-color:#cbd5e1;box-shadow:0 2px 8px rgba(71,85,105,.12); }
 .status-default   { background:#f8fafc;color:#475569;border-color:#e2e8f0; }
