@@ -155,4 +155,27 @@ class ViolationPolicyTest extends TestCase
         $resPartial->assertSee('XYZ 9876');
         $resPartial->assertDontSee('ABC 1234');
     }
+
+    public function test_reports_export_pdf_and_excel_role_scoping(): void
+    {
+        $lguBalamban = \App\Models\Lgu::factory()->create(['name' => 'Balamban']);
+        $lguAdmin    = User::factory()->operator()->create(['lgu_id' => $lguBalamban->id]);
+        $superAdmin  = User::factory()->superAdmin()->create();
+
+        // 1. LGU Admin PDF export succeeds
+        $resPdfLgu = $this->actingAs($lguAdmin)->get(route('reports.exportPdf'));
+        $resPdfLgu->assertOk();
+
+        // 2. Super Admin PDF export succeeds
+        $resPdfSuper = $this->actingAs($superAdmin)->get(route('reports.exportPdf'));
+        $resPdfSuper->assertOk();
+
+        // 3. LGU Admin Excel export succeeds
+        $resExcelLgu = $this->actingAs($lguAdmin)->get(route('reports.exportExcel'));
+        $resExcelLgu->assertOk();
+
+        // 4. Super Admin Excel export succeeds
+        $resExcelSuper = $this->actingAs($superAdmin)->get(route('reports.exportExcel'));
+        $resExcelSuper->assertOk();
+    }
 }

@@ -482,6 +482,9 @@ class ReportController extends Controller
         $lguId        = $lguInfo['lgu_id'];
         $municipality = $lguInfo['municipality'];
 
+        $lgu = $lguId ? \App\Models\Lgu::find($lguId) : null;
+        $lguName = $lgu?->name ?? ($municipality ?: 'All LGUs (Province-Wide)');
+
         $month        = $request->input('month', 0);
         $year         = (int) $request->input('year', now()->year);
         $typeFilter   = (string) ($request->input('type_filter') ?? '');
@@ -537,7 +540,7 @@ class ReportController extends Controller
             ->groupBy('location')->orderByDesc('total')->limit(7)->get();
 
         $pdf = Pdf::loadView('reports.export-pdf', compact(
-            'periodLabel', 'municipality', 'typeFilterName',
+            'periodLabel', 'municipality', 'typeFilterName', 'lguName',
             'totalViolationsCount', 'settledCount', 'overdueCount',
             'violationsByType', 'violationHotspots'
         ));

@@ -115,7 +115,7 @@
 
     <div class="header">
         <h2>Cebu Police Provincial Office</h2>
-        <p>Balamban Municipal Police Station, Balamban, Cebu</p>
+        <p>{{ $lguName ? ($lguName . ' Traffic & Municipal Police Station') : 'Province of Cebu Traffic Command (All LGUs)' }}</p>
         <p style="font-size: 8px; color: #888;">Traffic Violation Incident Record System (TVIRS)</p>
     </div>
 
@@ -125,14 +125,14 @@
 
     <table class="meta-table">
         <tr>
+            <td class="meta-label" style="width: 25%;">Report Scope</td>
+            <td style="width: 25%;">{{ $lguName ?: 'All LGUs (Province-Wide)' }}</td>
             <td class="meta-label" style="width: 25%;">Report Period</td>
             <td style="width: 25%;">{{ $periodLabel }}</td>
-            <td class="meta-label" style="width: 25%;">Generated On</td>
-            <td style="width: 25%;">{{ now()->format('M d, Y  h:i A') }}</td>
         </tr>
         <tr>
-            <td class="meta-label">Municipality Filter</td>
-            <td>{{ $municipality ?: 'All LGUs' }}</td>
+            <td class="meta-label">Generated On</td>
+            <td>{{ now()->format('M d, Y  h:i A') }}</td>
             <td class="meta-label">Type Filter</td>
             <td>{{ $typeFilterName }}</td>
         </tr>

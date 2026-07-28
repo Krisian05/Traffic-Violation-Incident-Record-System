@@ -24,7 +24,7 @@ class ViolationsExport implements FromQuery, WithHeadings, WithMapping, ShouldAu
 
     public function query()
     {
-        $query = Violation::with(['violator', 'violationType', 'vehicle', 'payments'])
+        $query = Violation::with(['violator', 'violationType', 'vehicle', 'payments', 'lgu'])
             ->leftJoin('violators', 'violations.violator_id', '=', 'violators.id')
             ->leftJoin('violation_types', 'violations.violation_type_id', '=', 'violation_types.id')
             ->select('violations.*');
@@ -49,7 +49,9 @@ class ViolationsExport implements FromQuery, WithHeadings, WithMapping, ShouldAu
             $query->where('violations.violation_type_id', $this->filters['type_filter']);
         }
 
-        if (!empty($this->filters['municipality'])) {
+        if (!empty($this->filters['lgu_id'])) {
+            $query->where('violations.lgu_id', $this->filters['lgu_id']);
+        } elseif (!empty($this->filters['municipality'])) {
             $query->where('violations.location', 'ilike', '%' . $this->filters['municipality'] . '%');
         }
 
@@ -60,6 +62,7 @@ class ViolationsExport implements FromQuery, WithHeadings, WithMapping, ShouldAu
     {
         return [
             'Ticket Number',
+            'LGU / Municipality',
             'Violator Name',
             'License Number',
             'Plate Number',
@@ -84,6 +87,7 @@ class ViolationsExport implements FromQuery, WithHeadings, WithMapping, ShouldAu
 
         return [
             $violation->ticket_number ?: '#' . $violation->id,
+            $violation->lgu?->name ?? '—',
             $violation->violator?->full_name ?? '—',
             $violation->violator?->license_number ?? '—',
             $violation->vehicle?->plate_number ?? $violation->vehicle_plate ?? '—',
