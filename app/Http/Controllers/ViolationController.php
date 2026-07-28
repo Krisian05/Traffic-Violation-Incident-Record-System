@@ -460,25 +460,63 @@ class ViolationController extends Controller
         $user = Auth::user();
 
         if ($search !== '') {
-            $like = '%' . $search . '%';
+            $rawSearch   = trim($search);
+            $cleanSearch = str_replace(['-', ' ', ','], '', $rawSearch);
+            $like        = '%' . $rawSearch . '%';
+            $cleanLike   = '%' . $cleanSearch . '%';
+
             $query = Violation::with(['violator', 'violationType', 'vehicle', 'payments'])
                 ->withSum('activePayments as total_paid', 'amount_paid')
-                ->where(function ($q) use ($search, $like) {
-                    $q->where('ticket_number', $search)
-                      ->orWhere('id', (int) $search)
-                      ->orWhereHas('violator', function ($vq) use ($like) {
+                ->where(function ($q) use ($rawSearch, $like, $cleanLike) {
+                    // 1. Direct Ticket # or Record ID
+                    $q->where('ticket_number', 'like', $like)
+                      ->orWhere('id', (int) $rawSearch)
+                      // 2. Violator Name / License # / Contact #
+                      ->orWhereHas('violator', function ($vq) use ($rawSearch, $like, $cleanLike) {
                           $vq->where('first_name', 'like', $like)
                              ->orWhere('last_name', 'like', $like)
-                             ->orWhere('license_number', 'like', $like);
+                             ->orWhere('middle_name', 'like', $like)
+                             ->orWhere('license_number', 'like', $like)
+                             // Strip hyphens and spaces for flexible license number matching (e.g. P51-21-942397 vs P5121942397)
+                             ->orWhereRaw("REPLACE(REPLACE(license_number, '-', ''), ' ', '') LIKE ?", [$cleanLike])
+                             // Match concatenated full names ("Dizon, Patricia Cruz" or "Patricia Dizon")
+                             ->orWhereRaw("CONCAT(last_name, ', ', first_name) LIKE ?", [$like])
+                             ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", [$like])
+                             ->orWhereRaw("CONCAT(last_name, ' ', first_name) LIKE ?", [$like])
+                             ->orWhereRaw("CONCAT(first_name, ' ', middle_name, ' ', last_name) LIKE ?", [$like]);
+
+                          // Split multi-word or comma-separated name queries into individual word tokens
+                          $words = array_filter(explode(' ', str_replace(',', ' ', $rawSearch)));
+                          if (count($words) > 1) {
+                              $vq->orWhere(function ($subQ) use ($words) {
+                                  foreach ($words as $w) {
+                                      $wLike = '%' . $w . '%';
+                                      $subQ->where(function ($wQ) use ($wLike) {
+                                          $wQ->where('first_name', 'like', $wLike)
+                                             ->orWhere('last_name', 'like', $wLike)
+                                             ->orWhere('middle_name', 'like', $wLike);
+                                      });
+                                  }
+                              });
+                          }
                       })
+                      // 3. Vehicle Plate / Make / Model / Registered Owner
                       ->orWhere('vehicle_plate', 'like', $like)
-                      ->orWhereHas('vehicle', fn($vq) => $vq->where('plate_number', 'like', $like));
+                      ->orWhere('vehicle_owner_name', 'like', $like)
+                      ->orWhereHas('vehicle', fn($vq) => 
+                          $vq->where('plate_number', 'like', $like)
+                             ->orWhereRaw("REPLACE(plate_number, '-', '') LIKE ?", [$cleanLike])
+                      );
                 });
 
             // Scope by assigned LGU for cashiers
             if ($user->lgu_id) {
                 $query->where('lgu_id', $user->lgu_id);
             }
+
+            // Prioritize unpaid/pending tickets over already settled ones
+            $query->orderByRaw("CASE WHEN status IN ('pending', 'partial') THEN 0 ELSE 1 END")
+                  ->orderBy('date_of_violation', 'desc');
 
             $violation = $query->first();
         }
