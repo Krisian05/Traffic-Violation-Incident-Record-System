@@ -7,6 +7,7 @@
 @endsection
 
 @section('topbar-sub')
+<span id="topbar-sub-container">
     <i class="bi bi-shield-exclamation me-1" style="color:#dc2626;"></i>
     {{ $violations->total() }} total {{ Str::plural('record', $violations->total()) }}
     @php
@@ -24,6 +25,7 @@
             <span style="color:#b45309;">{{ $f['label'] }}:</span> {{ $f['value'] }}
         </span>
     @endforeach
+</span>
 @endsection
 
 @section('content')
@@ -141,7 +143,7 @@
 <div class="gov-ph-title">Violation Records</div>
 
 {{-- ── Table Card ── --}}
-<div class="vio-table-card">
+<div class="vio-table-card" id="vio-table-card">
 
     <div class="table-responsive">
         <table class="table align-middle mb-0" id="violations-table">
@@ -916,21 +918,97 @@ document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('vio-filter-form');
     if (!form) return;
 
-    const submit = () => { form.submit(); };
+    let abortController = null;
+    let timer = null;
 
-    // Select dropdowns — immediate submit on change
-    form.querySelectorAll('select').forEach(sel => {
-        sel.addEventListener('change', submit);
+    function rebindEvents() {
+        document.querySelectorAll('.vio-row[data-href]').forEach(function (row) {
+            row.addEventListener('click', function (e) {
+                if (e.target.closest('.vio-act-cell') || e.target.closest('a') || e.target.closest('button') || e.target.closest('form')) return;
+                window.location.href = row.dataset.href;
+            });
+        });
+    }
+
+    function fetchResults() {
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        for (const [key, val] of formData.entries()) {
+            if (val.trim() !== '') {
+                params.append(key, val.trim());
+            }
+        }
+
+        const url = form.action + (params.toString() ? '?' + params.toString() : '');
+
+        if (abortController) {
+            abortController.abort();
+        }
+        abortController = new AbortController();
+
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            signal: abortController.signal
+        })
+        .then(res => res.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            const newCard = doc.querySelector('#vio-table-card');
+            const currentCard = document.querySelector('#vio-table-card');
+            if (newCard && currentCard) {
+                currentCard.innerHTML = newCard.innerHTML;
+            }
+
+            const newTopbarSub = doc.querySelector('#topbar-sub-container');
+            const currentTopbarSub = document.querySelector('#topbar-sub-container');
+            if (newTopbarSub && currentTopbarSub) {
+                currentTopbarSub.innerHTML = newTopbarSub.innerHTML;
+            }
+
+            const newClearBtn = doc.querySelector('.filter-clear-btn');
+            const currentClearBtn = document.querySelector('.filter-clear-btn');
+            const header = document.querySelector('.filter-card-header');
+            if (newClearBtn) {
+                if (currentClearBtn) {
+                    currentClearBtn.outerHTML = newClearBtn.outerHTML;
+                } else if (header) {
+                    header.appendChild(newClearBtn);
+                }
+            } else if (currentClearBtn) {
+                currentClearBtn.remove();
+            }
+
+            history.replaceState(null, '', url);
+            rebindEvents();
+        })
+        .catch(err => {
+            if (err.name !== 'AbortError') {
+                console.error('Search request failed:', err);
+            }
+        });
+    }
+
+    const debouncedFetch = (delay = 200) => {
+        clearTimeout(timer);
+        timer = setTimeout(fetchResults, delay);
+    };
+
+    // Live search on text/number/date input — smooth AJAX update without reloading page or losing text cursor focus
+    form.querySelectorAll('input[type="text"], input[type="number"], input[type="date"]').forEach(input => {
+        input.addEventListener('input', () => debouncedFetch(200));
     });
 
-    // Restore focus and cursor position at end of text input when search is active
-    document.addEventListener('DOMContentLoaded', function () {
-        const searchInput = form.querySelector('input[name="search"]');
-        if (searchInput && searchInput.value) {
-            searchInput.focus();
-            const len = searchInput.value.length;
-            searchInput.setSelectionRange(len, len);
-        }
+    // Select dropdowns — immediate AJAX fetch
+    form.querySelectorAll('select').forEach(sel => {
+        sel.addEventListener('change', () => debouncedFetch(0));
+    });
+
+    // Prevent default full page reload on submit
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        fetchResults();
     });
 })();
 </script>

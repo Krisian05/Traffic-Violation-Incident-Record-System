@@ -621,15 +621,66 @@ a.vio-page:hover { background: #fdf8f0; border-color: #dc2626; color: #dc2626; }
     // Incidents filter form
     const form = document.getElementById('inc-filter-form');
     if (form) {
-        const submit = () => form.submit();
-        form.querySelectorAll('select').forEach(sel => sel.addEventListener('change', submit));
-        document.addEventListener('DOMContentLoaded', function () {
-            const searchInput = form.querySelector('input[name="search"]');
-            if (searchInput && searchInput.value) {
-                searchInput.focus();
-                const len = searchInput.value.length;
-                searchInput.setSelectionRange(len, len);
+        let abortController = null;
+        let timer = null;
+
+        function rebindEvents() {
+            document.querySelectorAll('.inc-row[data-href]').forEach(function (row) {
+                row.addEventListener('click', function (e) {
+                    if (e.target.closest('.inc-act-cell') || e.target.closest('a') || e.target.closest('button') || e.target.closest('form')) return;
+                    window.location.href = row.dataset.href;
+                });
+            });
+        }
+
+        function fetchResults() {
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+            for (const [key, val] of formData.entries()) {
+                if (val.trim() !== '') params.append(key, val.trim());
             }
+
+            const url = form.action + (params.toString() ? '?' + params.toString() : '');
+            if (abortController) abortController.abort();
+            abortController = new AbortController();
+
+            fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                signal: abortController.signal
+            })
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newCard = doc.querySelector('#inc-table-card');
+                const currentCard = document.querySelector('#inc-table-card');
+                if (newCard && currentCard) {
+                    currentCard.innerHTML = newCard.innerHTML;
+                }
+                history.replaceState(null, '', url);
+                rebindEvents();
+            })
+            .catch(err => {
+                if (err.name !== 'AbortError') console.error('Search request failed:', err);
+            });
+        }
+
+        const debouncedFetch = (delay = 200) => {
+            clearTimeout(timer);
+            timer = setTimeout(fetchResults, delay);
+        };
+
+        form.querySelectorAll('input[type="text"], input[type="number"]').forEach(input => {
+            input.addEventListener('input', () => debouncedFetch(200));
+        });
+
+        form.querySelectorAll('select').forEach(sel => {
+            sel.addEventListener('change', () => debouncedFetch(0));
+        });
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            fetchResults();
         });
     }
 })();
