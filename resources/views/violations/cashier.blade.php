@@ -13,7 +13,7 @@
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
             <h4 class="fw-800 text-stone-900 mb-1" style="color: #1c1917; font-family: 'Instrument Sans', sans-serif;">Cashier Payment Portal</h4>
-            <p class="text-muted mb-0" style="font-size: .85rem;">Scan QR code or enter citation ticket number to collect payment.</p>
+            <p class="text-muted mb-0" style="font-size: .85rem;">Scan QR code or enter citation ticket number, violator name, license, or plate number to collect payment.</p>
         </div>
         <div class="badge" style="background-color: #dcfce7; color: #15803d; font-size: .85rem; font-weight: 700; padding: .5rem 1rem; border-radius: 9999px;">
             <i class="bi bi-wallet2 me-1"></i> Cashier Session Active
@@ -38,13 +38,13 @@
     <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px; overflow: hidden; border: 1px solid #e7e2db;">
         <div class="card-body p-4" style="background-color: #fff;">
             <form method="GET" action="{{ route('violations.cashier') }}">
-                <label class="form-label fw-700" style="font-size: .9rem; color: #44403c;">Scan or Enter Ticket Number</label>
+                <label class="form-label fw-700" style="font-size: .9rem; color: #44403c;">Scan or Search Violation</label>
                 <div class="input-group input-group-lg" style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
                     <span class="input-group-text border-end-0" style="background-color: #fcfbf9; border-color: #d6d3d1;">
                         <i class="bi bi-qr-code-scan text-muted"></i>
                     </span>
                     <input type="text" name="search" class="form-control border-start-0 border-end-0" 
-                           placeholder="Scan QR / Enter Ticket (e.g., TVIRS-CEB-BAL-...)" 
+                           placeholder="Scan QR / Ticket # / Violator Name / License # / Plate #" 
                            value="{{ $search }}" style="background-color: #fcfbf9; border-color: #d6d3d1; font-family: ui-monospace, monospace; font-weight: 600;" required autofocus>
                     <button type="submit" class="btn fw-700 text-white" style="background: linear-gradient(135deg, #1d4ed8, #1e40af); border-color: #1d4ed8; padding-left: 2rem; padding-right: 2rem;">
                         <i class="bi bi-search me-1"></i> Retrieve Ticket
@@ -144,17 +144,36 @@
                     @if($violation->payments->isNotEmpty())
                         {{-- Payment History --}}
                         <div class="card border-0 shadow-sm mb-3" style="border-radius: 16px; overflow: hidden; border: 1px solid #e7e2db;">
-                            <div class="card-header border-0 p-3" style="background-color: #faf9f6; border-bottom: 1px solid #e7e2db !important;">
+                            <div class="card-header border-0 p-3 d-flex justify-content-between align-items-center" style="background-color: #faf9f6; border-bottom: 1px solid #e7e2db !important;">
                                 <span class="text-muted uppercase fw-700" style="font-size: .72rem; letter-spacing: .05em;">PAYMENT HISTORY</span>
+                                <span class="badge bg-light text-dark">{{ $violation->payments->count() }} transaction(s)</span>
                             </div>
                             <div class="card-body p-0">
                                 <table class="table table-sm align-middle mb-0" style="font-size: .8rem;">
                                     <tbody>
                                         @foreach($violation->payments->sortByDesc('paid_at') as $p)
-                                        <tr>
-                                            <td class="ps-3 py-2 fw-700" style="font-family: ui-monospace, monospace;">{{ $p->or_number }}</td>
-                                            <td class="py-2 text-success fw-700">₱{{ number_format($p->amount_paid, 2) }}</td>
-                                            <td class="py-2 text-muted">{{ $p->paid_at?->format('M d, Y g:i A') }}</td>
+                                        <tr style="{{ $p->isVoided() ? 'text-decoration: line-through; opacity: 0.6; background-color: #fef2f2;' : '' }}">
+                                            <td class="ps-3 py-2 fw-700" style="font-family: ui-monospace, monospace;">
+                                                {{ $p->or_number }}
+                                                @if($p->isVoided())
+                                                    <span class="badge bg-danger text-white ms-1" style="font-size: 0.65rem; text-decoration: none;">VOID</span>
+                                                @endif
+                                            </td>
+                                            <td class="py-2 {{ $p->isVoided() ? 'text-muted' : 'text-success' }} fw-700">₱{{ number_format($p->amount_paid, 2) }}</td>
+                                            <td class="py-2 text-muted" style="font-size: .75rem;">{{ $p->paid_at?->format('M d, Y g:i A') }}</td>
+                                            <td class="pe-3 py-2 text-end">
+                                                @if(!$p->isVoided())
+                                                    <a href="{{ route('payments.receipt', [$violation, $p]) }}" target="_blank" class="btn btn-sm btn-outline-secondary py-0 px-1.5" title="Print Receipt" style="font-size: 0.7rem;">
+                                                        <i class="bi bi-printer"></i>
+                                                    </a>
+                                                    @can('void', $p)
+                                                        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1.5 ms-1" title="Void Payment" style="font-size: 0.7rem;"
+                                                                onclick="openVoidModal('{{ route('payments.void', $p) }}', '{{ $p->or_number }}')">
+                                                            <i class="bi bi-x-circle"></i>
+                                                        </button>
+                                                    @endcan
+                                                @endif
+                                            </td>
                                         </tr>
                                         @endforeach
                                     </tbody>
@@ -162,6 +181,7 @@
                             </div>
                         </div>
                     @endif
+
                     @if($violation->status === 'settled')
                         {{-- Settle Details (Paid State) --}}
                         <div class="card border-0 shadow-sm h-100" style="border-radius: 16px; overflow: hidden; border: 1px solid #e7e2db;">
@@ -184,17 +204,8 @@
                                         <tr style="border-bottom: 1px dashed #f0fdf4;">
                                             <td class="text-muted py-2">Payment Method</td>
                                             <td class="fw-700 py-2">
-                                                @php
-                                                    $pmDetails = [
-                                                        'cash'  => ['label'=>'Cash',         'icon'=>'bi-cash-stack',      'cls'=>'bg-success text-white'],
-                                                        'gcash' => ['label'=>'GCash',        'icon'=>'bi-phone-fill',       'cls'=>'bg-primary text-white'],
-                                                        'maya'  => ['label'=>'Maya',         'icon'=>'bi-credit-card-fill', 'cls'=>'bg-purple text-white'],
-                                                        'bank'  => ['label'=>'Bank Transfer','icon'=>'bi-bank2',            'cls'=>'bg-warning text-dark'],
-                                                        'other' => ['label'=>'Other',        'icon'=>'bi-three-dots',       'cls'=>'bg-secondary text-white'],
-                                                    ][$violation->payment_method] ?? ['label'=>ucfirst($violation->payment_method ?: 'Cash'), 'icon'=>'bi-credit-card', 'cls'=>'bg-light text-dark'];
-                                                @endphp
-                                                <span class="badge {{ $pmDetails['cls'] }} px-2.5 py-1" style="font-size: .75rem;">
-                                                    <i class="{{ $pmDetails['icon'] }} me-1"></i> {{ $pmDetails['label'] }}
+                                                <span class="badge bg-success text-white px-2.5 py-1" style="font-size: .75rem;">
+                                                    <i class="bi bi-credit-card me-1"></i> {{ ucfirst($violation->payment_method ?: 'Cash') }}
                                                 </span>
                                             </td>
                                         </tr>
@@ -219,10 +230,15 @@
                                     </div>
                                 @endif
                                 
-                                <div class="mt-4 text-center">
-                                    <a href="{{ route('violations.print', $violation) }}" target="_blank" class="btn btn-outline-success fw-700 w-100" style="border-radius: 10px;">
-                                        <i class="bi bi-printer me-1"></i> Print Violation Record / Invoice
+                                <div class="mt-4 d-flex gap-2">
+                                    <a href="{{ route('violations.print', $violation) }}" target="_blank" class="btn btn-outline-success fw-700 flex-grow-1" style="border-radius: 10px;">
+                                        <i class="bi bi-printer me-1"></i> Print Violation Record
                                     </a>
+                                    @if($violation->latestPayment)
+                                        <a href="{{ route('payments.receipt', [$violation, $violation->latestPayment]) }}" target="_blank" class="btn btn-success fw-700 flex-grow-1" style="border-radius: 10px;">
+                                            <i class="bi bi-receipt me-1"></i> Print Receipt
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -234,7 +250,33 @@
                                 <h5 class="fw-800 mb-0" style="color: #1c1917;">Collect Payment</h5>
                             </div>
                             <div class="card-body p-4" style="background-color: #fff;">
-                                <form action="{{ route('violations.settle', $violation) }}" method="POST" enctype="multipart/form-data">
+                                
+                                {{-- #16 Line-Item Penalty Breakdown --}}
+                                <div class="p-3 mb-3 bg-light rounded-3 border" style="font-size: 0.82rem;">
+                                    <div class="fw-700 text-muted mb-2 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.05em;">Payment Breakdown</div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Base Fine:</span>
+                                        <strong>₱{{ number_format($violation->violationType->fine_amount, 2) }}</strong>
+                                    </div>
+                                    @if($violation->isOverdue() && $violation->latePenaltyAmount() > 0)
+                                        <div class="d-flex justify-content-between mb-1 text-danger">
+                                            <span>Late Penalty:</span>
+                                            <strong>+ ₱{{ number_format($violation->latePenaltyAmount(), 2) }}</strong>
+                                        </div>
+                                    @endif
+                                    @if($violation->totalAmountPaid() > 0)
+                                        <div class="d-flex justify-content-between mb-1 text-success">
+                                            <span>Previous Payments:</span>
+                                            <strong>- ₱{{ number_format($violation->totalAmountPaid(), 2) }}</strong>
+                                        </div>
+                                    @endif
+                                    <div class="d-flex justify-content-between pt-2 border-top fw-800 text-stone-900" style="font-size: 0.95rem;">
+                                        <span>Balance Due:</span>
+                                        <span class="text-danger">₱{{ number_format($violation->balanceRemaining(), 2) }}</span>
+                                    </div>
+                                </div>
+
+                                <form id="settlementForm" action="{{ route('violations.settle', $violation) }}" method="POST" enctype="multipart/form-data">
                                     @csrf
                                     @method('PATCH')
                                     
@@ -242,15 +284,7 @@
                                         <label class="form-label fw-700" style="font-size: .82rem;">Official Receipt (OR) Number <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="bi bi-hash text-muted"></i></span>
-                                            <input type="text" name="or_number" class="form-control" placeholder="e.g., OR-891047" required maxlength="50" style="font-family: ui-monospace, monospace;">
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label fw-700" style="font-size: .82rem;">Cashier Name <span class="text-danger">*</span></label>
-                                        <div class="input-group">
-                                            <span class="input-group-text"><i class="bi bi-person-badge text-muted"></i></span>
-                                            <input type="text" name="cashier_name" class="form-control" placeholder="Cashier's full name" value="{{ Auth::user()->name }}" required maxlength="150">
+                                            <input type="text" name="or_number" id="input_or_number" class="form-control" placeholder="e.g., OR-891047" required maxlength="50" style="font-family: ui-monospace, monospace;">
                                         </div>
                                     </div>
 
@@ -276,14 +310,26 @@
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label fw-700" style="font-size: .82rem;">Amount Received <span class="text-muted" style="font-weight: 400;">(optional — leave blank to collect the full balance)</span></label>
+                                        <label class="form-label fw-700" style="font-size: .82rem;">Amount Received <span class="text-muted" style="font-weight: 400;">(optional — leave blank to collect full balance)</span></label>
                                         <div class="input-group">
                                             <span class="input-group-text">₱</span>
-                                            <input type="number" name="amount_paid" class="form-control" step="0.01" min="0.01"
+                                            <input type="number" name="amount_paid" id="input_amount_paid" class="form-control" step="0.01" min="0.01"
                                                    max="{{ $violation->balanceRemaining() }}"
                                                    placeholder="Full balance: {{ number_format($violation->balanceRemaining(), 2) }}">
                                         </div>
-                                        <small style="font-size: .72rem; color: #a8a29e;">Enter a smaller amount to record a partial payment.</small>
+                                    </div>
+
+                                    {{-- #10 Cash Change Calculator --}}
+                                    <div id="cashCalcBox" class="p-3 mb-3 bg-emerald-50 rounded-3 border border-emerald-200" style="background-color: #f0fdf4; border-color: #bbf7d0;">
+                                        <label class="form-label fw-700 text-emerald-900" style="font-size: .82rem; color: #166534;">Cash Tendered Calculator</label>
+                                        <div class="input-group input-group-sm mb-2">
+                                            <span class="input-group-text bg-white">Cash Tendered ₱</span>
+                                            <input type="number" id="cashTenderedInput" class="form-control" step="0.01" min="0" placeholder="e.g., 1000">
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center" style="font-size: 0.88rem;">
+                                            <span class="fw-600 text-emerald-800" style="color: #166534;">Change Due:</span>
+                                            <strong id="changeDueDisplay" class="fs-5 text-success">₱0.00</strong>
+                                        </div>
                                     </div>
 
                                     <div class="mb-4">
@@ -294,7 +340,8 @@
                                         </div>
                                     </div>
 
-                                    <button type="submit" class="btn text-white fw-700 w-100 py-2.5" style="background: linear-gradient(135deg, #15803d, #166534); border: none; border-radius: 10px;">
+                                    {{-- #3 Trigger Confirmation Modal --}}
+                                    <button type="button" onclick="showConfirmModal()" class="btn text-white fw-700 w-100 py-2.5" style="background: linear-gradient(135deg, #15803d, #166534); border: none; border-radius: 10px;">
                                         <i class="bi bi-check2-circle me-1"></i> Record Payment
                                     </button>
                                 </form>
@@ -309,8 +356,8 @@
             <div class="card border-0 shadow-sm text-center py-5" style="border-radius: 16px; border: 1px solid #e7e2db;">
                 <div class="card-body">
                     <i class="bi bi-search-heart text-muted display-4 mb-3 d-block"></i>
-                    <h5 class="fw-800 text-stone-900 mb-2">No Ticket Found</h5>
-                    <p class="text-muted mb-0" style="max-width: 400px; margin: 0 auto; font-size: .88rem;">We couldn't find a violation ticket matching "<strong>{{ $search }}</strong>". Please verify the spelling or search using another Ticket ID.</p>
+                    <h5 class="fw-800 text-stone-900 mb-2">No Violation Found</h5>
+                    <p class="text-muted mb-0" style="max-width: 400px; margin: 0 auto; font-size: .88rem;">We couldn't find a record matching "<strong>{{ $search }}</strong>". Please verify the Ticket #, Violator Name, License #, or Plate #.</p>
                 </div>
             </div>
         @endif
@@ -319,8 +366,8 @@
         <div class="card border-0 shadow-sm text-center py-5" style="border-radius: 16px; border: 1px solid #e7e2db;">
             <div class="card-body">
                 <i class="bi bi-qr-code text-muted display-3 mb-3 d-block"></i>
-                <h5 class="fw-800 text-stone-900 mb-2">Ready to Scan</h5>
-                <p class="text-muted mb-0" style="max-width: 400px; margin: 0 auto; font-size: .88rem;">Enter a Ticket ID above or scan the QR code printed on the citation ticket to begin collecting payments.</p>
+                <h5 class="fw-800 text-stone-900 mb-2">Ready to Process Payment</h5>
+                <p class="text-muted mb-0" style="max-width: 400px; margin: 0 auto; font-size: .88rem;">Enter a Ticket ID, scan QR code, or search by Violator Name / License # / Plate # above to begin collecting payments.</p>
             </div>
         </div>
     @endif
@@ -328,9 +375,12 @@
     {{-- Pending Tickets List --}}
     @if(isset($pendingTickets) && $pendingTickets->count() > 0)
         <div class="mt-5">
-            <div class="d-flex align-items-center gap-2 mb-3">
-                <i class="bi bi-clock-history text-muted fs-5"></i>
-                <h5 class="fw-800 text-stone-900 mb-0" style="font-family: 'Instrument Sans', sans-serif;">Unpaid / Pending Citation Tickets</h5>
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-clock-history text-muted fs-5"></i>
+                    <h5 class="fw-800 text-stone-900 mb-0" style="font-family: 'Instrument Sans', sans-serif;">Unpaid / Pending Citation Tickets</h5>
+                </div>
+                <span class="badge bg-secondary-subtle text-secondary font-monospace">{{ $pendingTickets->total() }} Total Pending</span>
             </div>
             <div class="card border-0 shadow-sm" style="border-radius: 16px; overflow: hidden; border: 1px solid #e7e2db;">
                 <div class="table-responsive">
@@ -373,14 +423,84 @@
                         </tbody>
                     </table>
                 </div>
+                {{-- #13/#21 Pagination Links --}}
+                <div class="p-3 border-top bg-light">
+                    {{ $pendingTickets->links('vendor.pagination.bootstrap-5') }}
+                </div>
             </div>
         </div>
     @endif
 
 </div>
 
+{{-- #3 Confirmation Modal --}}
+<div class="modal fade" id="paymentConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header bg-success text-white border-0 p-4">
+                <h5 class="modal-title fw-800"><i class="bi bi-shield-check me-2"></i> Confirm Payment Record</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted mb-3" style="font-size: 0.88rem;">Please double-check payment details before recording. This transaction will create an official payment entry.</p>
+                <div class="p-3 bg-light rounded-3 border" style="font-size: 0.88rem;">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">OR Number:</span>
+                        <strong id="modal_or_number" class="font-monospace text-dark">—</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Payment Method:</span>
+                        <strong id="modal_method" class="text-capitalize">—</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Amount to Collect:</span>
+                        <strong id="modal_amount" class="text-success fs-5">₱0.00</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-light fw-700" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" onclick="submitForm()" class="btn btn-success fw-700 px-4" style="border-radius: 8px;">
+                    <i class="bi bi-check-circle me-1"></i> Confirm &amp; Submit
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- #8 Void Payment Modal --}}
+<div class="modal fade" id="voidPaymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <form id="voidPaymentForm" method="POST" action="">
+                @csrf
+                @method('PATCH')
+                <div class="modal-header bg-danger text-white border-0 p-4">
+                    <h5 class="modal-title fw-800"><i class="bi bi-exclamation-triangle me-2"></i> Void Payment OR#<span id="voidOrDisplay"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-muted mb-3" style="font-size: 0.88rem;">Voiding this payment will subtract the amount from the violation's total paid balance. This action will be logged.</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-700" style="font-size: 0.82rem;">Reason for Voiding <span class="text-danger">*</span></label>
+                        <textarea name="void_reason" class="form-control" rows="3" placeholder="Specify why this payment is being voided (e.g. duplicate entry, check bounced, wrong ticket)" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light fw-700" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger fw-700 px-4" style="border-radius: 8px;">
+                        <i class="bi bi-x-circle me-1"></i> Void Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
+    const fullBalance = {{ $violation ? $violation->balanceRemaining() : 0 }};
+
     function updatePaymentPills() {
         document.querySelectorAll('.settle-pm-radio').forEach(function(radio) {
             var pill = radio.nextElementSibling;
@@ -395,13 +515,65 @@
                 pill.style.color = '#64748b';
             }
         });
+        calculateChange();
+    }
+
+    // #10 Cash Change Calculator JS
+    function calculateChange() {
+        const method = document.querySelector('.settle-pm-radio:checked')?.value;
+        const calcBox = document.getElementById('cashCalcBox');
+        if (method === 'cash') {
+            if (calcBox) calcBox.style.display = 'block';
+            const amountInput = document.getElementById('input_amount_paid');
+            const amountToPay = parseFloat(amountInput?.value) || fullBalance;
+            const tendered = parseFloat(document.getElementById('cashTenderedInput')?.value) || 0;
+            const change = Math.max(0, tendered - amountToPay);
+            document.getElementById('changeDueDisplay').innerText = '₱' + change.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        } else {
+            if (calcBox) calcBox.style.display = 'none';
+        }
     }
 
     document.querySelectorAll('.settle-pm-radio').forEach(function(radio) {
         radio.addEventListener('change', updatePaymentPills);
     });
 
+    document.getElementById('input_amount_paid')?.addEventListener('input', calculateChange);
+    document.getElementById('cashTenderedInput')?.addEventListener('input', calculateChange);
+
     updatePaymentPills();
+
+    // #3 Show Confirmation Modal
+    function showConfirmModal() {
+        const orInput = document.getElementById('input_or_number');
+        if (!orInput.checkValidity()) {
+            orInput.reportValidity();
+            return;
+        }
+
+        const method = document.querySelector('.settle-pm-radio:checked')?.value || 'Cash';
+        const amountInput = document.getElementById('input_amount_paid');
+        const amount = parseFloat(amountInput?.value) || fullBalance;
+
+        document.getElementById('modal_or_number').innerText = orInput.value;
+        document.getElementById('modal_method').innerText = method;
+        document.getElementById('modal_amount').innerText = '₱' + amount.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        const modal = new bootstrap.Modal(document.getElementById('paymentConfirmModal'));
+        modal.show();
+    }
+
+    function submitForm() {
+        document.getElementById('settlementForm').submit();
+    }
+
+    // #8 Open Void Modal
+    function openVoidModal(actionUrl, orNumber) {
+        document.getElementById('voidPaymentForm').action = actionUrl;
+        document.getElementById('voidOrDisplay').innerText = orNumber;
+        const modal = new bootstrap.Modal(document.getElementById('voidPaymentModal'));
+        modal.show();
+    }
 
     var imgInput = document.getElementById('cashier_receipt_photo');
     if (imgInput) {

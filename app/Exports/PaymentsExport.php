@@ -29,7 +29,7 @@ class PaymentsExport implements FromQuery, WithHeadings, WithMapping, ShouldAuto
             ->when(!empty($this->filters['date_from']), fn($q) => $q->whereDate('paid_at', '>=', $this->filters['date_from']))
             ->when(!empty($this->filters['date_to']), fn($q) => $q->whereDate('paid_at', '<=', $this->filters['date_to']))
             ->when(!empty($this->filters['method']), fn($q) => $q->where('payment_method', $this->filters['method']))
-            ->when(!empty($this->filters['or_number']), fn($q) => $q->where('or_number', 'like', '%' . $this->filters['or_number'] . '%'))
+            ->when(!empty($this->filters['or_number']), fn($q) => $q->where('or_number', 'like', '%' . str_replace(['%', '_'], ['\%', '\_'], $this->filters['or_number']) . '%'))
             ->orderByDesc('paid_at');
     }
 

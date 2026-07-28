@@ -196,6 +196,17 @@ class ViolationController extends Controller
         return view('violations.print-thermal', compact('violation'));
     }
 
+    /** Dedicated payment receipt for a specific transaction. */
+    public function printReceipt(Violation $violation, \App\Models\Payment $payment)
+    {
+        // Ensure the payment belongs to this violation
+        abort_unless((int) $payment->violation_id === (int) $violation->id, 404);
+
+        $violation->load(['violator', 'violationType', 'lgu', 'payments']);
+
+        return view('violations.print-receipt', compact('violation', 'payment'));
+    }
+
     public function edit(Violation $violation)
     {
         $this->authorize('update', $violation);
@@ -369,8 +380,28 @@ class ViolationController extends Controller
             'receipt_photo'  => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
         ]);
 
+        // #2 — Server-enforce cashier name to prevent spoofing
+        $data['cashier_name'] = Auth::user()->name;
+
         if ($request->hasFile('receipt_photo')) {
-            $data['receipt_photo'] = $request->file('receipt_photo')->store('receipt-photos', uploads_disk());
+            $file = $request->file('receipt_photo');
+            $data['receipt_photo'] = $file->store('receipt-photos', uploads_disk());
+
+            // #6 — Strip EXIF metadata by re-encoding through GD
+            $storedPath = Storage::disk(uploads_disk())->path($data['receipt_photo']);
+            $mime = $file->getMimeType();
+            $img = match (true) {
+                str_contains($mime, 'png')  => @imagecreatefrompng($storedPath),
+                str_contains($mime, 'jpeg'), str_contains($mime, 'jpg') => @imagecreatefromjpeg($storedPath),
+                default => null,
+            };
+            if ($img) {
+                match (true) {
+                    str_contains($mime, 'png')  => imagepng($img, $storedPath),
+                    default => imagejpeg($img, $storedPath, 90),
+                };
+                imagedestroy($img);
+            }
         }
 
         try {
@@ -428,13 +459,22 @@ class ViolationController extends Controller
         $user = Auth::user();
 
         if ($search !== '') {
+            $like = '%' . $search . '%';
             $query = Violation::with(['violator', 'violationType', 'vehicle', 'payments'])
-                ->where(function ($q) use ($search) {
+                ->withSum('activePayments as total_paid', 'amount_paid')
+                ->where(function ($q) use ($search, $like) {
                     $q->where('ticket_number', $search)
-                      ->orWhere('id', (int) $search);
+                      ->orWhere('id', (int) $search)
+                      ->orWhereHas('violator', function ($vq) use ($like) {
+                          $vq->where('first_name', 'like', $like)
+                             ->orWhere('last_name', 'like', $like)
+                             ->orWhere('license_number', 'like', $like);
+                      })
+                      ->orWhere('vehicle_plate', 'like', $like)
+                      ->orWhereHas('vehicle', fn($vq) => $vq->where('plate_number', 'like', $like));
                 });
 
-            // This route is cashier-only now; scope by their assigned LGU.
+            // Scope by assigned LGU for cashiers
             if ($user->lgu_id) {
                 $query->where('lgu_id', $user->lgu_id);
             }
@@ -442,7 +482,8 @@ class ViolationController extends Controller
             $violation = $query->first();
         }
 
-        $pendingQuery = Violation::with(['violator', 'violationType', 'payments'])
+        $pendingQuery = Violation::with(['violator', 'violationType'])
+            ->withSum('activePayments as total_paid', 'amount_paid')
             ->whereIn('status', ['pending', 'partial'])
             ->orderBy('date_of_violation', 'desc');
 
@@ -450,7 +491,8 @@ class ViolationController extends Controller
             $pendingQuery->where('lgu_id', $user->lgu_id);
         }
 
-        $pendingTickets = $pendingQuery->limit(10)->get();
+        // #13/#21 — Paginated pending tickets (15 per page)
+        $pendingTickets = $pendingQuery->paginate(15)->withQueryString();
 
         return view('violations.cashier', compact('violation', 'search', 'pendingTickets'));
     }

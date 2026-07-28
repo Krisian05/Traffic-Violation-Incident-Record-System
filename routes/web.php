@@ -11,6 +11,7 @@ use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\LguController;
 use App\Http\Controllers\OcrController;
 use App\Http\Controllers\OfficerController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentReportController;
 use App\Http\Controllers\ProvinceDashboardController;
 use App\Http\Controllers\ReportController;
@@ -144,7 +145,14 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:cashier,treasurer')->group(function () {
         Route::get('/cashier', [ViolationController::class, 'cashier'])->name('violations.cashier');
-        Route::patch('/violations/{violation}/settle', [ViolationController::class, 'settle'])->name('violations.settle');
+        Route::patch('/violations/{violation}/settle', [ViolationController::class, 'settle'])->name('violations.settle')->middleware('throttle:10,1');
+        Route::get('/violations/{violation}/payments/{payment}/receipt', [ViolationController::class, 'printReceipt'])->name('payments.receipt');
+    });
+
+    // ── PAYMENT MANAGEMENT (Treasurer / Admin) ────────────────────────────
+    Route::middleware('role:admin,treasurer')->group(function () {
+        Route::patch('/payments/{payment}/void', [PaymentController::class, 'void'])->name('payments.void');
+        Route::patch('/payments/{payment}/correct', [PaymentController::class, 'correct'])->name('payments.correct');
     });
 
     // ── INCIDENT CHARGE TYPES ─────────────────────────────────────────────────

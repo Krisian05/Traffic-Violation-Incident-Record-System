@@ -145,61 +145,79 @@ class PaymentReportController extends Controller
 
         // ── LGU / Barangay collection performance ranking ─────────────────────────
         if ($selectedLguId) {
-            $locationPerformance = Violation::whereYear('date_of_violation', $year)
+            // Grouped counts query
+            $locationCounts = Violation::whereYear('date_of_violation', $year)
                 ->where('lgu_id', $selectedLguId)
                 ->whereNotNull('location')
                 ->where('location', '!=', '')
-                ->select('location', DB::raw('COUNT(*) as total'))
+                ->select(
+                    'location',
+                    DB::raw('COUNT(*) as total'),
+                    DB::raw("SUM(CASE WHEN status = 'settled' THEN 1 ELSE 0 END) as settled")
+                )
                 ->groupBy('location')
                 ->get()
-                ->map(function ($row) use ($year, $selectedLguId) {
-                    $loc        = $row->location;
-                    $violations = Violation::whereYear('date_of_violation', $year)
-                        ->where('lgu_id', $selectedLguId)
-                        ->where('location', $loc);
+                ->keyBy('location');
 
-                    $total   = (clone $violations)->count();
-                    $settled = (clone $violations)->where('status', 'settled')->count();
+            // Grouped revenue query
+            $locationRevenues = Payment::active()
+                ->whereHas('violation', fn($q) => $q->whereYear('date_of_violation', $year)->where('lgu_id', $selectedLguId))
+                ->join('violations', 'payments.violation_id', '=', 'violations.id')
+                ->select('violations.location', DB::raw('SUM(payments.amount_paid) as revenue'))
+                ->groupBy('violations.location')
+                ->pluck('revenue', 'location');
 
-                    $revenue = Payment::whereHas('violation', fn($q) =>
-                        $q->whereYear('date_of_violation', $year)
-                          ->where('lgu_id', $selectedLguId)
-                          ->where('location', $loc)
-                    )->sum('amount_paid');
+            $locationPerformance = $locationCounts->map(function ($row, $loc) use ($locationRevenues) {
+                $total   = (int) $row->total;
+                $settled = (int) $row->settled;
+                $revenue = (float) ($locationRevenues[$loc] ?? 0);
 
-                    return (object) [
-                        'name'         => $loc,
-                        'code'         => 'BRGY',
-                        'total'        => $total,
-                        'settled'      => $settled,
-                        'settled_rate' => $total > 0 ? round(($settled / $total) * 100) : 0,
-                        'revenue'      => (float) $revenue,
-                    ];
-                })
-                ->sortByDesc('revenue')
-                ->values();
+                return (object) [
+                    'name'         => $loc,
+                    'code'         => 'BRGY',
+                    'total'        => $total,
+                    'settled'      => $settled,
+                    'settled_rate' => $total > 0 ? round(($settled / $total) * 100) : 0,
+                    'revenue'      => $revenue,
+                ];
+            })->sortByDesc('revenue')->values();
 
             $lguPerformance = collect();
         } else {
             $locationPerformance = collect();
-            $lguPerformance = $lgus
-                ->map(function ($lgu) use ($year) {
-                    $violations = Violation::whereYear('date_of_violation', $year)->where('lgu_id', $lgu->id);
-                    $total      = (clone $violations)->count();
-                    $settled    = (clone $violations)->where('status', 'settled')->count();
-                    $revenue    = Payment::whereHas('violation', fn($q) => $q->whereYear('date_of_violation', $year)->where('lgu_id', $lgu->id))->sum('amount_paid');
 
-                    return (object) [
-                        'name'         => $lgu->name,
-                        'code'         => $lgu->code,
-                        'total'        => $total,
-                        'settled'      => $settled,
-                        'settled_rate' => $total > 0 ? round(($settled / $total) * 100) : 0,
-                        'revenue'      => (float) $revenue,
-                    ];
-                })
-                ->sortByDesc('revenue')
-                ->values();
+            $lguCounts = Violation::whereYear('date_of_violation', $year)
+                ->select(
+                    'lgu_id',
+                    DB::raw('COUNT(*) as total'),
+                    DB::raw("SUM(CASE WHEN status = 'settled' THEN 1 ELSE 0 END) as settled")
+                )
+                ->groupBy('lgu_id')
+                ->get()
+                ->keyBy('lgu_id');
+
+            $lguRevenues = Payment::active()
+                ->whereHas('violation', fn($q) => $q->whereYear('date_of_violation', $year))
+                ->join('violations', 'payments.violation_id', '=', 'violations.id')
+                ->select('violations.lgu_id', DB::raw('SUM(payments.amount_paid) as revenue'))
+                ->groupBy('violations.lgu_id')
+                ->pluck('revenue', 'lgu_id');
+
+            $lguPerformance = $lgus->map(function ($lgu) use ($lguCounts, $lguRevenues) {
+                $counts  = $lguCounts[$lgu->id] ?? null;
+                $total   = (int) ($counts?->total ?? 0);
+                $settled = (int) ($counts?->settled ?? 0);
+                $revenue = (float) ($lguRevenues[$lgu->id] ?? 0);
+
+                return (object) [
+                    'name'         => $lgu->name,
+                    'code'         => $lgu->code,
+                    'total'        => $total,
+                    'settled'      => $settled,
+                    'settled_rate' => $total > 0 ? round(($settled / $total) * 100) : 0,
+                    'revenue'      => $revenue,
+                ];
+            })->sortByDesc('revenue')->values();
         }
 
         // ── Reconciliation table ─────────────────────────────────────────────
@@ -208,7 +226,7 @@ class PaymentReportController extends Controller
             ->when($request->filled('date_from'), fn($q) => $q->whereDate('paid_at', '>=', $request->input('date_from')))
             ->when($request->filled('date_to'), fn($q) => $q->whereDate('paid_at', '<=', $request->input('date_to')))
             ->when($request->filled('method'), fn($q) => $q->where('payment_method', $request->input('method')))
-            ->when($request->filled('or_number'), fn($q) => $q->where('or_number', 'like', '%' . $request->input('or_number') . '%'))
+            ->when($request->filled('or_number'), fn($q) => $q->where('or_number', 'like', '%' . str_replace(['%', '_'], ['\%', '\_'], $request->input('or_number')) . '%'))
             ->orderByDesc('paid_at')
             ->paginate(25)
             ->withQueryString();

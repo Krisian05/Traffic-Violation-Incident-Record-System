@@ -13,11 +13,24 @@ class Violation extends Model
 {
     use HasFactory, SoftDeletes, LogsActivity;
 
+    // #19 — Consolidated single booted() method (was split across booted() and boot())
     protected static function booted(): void
     {
         static::creating(function ($model) {
+            // Auto-assign LGU from authenticated user
             if (empty($model->lgu_id) && Auth::check() && Auth::user()->lgu_id) {
                 $model->lgu_id = Auth::user()->lgu_id;
+            }
+
+            // Auto-generate due_date from the grace period unless explicitly set
+            if (empty($model->due_date) && !empty($model->date_of_violation)) {
+                $graceDays = (int) config('tvirs.payment.grace_period_days', 3);
+                $model->due_date = \Carbon\Carbon::parse($model->date_of_violation)->addDays($graceDays)->toDateString();
+            }
+
+            // Auto-generate ticket number only if none was manually entered
+            if (empty($model->ticket_number)) {
+                $model->ticket_number = static::generateTicketNumber($model->lgu_id);
             }
         });
     }
@@ -70,24 +83,6 @@ class Violation extends Model
         'settled_at'        => 'datetime',
     ];
 
-    protected static function boot(): void
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            // Auto-generate due_date from the grace period unless explicitly set
-            if (empty($model->due_date) && !empty($model->date_of_violation)) {
-                $graceDays = (int) config('tvirs.payment.grace_period_days', 3);
-                $model->due_date = \Carbon\Carbon::parse($model->date_of_violation)->addDays($graceDays)->toDateString();
-            }
-
-            // Auto-generate ticket number only if none was manually entered
-            if (empty($model->ticket_number)) {
-                $model->ticket_number = static::generateTicketNumber($model->lgu_id);
-            }
-        });
-    }
-
     public static function generateTicketNumber(?int $lguId = null): string
     {
         $year    = now()->year;
@@ -116,6 +111,8 @@ class Violation extends Model
 
         return $prefix . str_pad($maxNum + 1, 6, '0', STR_PAD_LEFT);
     }
+
+    // ── Relationships ──────────────────────────────────────────────────────
 
     public function violator()
     {
@@ -152,16 +149,25 @@ class Violation extends Model
         return $this->belongsTo(Lgu::class);
     }
 
+    /** All payments (including voided). */
     public function payments()
     {
         return $this->hasMany(Payment::class);
     }
 
-    /** Most recent payment recorded for this violation, if any. */
+    /** Only active (non-voided) payments. */
+    public function activePayments()
+    {
+        return $this->hasMany(Payment::class)->active();
+    }
+
+    /** Most recent active payment recorded for this violation, if any. */
     public function latestPayment()
     {
-        return $this->hasOne(Payment::class)->latestOfMany('paid_at');
+        return $this->hasOne(Payment::class)->active()->latestOfMany('paid_at');
     }
+
+    // ── Scopes ─────────────────────────────────────────────────────────────
 
     /** Unpaid/partially-paid violations whose due_date has passed. */
     public function scopeOverdue($query)
@@ -179,6 +185,8 @@ class Violation extends Model
                          $q->whereNull('due_date')->orWhere('due_date', '>=', now()->toDateString());
                      });
     }
+
+    // ── Financial Helpers ───────────────────────────────────────────────────
 
     /** True if this violation instance is past its due date and still unpaid/partially paid. */
     public function isOverdue(): bool
@@ -206,10 +214,18 @@ class Violation extends Model
         return round($base + $this->latePenaltyAmount(), 2);
     }
 
-    /** Sum of all payments recorded against this violation. */
+    /**
+     * Sum of all active (non-voided) payments recorded against this violation.
+     * Uses eager-loaded total_paid attribute from withSum when available (#17 N+1 fix).
+     */
     public function totalAmountPaid(): float
     {
-        return (float) $this->payments()->sum('amount_paid');
+        // If withSum('activePayments as total_paid', ...) was used, use cached value
+        if (isset($this->attributes['total_paid'])) {
+            return (float) ($this->attributes['total_paid'] ?? 0);
+        }
+
+        return (float) $this->activePayments()->sum('amount_paid');
     }
 
     /** Remaining balance owed (never negative). */
