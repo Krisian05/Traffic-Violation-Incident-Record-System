@@ -693,6 +693,8 @@ class OcrController extends Controller
                     $data['license_restriction'] = implode(', ', $uniqueRc);
                 }
             }
+        }
+
         // Validate BEFORE normalizing gender, same reasoning as callGemini().
         $this->assertNoLabelArtifacts($data);
 
