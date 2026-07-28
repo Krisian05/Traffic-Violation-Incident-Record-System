@@ -916,22 +916,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('vio-filter-form');
     if (!form) return;
 
-    // Debounce helper
-    function debounce(fn, delay) {
-        let t;
-        return function (...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), delay); };
-    }
-
     const submit = () => { form.submit(); };
 
-    // Text inputs — debounced 500ms
-    form.querySelectorAll('input[type="text"], input[type="number"]').forEach(input => {
-        input.addEventListener('input', debounce(submit, 500));
-    });
-
-    // Selects — immediate on change
+    // Select dropdowns — immediate submit on change
     form.querySelectorAll('select').forEach(sel => {
         sel.addEventListener('change', submit);
+    });
+
+    // Restore focus and cursor position at end of text input when search is active
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = form.querySelector('input[name="search"]');
+        if (searchInput && searchInput.value) {
+            searchInput.focus();
+            const len = searchInput.value.length;
+            searchInput.setSelectionRange(len, len);
+        }
     });
 })();
 </script>

@@ -618,13 +618,20 @@ a.vio-page:hover { background: #fdf8f0; border-color: #dc2626; color: #dc2626; }
         flatpickr(el, { dateFormat: 'Y-m-d', allowInput: true });
     });
 
-    // Live search debounce
+    // Incidents filter form
     const form = document.getElementById('inc-filter-form');
-    if (!form) return;
-    let timer;
-    const submit = () => form.submit();
-    const debounce = (fn, ms) => function () { clearTimeout(timer); timer = setTimeout(fn, ms); };
-    form.querySelector('input[name="search"]').addEventListener('input', debounce(submit, 350));
+    if (form) {
+        const submit = () => form.submit();
+        form.querySelectorAll('select').forEach(sel => sel.addEventListener('change', submit));
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = form.querySelector('input[name="search"]');
+            if (searchInput && searchInput.value) {
+                searchInput.focus();
+                const len = searchInput.value.length;
+                searchInput.setSelectionRange(len, len);
+            }
+        });
+    }
 })();
 
 /* ── Clickable rows — navigate to incident detail on row click ── */

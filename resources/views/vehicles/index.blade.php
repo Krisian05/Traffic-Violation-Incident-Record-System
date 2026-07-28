@@ -569,19 +569,19 @@ a.vio-page:hover {
     const form = document.getElementById('vh-filter-form');
     if (!form) return;
 
-    function debounce(fn, delay) {
-        let t;
-        return function (...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), delay); };
-    }
-
     const submit = () => { form.submit(); };
-
-    form.querySelectorAll('input[type="text"]').forEach(input => {
-        input.addEventListener('input', debounce(submit, 500));
-    });
 
     form.querySelectorAll('select').forEach(sel => {
         sel.addEventListener('change', submit);
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = form.querySelector('input[name="search"]');
+        if (searchInput && searchInput.value) {
+            searchInput.focus();
+            const len = searchInput.value.length;
+            searchInput.setSelectionRange(len, len);
+        }
     });
 })();
 
