@@ -178,4 +178,58 @@ class ViolationPolicyTest extends TestCase
         $resExcelSuper = $this->actingAs($superAdmin)->get(route('reports.exportExcel'));
         $resExcelSuper->assertOk();
     }
+
+    public function test_violations_index_priority_ordering_pending_overdue_partial_settled(): void
+    {
+        $operator = User::factory()->operator()->create();
+        $vType    = ViolationType::factory()->create();
+        $violator = Violator::factory()->create();
+
+        $settled = Violation::create([
+            'violator_id'       => $violator->id,
+            'violation_type_id' => $vType->id,
+            'recorded_by'       => $operator->id,
+            'date_of_violation' => now()->toDateString(),
+            'vehicle_plate'     => 'PLATE-SETTLED',
+            'status'            => 'settled',
+        ]);
+
+        $partial = Violation::create([
+            'violator_id'       => $violator->id,
+            'violation_type_id' => $vType->id,
+            'recorded_by'       => $operator->id,
+            'date_of_violation' => now()->toDateString(),
+            'due_date'          => now()->addDays(5)->toDateString(),
+            'vehicle_plate'     => 'PLATE-PARTIAL',
+            'status'            => 'partial',
+        ]);
+
+        $overdue = Violation::create([
+            'violator_id'       => $violator->id,
+            'violation_type_id' => $vType->id,
+            'recorded_by'       => $operator->id,
+            'date_of_violation' => now()->subDays(10)->toDateString(),
+            'due_date'          => now()->subDays(2)->toDateString(),
+            'vehicle_plate'     => 'PLATE-OVERDUE',
+            'status'            => 'pending',
+        ]);
+
+        $pending = Violation::create([
+            'violator_id'       => $violator->id,
+            'violation_type_id' => $vType->id,
+            'recorded_by'       => $operator->id,
+            'date_of_violation' => now()->toDateString(),
+            'due_date'          => now()->addDays(5)->toDateString(),
+            'vehicle_plate'     => 'PLATE-PENDING',
+            'status'            => 'pending',
+        ]);
+
+        $res = $this->actingAs($operator)->get('/violations');
+        $res->assertOk();
+
+        $vList = $res->viewData('violations');
+        $plates = collect($vList->items())->pluck('vehicle_plate')->toArray();
+
+        $this->assertEquals(['PLATE-PENDING', 'PLATE-OVERDUE', 'PLATE-PARTIAL', 'PLATE-SETTLED'], $plates);
+    }
 }

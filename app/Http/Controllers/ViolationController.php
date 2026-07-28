@@ -72,7 +72,17 @@ class ViolationController extends Controller
             $query->whereDate('date_of_violation', '<=', $dateTo);
         }
 
-        $violations = $query->orderByDesc('date_of_violation')->paginate(20)->withQueryString();
+        $today = now()->toDateString();
+        $violations = $query->orderByRaw("
+            CASE
+                WHEN status = 'pending' AND (due_date IS NULL OR due_date >= '{$today}') THEN 1
+                WHEN (status IN ('pending', 'partial') AND due_date IS NOT NULL AND due_date < '{$today}') OR status = 'overdue' THEN 2
+                WHEN status = 'partial' AND (due_date IS NULL OR due_date >= '{$today}') THEN 3
+                WHEN status = 'settled' THEN 4
+                ELSE 5
+            END ASC
+        ")->orderByDesc('date_of_violation')->paginate(20)->withQueryString();
+
         $violationTypes = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
 
         return view('violations.index', compact('violations', 'violationTypes', 'search'));
