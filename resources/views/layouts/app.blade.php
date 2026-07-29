@@ -1005,9 +1005,14 @@
             <i class="bi bi-diagram-3"></i> Provincial Command Dashboard
         </a>
         @endif
-        @if(!auth()->user()->isProvinceAdmin())
+        @if(!auth()->user()->isProvinceAdmin() && !auth()->user()->isCashier() && !auth()->user()->isTreasurer())
         <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
             <i class="bi bi-speedometer2"></i> LGU Operational Dashboard
+        </a>
+        @endif
+        @if(Auth::user()->isCashier() || Auth::user()->isTreasurer())
+        <a href="{{ route('violations.cashier') }}" class="{{ request()->routeIs('violations.cashier') ? 'active' : '' }}">
+            <i class="bi bi-wallet2"></i> Cashier
         </a>
         @endif
 
@@ -1021,11 +1026,7 @@
         <a href="{{ route('violations.index') }}" class="{{ request()->routeIs('violations.*') && !request()->routeIs('violations.cashier') ? 'active' : '' }}">
             <i class="bi bi-exclamation-triangle-fill"></i> Violations
         </a>
-        @if(Auth::user()->isCashier() || Auth::user()->isTreasurer())
-        <a href="{{ route('violations.cashier') }}" class="{{ request()->routeIs('violations.cashier') ? 'active' : '' }}">
-            <i class="bi bi-wallet2"></i> Cashier Portal
-        </a>
-        @endif
+
         @if(Auth::user()->isSuperAdmin() || Auth::user()->isLguAdmin() || Auth::user()->isProvinceAdmin() || Auth::user()->isTreasurer() || Auth::user()->isCashier() || Auth::user()->isAuditor())
         <a href="{{ route('payments.report') }}" class="{{ request()->routeIs('payments.report') && !request()->routeIs('reports.*') ? 'active' : '' }}">
             <i class="bi bi-cash-coin"></i> Collection Reports
