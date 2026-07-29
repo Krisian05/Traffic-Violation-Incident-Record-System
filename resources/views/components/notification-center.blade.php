@@ -1,16 +1,16 @@
 <div class="dropdown me-2 position-relative" id="notificationCenterApp">
     {{-- Notification Bell Button --}}
-    <button class="btn btn-light position-relative d-flex align-items-center justify-content-center border-0 shadow-xs" 
+    <button class="btn p-1 position-relative d-flex align-items-center justify-content-center border-0 bg-transparent shadow-none" 
             id="notifBellBtn" 
             data-bs-toggle="dropdown" 
             data-bs-auto-close="outside"
             aria-expanded="false"
             title="System Notifications"
-            style="width: 40px; height: 40px; border-radius: 12px; background: #fff; border: 1px solid #e7e2db !important; transition: all .15s;">
-        <i class="bi bi-bell fs-5 text-stone-700" id="notifBellIcon" style="color: #44403c;"></i>
+            style="background: transparent !important; border: none !important; box-shadow: none !important; cursor: pointer;">
+        <i class="bi bi-bell fs-5" id="notifBellIcon" style="color: #44403c; transition: color .15s;"></i>
         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" 
               id="notifBadge" 
-              style="font-size: 0.68rem; padding: 0.3em 0.55em; box-shadow: 0 2px 6px rgba(220,38,38,0.4); border: 2px solid #fff;">
+              style="font-size: 0.65rem; padding: 0.25em 0.5em; box-shadow: 0 2px 5px rgba(220,38,38,0.3); border: 2px solid #fff;">
             0
         </span>
     </button>
