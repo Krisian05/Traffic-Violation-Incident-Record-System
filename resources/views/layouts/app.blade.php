@@ -1117,7 +1117,9 @@
             <span class="topbar-date">{{ now()->format('F d, Y') }}</span>
             
             @auth
+            @if(!request()->routeIs('violations.cashier'))
             <x-notification-center />
+            @endif
             <!-- Profile Dropdown / Mobile Bottom Sheet -->
             <div class="topbar-profile-menu">
                 <button class="topbar-profile-btn" id="profileMenuToggle" title="Profile & Logout">
