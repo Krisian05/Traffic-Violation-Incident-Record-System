@@ -10,6 +10,7 @@ use App\Http\Controllers\IncidentChargeTypeController;
 use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\LguController;
 use App\Http\Controllers\OcrController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OfficerController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentReportController;
@@ -63,6 +64,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
     Route::get('/dashboard/search', [DashboardController::class, 'search'])->name('dashboard.search');
     Route::get('/dashboard/analytics', [DashboardController::class, 'analytics'])->name('dashboard.analytics');
+
+    // ── SYSTEM NOTIFICATIONS ──────────────────────────────────────────────────
+    Route::get('/notifications/feed', [NotificationController::class, 'feed'])->name('notifications.feed');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
 
     // ── OCR (Smart Fallback: Gemini -> OCR.Space) ───────────────────────────────
     Route::post('/api/ocr/scan', [OcrController::class, 'scanId'])->name('ocr.scan')->middleware('throttle:30,1');

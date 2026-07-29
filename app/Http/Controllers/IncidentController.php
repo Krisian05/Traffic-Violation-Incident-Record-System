@@ -162,6 +162,8 @@ class IncidentController extends Controller
                 'recorded_by'      => Auth::id(),
             ]);
 
+            app(\App\Services\NotificationService::class)->notifyIncidentLogged($incident);
+
             app(IncidentStatusService::class)->recordInitialStatus($incident, Auth::user());
 
             foreach ($parties as $party) {

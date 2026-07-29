@@ -56,6 +56,8 @@ class PaymentService
 
             $this->syncViolationStatus($violation, $payment);
 
+            app(NotificationService::class)->notifyPaymentSettled($violation, $payment);
+
             return $payment;
         });
     }

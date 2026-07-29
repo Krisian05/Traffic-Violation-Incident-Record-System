@@ -8,6 +8,7 @@ use App\Models\Violation;
 use App\Models\ViolationVehiclePhoto;
 use App\Models\Violator;
 use App\Models\ViolationType;
+use App\Services\NotificationService;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -211,6 +212,8 @@ class ViolationController extends Controller
         $data['lgu_id']      = Lgu::findByPsgcCityCode($request->input('_loc_city_code'))?->id ?? Auth::user()->lgu_id ?? $violator->lgu_id;
 
         $violation = Violation::create($data);
+
+        app(NotificationService::class)->notifyNewViolation($violation);
 
         // Save photos only for manual vehicle entry
         if ($request->hasFile('photos') && empty($request->input('vehicle_id'))) {

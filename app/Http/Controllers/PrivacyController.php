@@ -42,6 +42,8 @@ class PrivacyController extends Controller
             ])
             ->log("Data Subject Request submitted ({$data['request_type']}) by {$data['full_name']}");
 
+        app(\App\Services\NotificationService::class)->notifyDsrSubmitted($data);
+
         return redirect()->route('privacy.dsr')
             ->with('success', 'Your Data Subject Request has been received and logged. Our Data Protection Officer (DPO) will review your request in compliance with Republic Act No. 10173 within fifteen (15) working days.');
     }

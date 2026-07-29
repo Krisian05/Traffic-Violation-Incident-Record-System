@@ -1,0 +1,135 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Notification;
+use App\Models\Payment;
+use App\Models\User;
+use App\Models\Violation;
+use App\Models\Incident;
+use Illuminate\Support\Str;
+
+class NotificationService
+{
+    /**
+     * Broadcast notification when an enforcer/officer records a new violation.
+     */
+    public function notifyNewViolation(Violation $violation): void
+    {
+        $targetRoles = ['admin', 'province_admin', 'cashier', 'treasurer', 'operator', 'traffic_supervisor'];
+        $users = User::whereIn('role', $targetRoles)->get();
+
+        $violatorName = $violation->violator ? $violation->violator->full_name : 'Unknown Violator';
+        $fineAmount = $violation->violationType ? number_format($violation->violationType->fine_amount, 2) : '0.00';
+        $ticketNo = $violation->ticket_number ?: '#' . $violation->id;
+
+        foreach ($users as $user) {
+            Notification::create([
+                'id'              => (string) Str::uuid(),
+                'type'            => 'violation_created',
+                'notifiable_type' => User::class,
+                'notifiable_id'   => $user->id,
+                'data'            => [
+                    'title'       => 'New Traffic Violation Recorded',
+                    'message'     => "Ticket {$ticketNo} issued to {$violatorName} (₱{$fineAmount})",
+                    'icon'        => 'bi-ticket-perforated-fill',
+                    'color'       => '#dc2626',
+                    'bg'          => '#fef2f2',
+                    'url'         => route('violations.show', $violation->id),
+                    'violation_id'=> $violation->id,
+                ],
+            ]);
+        }
+    }
+
+    /**
+     * Broadcast notification when a cashier collects a payment.
+     */
+    public function notifyPaymentSettled(Violation $violation, Payment $payment): void
+    {
+        $targetRoles = ['admin', 'province_admin', 'treasurer', 'cashier', 'auditor', 'operator'];
+        $users = User::whereIn('role', $targetRoles)->get();
+
+        $ticketNo = $violation->ticket_number ?: '#' . $violation->id;
+        $amountPaid = number_format($payment->amount_paid, 2);
+        $orNo = $payment->or_number;
+        $cashierName = $payment->cashier_name ?: 'Cashier';
+
+        foreach ($users as $user) {
+            Notification::create([
+                'id'              => (string) Str::uuid(),
+                'type'            => 'payment_settled',
+                'notifiable_type' => User::class,
+                'notifiable_id'   => $user->id,
+                'data'            => [
+                    'title'       => 'Payment Received by Cashier',
+                    'message'     => "₱{$amountPaid} collected for Ticket {$ticketNo} (OR: {$orNo}) by {$cashierName}",
+                    'icon'        => 'bi-cash-coin',
+                    'color'       => '#16a34a',
+                    'bg'          => '#f0fdf4',
+                    'url'         => route('violations.cashier') . '?search=' . urlencode($ticketNo),
+                    'payment_id'  => $payment->id,
+                ],
+            ]);
+        }
+    }
+
+    /**
+     * Broadcast notification when a traffic incident is logged.
+     */
+    public function notifyIncidentLogged(Incident $incident): void
+    {
+        $targetRoles = ['admin', 'province_admin', 'traffic_officer', 'traffic_supervisor', 'operator'];
+        $users = User::whereIn('role', $targetRoles)->get();
+
+        $incidentNo = $incident->incident_number ?: '#' . $incident->id;
+        $location = $incident->location ?: 'Recorded Location';
+
+        foreach ($users as $user) {
+            Notification::create([
+                'id'              => (string) Str::uuid(),
+                'type'            => 'incident_logged',
+                'notifiable_type' => User::class,
+                'notifiable_id'   => $user->id,
+                'data'            => [
+                    'title'       => 'Traffic Incident Reported',
+                    'message'     => "Incident {$incidentNo} reported at {$location}",
+                    'icon'        => 'bi-exclamation-triangle-fill',
+                    'color'       => '#d97706',
+                    'bg'          => '#fffbeb',
+                    'url'         => route('incidents.show', $incident->id),
+                    'incident_id' => $incident->id,
+                ],
+            ]);
+        }
+    }
+
+    /**
+     * Broadcast notification when a Data Subject Privacy request is submitted.
+     */
+    public function notifyDsrSubmitted(array $dsrData): void
+    {
+        $targetRoles = ['admin', 'province_admin', 'operator', 'auditor'];
+        $users = User::whereIn('role', $targetRoles)->get();
+
+        $name = $dsrData['full_name'] ?? 'Public User';
+        $type = ucfirst($dsrData['request_type'] ?? 'privacy');
+
+        foreach ($users as $user) {
+            Notification::create([
+                'id'              => (string) Str::uuid(),
+                'type'            => 'dsr_submitted',
+                'notifiable_type' => User::class,
+                'notifiable_id'   => $user->id,
+                'data'            => [
+                    'title'       => 'Data Subject Privacy Request',
+                    'message'     => "{$type} request submitted by {$name}",
+                    'icon'        => 'bi-shield-lock-fill',
+                    'color'       => '#2563eb',
+                    'bg'          => '#eff6ff',
+                    'url'         => route('audit-logs.index') . '?search=' . urlencode($name),
+                ],
+            ]);
+        }
+    }
+}
