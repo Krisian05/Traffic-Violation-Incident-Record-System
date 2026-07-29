@@ -15,10 +15,16 @@
         if (request('search') || request('plate')) $activeFilters[] = ['label' => 'Search', 'value' => request('search') ?: request('plate')];
         if (request('type'))      $activeFilters[] = ['label' => 'Type',   'value' => ucfirst(request('type'))];
         if (request('status'))    $activeFilters[] = ['label' => 'Status', 'value' => ucfirst(request('status'))];
-        if (request('month'))     $activeFilters[] = ['label' => 'Month',  'value' => \Carbon\Carbon::create(null, (int) request('month'))->format('F')];
+        if (request('month') && is_numeric(request('month')) && (int) request('month') >= 1 && (int) request('month') <= 12) {
+            $activeFilters[] = ['label' => 'Month', 'value' => \Carbon\Carbon::create(null, (int) request('month'))->format('F')];
+        }
         if (request('year'))      $activeFilters[] = ['label' => 'Year',   'value' => request('year')];
-        if (request('date_from')) $activeFilters[] = ['label' => 'From',   'value' => \Carbon\Carbon::parse(request('date_from'))->format('M d, Y')];
-        if (request('date_to'))   $activeFilters[] = ['label' => 'To',     'value' => \Carbon\Carbon::parse(request('date_to'))->format('M d, Y')];
+        if (request('date_from')) {
+            try { $activeFilters[] = ['label' => 'From', 'value' => \Carbon\Carbon::parse(request('date_from'))->format('M d, Y')]; } catch (\Throwable $e) {}
+        }
+        if (request('date_to')) {
+            try { $activeFilters[] = ['label' => 'To',   'value' => \Carbon\Carbon::parse(request('date_to'))->format('M d, Y')]; } catch (\Throwable $e) {}
+        }
     @endphp
     @foreach($activeFilters as $f)
         &nbsp;·&nbsp; <span style="display:inline-flex;align-items:center;gap:3px;background:#fef9ec;color:#92400e;border:1px solid #fcd34d;border-radius:999px;padding:1px 8px;font-size:.78rem;font-weight:500;">
@@ -830,22 +836,23 @@ a.vio-page:hover {
 }
 </style>
 
-
-
+<script>
 document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('idx_receipt_photo').addEventListener('change', function () {
-        var file = this.files[0];
-        if (!file) return;
-        var reader = new FileReader();
-        reader.onload = function (e) {
-            document.getElementById('idxReceiptPreview').src = e.target.result;
-            document.getElementById('idxReceiptPreviewWrap').classList.remove('d-none');
-        };
-        reader.readAsDataURL(file);
-    });
+    const photoInput = document.getElementById('idx_receipt_photo');
+    if (photoInput) {
+        photoInput.addEventListener('change', function () {
+            var file = this.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('idxReceiptPreview').src = e.target.result;
+                document.getElementById('idxReceiptPreviewWrap').classList.remove('d-none');
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 });
 </script>
-@endpush
 
 <script>
 (function () {

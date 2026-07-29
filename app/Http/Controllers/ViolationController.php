@@ -12,6 +12,7 @@ use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -22,10 +23,12 @@ class ViolationController extends Controller
         $query = Violation::with(['violator', 'violationType', 'vehicle', 'lgu']);
 
         $user = Auth::user();
-        if ($user && $user->lgu_id && !$user->isSuperAdmin() && !$user->isProvinceAdmin()) {
-            $query->where('lgu_id', $user->lgu_id);
-        } elseif ($lguId = $request->input('lgu_id')) {
-            $query->where('lgu_id', $lguId);
+        if (Schema::hasColumn('violations', 'lgu_id')) {
+            if ($user && $user->lgu_id && !$user->isSuperAdmin() && !$user->isProvinceAdmin()) {
+                $query->where('lgu_id', $user->lgu_id);
+            } elseif ($lguId = $request->input('lgu_id')) {
+                $query->where('lgu_id', $lguId);
+            }
         }
 
         $search = $request->input('search') ?: $request->input('plate');
@@ -53,40 +56,71 @@ class ViolationController extends Controller
 
         if ($status = $request->input('status')) {
             if ($status === 'overdue') {
-                $query->overdue();
+                if (Schema::hasColumn('violations', 'due_date')) {
+                    $query->overdue();
+                } else {
+                    $query->whereIn('status', ['pending', 'partial']);
+                }
             } else {
                 $query->where('status', $status);
             }
         }
 
         if ($month = $request->input('month')) {
-            $query->whereMonth('date_of_violation', $month);
+            if (is_numeric($month) && (int)$month >= 1 && (int)$month <= 12) {
+                $query->whereMonth('date_of_violation', (int)$month);
+            }
         }
 
         if ($year = $request->input('year')) {
-            $query->whereYear('date_of_violation', $year);
+            if (is_numeric($year) && (int)$year > 1900) {
+                $query->whereYear('date_of_violation', (int)$year);
+            }
         }
 
         if ($dateFrom = $request->input('date_from')) {
-            $query->whereDate('date_of_violation', '>=', $dateFrom);
+            try {
+                $parsed = \Carbon\Carbon::parse($dateFrom)->toDateString();
+                $query->whereDate('date_of_violation', '>=', $parsed);
+            } catch (\Throwable $e) {}
         }
 
         if ($dateTo = $request->input('date_to')) {
-            $query->whereDate('date_of_violation', '<=', $dateTo);
+            try {
+                $parsed = \Carbon\Carbon::parse($dateTo)->toDateString();
+                $query->whereDate('date_of_violation', '<=', $parsed);
+            } catch (\Throwable $e) {}
         }
 
         $today = now()->toDateString();
-        $violations = $query->orderByRaw("
-            CASE
-                WHEN status = 'pending' AND (due_date IS NULL OR due_date >= '{$today}') THEN 1
-                WHEN (status IN ('pending', 'partial') AND due_date IS NOT NULL AND due_date < '{$today}') THEN 2
-                WHEN status = 'partial' AND (due_date IS NULL OR due_date >= '{$today}') THEN 3
-                WHEN status = 'settled' THEN 4
-                ELSE 5
-            END ASC
-        ")->orderByDesc('date_of_violation')->paginate(20)->withQueryString();
+        if (Schema::hasColumn('violations', 'due_date')) {
+            $query->orderByRaw("
+                CASE
+                    WHEN status = 'pending' AND (due_date IS NULL OR due_date >= '{$today}') THEN 1
+                    WHEN (status IN ('pending', 'partial') AND due_date IS NOT NULL AND due_date < '{$today}') THEN 2
+                    WHEN status = 'partial' AND (due_date IS NULL OR due_date >= '{$today}') THEN 3
+                    WHEN status = 'settled' THEN 4
+                    ELSE 5
+                END ASC
+            ");
+        } else {
+            $query->orderByRaw("
+                CASE
+                    WHEN status = 'pending' THEN 1
+                    WHEN status = 'partial' THEN 3
+                    WHEN status = 'settled' THEN 4
+                    ELSE 5
+                END ASC
+            ");
+        }
 
-        $violationTypes = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
+        $violations = $query->orderByDesc('date_of_violation')->paginate(20)->withQueryString();
+
+        try {
+            $violationTypes = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
+        } catch (\Throwable $e) {
+            $violationTypes = ViolationType::orderBy('name')->get();
+        }
 
         return view('violations.index', compact('violations', 'violationTypes', 'search'));
     }
