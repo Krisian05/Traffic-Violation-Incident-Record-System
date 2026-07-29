@@ -1,9 +1,9 @@
 @extends('layouts.app')
-@section('title', 'Cashier Portal')
+@section('title', 'Cashier')
 
 @section('breadcrumbs')
     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-    <li class="breadcrumb-item active">Cashier Portal</li>
+    <li class="breadcrumb-item active">Cashier</li>
 @endsection
 
 @section('content')
@@ -12,8 +12,8 @@
     {{-- Header --}}
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
-            <h4 class="fw-800 text-stone-900 mb-1" style="color: #1c1917; font-family: 'Instrument Sans', sans-serif;">Cashier Payment Portal</h4>
-            <p class="text-muted mb-0" style="font-size: .85rem;">Scan QR code or enter citation ticket number, violator name, license, or plate number to collect payment.</p>
+            <h4 class="fw-800 text-stone-900 mb-1" style="color: #1c1917; font-family: 'Instrument Sans', sans-serif;">Cashier Payment</h4>
+            <p class="text-muted mb-0" style="font-size: .85rem;">Enter citation ticket number, violator name, license, or plate number to collect payment.</p>
         </div>
         <div class="badge" style="background-color: #dcfce7; color: #15803d; font-size: .85rem; font-weight: 700; padding: .5rem 1rem; border-radius: 9999px;">
             <i class="bi bi-wallet2 me-1"></i> Cashier Session Active
@@ -38,13 +38,10 @@
     <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px; overflow: hidden; border: 1px solid #e7e2db;">
         <div class="card-body p-4" style="background-color: #fff;">
             <form method="GET" action="{{ route('violations.cashier') }}">
-                <label class="form-label fw-700" style="font-size: .9rem; color: #44403c;">Scan or Search Violation</label>
+                <label class="form-label fw-700" style="font-size: .9rem; color: #44403c;">Search Violation</label>
                 <div class="input-group input-group-lg" style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-                    <span class="input-group-text border-end-0" style="background-color: #fcfbf9; border-color: #d6d3d1;">
-                        <i class="bi bi-qr-code-scan text-muted"></i>
-                    </span>
-                    <input type="text" name="search" class="form-control border-start-0 border-end-0" 
-                           placeholder="Scan QR / Ticket # / Violator Name / License # / Plate #" 
+                    <input type="text" name="search" class="form-control border-end-0" 
+                           placeholder="Ticket # / Violator Name / License # / Plate #" 
                            value="{{ $search }}" style="background-color: #fcfbf9; border-color: #d6d3d1; font-family: ui-monospace, monospace; font-weight: 600;" required autofocus>
                     <button type="submit" class="btn fw-700 text-white" style="background: linear-gradient(135deg, #1d4ed8, #1e40af); border-color: #1d4ed8; padding-left: 2rem; padding-right: 2rem;">
                         <i class="bi bi-search me-1"></i> Retrieve Ticket
