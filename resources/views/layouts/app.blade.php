@@ -1117,7 +1117,7 @@
             <span class="topbar-date">{{ now()->format('F d, Y') }}</span>
             
             @auth
-            @if(!request()->routeIs('violations.cashier'))
+            @if(!auth()->user()->isCashier() && !request()->routeIs('violations.cashier'))
             <x-notification-center />
             @endif
             <!-- Profile Dropdown / Mobile Bottom Sheet -->

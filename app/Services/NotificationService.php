@@ -17,7 +17,7 @@ class NotificationService
      */
     public function notifyNewViolation(Violation $violation): void
     {
-        $targetRoles = ['admin', 'province_admin', 'cashier', 'treasurer', 'operator', 'traffic_supervisor'];
+        $targetRoles = ['admin', 'province_admin', 'treasurer', 'operator', 'traffic_supervisor'];
         $users = User::whereIn('role', $targetRoles)->get();
 
         $violatorName = $violation->violator ? $violation->violator->full_name : 'Unknown Violator';
@@ -48,7 +48,7 @@ class NotificationService
      */
     public function notifyPaymentSettled(Violation $violation, Payment $payment): void
     {
-        $targetRoles = ['admin', 'province_admin', 'treasurer', 'cashier', 'auditor', 'operator'];
+        $targetRoles = ['admin', 'province_admin', 'treasurer', 'auditor', 'operator'];
         $users = User::whereIn('role', $targetRoles)->get();
 
         $ticketNo = $violation->ticket_number ?: '#' . $violation->id;
