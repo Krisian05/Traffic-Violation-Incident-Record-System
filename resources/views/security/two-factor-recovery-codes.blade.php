@@ -3,7 +3,7 @@
 
 @section('content')
 
-<div class="sec-card" style="max-width: 480px;">
+<div class="sec-card mx-auto" style="max-width: 500px; margin: 0 auto;">
     <div class="sec-header">
         <span class="sec-icon" style="background:linear-gradient(135deg,#15803d,#166534);box-shadow:0 3px 10px rgba(21,128,61,.35);">
             <i class="bi bi-key-fill" style="color:#fff;font-size:1rem;"></i>
@@ -33,7 +33,7 @@
 </div>
 
 <style>
-.sec-card { background:#fff; border-radius:18px; box-shadow:0 1px 3px rgba(0,0,0,.06), 0 6px 24px rgba(0,0,0,.06); overflow:hidden; }
+.sec-card { background:#fff; border-radius:18px; box-shadow:0 1px 3px rgba(0,0,0,.06), 0 6px 24px rgba(0,0,0,.06); overflow:hidden; margin:0 auto; }
 .sec-header { display:flex; align-items:center; gap:1rem; padding:1.1rem 1.4rem; background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%); border-bottom:1.5px solid #ece5da; }
 .sec-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .sec-title { font-size:.95rem; font-weight:700; color:#1c1917; }
