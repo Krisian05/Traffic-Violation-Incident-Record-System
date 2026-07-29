@@ -238,6 +238,8 @@ class OfficerApiController extends Controller
 
         $violation = Violation::create($data);
 
+        app(\App\Services\NotificationService::class)->notifyNewViolation($violation);
+
         return response()->json([
             'message' => 'Violation logged successfully.',
             'violation' => $violation
@@ -262,6 +264,8 @@ class OfficerApiController extends Controller
         $incident = Incident::create($data);
 
         app(\App\Services\IncidentStatusService::class)->recordInitialStatus($incident, Auth::user());
+
+        app(\App\Services\NotificationService::class)->notifyIncidentLogged($incident);
 
         return response()->json([
             'message' => 'Incident reported successfully.',

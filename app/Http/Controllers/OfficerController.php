@@ -522,6 +522,8 @@ class OfficerController extends Controller
 
         $violation = Violation::create($data);
 
+        app(\App\Services\NotificationService::class)->notifyNewViolation($violation);
+
         if ($request->hasFile('photos')) {
             foreach (array_slice($request->file('photos'), 0, 4) as $file) {
                 $path = $file->store('violation-vehicle-photos', uploads_disk());
@@ -965,6 +967,8 @@ class OfficerController extends Controller
 
             return $incident;
         });
+
+        app(\App\Services\NotificationService::class)->notifyIncidentLogged($incident);
 
         return redirect()->route('officer.incidents.show', $incident)
             ->with('success', 'Incident ' . e($incident->incident_number) . ' recorded successfully.');
