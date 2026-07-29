@@ -13,12 +13,28 @@ use Illuminate\Support\Str;
 class NotificationService
 {
     /**
+     * Resolve notification recipients scoped to a record's LGU.
+     * admin/province_admin see across all LGUs; everyone else only sees their own LGU.
+     */
+    private function usersForRoles(array $roles, ?int $lguId = null)
+    {
+        return User::whereIn('role', $roles)
+            ->when($lguId, function ($query) use ($lguId) {
+                $query->where(function ($sub) use ($lguId) {
+                    $sub->whereIn('role', ['admin', 'province_admin'])
+                        ->orWhere('lgu_id', $lguId);
+                });
+            })
+            ->get();
+    }
+
+    /**
      * Broadcast notification when an enforcer/officer records a new violation.
      */
     public function notifyNewViolation(Violation $violation): void
     {
         $targetRoles = ['admin', 'province_admin', 'treasurer', 'operator', 'traffic_supervisor'];
-        $users = User::whereIn('role', $targetRoles)->get();
+        $users = $this->usersForRoles($targetRoles, $violation->lgu_id);
 
         $violatorName = $violation->violator ? $violation->violator->full_name : 'Unknown Violator';
         $fineAmount = $violation->violationType ? number_format($violation->violationType->fine_amount, 2) : '0.00';
@@ -49,7 +65,7 @@ class NotificationService
     public function notifyPaymentSettled(Violation $violation, Payment $payment): void
     {
         $targetRoles = ['admin', 'province_admin', 'treasurer', 'auditor', 'operator'];
-        $users = User::whereIn('role', $targetRoles)->get();
+        $users = $this->usersForRoles($targetRoles, $violation->lgu_id);
 
         $ticketNo = $violation->ticket_number ?: '#' . $violation->id;
         $amountPaid = number_format($payment->amount_paid, 2);
@@ -81,7 +97,7 @@ class NotificationService
     public function notifyIncidentLogged(Incident $incident): void
     {
         $targetRoles = ['admin', 'province_admin', 'traffic_officer', 'traffic_supervisor', 'operator'];
-        $users = User::whereIn('role', $targetRoles)->get();
+        $users = $this->usersForRoles($targetRoles, $incident->lgu_id);
 
         $incidentNo = $incident->incident_number ?: '#' . $incident->id;
         $location = $incident->location ?: 'Recorded Location';
@@ -140,7 +156,7 @@ class NotificationService
     public function notifyNewMotorist(Violator $violator): void
     {
         $targetRoles = ['admin', 'province_admin', 'operator', 'traffic_officer', 'traffic_supervisor', 'records_officer'];
-        $users = User::whereIn('role', $targetRoles)->get();
+        $users = $this->usersForRoles($targetRoles, $violator->lgu_id);
 
         $name = $violator->full_name;
         $license = $violator->license_number ? " (License: {$violator->license_number})" : '';
