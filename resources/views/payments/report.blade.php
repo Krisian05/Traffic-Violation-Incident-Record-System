@@ -238,9 +238,11 @@
                         <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size:0.88rem;">
                             <i class="bi bi-clipboard2-data-fill text-success me-1"></i> Violation Types, Recorded Violations &amp; Revenue Summary
                         </h6>
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
                             <span class="badge bg-secondary-subtle text-secondary font-monospace" id="totalViolationsCountBadge">0 Total Violations</span>
-                            <span class="badge bg-success-subtle text-success border border-success-subtle font-monospace fw-bold" id="totalRevenueBadge">₱0.00 Total Revenue</span>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace fw-bold" id="totalCollectibleBadge">₱0.00 Total Collectible</span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle font-monospace fw-bold" id="totalRevenueBadge">₱0.00 Total Collection</span>
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle font-monospace fw-bold" id="totalBalanceBadge">₱0.00 Uncollected</span>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -248,8 +250,10 @@
                             <thead>
                                 <tr>
                                     <th class="ps-3.5">Type of Violation</th>
-                                    <th class="text-center" style="width:200px;">Total Number</th>
-                                    <th class="text-end pe-3.5" style="width:360px;">Total Collection based on by the total number of Violations</th>
+                                    <th class="text-center" style="width:130px;">Total Number</th>
+                                    <th class="text-end" style="width:200px;">Total Collectible Fine</th>
+                                    <th class="text-end" style="width:230px;">Total Collection Collected</th>
+                                    <th class="text-end pe-3.5" style="width:180px;">Uncollected Balance</th>
                                 </tr>
                             </thead>
                             <tbody id="violationsSummaryBody">
@@ -259,7 +263,9 @@
                                 <tr class="fw-bold text-dark">
                                     <td class="ps-3.5">Monthly Grand Total</td>
                                     <td class="text-center" id="tfootTotalNumber">0</td>
-                                    <td class="text-end pe-3.5 text-success font-monospace" style="font-size:0.95rem;" id="tfootTotalRevenue">₱0.00</td>
+                                    <td class="text-end text-primary font-monospace" style="font-size:0.92rem;" id="tfootTotalCollectible">₱0.00</td>
+                                    <td class="text-end text-success font-monospace" style="font-size:0.92rem;" id="tfootTotalRevenue">₱0.00</td>
+                                    <td class="text-end pe-3.5 text-danger font-monospace" style="font-size:0.92rem;" id="tfootTotalBalance">₱0.00</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -505,33 +511,54 @@
         const vList = monthlyViolationsData[monthNum] || [];
         let vHtml = '';
         let vTotalCount = 0;
+        let vTotalCollectible = 0;
         let vTotalRevenue = 0;
+        let vTotalBalance = 0;
 
         if (vList.length === 0) {
-            vHtml = `<tr><td colspan="3" class="text-center py-4 text-muted">No violation records for ${monthName}.</td></tr>`;
+            vHtml = `<tr><td colspan="5" class="text-center py-4 text-muted">No violation records for ${monthName}.</td></tr>`;
         } else {
             vList.forEach(item => {
-                vTotalCount += item.total;
-                vTotalRevenue += item.revenue;
+                vTotalCount       += item.total;
+                vTotalCollectible += item.collectible;
+                vTotalRevenue     += item.revenue;
+                vTotalBalance     += item.balance;
 
                 const countBadgeStyle = item.total > 0 
                     ? 'background:#fef3c7;color:#b45309;border:1px solid #fde68a;' 
                     : 'background:#f8fafc;color:#94a3b8;border:1px solid #e2e8f0;';
                     
+                const collectibleStyle = item.collectible > 0 
+                    ? 'color:#0284c7;font-weight:700;' 
+                    : 'color:#94a3b8;';
+
                 const revStyle = item.revenue > 0 
                     ? 'color:#059669;font-weight:800;' 
                     : 'color:#94a3b8;';
 
+                const balanceStyle = item.balance > 0 
+                    ? 'color:#dc2626;font-weight:700;' 
+                    : 'color:#94a3b8;';
+
                 vHtml += `
                     <tr>
-                        <td class="ps-3.5 fw-semibold text-dark">${escapeHtml(item.name)}</td>
+                        <td class="ps-3.5 fw-semibold text-dark">
+                            ${escapeHtml(item.name)}
+                            <div style="font-size:.72rem;color:#78716c;font-weight:normal;">Base Fine: ₱${formatMoney(item.fine_amount)}</div>
+                        </td>
                         <td class="text-center">
                             <span class="badge px-3 py-1 rounded-2 fw-bold" style="${countBadgeStyle}">
                                 ${item.total}
                             </span>
                         </td>
-                        <td class="text-end pe-3.5 font-monospace" style="${revStyle}">
+                        <td class="text-end font-monospace" style="${collectibleStyle}">
+                            ₱${formatMoney(item.collectible)}
+                        </td>
+                        <td class="text-end font-monospace" style="${revStyle}">
                             ₱${formatMoney(item.revenue)}
+                        </td>
+                        <td class="text-end pe-3.5 font-monospace" style="${balanceStyle}">
+                            ₱${formatMoney(item.balance)}
                         </td>
                     </tr>
                 `;
@@ -541,10 +568,14 @@
 
         // 4. Update Header Badges & Footer Totals
         document.getElementById('totalViolationsCountBadge').innerText = `${vTotalCount} Total Violations`;
-        document.getElementById('totalRevenueBadge').innerText = `₱${formatMoney(vTotalRevenue)} Total Revenue`;
+        document.getElementById('totalCollectibleBadge').innerText    = `₱${formatMoney(vTotalCollectible)} Total Collectible`;
+        document.getElementById('totalRevenueBadge').innerText        = `₱${formatMoney(vTotalRevenue)} Total Collection`;
+        document.getElementById('totalBalanceBadge').innerText        = `₱${formatMoney(vTotalBalance)} Uncollected`;
 
-        document.getElementById('tfootTotalNumber').innerText = vTotalCount;
-        document.getElementById('tfootTotalRevenue').innerText = `₱${formatMoney(vTotalRevenue)}`;
+        document.getElementById('tfootTotalNumber').innerText      = vTotalCount;
+        document.getElementById('tfootTotalCollectible').innerText = `₱${formatMoney(vTotalCollectible)}`;
+        document.getElementById('tfootTotalRevenue').innerText     = `₱${formatMoney(vTotalRevenue)}`;
+        document.getElementById('tfootTotalBalance').innerText     = `₱${formatMoney(vTotalBalance)}`;
     }
 
     function formatMoney(amount) {

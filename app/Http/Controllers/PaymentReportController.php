@@ -75,10 +75,11 @@ class PaymentReportController extends Controller
 
         $violationTypes = ViolationType::orderBy('name')->get();
 
-        $violationsByMonth = Violation::whereYear('date_of_violation', $year)
-            ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))
-            ->selectRaw("$violationDateExpr as m, violation_type_id, COUNT(*) as total")
-            ->groupBy('m', 'violation_type_id')
+        $violationsByMonth = Violation::join('violation_types', 'violations.violation_type_id', '=', 'violation_types.id')
+            ->whereYear('violations.date_of_violation', $year)
+            ->when($selectedLguId, fn($q) => $q->where('violations.lgu_id', $selectedLguId))
+            ->selectRaw("$violationDateExpr as m, violations.violation_type_id, COUNT(*) as total, SUM(violation_types.fine_amount) as total_collectible")
+            ->groupBy('m', 'violations.violation_type_id')
             ->get()
             ->groupBy('m');
 
@@ -93,15 +94,26 @@ class PaymentReportController extends Controller
         $monthlyViolationsSummary = [];
 
         for ($m = 1; $m <= 12; $m++) {
-            $mViolationsMap = isset($violationsByMonth[$m]) ? $violationsByMonth[$m]->pluck('total', 'violation_type_id') : collect();
-            $mRevenueMap    = isset($revenueByMonth[$m]) ? $revenueByMonth[$m]->pluck('total_revenue', 'violation_type_id') : collect();
+            $mViolationsGroup = isset($violationsByMonth[$m]) ? $violationsByMonth[$m]->keyBy('violation_type_id') : collect();
+            $mRevenueGroup    = isset($revenueByMonth[$m]) ? $revenueByMonth[$m]->keyBy('violation_type_id') : collect();
 
-            $monthlyViolationsSummary[$m] = $violationTypes->map(function ($type) use ($mViolationsMap, $mRevenueMap) {
+            $monthlyViolationsSummary[$m] = $violationTypes->map(function ($type) use ($mViolationsGroup, $mRevenueGroup) {
+                $vRow = $mViolationsGroup[$type->id] ?? null;
+                $rRow = $mRevenueGroup[$type->id] ?? null;
+
+                $total       = (int) ($vRow?->total ?? 0);
+                $collectible = (float) ($vRow?->total_collectible ?? 0);
+                $revenue     = (float) ($rRow?->total_revenue ?? 0);
+                $balance     = max(0, $collectible - $revenue);
+
                 return [
-                    'id'      => $type->id,
-                    'name'    => $type->name,
-                    'total'   => (int) ($mViolationsMap[$type->id] ?? 0),
-                    'revenue' => (float) ($mRevenueMap[$type->id] ?? 0),
+                    'id'          => $type->id,
+                    'name'        => $type->name,
+                    'fine_amount' => (float) $type->fine_amount,
+                    'total'       => $total,
+                    'collectible' => $collectible,
+                    'revenue'     => $revenue,
+                    'balance'     => $balance,
                 ];
             })->values();
         }
