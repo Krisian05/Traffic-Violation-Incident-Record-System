@@ -573,6 +573,40 @@ class ViolationController extends Controller
             $violation = $query->first();
         }
 
+        // ── AJAX live-search: return JSON so the page can update without a reload ─
+        if ($request->ajax() || $request->wantsJson()) {
+            if (!$search) {
+                return response()->json(['found' => false, 'empty' => true]);
+            }
+            if (!$violation) {
+                return response()->json(['found' => false, 'empty' => false, 'search' => $search]);
+            }
+
+            $isOverdue = $violation->isOverdue();
+            $displayStatus = $isOverdue ? 'overdue' : $violation->status;
+
+            return response()->json([
+                'found'         => true,
+                'id'            => $violation->id,
+                'ticket_number' => $violation->ticket_number ?: '#' . $violation->id,
+                'status'        => $violation->status,
+                'display_status'=> $displayStatus,
+                'violator_name' => $violation->violator?->full_name,
+                'license_number'=> $violation->violator?->license_number,
+                'violation_type'=> $violation->violationType?->name,
+                'fine_amount'   => $violation->violationType?->fine_amount,
+                'late_penalty'  => $violation->isOverdue() ? $violation->latePenaltyAmount() : 0,
+                'total_paid'    => $violation->totalAmountPaid(),
+                'balance'       => $violation->balanceRemaining(),
+                'date'          => $violation->date_of_violation->format('M d, Y'),
+                'location'      => $violation->location,
+                'plate'         => $violation->vehicle?->plate_number ?? $violation->vehicle_plate,
+                'settle_url'    => route('violations.settle', $violation),
+                'print_url'     => route('violations.print', $violation),
+                'cashier_url'   => route('violations.cashier', ['search' => $violation->ticket_number]),
+            ]);
+        }
+
         $pendingQuery = Violation::with(['violator', 'violationType'])
             ->withSum('activePayments as total_paid', 'amount_paid')
             ->whereIn('status', ['pending', 'partial'])

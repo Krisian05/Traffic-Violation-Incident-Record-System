@@ -40,9 +40,9 @@
             <form method="GET" action="{{ route('violations.cashier') }}">
                 <label class="form-label fw-700" style="font-size: .9rem; color: #44403c;">Search Violation</label>
                 <div class="input-group input-group-lg" style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-                    <input type="text" name="search" class="form-control border-end-0" 
+                    <input type="text" id="cashierSearchInput" name="search" class="form-control border-end-0" 
                            placeholder="Ticket # / Violator Name / License # / Plate #" 
-                           value="{{ $search }}" style="background-color: #fcfbf9; border-color: #d6d3d1; font-family: ui-monospace, monospace; font-weight: 600;" required autofocus>
+                           value="{{ $search }}" style="background-color: #fcfbf9; border-color: #d6d3d1; font-family: ui-monospace, monospace; font-weight: 600;" autofocus autocomplete="off">
                     <button type="submit" class="btn fw-700 text-white" style="background: linear-gradient(135deg, #1d4ed8, #1e40af); border-color: #1d4ed8; padding-left: 2rem; padding-right: 2rem;">
                         <i class="bi bi-search me-1"></i> Retrieve Ticket
                     </button>
@@ -51,6 +51,7 @@
         </div>
     </div>
 
+    <div id="searchResultsArea">
     @if($search)
         @if($violation)
             {{-- Ticket Found --}}
@@ -362,12 +363,13 @@
         {{-- Empty State --}}
         <div class="card border-0 shadow-sm text-center py-5" style="border-radius: 16px; border: 1px solid #e7e2db;">
             <div class="card-body">
-                <i class="bi bi-qr-code text-muted display-3 mb-3 d-block"></i>
+                <i class="bi bi-search text-muted display-3 mb-3 d-block"></i>
                 <h5 class="fw-800 text-stone-900 mb-2">Ready to Process Payment</h5>
-                <p class="text-muted mb-0" style="max-width: 400px; margin: 0 auto; font-size: .88rem;">Enter a Ticket ID, scan QR code, or search by Violator Name / License # / Plate # above to begin collecting payments.</p>
+                <p class="text-muted mb-0" style="max-width: 400px; margin: 0 auto; font-size: .88rem;">Enter a Ticket ID or search by Violator Name / License # / Plate # above to begin collecting payments.</p>
             </div>
         </div>
     @endif
+    </div>{{-- /#searchResultsArea --}}
 
     {{-- Pending Tickets List --}}
     @if(isset($pendingTickets) && $pendingTickets->count() > 0)
@@ -585,6 +587,179 @@
             reader.readAsDataURL(file);
         });
     }
+
+    // ── Live Search (debounced) ────────────────────────────────────────────────
+    (function () {
+        const searchInput  = document.getElementById('cashierSearchInput');
+        const resultsArea  = document.getElementById('searchResultsArea');
+        const cashierUrl   = '{{ route("violations.cashier") }}';
+        let debounceTimer  = null;
+        let currentRequest = null;
+
+        if (!searchInput) return;
+
+        const fmt = (n) => Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        const statusStyles = {
+            overdue: 'background-color:#fef2f2;color:#b91c1c;border:1px solid #fca5a5;',
+            pending: 'background-color:#fffbeb;color:#b45309;border:1px solid #fde68a;',
+            partial: 'background-color:#fff7ed;color:#c2410c;border:1px solid #fdba74;',
+            settled: 'background-color:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;',
+        };
+
+        function renderLoading() {
+            resultsArea.innerHTML = `
+                <div class="card border-0 shadow-sm text-center py-4" style="border-radius:16px;border:1px solid #e7e2db;">
+                    <div class="card-body">
+                        <div class="spinner-border text-primary mb-3" role="status" style="width:2rem;height:2rem;"></div>
+                        <p class="text-muted mb-0" style="font-size:.88rem;">Searching…</p>
+                    </div>
+                </div>`;
+        }
+
+        function renderEmpty() {
+            resultsArea.innerHTML = `
+                <div class="card border-0 shadow-sm text-center py-5" style="border-radius:16px;border:1px solid #e7e2db;">
+                    <div class="card-body">
+                        <i class="bi bi-search text-muted display-3 mb-3 d-block"></i>
+                        <h5 class="fw-800 text-stone-900 mb-2">Ready to Process Payment</h5>
+                        <p class="text-muted mb-0" style="max-width:400px;margin:0 auto;font-size:.88rem;">Enter a Ticket ID or search by Violator Name / License # / Plate # above to begin collecting payments.</p>
+                    </div>
+                </div>`;
+        }
+
+        function renderNotFound(search) {
+            resultsArea.innerHTML = `
+                <div class="card border-0 shadow-sm text-center py-5" style="border-radius:16px;border:1px solid #e7e2db;">
+                    <div class="card-body">
+                        <i class="bi bi-search-heart text-muted display-4 mb-3 d-block"></i>
+                        <h5 class="fw-800 text-stone-900 mb-2">No Violation Found</h5>
+                        <p class="text-muted mb-0" style="max-width:400px;margin:0 auto;font-size:.88rem;">We couldn't find a record matching "<strong>${search}</strong>". Please verify the Ticket #, Violator Name, License #, or Plate #.</p>
+                    </div>
+                </div>`;
+        }
+
+        function renderFound(d) {
+            const stStyle = statusStyles[d.display_status] || 'background-color:#f5f5f4;color:#57534e;';
+            const statusLabel = d.display_status.charAt(0).toUpperCase() + d.display_status.slice(1);
+            const plateRow = d.plate ? `<tr style="border-bottom:1px dashed #f5f0e8;"><td class="text-muted py-2">Vehicle Plate</td><td class="fw-600 py-2" style="font-family:ui-monospace,monospace;">${d.plate}</td></tr>` : '';
+            const locationRow = d.location ? `<tr style="border-bottom:1px dashed #f5f0e8;"><td class="text-muted py-2">Location</td><td class="fw-600 py-2">${d.location}</td></tr>` : '';
+            const latePenRow = d.late_penalty > 0 ? `<span class="ms-1">+ Late penalty: ₱${fmt(d.late_penalty)}</span>` : '';
+            const paidRow    = d.total_paid > 0  ? `<span class="ms-1">· Already paid: ₱${fmt(d.total_paid)}</span>`   : '';
+            const amountLabel = d.status === 'partial' ? 'BALANCE DUE' : 'TOTAL AMOUNT DUE';
+
+            let actionHtml = '';
+            if (d.status === 'settled') {
+                actionHtml = `
+                    <div class="card border-0 shadow-sm h-100" style="border-radius:16px;overflow:hidden;border:1px solid #e7e2db;">
+                        <div class="card-header border-0 p-4" style="background-color:#f0fdf4;border-bottom:1px solid #bbf7d0 !important;">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-patch-check-fill text-success fs-4"></i>
+                                <div>
+                                    <h5 class="fw-800 text-success mb-0">Settled</h5>
+                                    <small style="color:#16a34a;">This citation has been successfully settled.</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <a href="${d.cashier_url}" class="btn btn-outline-success fw-700 w-100 mb-2" style="border-radius:10px;"><i class="bi bi-eye me-1"></i> View Full Details</a>
+                            <a href="${d.print_url}" target="_blank" class="btn btn-outline-secondary fw-700 w-100" style="border-radius:10px;"><i class="bi bi-printer me-1"></i> Print Violation Record</a>
+                        </div>
+                    </div>`;
+            } else {
+                actionHtml = `
+                    <div class="card border-0 shadow-sm h-100" style="border-radius:16px;overflow:hidden;border:1px solid #e7e2db;">
+                        <div class="card-header border-0 p-4" style="background-color:#faf9f6;border-bottom:1px solid #e7e2db !important;">
+                            <span class="text-muted text-uppercase fw-700" style="font-size:.75rem;letter-spacing:.05em;display:block;">ACTION</span>
+                            <h5 class="fw-800 mb-0" style="color:#1c1917;">Collect Payment</h5>
+                        </div>
+                        <div class="card-body p-4 text-center">
+                            <p class="text-muted mb-3" style="font-size:.88rem;">Balance Due: <strong class="text-danger fs-5">₱${fmt(d.balance)}</strong></p>
+                            <a href="${d.cashier_url}" class="btn fw-700 text-white w-100 py-2" style="background:linear-gradient(135deg,#15803d,#166534);border:none;border-radius:10px;">
+                                <i class="bi bi-check2-circle me-1"></i> Open Payment Form
+                            </a>
+                        </div>
+                    </div>`;
+            }
+
+            resultsArea.innerHTML = `
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm h-100" style="border-radius:16px;overflow:hidden;border:1px solid #e7e2db;">
+                            <div class="card-header border-0 p-4 d-flex align-items-center justify-content-between" style="background-color:#faf9f6;border-bottom:1px solid #e7e2db !important;">
+                                <div>
+                                    <span class="text-muted text-uppercase fw-700" style="font-size:.75rem;letter-spacing:.05em;display:block;">TICKET DETAILS</span>
+                                    <h5 class="fw-800 mb-0" style="color:#1c1917;">${d.ticket_number}</h5>
+                                </div>
+                                <span class="badge px-3 py-2 fw-700" style="border-radius:20px;font-size:.8rem;${stStyle}">${statusLabel}</span>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="p-3 mb-4" style="background-color:#fef2f2;border-radius:12px;border:1px solid #fca5a5;">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <span class="text-muted fw-600" style="font-size:.75rem;display:block;">${amountLabel}</span>
+                                            <strong style="font-size:1.5rem;color:#b91c1c;">₱${fmt(d.balance)}</strong>
+                                        </div>
+                                        <i class="bi bi-cash-coin text-danger fs-1"></i>
+                                    </div>
+                                    <div class="mt-2 pt-2" style="border-top:1px dashed #fca5a5;font-size:.78rem;color:#7f1d1d;">
+                                        Base fine: ₱${fmt(d.fine_amount)} ${latePenRow} ${paidRow}
+                                    </div>
+                                </div>
+                                <table class="table table-borderless align-middle mb-0" style="font-size:.88rem;">
+                                    <tbody>
+                                        <tr style="border-bottom:1px dashed #f5f0e8;"><td class="text-muted py-2" style="width:40%;">Violator</td><td class="fw-700 text-stone-900 py-2">${d.violator_name || '—'}</td></tr>
+                                        <tr style="border-bottom:1px dashed #f5f0e8;"><td class="text-muted py-2">License Number</td><td class="fw-600 py-2" style="font-family:ui-monospace,monospace;">${d.license_number || 'Not on file'}</td></tr>
+                                        <tr style="border-bottom:1px dashed #f5f0e8;"><td class="text-muted py-2">Violation Type</td><td class="fw-600 py-2">${d.violation_type || '—'}</td></tr>
+                                        <tr style="border-bottom:1px dashed #f5f0e8;"><td class="text-muted py-2">Date</td><td class="fw-600 py-2">${d.date}</td></tr>
+                                        ${locationRow}
+                                        ${plateRow}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">${actionHtml}</div>
+                </div>`;
+        }
+
+        function doSearch(query) {
+            if (currentRequest) currentRequest.abort();
+
+            if (!query) {
+                renderEmpty();
+                return;
+            }
+
+            renderLoading();
+
+            const controller = new AbortController();
+            currentRequest = controller;
+
+            fetch(`${cashierUrl}?search=${encodeURIComponent(query)}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                signal: controller.signal
+            })
+            .then(r => r.json())
+            .then(data => {
+                currentRequest = null;
+                if (data.empty) { renderEmpty(); return; }
+                if (!data.found) { renderNotFound(query); return; }
+                renderFound(data);
+            })
+            .catch(err => {
+                if (err.name === 'AbortError') return;
+                currentRequest = null;
+            });
+        }
+
+        searchInput.addEventListener('input', function () {
+            const query = this.value.trim();
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => doSearch(query), 350);
+        });
+    })();
+
 </script>
 @endpush
 @endsection
