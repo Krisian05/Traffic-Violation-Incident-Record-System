@@ -3,60 +3,62 @@
 
 @section('content')
 
-<div class="sec-card mx-auto" style="max-width: 640px; margin: 0 auto;">
+<div class="d-flex align-items-center justify-content-center w-100 py-4" style="min-height: calc(82vh - 120px);">
+    <div class="sec-card w-100 mx-auto" style="max-width: 640px; margin: 0 auto;">
 
-    <div class="sec-header">
-        <span class="sec-icon" style="background:linear-gradient(135deg,#0369a1,#075985);box-shadow:0 3px 10px rgba(3,105,161,.35);">
-            <i class="bi bi-shield-lock-fill" style="color:#fff;font-size:1rem;"></i>
-        </span>
-        <div>
-            <div class="sec-title">Two-Factor Authentication</div>
-            <div class="sec-sub">Add an extra layer of protection to your account.</div>
+        <div class="sec-header">
+            <span class="sec-icon" style="background:linear-gradient(135deg,#0369a1,#075985);box-shadow:0 3px 10px rgba(3,105,161,.35);">
+                <i class="bi bi-shield-lock-fill" style="color:#fff;font-size:1rem;"></i>
+            </span>
+            <div>
+                <div class="sec-title">Two-Factor Authentication</div>
+                <div class="sec-sub">Add an extra layer of protection to your account.</div>
+            </div>
         </div>
-    </div>
 
-    <div class="sec-body">
-        @if(session('success'))
-            <div class="alert alert-success py-2 px-3 mb-3" style="border-radius:10px;font-size:.85rem;">{{ session('success') }}</div>
-        @endif
-        @if(session('error'))
-            <div class="alert alert-danger py-2 px-3 mb-3" style="border-radius:10px;font-size:.85rem;">{{ session('error') }}</div>
-        @endif
+        <div class="sec-body">
+            @if(session('success'))
+                <div class="alert alert-success py-2 px-3 mb-3" style="border-radius:10px;font-size:.85rem;">{{ session('success') }}</div>
+            @endif
+            @if(session('error'))
+                <div class="alert alert-danger py-2 px-3 mb-3" style="border-radius:10px;font-size:.85rem;">{{ session('error') }}</div>
+            @endif
 
-        @if($user->hasTwoFactorEnabled())
-            <div class="sec-status sec-status-on">
-                <i class="bi bi-check-circle-fill"></i>
-                <div>
-                    <strong>Two-factor authentication is enabled.</strong>
-                    <div style="font-size:.78rem;color:#15803d;">You'll be asked for a code from your authenticator app every time you log in.</div>
+            @if($user->hasTwoFactorEnabled())
+                <div class="sec-status sec-status-on">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <div>
+                        <strong>Two-factor authentication is enabled.</strong>
+                        <div style="font-size:.78rem;color:#15803d;">You'll be asked for a code from your authenticator app every time you log in.</div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="d-flex gap-2 mt-4 flex-wrap">
-                <form method="POST" action="{{ route('security.two-factor.recovery-codes') }}">
-                    @csrf
-                    <button type="submit" class="sec-btn-secondary">
-                        <i class="bi bi-arrow-repeat me-1"></i> Regenerate Recovery Codes
+                <div class="d-flex gap-2 mt-4 flex-wrap">
+                    <form method="POST" action="{{ route('security.two-factor.recovery-codes') }}">
+                        @csrf
+                        <button type="submit" class="sec-btn-secondary">
+                            <i class="bi bi-arrow-repeat me-1"></i> Regenerate Recovery Codes
+                        </button>
+                    </form>
+
+                    <button type="button" class="sec-btn-danger" data-bs-toggle="modal" data-bs-target="#disable2faModal">
+                        <i class="bi bi-shield-slash-fill me-1"></i> Disable 2FA
                     </button>
-                </form>
-
-                <button type="button" class="sec-btn-danger" data-bs-toggle="modal" data-bs-target="#disable2faModal">
-                    <i class="bi bi-shield-slash-fill me-1"></i> Disable 2FA
-                </button>
-            </div>
-        @else
-            <div class="sec-status sec-status-off">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-                <div>
-                    <strong>Two-factor authentication is not enabled.</strong>
-                    <div style="font-size:.78rem;color:#b45309;">Your account is protected by password only.</div>
                 </div>
-            </div>
+            @else
+                <div class="sec-status sec-status-off">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <div>
+                        <strong>Two-factor authentication is not enabled.</strong>
+                        <div style="font-size:.78rem;color:#b45309;">Your account is protected by password only.</div>
+                    </div>
+                </div>
 
-            <a href="{{ route('security.two-factor.enable') }}" class="sec-btn-primary mt-4 d-inline-flex">
-                <i class="bi bi-shield-plus me-1"></i> Enable Two-Factor Authentication
-            </a>
-        @endif
+                <a href="{{ route('security.two-factor.enable') }}" class="sec-btn-primary mt-4 d-inline-flex">
+                    <i class="bi bi-shield-plus me-1"></i> Enable Two-Factor Authentication
+                </a>
+            @endif
+        </div>
     </div>
 </div>
 

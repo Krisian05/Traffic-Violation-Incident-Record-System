@@ -8,54 +8,56 @@
 
 @section('content')
 
-<div class="sec-card mx-auto" style="max-width: 500px; margin: 0 auto;">
-    <div class="sec-header">
-        <span class="sec-icon" style="background:linear-gradient(135deg,#0369a1,#075985);box-shadow:0 3px 10px rgba(3,105,161,.35);">
-            <i class="bi bi-qr-code" style="color:#fff;font-size:1rem;"></i>
-        </span>
-        <div>
-            <div class="sec-title">Scan the QR Code</div>
-            <div class="sec-sub">Use Google Authenticator, Authy, or any TOTP app.</div>
-        </div>
-    </div>
-
-    <div class="sec-body">
-        @error('code')
-            <div class="alert alert-danger py-2 px-3 mb-3" style="border-radius:10px;font-size:.85rem;">{{ $message }}</div>
-        @enderror
-
-        <div class="text-center mb-3">
-            <div class="p-2.5 bg-white d-inline-block rounded-3 border shadow-sm">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ urlencode($qrCodeUrl) }}" 
-                     alt="2FA QR Code" 
-                     width="200" height="200"
-                     class="img-fluid"
-                     style="display:block;"
-                     onerror="this.onerror=null; this.src='https://quickchart.io/qr?size=200&text={{ urlencode($qrCodeUrl) }}';">
+<div class="d-flex align-items-center justify-content-center w-100 py-4" style="min-height: calc(82vh - 120px);">
+    <div class="sec-card w-100 mx-auto" style="max-width: 500px; margin: 0 auto;">
+        <div class="sec-header">
+            <span class="sec-icon" style="background:linear-gradient(135deg,#0369a1,#075985);box-shadow:0 3px 10px rgba(3,105,161,.35);">
+                <i class="bi bi-qr-code" style="color:#fff;font-size:1rem;"></i>
+            </span>
+            <div>
+                <div class="sec-title">Scan the QR Code</div>
+                <div class="sec-sub">Use Google Authenticator, Authy, or any TOTP app.</div>
             </div>
         </div>
 
-        <div class="mb-3">
-            <label class="sec-label">Can't scan? Enter this key manually</label>
-            <div class="input-group">
-                <input type="text" class="form-control" value="{{ $secret }}" readonly style="font-family: ui-monospace, monospace; font-size:.85rem;">
-            </div>
-        </div>
+        <div class="sec-body">
+            @error('code')
+                <div class="alert alert-danger py-2 px-3 mb-3" style="border-radius:10px;font-size:.85rem;">{{ $message }}</div>
+            @enderror
 
-        <form method="POST" action="{{ route('security.two-factor.confirm') }}">
-            @csrf
+            <div class="text-center mb-3">
+                <div class="p-2.5 bg-white d-inline-block rounded-3 border shadow-sm">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ urlencode($qrCodeUrl) }}" 
+                         alt="2FA QR Code" 
+                         width="200" height="200"
+                         class="img-fluid"
+                         style="display:block;"
+                         onerror="this.onerror=null; this.src='https://quickchart.io/qr?size=200&text={{ urlencode($qrCodeUrl) }}';">
+                </div>
+            </div>
+
             <div class="mb-3">
-                <label class="sec-label">Enter the 6-digit code to confirm</label>
-                <input type="text" name="code" class="form-control" placeholder="000000" maxlength="6" required autofocus
-                       inputmode="numeric" style="text-align:center; font-size:1.3rem; letter-spacing:.3em; font-family: ui-monospace, monospace;">
+                <label class="sec-label">Can't scan? Enter this key manually</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" value="{{ $secret }}" readonly style="font-family: ui-monospace, monospace; font-size:.85rem;">
+                </div>
             </div>
-            <div class="d-flex gap-2">
-                <button type="submit" class="sec-btn-primary">
-                    <i class="bi bi-check-lg me-1"></i> Confirm &amp; Enable
-                </button>
-                <a href="{{ route('security.two-factor.show') }}" class="sec-btn-secondary">Cancel</a>
-            </div>
-        </form>
+
+            <form method="POST" action="{{ route('security.two-factor.confirm') }}">
+                @csrf
+                <div class="mb-3">
+                    <label class="sec-label">Enter the 6-digit code to confirm</label>
+                    <input type="text" name="code" class="form-control" placeholder="000000" maxlength="6" required autofocus
+                           inputmode="numeric" style="text-align:center; font-size:1.3rem; letter-spacing:.3em; font-family: ui-monospace, monospace;">
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="sec-btn-primary">
+                        <i class="bi bi-check-lg me-1"></i> Confirm &amp; Enable
+                    </button>
+                    <a href="{{ route('security.two-factor.show') }}" class="sec-btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 

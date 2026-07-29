@@ -3,32 +3,34 @@
 
 @section('content')
 
-<div class="sec-card mx-auto" style="max-width: 500px; margin: 0 auto;">
-    <div class="sec-header">
-        <span class="sec-icon" style="background:linear-gradient(135deg,#15803d,#166534);box-shadow:0 3px 10px rgba(21,128,61,.35);">
-            <i class="bi bi-key-fill" style="color:#fff;font-size:1rem;"></i>
-        </span>
-        <div>
-            <div class="sec-title">Save Your Recovery Codes</div>
-            <div class="sec-sub">Each code can be used once if you lose access to your authenticator app.</div>
-        </div>
-    </div>
-
-    <div class="sec-body">
-        <div class="alert alert-warning py-2 px-3 mb-3" style="border-radius:10px;font-size:.82rem;">
-            <i class="bi bi-exclamation-triangle-fill me-1"></i>
-            These codes will not be shown again. Save them somewhere safe now.
+<div class="d-flex align-items-center justify-content-center w-100 py-4" style="min-height: calc(82vh - 120px);">
+    <div class="sec-card w-100 mx-auto" style="max-width: 500px; margin: 0 auto;">
+        <div class="sec-header">
+            <span class="sec-icon" style="background:linear-gradient(135deg,#15803d,#166534);box-shadow:0 3px 10px rgba(21,128,61,.35);">
+                <i class="bi bi-key-fill" style="color:#fff;font-size:1rem;"></i>
+            </span>
+            <div>
+                <div class="sec-title">Save Your Recovery Codes</div>
+                <div class="sec-sub">Each code can be used once if you lose access to your authenticator app.</div>
+            </div>
         </div>
 
-        <div class="sec-codes-grid">
-            @foreach($recoveryCodes as $code)
-                <div class="sec-code-chip">{{ $code }}</div>
-            @endforeach
-        </div>
+        <div class="sec-body">
+            <div class="alert alert-warning py-2 px-3 mb-3" style="border-radius:10px;font-size:.82rem;">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                These codes will not be shown again. Save them somewhere safe now.
+            </div>
 
-        <a href="{{ route('security.two-factor.show') }}" class="sec-btn-primary mt-4 d-inline-flex">
-            <i class="bi bi-check-lg me-1"></i> I've Saved My Codes
-        </a>
+            <div class="sec-codes-grid">
+                @foreach($recoveryCodes as $code)
+                    <div class="sec-code-chip">{{ $code }}</div>
+                @endforeach
+            </div>
+
+            <a href="{{ route('security.two-factor.show') }}" class="sec-btn-primary mt-4 d-inline-flex">
+                <i class="bi bi-check-lg me-1"></i> I've Saved My Codes
+            </a>
+        </div>
     </div>
 </div>
 
