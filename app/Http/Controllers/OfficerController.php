@@ -175,6 +175,8 @@ class OfficerController extends Controller
 
         $violator = Violator::create($data);
 
+        app(\App\Services\NotificationService::class)->notifyNewMotorist($violator);
+
         return redirect()->route('officer.motorists.show', $violator)
             ->with('success', 'Motorist ' . e($violator->first_name . ' ' . $violator->last_name) . ' added successfully.');
     }

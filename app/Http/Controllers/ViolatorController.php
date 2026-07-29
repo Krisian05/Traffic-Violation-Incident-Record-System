@@ -132,6 +132,8 @@ class ViolatorController extends Controller
 
         $violator = Violator::create($data);
 
+        app(\App\Services\NotificationService::class)->notifyNewMotorist($violator);
+
         // If registered from an incident, link the motorist record and go back to incident
         if ($request->filled('incident_motorist_id')) {
             $motorist = IncidentMotorist::find((int) $request->incident_motorist_id);

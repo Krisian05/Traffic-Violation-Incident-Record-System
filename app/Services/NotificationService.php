@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Models\Violation;
 use App\Models\Incident;
+use App\Models\Violator;
 use Illuminate\Support\Str;
 
 class NotificationService
@@ -128,6 +129,36 @@ class NotificationService
                     'color'       => '#2563eb',
                     'bg'          => '#eff6ff',
                     'url'         => route('audit-logs.index') . '?search=' . urlencode($name),
+                ],
+            ]);
+        }
+    }
+
+    /**
+     * Broadcast notification when a new motorist profile is created by an enforcer or staff.
+     */
+    public function notifyNewMotorist(Violator $violator): void
+    {
+        $targetRoles = ['admin', 'province_admin', 'operator', 'traffic_officer', 'traffic_supervisor', 'records_officer'];
+        $users = User::whereIn('role', $targetRoles)->get();
+
+        $name = $violator->full_name;
+        $license = $violator->license_number ? " (License: {$violator->license_number})" : '';
+
+        foreach ($users as $user) {
+            Notification::create([
+                'id'              => (string) Str::uuid(),
+                'type'            => 'motorist_registered',
+                'notifiable_type' => User::class,
+                'notifiable_id'   => $user->id,
+                'data'            => [
+                    'title'       => 'New Motorist Profile Registered',
+                    'message'     => "New motorist profile created for {$name}{$license}",
+                    'icon'        => 'bi-person-fill-add',
+                    'color'       => '#2563eb',
+                    'bg'          => '#eff6ff',
+                    'url'         => route('violators.show', $violator->id),
+                    'violator_id' => $violator->id,
                 ],
             ]);
         }

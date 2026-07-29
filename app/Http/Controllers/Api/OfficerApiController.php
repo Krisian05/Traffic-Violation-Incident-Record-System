@@ -100,6 +100,8 @@ class OfficerApiController extends Controller
 
         $violator = Violator::create($data);
 
+        app(\App\Services\NotificationService::class)->notifyNewMotorist($violator);
+
         return response()->json([
             'message' => 'Motorist registered successfully.',
             'violator' => $violator
