@@ -13,6 +13,7 @@ use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -514,50 +515,64 @@ class ViolationController extends Controller
         if ($search !== '') {
             $rawSearch   = trim($search);
             $cleanSearch = str_replace(['-', ' ', ','], '', $rawSearch);
-            $like        = '%' . $rawSearch . '%';
-            $cleanLike   = '%' . $cleanSearch . '%';
+            $isPgsql     = DB::getDriverName() === 'pgsql';
+            $op          = $isPgsql ? 'ilike' : 'like';
+
+            // Always match using lowercase so PostgreSQL ILIKE works correctly
+            $lowerSearch = mb_strtolower($rawSearch);
+            $like        = '%' . $lowerSearch . '%';
+            $cleanLike   = '%' . mb_strtolower($cleanSearch) . '%';
+
+            // Helper to wrap column in LOWER() for SQLite (ILIKE on pgsql handles it natively)
+            $col = fn(string $c) => $isPgsql ? $c : "LOWER($c)";
 
             $query = Violation::with(['violator', 'violationType', 'vehicle', 'payments'])
                 ->withSum('activePayments as total_paid', 'amount_paid')
-                ->where(function ($q) use ($rawSearch, $like, $cleanLike) {
+                ->where(function ($q) use ($rawSearch, $like, $cleanLike, $op, $col, $isPgsql, $lowerSearch) {
                     // 1. Direct Ticket # or Record ID
-                    $q->where('ticket_number', 'like', $like)
+                    $q->where('ticket_number', $op, $like)
                       ->orWhere('id', (int) $rawSearch)
                       // 2. Violator Name / License # / Contact #
-                      ->orWhereHas('violator', function ($vq) use ($rawSearch, $like, $cleanLike) {
-                          $vq->where('first_name', 'like', $like)
-                             ->orWhere('last_name', 'like', $like)
-                             ->orWhere('middle_name', 'like', $like)
-                             ->orWhere('license_number', 'like', $like)
-                             // Strip hyphens and spaces for flexible license number matching (e.g. P51-21-942397 vs P5121942397)
-                             ->orWhereRaw("REPLACE(REPLACE(license_number, '-', ''), ' ', '') LIKE ?", [$cleanLike])
-                             // Match concatenated full names ("Dizon, Patricia Cruz" or "Patricia Dizon")
-                             ->orWhereRaw("CONCAT(last_name, ', ', first_name) LIKE ?", [$like])
-                             ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", [$like])
-                             ->orWhereRaw("CONCAT(last_name, ' ', first_name) LIKE ?", [$like])
-                             ->orWhereRaw("CONCAT(first_name, ' ', middle_name, ' ', last_name) LIKE ?", [$like]);
+                      ->orWhereHas('violator', function ($vq) use ($rawSearch, $like, $cleanLike, $op, $col, $isPgsql, $lowerSearch) {
+                          $vq->where('first_name', $op, $like)
+                             ->orWhere('last_name', $op, $like)
+                             ->orWhere('middle_name', $op, $like)
+                             ->orWhere('license_number', $op, $like)
+                             // Flexible license number matching (strip hyphens/spaces)
+                             ->orWhereRaw(
+                                 "REPLACE(REPLACE(" . ($isPgsql ? 'license_number' : 'LOWER(license_number)') . ", '-', ''), ' ', '') $op ?",
+                                 [$cleanLike]
+                             )
+                             // Concatenated full-name patterns
+                             ->orWhereRaw("LOWER(CONCAT(last_name, ', ', first_name)) $op ?",  [$like])
+                             ->orWhereRaw("LOWER(CONCAT(first_name, ' ', last_name)) $op ?",   [$like])
+                             ->orWhereRaw("LOWER(CONCAT(last_name, ' ', first_name)) $op ?",   [$like])
+                             ->orWhereRaw("LOWER(CONCAT(first_name, ' ', middle_name, ' ', last_name)) $op ?", [$like]);
 
-                          // Split multi-word or comma-separated name queries into individual word tokens
-                          $words = array_filter(explode(' ', str_replace(',', ' ', $rawSearch)));
+                          // Split multi-word queries into per-token AND conditions
+                          $words = array_filter(explode(' ', str_replace(',', ' ', $lowerSearch)));
                           if (count($words) > 1) {
-                              $vq->orWhere(function ($subQ) use ($words) {
+                              $vq->orWhere(function ($subQ) use ($words, $op) {
                                   foreach ($words as $w) {
                                       $wLike = '%' . $w . '%';
-                                      $subQ->where(function ($wQ) use ($wLike) {
-                                          $wQ->where('first_name', 'like', $wLike)
-                                             ->orWhere('last_name', 'like', $wLike)
-                                             ->orWhere('middle_name', 'like', $wLike);
+                                      $subQ->where(function ($wQ) use ($wLike, $op) {
+                                          $wQ->where('first_name',  $op, $wLike)
+                                             ->orWhere('last_name',  $op, $wLike)
+                                             ->orWhere('middle_name', $op, $wLike);
                                       });
                                   }
                               });
                           }
                       })
-                      // 3. Vehicle Plate / Make / Model / Registered Owner
-                      ->orWhere('vehicle_plate', 'like', $like)
-                      ->orWhere('vehicle_owner_name', 'like', $like)
-                      ->orWhereHas('vehicle', fn($vq) => 
-                          $vq->where('plate_number', 'like', $like)
-                             ->orWhereRaw("REPLACE(plate_number, '-', '') LIKE ?", [$cleanLike])
+                      // 3. Vehicle Plate / Registered Owner
+                      ->orWhere('vehicle_plate',      $op, $like)
+                      ->orWhere('vehicle_owner_name', $op, $like)
+                      ->orWhereHas('vehicle', fn($vq) =>
+                          $vq->where('plate_number', $op, $like)
+                             ->orWhereRaw(
+                                 "REPLACE(" . ($isPgsql ? 'plate_number' : 'LOWER(plate_number)') . ", '-', '') $op ?",
+                                 [$cleanLike]
+                             )
                       );
                 });
 
