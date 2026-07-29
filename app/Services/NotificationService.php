@@ -127,7 +127,16 @@ class NotificationService
     public function notifyDsrSubmitted(array $dsrData): void
     {
         $targetRoles = ['admin', 'province_admin', 'operator', 'auditor'];
-        $users = User::whereIn('role', $targetRoles)->get();
+
+        $lguId = null;
+        if (!empty($dsrData['ticket_number'])) {
+            $lguId = Violation::where('ticket_number', $dsrData['ticket_number'])->value('lgu_id');
+        }
+        if (!$lguId && !empty($dsrData['license_number'])) {
+            $lguId = Violator::where('license_number', $dsrData['license_number'])->value('lgu_id');
+        }
+
+        $users = $this->usersForRoles($targetRoles, $lguId);
 
         $name = $dsrData['full_name'] ?? 'Public User';
         $type = ucfirst($dsrData['request_type'] ?? 'privacy');
