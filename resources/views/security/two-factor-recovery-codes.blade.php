@@ -3,7 +3,7 @@
 
 @section('content')
 
-<div class="d-flex align-items-center justify-content-center w-100 py-4" style="min-height: calc(82vh - 120px);">
+<div class="d-flex align-items-center justify-content-center w-100 py-4" style="min-height: calc(100vh - 140px); margin-top: 1rem;">
     <div class="sec-card w-100 mx-auto" style="max-width: 500px; margin: 0 auto;">
         <div class="sec-header">
             <span class="sec-icon" style="background:linear-gradient(135deg,#15803d,#166534);box-shadow:0 3px 10px rgba(21,128,61,.35);">
