@@ -7,6 +7,7 @@ use App\Models\Vehicle;
 use App\Models\VehiclePhoto;
 use App\Models\Violator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class VehicleController extends Controller
@@ -16,7 +17,10 @@ class VehicleController extends Controller
         $query = Vehicle::with(['violator', 'photos', 'firstViolationPhoto', 'allViolationPhotos'])
             ->withCount('violations');
 
-        if ($lguId = $request->input('lgu_id')) {
+        $user = Auth::user();
+        if ($user && $user->lgu_id && !$user->isSuperAdmin() && !$user->isProvinceAdmin()) {
+            $query->where('lgu_id', $user->lgu_id);
+        } elseif ($lguId = $request->input('lgu_id')) {
             $query->where('lgu_id', $lguId);
         }
 

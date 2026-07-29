@@ -21,7 +21,10 @@ class ViolationController extends Controller
     {
         $query = Violation::with(['violator', 'violationType', 'vehicle', 'lgu']);
 
-        if ($lguId = $request->input('lgu_id')) {
+        $user = Auth::user();
+        if ($user && $user->lgu_id && !$user->isSuperAdmin() && !$user->isProvinceAdmin()) {
+            $query->where('lgu_id', $user->lgu_id);
+        } elseif ($lguId = $request->input('lgu_id')) {
             $query->where('lgu_id', $lguId);
         }
 
@@ -76,7 +79,7 @@ class ViolationController extends Controller
         $violations = $query->orderByRaw("
             CASE
                 WHEN status = 'pending' AND (due_date IS NULL OR due_date >= '{$today}') THEN 1
-                WHEN (status IN ('pending', 'partial') AND due_date IS NOT NULL AND due_date < '{$today}') OR status = 'overdue' THEN 2
+                WHEN (status IN ('pending', 'partial') AND due_date IS NOT NULL AND due_date < '{$today}') THEN 2
                 WHEN status = 'partial' AND (due_date IS NULL OR due_date >= '{$today}') THEN 3
                 WHEN status = 'settled' THEN 4
                 ELSE 5

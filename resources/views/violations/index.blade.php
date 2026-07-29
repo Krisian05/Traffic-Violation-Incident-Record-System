@@ -210,7 +210,7 @@
                     <td class="text-center d-none d-md-table-cell">
                         <span class="date-chip">
                             <i class="bi bi-calendar-check me-1" style="color:#a8a29e;"></i>
-                            {{ $v->date_of_violation->format('M d, Y') }}
+                            {{ $v->date_of_violation?->format('M d, Y') ?? '—' }}
                         </span>
                     </td>
 

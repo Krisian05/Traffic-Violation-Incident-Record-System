@@ -36,7 +36,10 @@ class IncidentController extends Controller
         $query = Incident::with(['motorists.violator', 'media', 'recorder'])
             ->withCount(['motorists', 'media']);
 
-        if ($lguId = $request->input('lgu_id')) {
+        $user = Auth::user();
+        if ($user && $user->lgu_id && !$user->isSuperAdmin() && !$user->isProvinceAdmin()) {
+            $query->where('lgu_id', $user->lgu_id);
+        } elseif ($lguId = $request->input('lgu_id')) {
             $query->where('lgu_id', $lguId);
         }
 

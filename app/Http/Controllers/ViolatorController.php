@@ -6,6 +6,7 @@ use App\Models\IncidentMotorist;
 use App\Models\Violator;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class ViolatorController extends Controller
