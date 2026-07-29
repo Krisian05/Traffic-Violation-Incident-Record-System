@@ -216,15 +216,23 @@
                 <tr class="aud-row">
                     {{-- Timestamp --}}
                     <td style="padding-left:1.5rem;vertical-align:top;">
-                        <div class="fw-700" style="font-size:.82rem;color:#1c1917;">
-                            {{ $log->created_at->format('M d, Y') }}
-                        </div>
-                        <div style="font-size:.72rem;color:#78716c;">
-                            {{ $log->created_at->format('h:i:s A') }}
-                        </div>
-                        <div style="font-size:.67rem;color:#a8a29e;margin-top:1px;">
-                            {{ $log->created_at->diffForHumans() }}
-                        </div>
+                        @php
+                            $tz = config('app.timezone', 'Asia/Manila');
+                            $logTime = $log->created_at ? $log->created_at->copy()->setTimezone($tz) : null;
+                        @endphp
+                        @if($logTime)
+                            <div class="fw-700" style="font-size:.82rem;color:#1c1917;">
+                                {{ $logTime->format('M d, Y') }}
+                            </div>
+                            <div style="font-size:.72rem;color:#78716c;">
+                                {{ $logTime->format('h:i:s A') }}
+                            </div>
+                            <div style="font-size:.67rem;color:#a8a29e;margin-top:1px;">
+                                {{ $logTime->diffForHumans() }}
+                            </div>
+                        @else
+                            <span class="text-muted">—</span>
+                        @endif
                     </td>
 
                     {{-- Actor / User --}}
