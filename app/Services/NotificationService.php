@@ -19,11 +19,12 @@ class NotificationService
     private function usersForRoles(array $roles, ?int $lguId = null)
     {
         return User::whereIn('role', $roles)
-            ->when($lguId, function ($query) use ($lguId) {
-                $query->where(function ($sub) use ($lguId) {
-                    $sub->whereIn('role', ['admin', 'province_admin'])
-                        ->orWhere('lgu_id', $lguId);
-                });
+            ->where(function ($query) use ($lguId) {
+                $query->whereIn('role', ['admin', 'province_admin']);
+
+                if ($lguId) {
+                    $query->orWhere('lgu_id', $lguId);
+                }
             })
             ->get();
     }

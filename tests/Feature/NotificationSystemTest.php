@@ -109,4 +109,41 @@ class NotificationSystemTest extends TestCase
             'notifiable_id' => $admin->id,
         ]);
     }
+
+    public function test_notifications_are_scoped_to_lgu(): void
+    {
+        $lgu1 = \App\Models\Lgu::factory()->create();
+        $lgu2 = \App\Models\Lgu::factory()->create();
+
+        $admin = User::factory()->create(['role' => 'admin', 'lgu_id' => null]);
+        $balambanOperator = User::factory()->create(['role' => 'operator', 'lgu_id' => $lgu1->id]);
+        $bariliOperator = User::factory()->create(['role' => 'operator', 'lgu_id' => $lgu2->id]);
+
+        $violator = Violator::factory()->create(['lgu_id' => $lgu1->id]);
+        $violationType = ViolationType::factory()->create();
+        $violation = Violation::factory()->create([
+            'violator_id'       => $violator->id,
+            'violation_type_id' => $violationType->id,
+            'lgu_id'            => $lgu1->id,
+            'ticket_number'     => 'TVIRS-CEB-BAL-2026-999999',
+        ]);
+
+        app(NotificationService::class)->notifyNewViolation($violation);
+
+        // Admin & Balamban Operator should be notified
+        $this->assertDatabaseHas('notifications', [
+            'type'          => 'violation_created',
+            'notifiable_id' => $admin->id,
+        ]);
+        $this->assertDatabaseHas('notifications', [
+            'type'          => 'violation_created',
+            'notifiable_id' => $balambanOperator->id,
+        ]);
+
+        // Barili Operator must NOT be notified
+        $this->assertDatabaseMissing('notifications', [
+            'type'          => 'violation_created',
+            'notifiable_id' => $bariliOperator->id,
+        ]);
+    }
 }
