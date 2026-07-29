@@ -19,7 +19,7 @@ class NotificationController extends Controller
             return response()->json(['unread_count' => 0, 'notifications' => []]);
         }
 
-        $isGlobalAdmin = in_array($user->role, ['admin', 'province_admin']);
+        $isGlobalAdmin = in_array($user->role, ['admin', 'super_admin', 'province_admin']) && is_null($user->lgu_id);
 
         $rawNotifications = Notification::where('notifiable_type', get_class($user))
             ->where('notifiable_id', $user->id)

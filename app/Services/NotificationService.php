@@ -20,10 +20,18 @@ class NotificationService
     {
         return User::whereIn('role', $roles)
             ->where(function ($query) use ($lguId) {
-                $query->whereIn('role', ['admin', 'province_admin']);
+                // Global super admins / provincial admins without an LGU assignment
+                $query->where(function ($q) {
+                    $q->whereIn('role', ['admin', 'super_admin', 'province_admin'])
+                      ->whereNull('lgu_id');
+                });
 
                 if ($lguId) {
+                    // Staff belonging to the target LGU
                     $query->orWhere('lgu_id', $lguId);
+                } else {
+                    // Global non-LGU specific event — include all matching LGU roles
+                    $query->orWhereNotNull('lgu_id');
                 }
             })
             ->get();
@@ -34,7 +42,7 @@ class NotificationService
      */
     public function notifyNewViolation(Violation $violation): void
     {
-        $targetRoles = ['admin', 'province_admin', 'treasurer', 'operator', 'traffic_supervisor'];
+        $targetRoles = ['admin', 'super_admin', 'province_admin', 'operator', 'lgu_admin', 'treasurer', 'traffic_supervisor', 'supervisor'];
         $users = $this->usersForRoles($targetRoles, $violation->lgu_id);
 
         $violatorName = $violation->violator ? $violation->violator->full_name : 'Unknown Violator';
@@ -65,7 +73,7 @@ class NotificationService
      */
     public function notifyPaymentSettled(Violation $violation, Payment $payment): void
     {
-        $targetRoles = ['admin', 'province_admin', 'treasurer', 'auditor', 'operator'];
+        $targetRoles = ['admin', 'super_admin', 'province_admin', 'operator', 'lgu_admin', 'treasurer', 'auditor', 'view_only'];
         $users = $this->usersForRoles($targetRoles, $violation->lgu_id);
 
         $ticketNo = $violation->ticket_number ?: '#' . $violation->id;
@@ -97,7 +105,7 @@ class NotificationService
      */
     public function notifyIncidentLogged(Incident $incident): void
     {
-        $targetRoles = ['admin', 'province_admin', 'traffic_officer', 'traffic_supervisor', 'operator'];
+        $targetRoles = ['admin', 'super_admin', 'province_admin', 'operator', 'lgu_admin', 'traffic_officer', 'issuing_officer', 'traffic_supervisor', 'supervisor'];
         $users = $this->usersForRoles($targetRoles, $incident->lgu_id);
 
         $incidentNo = $incident->incident_number ?: '#' . $incident->id;
@@ -127,7 +135,7 @@ class NotificationService
      */
     public function notifyDsrSubmitted(array $dsrData): void
     {
-        $targetRoles = ['admin', 'province_admin', 'operator', 'auditor'];
+        $targetRoles = ['admin', 'super_admin', 'province_admin', 'operator', 'lgu_admin', 'auditor', 'view_only'];
 
         $lguId = null;
         if (!empty($dsrData['ticket_number'])) {
@@ -165,7 +173,7 @@ class NotificationService
      */
     public function notifyNewMotorist(Violator $violator): void
     {
-        $targetRoles = ['admin', 'province_admin', 'operator', 'traffic_officer', 'traffic_supervisor', 'records_officer'];
+        $targetRoles = ['admin', 'super_admin', 'province_admin', 'operator', 'lgu_admin', 'traffic_officer', 'issuing_officer', 'traffic_supervisor', 'supervisor', 'records_officer'];
         $users = $this->usersForRoles($targetRoles, $violator->lgu_id);
 
         $name = $violator->full_name;
