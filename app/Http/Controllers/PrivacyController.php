@@ -39,20 +39,30 @@ class PrivacyController extends Controller
             $query->where('lgu_id', $user->lgu_id);
         }
 
-        $searchTerm = "%{$q}%";
-        $motorists = $query->where(function ($sq) use ($searchTerm) {
-            $sq->where('first_name', 'LIKE', $searchTerm)
-               ->orWhere('middle_name', 'LIKE', $searchTerm)
-               ->orWhere('last_name', 'LIKE', $searchTerm)
-               ->orWhere('license_number', 'LIKE', $searchTerm)
-               ->orWhere('email', 'LIKE', $searchTerm);
+        $searchLower = '%' . mb_strtolower($q, 'UTF-8') . '%';
+        $driver = \DB::connection()->getDriverName();
+
+        $motorists = $query->where(function ($sq) use ($searchLower, $driver) {
+            $sq->whereRaw('LOWER(first_name) LIKE ?', [$searchLower])
+               ->orWhereRaw('LOWER(middle_name) LIKE ?', [$searchLower])
+               ->orWhereRaw('LOWER(last_name) LIKE ?', [$searchLower])
+               ->orWhereRaw('LOWER(license_number) LIKE ?', [$searchLower])
+               ->orWhereRaw('LOWER(email) LIKE ?', [$searchLower]);
+
+            if ($driver === 'pgsql') {
+                $sq->orWhereRaw("LOWER(COALESCE(first_name, '') || ' ' || COALESCE(last_name, '')) LIKE ?", [$searchLower])
+                   ->orWhereRaw("LOWER(COALESCE(first_name, '') || ' ' || COALESCE(middle_name, '') || ' ' || COALESCE(last_name, '')) LIKE ?", [$searchLower]);
+            } else {
+                $sq->orWhereRaw("LOWER(CONCAT_WS(' ', first_name, last_name)) LIKE ?", [$searchLower])
+                   ->orWhereRaw("LOWER(CONCAT_WS(' ', first_name, middle_name, last_name)) LIKE ?", [$searchLower]);
+            }
         })
         ->with(['violations' => function ($vq) {
             $vq->latest()->limit(1);
         }])
         ->orderBy('last_name')
         ->orderBy('first_name')
-        ->limit(10)
+        ->limit(15)
         ->get();
 
         $results = $motorists->map(function ($m) {

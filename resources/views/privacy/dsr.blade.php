@@ -47,10 +47,10 @@
                         </div>
                         @error('full_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
 
-                        {{-- Interactive Autocomplete Suggestions Dropdown --}}
-                        <div class="dropdown-menu shadow-lg border-0 rounded-3 p-0 mt-1 w-100 position-absolute start-0 overflow-hidden d-none" 
+                        {{-- Interactive Autocomplete Suggestions List --}}
+                        <div class="motorist-autocomplete-list shadow-lg border rounded-3 p-0 mt-1 w-100 position-absolute start-0 overflow-hidden d-none" 
                              id="motoristDropdown" 
-                             style="z-index: 1060; max-height: 290px; overflow-y: auto; background: #ffffff; border: 1px solid #e2e8f0 !important;">
+                             style="z-index: 1060; max-height: 290px; overflow-y: auto; background: #ffffff; border: 1px solid #cbd5e1 !important; display: none;">
                         </div>
                     </div>
 
@@ -137,6 +137,19 @@
     </div>
 </div>
 
+<style>
+.motorist-select-item {
+    background: #ffffff;
+    cursor: pointer;
+    border-color: #f1f5f9 !important;
+    text-align: left;
+    width: 100%;
+}
+.motorist-select-item:hover, .motorist-select-item:focus {
+    background-color: #f8fafc !important;
+}
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const searchUrl = "{{ route('privacy.dsr.search') }}";
@@ -150,13 +163,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let debounceTimer = null;
 
+    function showDropdown(htmlContent) {
+        if (htmlContent) dropdown.innerHTML = htmlContent;
+        dropdown.classList.remove('d-none');
+        dropdown.style.display = 'block';
+    }
+
+    function hideDropdown() {
+        dropdown.classList.add('d-none');
+        dropdown.style.display = 'none';
+    }
+
     nameInput.addEventListener('input', function () {
         const query = this.value.trim();
         clearTimeout(debounceTimer);
 
         if (query.length < 1) {
-            dropdown.classList.add('d-none');
-            dropdown.innerHTML = '';
+            hideDropdown();
             return;
         }
 
@@ -174,11 +197,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (spinner) spinner.classList.add('d-none');
 
                 if (!Array.isArray(data) || data.length === 0) {
-                    dropdown.innerHTML = `
+                    showDropdown(`
                         <div class="px-3 py-2.5 text-muted small">
                             <i class="bi bi-info-circle me-1"></i> No matching motorist profiles found
-                        </div>`;
-                    dropdown.classList.remove('d-none');
+                        </div>`);
                     return;
                 }
 
@@ -189,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     const ticketTxt = m.ticket_number ? `<span class="text-muted ms-2" style="font-size:0.75rem;"><i class="bi bi-ticket-perforated me-1"></i>Ticket: ${escapeHtml(m.ticket_number)}</span>` : '';
 
                     html += `
-                        <button type="button" class="dropdown-item p-2.5 border-bottom text-wrap motorist-select-item"
+                        <button type="button" class="list-group-item list-group-item-action p-2.5 border-bottom text-wrap motorist-select-item"
                                 data-name="${escapeHtml(m.full_name)}"
                                 data-email="${escapeHtml(m.email)}"
                                 data-contact="${escapeHtml(m.contact_number)}"
@@ -209,13 +231,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         </button>`;
                 });
 
-                dropdown.innerHTML = html;
-                dropdown.classList.remove('d-none');
+                showDropdown(html);
             })
             .catch(err => {
                 console.error('Error fetching motorists:', err);
                 if (spinner) spinner.classList.add('d-none');
-                dropdown.classList.add('d-none');
+                hideDropdown();
             });
         }, 200);
     });
@@ -237,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (licenseInput && license) licenseInput.value = license;
         if (ticketInput && ticket) ticketInput.value = ticket;
 
-        dropdown.classList.add('d-none');
+        hideDropdown();
 
         // Visual flash feedback on auto-filled inputs
         [nameInput, emailInput, contactInput, licenseInput, ticketInput].forEach(el => {
@@ -251,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Close dropdown on outside click
     document.addEventListener('click', function (e) {
         if (!nameInput.contains(e.target) && !dropdown.contains(e.target)) {
-            dropdown.classList.add('d-none');
+            hideDropdown();
         }
     });
 
