@@ -20,12 +20,8 @@ class ViolatorController extends Controller
             ->withCount(['violations as pending_count' => fn($q) => $q->whereIn('status', ['pending', 'partial'])])
             ->withCount(['violations as overdue_count' => fn($q) => $q->whereIn('status', ['pending', 'partial'])->whereNotNull('due_date')->where('due_date', '<', now()->toDateString())]);
 
-        // Auto-select or filter by LGU / Municipality
+        // Filter by LGU / Municipality when selected
         $selectedLguId = $request->input('lgu_id');
-        if (is_null($selectedLguId) && $user && $user->lgu_id) {
-            $selectedLguId = (string) $user->lgu_id;
-        }
-
         if ($selectedLguId) {
             $query->where('violators.lgu_id', $selectedLguId);
         }
