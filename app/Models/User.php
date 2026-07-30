@@ -84,7 +84,6 @@ class User extends Authenticatable
     public const LGU_ADMIN_ROLES = [
         'operator'           => 'LGU Administrator — Local System Settings & LGU Management',
         'cashier'            => 'Cashier / Treasurer — Payment Collection, OR Recording & Financial Reports',
-        'treasurer'          => 'Cashier / Treasurer — Payment Collection, OR Recording & Financial Reports',
         'traffic_supervisor' => 'Police / Traffic Supervisor — Citation Review & Officer Monitoring',
         'traffic_officer'    => 'Issuing Officer / Field Personnel — Citation Ticket & Incident Issuance (Mobile)',
         'records_officer'    => 'Records Officer — Record Management, Encoding & Documentation',
