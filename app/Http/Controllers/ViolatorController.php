@@ -63,7 +63,10 @@ class ViolatorController extends Controller
         } elseif ($sort === 'latest') {
             $query->orderBy('violators.created_at', 'desc');
         } else {
-            $query->orderBy('violators.last_name', 'asc');
+            if ($user->lgu_id && !$selectedLguId) {
+                $query->orderByRaw('CASE WHEN violators.lgu_id = ? THEN 0 ELSE 1 END', [$user->lgu_id]);
+            }
+            $query->orderBy('violators.last_name', 'asc')->orderBy('violators.first_name', 'asc');
         }
 
         $violators = $query->paginate(15)->withQueryString();

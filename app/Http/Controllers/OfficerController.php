@@ -74,7 +74,11 @@ class OfficerController extends Controller
             });
         }
 
-        $violators = $query->orderBy('last_name')->paginate(15)->withQueryString();
+        if ($lguId) {
+            $query->orderByRaw('CASE WHEN lgu_id = ? THEN 0 ELSE 1 END', [$lguId]);
+        }
+
+        $violators = $query->orderBy('last_name')->orderBy('first_name')->paginate(15)->withQueryString();
 
         return view('officer.motorists.index', compact('violators', 'search'));
     }
@@ -93,7 +97,7 @@ class OfficerController extends Controller
         }
 
         $lk = '%' . mb_strtolower($search) . '%';
-        $motorists = Violator::withCount('violations')
+        $query = Violator::withCount('violations')
             ->select('violators.*')
             ->with(['vehicles' => fn($query) => $query->select('id', 'violator_id', 'plate_number')->limit(1)])
             ->where(function ($q) use ($lk) {
@@ -101,8 +105,13 @@ class OfficerController extends Controller
                   ->orWhereRaw('LOWER(last_name) LIKE ?', [$lk])
                   ->orWhereRaw('LOWER(middle_name) LIKE ?', [$lk])
                   ->orWhereRaw('LOWER(license_number) LIKE ?', [$lk]);
-            })
-            ->orderBy('last_name')
+            });
+
+        if ($lguId) {
+            $query->orderByRaw('CASE WHEN lgu_id = ? THEN 0 ELSE 1 END', [$lguId]);
+        }
+
+        $motorists = $query->orderBy('last_name')
             ->orderBy('first_name')
             ->limit(7)
             ->get()
