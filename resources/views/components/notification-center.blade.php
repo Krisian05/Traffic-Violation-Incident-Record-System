@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 html += `
                     <a href="${d.url || '#'}" class="d-flex align-items-start gap-2.5 p-3 text-decoration-none border-bottom notif-item ${unreadCls}" 
-                       data-id="${n.id}" style="color: #1c1917; transition: background .12s; border-color: #f5f0e8 !important;">
+                       data-id="${n.id}" data-read="${n.read ? '1' : '0'}" style="color: #1c1917; transition: background .12s; border-color: #f5f0e8 !important;">
                         <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded-circle mt-0.5" 
                              style="width: 34px; height: 34px; background-color: ${bg}; color: ${color}; font-size: 0.95rem;">
                             <i class="bi ${icon}"></i>
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             </div>
                             <p class="text-muted mb-0 text-break" style="font-size: 0.78rem; line-height: 1.35;">${escapeHtml(d.message || '')}</p>
                         </div>
-                        ${!n.read ? '<span class="flex-shrink-0 rounded-circle bg-danger mt-1.5" style="width: 7px; height: 7px;"></span>' : ''}
+                        ${!n.read ? '<span class="notif-dot flex-shrink-0 rounded-circle bg-danger mt-1.5" style="width: 7px; height: 7px;"></span>' : ''}
                     </a>`;
             });
 
@@ -221,6 +221,71 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ── Mark Single Notification as Read ──
+    function markSingleRead(notifId, itemEl) {
+        if (!notifId) return;
+
+        if (itemEl) {
+            if (itemEl.getAttribute('data-read') === '1') return;
+            itemEl.setAttribute('data-read', '1');
+            itemEl.classList.remove('bg-light', 'fw-bold', 'border-start', 'border-3', 'border-danger');
+            
+            const dot = itemEl.querySelector('.notif-dot');
+            if (dot) dot.remove();
+
+            if (notifBadge && !notifBadge.classList.contains('d-none')) {
+                let currentCount = parseInt(notifBadge.textContent) || 0;
+                if (currentCount > 1) {
+                    currentCount--;
+                    notifBadge.textContent = currentCount > 99 ? '99+' : currentCount;
+                } else {
+                    notifBadge.textContent = '0';
+                    notifBadge.classList.add('d-none');
+                }
+            }
+        }
+
+        const readUrlPattern = "{{ route('notifications.read', ['id' => ':id']) }}";
+        const readUrl = readUrlPattern.replace(':id', notifId);
+        fetch(readUrl, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            keepalive: true
+        }).catch(err => console.error('Error marking notification as read:', err));
+    }
+
+    // ── Click Handlers for Item & Toast ──
+    notifListContainer.addEventListener('click', function (e) {
+        const item = e.target.closest('.notif-item');
+        if (!item) return;
+
+        const notifId = item.getAttribute('data-id');
+        markSingleRead(notifId, item);
+
+        const href = item.getAttribute('href');
+        if (!href || href === '#') {
+            e.preventDefault();
+        }
+    });
+
+    if (toastContainer) {
+        toastContainer.addEventListener('click', function (e) {
+            const link = e.target.closest('.toast-notif-link');
+            if (link) {
+                const notifId = link.getAttribute('data-id');
+                markSingleRead(notifId, null);
+                const href = link.getAttribute('href');
+                if (!href || href === '#') {
+                    e.preventDefault();
+                }
+            }
+        });
+    }
+
     // ── Slide-in Toast Alert ──
     function showToastAlert(n) {
         const d = n.data || {};
@@ -236,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
                 <div class="toast-body py-2.5 px-3" style="font-size: 0.8rem; color: #44403c;">
                     ${escapeHtml(d.message || '')}
-                    ${d.url ? `<div class="mt-2 text-end"><a href="${d.url}" class="btn btn-sm btn-outline-danger fw-700 py-0.5 px-2" style="font-size: 0.72rem;">View Details</a></div>` : ''}
+                    ${d.url ? `<div class="mt-2 text-end"><a href="${d.url}" class="btn btn-sm btn-outline-danger fw-700 py-0.5 px-2 toast-notif-link" data-id="${n.id}" style="font-size: 0.72rem;">View Details</a></div>` : ''}
                 </div>
             </div>`;
 
