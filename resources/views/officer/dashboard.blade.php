@@ -285,9 +285,6 @@
 {{-- ══════════════════════════════
      OVERDUE ALERT
 ══════════════════════════════ --}}
-{{-- ══════════════════════════════
-     OVERDUE ALERT
-══════════════════════════════ --}}
 @if($overdueCount > 0)
 <button type="button" class="db-overdue w-100 text-start border-0" data-bs-toggle="modal" data-bs-target="#overdueModal" aria-label="View overdue violations">
     <div class="db-overdue-icon">
@@ -390,7 +387,7 @@
     </div>
     <div style="flex:1;min-width:0;">
         <div class="db-access-title">Traffic Violation</div>
-        <span class="db-access-badge db-access-badge--blue">{{ $motoristCount }} registered record{{ $motoristCount !== 1 ? 's' : '' }}</span>
+        <span class="db-access-badge db-access-badge--blue">{{ $violationCount }} registered record{{ $violationCount !== 1 ? 's' : '' }}</span>
     </div>
     <i class="ph ph-caret-right" style="color:#cbd5e1;font-size:.9rem;flex-shrink:0;"></i>
 </a>
