@@ -473,14 +473,10 @@
                                         @else
                                             @can('settle', $viol)
                                             @if(in_array($viol->status, ['pending', 'partial']))
-                                            <button type="button" class="vlt-act-btn vlt-act-settle"
-                                                data-id="{{ $viol->id }}"
-                                                data-type="{{ $viol->violationType?->name ?? '' }}"
-                                                data-date="{{ $viol->date_of_violation->format('M d, Y') }}"
-                                                data-or="{{ $viol->suggestOrNumber() }}"
-                                                onclick="openSettleModal(this)">
+                                            <a href="{{ route('violations.cashier', ['search' => $viol->ticket_number ?: $viol->id]) }}"
+                                               class="vlt-act-btn vlt-act-settle" title="Process payment in Cashier Portal">
                                                 <i class="bi bi-receipt"></i> Settle
-                                            </button>
+                                            </a>
                                             @endif
                                             @endcan
                                         @endif
@@ -1019,44 +1015,6 @@ document.addEventListener('keydown', function (e) {
     if (e.key === 'ArrowRight') galleryNav(1);
 });
 
-// ── Settle modal ──
-function openSettleModal(btn) {
-    var id   = btn.dataset.id;
-    var type = btn.dataset.type;
-    var date = btn.dataset.date;
-
-    document.getElementById('settleForm').action = '/violations/' + id + '/settle';
-    document.getElementById('settleViolationType').textContent = type;
-    document.getElementById('settleViolationDate').textContent = date;
-
-    // Reset form fields
-    document.getElementById('settleForm').reset();
-    var orInput = document.querySelector('#settleForm input[name="or_number"]');
-    if (orInput && btn.dataset.or) {
-        orInput.value = btn.dataset.or;
-    }
-    document.getElementById('receiptPreview').src = '';
-    document.getElementById('receiptPreviewWrap').classList.add('d-none');
-
-    new bootstrap.Modal(document.getElementById('settleModal')).show();
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    var receiptInput = document.getElementById('receipt_photo');
-    if (receiptInput) {
-        receiptInput.addEventListener('change', function () {
-            var file = this.files[0];
-            if (!file) return;
-            var reader = new FileReader();
-            reader.onload = function (e) {
-                document.getElementById('receiptPreview').src = e.target.result;
-                document.getElementById('receiptPreviewWrap').classList.remove('d-none');
-            };
-            reader.readAsDataURL(file);
-        });
-    }
-});
-
 // ── Clickable violation history rows ──
 document.querySelectorAll('.vlt-history-row[data-href]').forEach(function (row) {
     row.addEventListener('click', function (e) {
@@ -1091,73 +1049,5 @@ document.querySelectorAll('.vlt-inc-row[data-href]').forEach(function (row) {
     });
 });
 </script>
-
-{{-- ── Settle Violation Modal ── --}}
-<div class="modal fade" id="settleModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
-        <div class="modal-content border-0" style="border-radius:14px;overflow:hidden;">
-            <div class="modal-header border-0" style="background:linear-gradient(135deg,#15803d,#166534);padding:1rem 1.25rem;">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-receipt text-white" style="font-size:1.1rem;"></i>
-                    <h6 class="modal-title text-white fw-700 mb-0">Settle Violation</h6>
-                </div>
-                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
-            </div>
-
-            {{-- Violation info strip --}}
-            <div style="background:#f0fdf4;padding:.65rem 1.25rem;border-bottom:1px solid #bbf7d0;font-size:.8rem;">
-                <span class="fw-700" style="color:#15803d;" id="settleViolationType">—</span>
-                <span style="color:#a8a29e;margin:0 .4rem;">·</span>
-                <span style="color:#57534e;" id="settleViolationDate">—</span>
-            </div>
-
-            <form id="settleForm" method="POST" enctype="multipart/form-data">
-                @csrf
-                @method('PATCH')
-                <div class="modal-body" style="padding:1.25rem;">
-
-                    {{-- OR Number --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-700" style="font-size:.82rem;">OR Number <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-hash" style="color:#15803d;font-size:.8rem;"></i></span>
-                            <input type="text" name="or_number" class="form-control" placeholder="e.g. 1234567"
-                                style="font-family:ui-monospace,monospace;" required maxlength="50">
-                        </div>
-                        <small style="font-size:.72rem;color:#a8a29e;">Official Receipt number from the cashier.</small>
-                    </div>
-
-                    {{-- Cashier Name --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-700" style="font-size:.82rem;">Cashier Name <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-person-badge-fill" style="color:#15803d;font-size:.8rem;"></i></span>
-                            <input type="text" name="cashier_name" class="form-control" placeholder="Full name of cashier" required maxlength="150">
-                        </div>
-                    </div>
-
-                    {{-- Receipt Photo --}}
-                    <div class="mb-2">
-                        <label class="form-label fw-700" style="font-size:.82rem;">Receipt Photo <span style="color:#a8a29e;font-weight:400;">(optional)</span></label>
-                        <input type="file" name="receipt_photo" id="receipt_photo"
-                            class="form-control" accept="image/jpg,image/jpeg,image/png">
-                        <small style="font-size:.72rem;color:#a8a29e;">JPG/PNG, max 5 MB.</small>
-                        <div id="receiptPreviewWrap" class="d-none mt-2 text-center">
-                            <img id="receiptPreview" src="" alt="Receipt"
-                                style="max-width:100%;max-height:180px;border-radius:8px;border:1px solid #bbf7d0;object-fit:contain;">
-                        </div>
-                    </div>
-
-                </div>
-                <div class="modal-footer border-0" style="padding:.75rem 1.25rem;">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="font-size:.82rem;">Cancel</button>
-                    <button type="submit" class="btn" style="background:linear-gradient(135deg,#15803d,#166534);color:#fff;font-size:.82rem;font-weight:700;padding:.45rem 1.2rem;border-radius:8px;">
-                        <i class="bi bi-check2-circle me-1"></i> Mark as Settled
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 @endsection
