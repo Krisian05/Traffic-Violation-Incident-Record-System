@@ -263,16 +263,19 @@
 {{-- ══════════════════════════════
      OVERDUE ALERT
 ══════════════════════════════ --}}
+{{-- ══════════════════════════════
+     OVERDUE ALERT
+══════════════════════════════ --}}
 @if($overdueCount > 0)
 <button type="button" class="db-overdue w-100 text-start border-0" data-bs-toggle="modal" data-bs-target="#overdueModal" aria-label="View overdue violations">
     <div class="db-overdue-icon">
-        <i class="ph-fill ph-clock-countdown" style="font-size:1.15rem;color:#f97316;"></i>
+        <i class="bi bi-clock-history" style="font-size:1.15rem;color:#f97316;"></i>
     </div>
     <div style="flex:1;min-width:0;">
         <div style="font-size:.875rem;font-weight:700;color:#9a3412;">{{ $overdueCount }} Overdue Violation{{ $overdueCount > 1 ? 's' : '' }}</div>
         <div style="font-size:.72rem;color:#c2410c;margin-top:.1rem;">Pending payment for more than 72 hours.</div>
     </div>
-    <i class="ph ph-warning-circle" style="font-size:1.2rem;color:#f97316;flex-shrink:0;"></i>
+    <i class="bi bi-exclamation-triangle-fill" style="font-size:1.1rem;color:#f97316;flex-shrink:0;"></i>
 </button>
 
 {{-- ── Overdue Modal ── --}}
@@ -284,7 +287,7 @@
             <div class="modal-header border-0 pb-0" style="padding:1.1rem 1.1rem .6rem;">
                 <div style="display:flex;align-items:center;gap:.7rem;flex:1;min-width:0;">
                     <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#ea580c,#c2410c);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(234,88,12,.3);">
-                        <i class="ph-fill ph-clock-countdown" style="font-size:1.1rem;color:#fff;"></i>
+                        <i class="bi bi-clock-history" style="font-size:1.1rem;color:#fff;"></i>
                     </div>
                     <div>
                         <div id="overdueModalLabel" style="font-size:.95rem;font-weight:800;color:#0f172a;line-height:1.2;">Overdue Violations</div>
@@ -297,13 +300,13 @@
             {{-- Search --}}
             <div style="padding:.25rem 1rem .5rem;">
                 <div style="display:flex;align-items:center;gap:.55rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:.3rem .3rem .3rem .8rem;">
-                    <i class="ph ph-magnifying-glass" style="color:#94a3b8;font-size:.95rem;flex-shrink:0;"></i>
+                    <i class="bi bi-search" style="color:#94a3b8;font-size:.95rem;flex-shrink:0;"></i>
                     <input id="overdueSearch" type="text" placeholder="Name, plate, ticket, violation…"
                            style="border:none;background:transparent;outline:none;font-size:.84rem;color:#0f172a;flex:1;min-width:0;min-height:36px;"
                            oninput="filterOverdue(this.value)">
                     <button type="button" onclick="document.getElementById('overdueSearch').value='';filterOverdue('');"
                             style="border:none;background:transparent;padding:.2rem .5rem;color:#94a3b8;font-size:.85rem;flex-shrink:0;display:none;" id="overdueSearchClear">
-                        <i class="ph ph-x-circle"></i>
+                        <i class="bi bi-x-circle-fill"></i>
                     </button>
                 </div>
                 <div id="overdueNoResults" style="display:none;text-align:center;padding:.75rem 0;font-size:.78rem;color:#94a3b8;font-weight:600;">No results found</div>
@@ -320,32 +323,30 @@
                     <a href="{{ route('officer.violations.show', $ov) }}?from_status=overdue"
                        class="overdue-row"
                        data-search="{{ strtolower($ovName . ' ' . ($ovPlate ?? '') . ' ' . ($ov->ticket_number ?? '') . ' ' . ($ov->violationType?->name ?? '')) }}"
-                       style="display:flex;align-items:center;gap:.8rem;background:#fff;border-radius:16px;padding:.85rem .9rem;text-decoration:none;color:inherit;margin-bottom:.6rem;border:1px solid #fee2e2;box-shadow:0 2px 10px rgba(220,38,38,.07);position:relative;overflow:hidden;"
+                       style="display:flex;align-items:center;gap:.75rem;background:#fff;border-radius:14px;padding:.75rem .85rem;text-decoration:none;color:inherit;margin-bottom:.6rem;border:1px solid #fee2e2;border-left:5px solid #dc2626;box-shadow:0 2px 8px rgba(220,38,38,.06);transition:transform .15s;"
                        data-bs-dismiss="modal">
-                        {{-- red left bar --}}
-                        <span style="position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,#dc2626,#b91c1c);border-radius:4px 0 0 4px;"></span>
-                        <div style="width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#dc2626,#b91c1c);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 10px rgba(220,38,38,.28);">
-                            <i class="ph-fill ph-warning-octagon" style="font-size:1.1rem;color:#fff;"></i>
+                        <div style="width:40px;height:40px;min-width:40px;border-radius:12px;background:linear-gradient(135deg,#dc2626,#b91c1c);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 8px rgba(220,38,38,.25);">
+                            <i class="bi bi-exclamation-octagon-fill" style="font-size:1.15rem;color:#fff;"></i>
                         </div>
-                        <div style="flex:1;min-width:0;">
-                            <div style="font-size:.86rem;font-weight:800;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                        <div style="flex:1;min-width:0;overflow:hidden;">
+                            <div style="font-size:.875rem;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;">
                                 {{ $ov->violationType?->name ?? 'Violation Record' }}
                             </div>
-                            <div style="font-size:.71rem;color:#64748b;margin-top:.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                            <div style="font-size:.73rem;color:#475569;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                                 <strong>{{ $ovName }}</strong>
-                                @if($ovPlate) · Plate {{ $ovPlate }} @endif
+                                @if($ovPlate) · <span style="color:#64748b;">Plate {{ $ovPlate }}</span> @endif
                             </div>
-                            <div style="margin-top:.3rem;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
-                                <span style="display:inline-flex;align-items:center;gap:.22rem;background:#fef2f2;border:1px solid #fca5a5;border-radius:999px;padding:.12rem .48rem;font-size:.6rem;font-weight:800;color:#b91c1c;">
-                                    <i class="ph-fill ph-warning-octagon"></i> Overdue
+                            <div style="margin-top:4px;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
+                                <span style="display:inline-flex;align-items:center;gap:3px;background:#fef2f2;border:1px solid #fca5a5;border-radius:999px;padding:2px 8px;font-size:.63rem;font-weight:700;color:#b91c1c;line-height:1;">
+                                    <i class="bi bi-exclamation-triangle-fill" style="font-size:.65rem;"></i> Overdue
                                 </span>
-                                <span style="font-size:.62rem;color:#94a3b8;font-weight:600;">{{ $hoursAgo }}h ago</span>
+                                <span style="font-size:.65rem;color:#64748b;font-weight:600;">{{ $hoursAgo }}h ago</span>
                                 @if($ov->ticket_number)
-                                    <span style="font-size:.62rem;color:#94a3b8;">· #{{ $ov->ticket_number }}</span>
+                                    <span style="font-size:.65rem;color:#94a3b8;">· #{{ $ov->ticket_number }}</span>
                                 @endif
                             </div>
                         </div>
-                        <i class="ph ph-caret-right" style="color:#cbd5e1;font-size:.85rem;flex-shrink:0;"></i>
+                        <i class="bi bi-chevron-right" style="color:#94a3b8;font-size:.85rem;flex-shrink:0;"></i>
                     </a>
                 @endforeach
 
