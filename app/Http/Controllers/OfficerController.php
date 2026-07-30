@@ -62,7 +62,7 @@ class OfficerController extends Controller
         $lguId  = $this->getLguId();
         $search = trim($request->input('search', ''));
 
-        $query = Violator::withCount(['violations' => fn($q) => $lguId ? $q->where('lgu_id', $lguId) : $q]);
+        $query = Violator::withCount('violations');
 
         if ($search !== '') {
             $lk = '%' . mb_strtolower($search) . '%';
@@ -93,7 +93,7 @@ class OfficerController extends Controller
         }
 
         $lk = '%' . mb_strtolower($search) . '%';
-        $motorists = Violator::withCount(['violations' => fn($q) => $lguId ? $q->where('lgu_id', $lguId) : $q])
+        $motorists = Violator::withCount('violations')
             ->select('violators.*')
             ->with(['vehicles' => fn($query) => $query->select('id', 'violator_id', 'plate_number')->limit(1)])
             ->where(function ($q) use ($lk) {
@@ -199,7 +199,6 @@ class OfficerController extends Controller
 
         $violator->load([
             'vehicles.photos',
-            'violations' => fn($q) => $lguId ? $q->where('lgu_id', $lguId) : $q,
             'violations.violationType',
             'violations.vehicle',
             'violations.recorder',
@@ -209,8 +208,7 @@ class OfficerController extends Controller
             'incidentMotorists.vehicle',
         ]);
 
-        $incidents = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
-            ->with(['motorists.chargeType'])
+        $incidents = Incident::with(['motorists.chargeType'])
             ->whereHas('motorists', fn($q) => $q->where('violator_id', $violator->id))
             ->orderByDesc('date_of_incident')
             ->orderByDesc('created_at')
