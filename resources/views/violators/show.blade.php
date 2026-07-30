@@ -456,27 +456,33 @@
                                         <i class="bi {{ $sc['icon'] }}"></i> {{ ucfirst($displayStatus) }}
                                     </span>
                                 </td>
-                                <td class="text-center vlt-history-act">
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <a href="{{ route('violations.show', $viol) }}" class="vlt-act-btn vlt-act-view">
+                                <td class="text-center vlt-history-act" style="min-width:130px;">
+                                    <div class="d-flex justify-content-center align-items-center gap-2 flex-nowrap">
+                                        <a href="{{ route('violations.show', $viol) }}" class="vlt-act-btn vlt-act-view" title="View details">
                                             <i class="bi bi-eye-fill"></i>
                                         </a>
                                         @can('update', $viol)
-                                        <a href="{{ route('violations.edit', $viol) }}" class="vlt-act-btn vlt-act-edit">
+                                        <a href="{{ route('violations.edit', $viol) }}" class="vlt-act-btn vlt-act-edit" title="Edit">
                                             <i class="bi bi-pencil-fill"></i>
                                         </a>
                                         @endcan
-                                        @can('settle', $viol)
-                                        @if(in_array($viol->status, ['pending', 'partial']))
-                                        <button type="button" class="vlt-act-btn vlt-act-settle"
-                                            data-id="{{ $viol->id }}"
-                                            data-type="{{ $viol->violationType?->name ?? '' }}"
-                                            data-date="{{ $viol->date_of_violation->format('M d, Y') }}"
-                                            onclick="openSettleModal(this)">
-                                            <i class="bi bi-receipt"></i> Settle
-                                        </button>
+                                        @if($viol->status === 'settled')
+                                            <span class="vlt-act-btn vlt-act-settled" title="Already settled">
+                                                <i class="bi bi-check2-circle"></i> Settled
+                                            </span>
+                                        @else
+                                            @can('settle', $viol)
+                                            @if(in_array($viol->status, ['pending', 'partial']))
+                                            <button type="button" class="vlt-act-btn vlt-act-settle"
+                                                data-id="{{ $viol->id }}"
+                                                data-type="{{ $viol->violationType?->name ?? '' }}"
+                                                data-date="{{ $viol->date_of_violation->format('M d, Y') }}"
+                                                onclick="openSettleModal(this)">
+                                                <i class="bi bi-receipt"></i> Settle
+                                            </button>
+                                            @endif
+                                            @endcan
                                         @endif
-                                        @endcan
                                     </div>
                                 </td>
                             </tr>
@@ -873,6 +879,7 @@ a.vlt-stat-item:hover .vlt-stat-num { text-decoration: underline; text-underline
 .vlt-act-del:hover { background:#dc2626;color:#fff;border-color:#dc2626;transform:translateY(-2px);box-shadow:0 4px 12px rgba(220,38,38,.3); }
 .vlt-act-settle { background:#f0fdf4;color:#15803d;border-color:#86efac; }
 .vlt-act-settle:hover { background:#15803d;color:#fff;border-color:#15803d;transform:translateY(-2px);box-shadow:0 4px 12px rgba(21,128,61,.3); }
+.vlt-act-settled { background:#f0fdf4;color:#15803d;border-color:#86efac; cursor:default; opacity:.85; }
 
 .fw-700 { font-weight: 700; }
 .expiry-expired { color: #dc2626; font-weight: 700; }
