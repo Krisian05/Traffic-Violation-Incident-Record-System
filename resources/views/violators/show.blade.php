@@ -477,6 +477,7 @@
                                                 data-id="{{ $viol->id }}"
                                                 data-type="{{ $viol->violationType?->name ?? '' }}"
                                                 data-date="{{ $viol->date_of_violation->format('M d, Y') }}"
+                                                data-or="{{ $viol->suggestOrNumber() }}"
                                                 onclick="openSettleModal(this)">
                                                 <i class="bi bi-receipt"></i> Settle
                                             </button>
@@ -1030,6 +1031,10 @@ function openSettleModal(btn) {
 
     // Reset form fields
     document.getElementById('settleForm').reset();
+    var orInput = document.querySelector('#settleForm input[name="or_number"]');
+    if (orInput && btn.dataset.or) {
+        orInput.value = btn.dataset.or;
+    }
     document.getElementById('receiptPreview').src = '';
     document.getElementById('receiptPreviewWrap').classList.add('d-none');
 

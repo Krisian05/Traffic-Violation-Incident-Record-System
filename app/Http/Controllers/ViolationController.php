@@ -633,6 +633,7 @@ class ViolationController extends Controller
                 'settle_url'    => route('violations.settle', $violation),
                 'print_url'     => route('violations.print', $violation),
                 'cashier_url'   => route('violations.cashier', ['search' => $violation->ticket_number]),
+                'suggested_or'  => $violation->suggestOrNumber(),
             ]);
         }
 

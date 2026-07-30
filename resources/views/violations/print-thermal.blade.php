@@ -190,8 +190,11 @@
         Failure to settle within the period stipulated will mean a waiver and criminal complaint against you will be filed in pursuant to the provisions of {{ $lgu?->ordinance_reference ?? 'Ordinance No. 2005-09' }} otherwise known as the Municipal Traffic Enforcement Code 2005.
     </div>
     
-    <div class="text-left" style="font-size: 24px; font-weight: 900; margin: 25px 0; word-break: break-word; line-height: 1.2; text-align: left;">
-        NO. {{ $violation->ticket_number ?: $violation->id }}
+    <div style="margin: 20px 0; border: 2px solid #000; padding: 10px; border-radius: 4px; text-align: left;">
+        <div style="font-size: 13px; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">CITATION / O.R. REF NO.:</div>
+        <div style="font-size: 22px; font-weight: 900; word-break: break-all; line-height: 1.1;">
+            {{ $violation->ticket_number ?: $violation->id }}
+        </div>
     </div>
     
     <div style="margin-top: 35px;">

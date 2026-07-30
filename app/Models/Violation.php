@@ -233,4 +233,32 @@ class Violation extends Model
     {
         return max(0.0, round($this->totalAmountDue() - $this->totalAmountPaid(), 2));
     }
+
+    /** Generate a unique suggested OR number for payment settlement. */
+    public function suggestOrNumber(): string
+    {
+        if (!empty($this->or_number)) {
+            return $this->or_number;
+        }
+
+        $year    = $this->date_of_violation ? $this->date_of_violation->year : now()->year;
+        $lguCode = $this->lgu?->code ?: ($this->violator?->lgu?->code ?: 'CEB');
+
+        $baseSuffix = (string) $this->id;
+        if ($this->ticket_number && str_contains($this->ticket_number, '-')) {
+            $parts      = explode('-', $this->ticket_number);
+            $baseSuffix = end($parts);
+        }
+
+        $candidate = "OR-{$lguCode}-{$year}-" . str_pad($baseSuffix, 6, '0', STR_PAD_LEFT);
+
+        $counter = 1;
+        $finalOr = $candidate;
+        while (Payment::where('or_number', $finalOr)->exists()) {
+            $finalOr = "OR-{$lguCode}-{$year}-" . str_pad($baseSuffix . "-{$counter}", 6, '0', STR_PAD_LEFT);
+            $counter++;
+        }
+
+        return $finalOr;
+    }
 }

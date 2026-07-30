@@ -282,7 +282,9 @@
                                         <label class="form-label fw-700" style="font-size: .82rem;">Official Receipt (OR) Number <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="bi bi-hash text-muted"></i></span>
-                                            <input type="text" name="or_number" id="input_or_number" class="form-control" placeholder="e.g., OR-891047" required maxlength="50" style="font-family: ui-monospace, monospace;">
+                                            <input type="text" name="or_number" id="input_or_number" class="form-control"
+                                                   value="{{ old('or_number', $violation->suggestOrNumber()) }}"
+                                                   placeholder="e.g., OR-891047" required maxlength="50" style="font-family: ui-monospace, monospace;">
                                         </div>
                                     </div>
 
