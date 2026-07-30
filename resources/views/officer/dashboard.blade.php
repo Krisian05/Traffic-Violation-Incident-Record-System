@@ -189,7 +189,7 @@
 }
 #overdueModal .modal-backdrop { backdrop-filter: blur(2px); }
 
-/* ── Overdue alert ── */
+/* ── Overdue alert banner ── */
 .db-overdue {
     background: linear-gradient(135deg,#fff7ed,#fff);
     border: 1.5px solid #fed7aa;
@@ -212,6 +212,28 @@
     border-radius: 11px;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
+}
+
+/* ── Overdue row list item ── */
+.overdue-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: .75rem !important;
+    background: #fff;
+    border-radius: 14px;
+    padding: .75rem .85rem;
+    text-decoration: none;
+    color: inherit;
+    margin-bottom: .6rem;
+    border: 1px solid #fee2e2;
+    border-left: 5px solid #dc2626;
+    box-shadow: 0 2px 8px rgba(220,38,38,.06);
+    transition: transform .15s, background-color .15s;
+    -webkit-tap-highlight-color: transparent;
+}
+.overdue-row:active {
+    background-color: #fef2f2;
+    transform: scale(.985);
 }
 </style>
 
@@ -407,19 +429,24 @@ function filterOverdue(q) {
     const rows = document.querySelectorAll('.overdue-row');
     let visible = 0;
     rows.forEach(row => {
-        const match = !term || row.dataset.search.includes(term);
-        row.style.display = match ? '' : 'none';
+        const match = !term || (row.dataset.search && row.dataset.search.includes(term));
+        row.style.display = match ? 'flex' : 'none';
         if (match) visible++;
     });
-    document.getElementById('overdueNoResults').style.display = visible === 0 ? '' : 'none';
-    document.getElementById('overdueSearchClear').style.display = term ? '' : 'none';
+    const noRes = document.getElementById('overdueNoResults');
+    if (noRes) noRes.style.display = visible === 0 ? 'block' : 'none';
+    const clearBtn = document.getElementById('overdueSearchClear');
+    if (clearBtn) clearBtn.style.display = term ? 'block' : 'none';
 }
 
-document.getElementById('overdueModal').addEventListener('hidden.bs.modal', function () {
-    const input = document.getElementById('overdueSearch');
-    input.value = '';
-    filterOverdue('');
-});
+const ovModal = document.getElementById('overdueModal');
+if (ovModal) {
+    ovModal.addEventListener('hidden.bs.modal', function () {
+        const input = document.getElementById('overdueSearch');
+        if (input) input.value = '';
+        filterOverdue('');
+    });
+}
 </script>
 @endpush
 
