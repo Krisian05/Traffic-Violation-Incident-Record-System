@@ -80,6 +80,7 @@ class DataPrivacyComplianceTest extends TestCase
 
         $violatorBalamban = Violator::factory()->create([
             'first_name'     => 'Juan',
+            'middle_name'    => null,
             'last_name'      => 'Dela Cruz',
             'contact_number' => '09171111111',
             'license_number' => 'N01-11-111111',
@@ -88,6 +89,7 @@ class DataPrivacyComplianceTest extends TestCase
 
         $violatorBarili = Violator::factory()->create([
             'first_name'     => 'Juanito',
+            'middle_name'    => null,
             'last_name'      => 'Reyes',
             'contact_number' => '09172222222',
             'license_number' => 'N02-22-222222',

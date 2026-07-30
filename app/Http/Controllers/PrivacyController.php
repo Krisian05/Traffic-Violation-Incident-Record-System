@@ -49,7 +49,7 @@ class PrivacyController extends Controller
                ->orWhereRaw('LOWER(license_number) LIKE ?', [$searchLower])
                ->orWhereRaw('LOWER(email) LIKE ?', [$searchLower]);
 
-            if ($driver === 'pgsql') {
+            if (in_array($driver, ['pgsql', 'sqlite'])) {
                 $sq->orWhereRaw("LOWER(COALESCE(first_name, '') || ' ' || COALESCE(last_name, '')) LIKE ?", [$searchLower])
                    ->orWhereRaw("LOWER(COALESCE(first_name, '') || ' ' || COALESCE(middle_name, '') || ' ' || COALESCE(last_name, '')) LIKE ?", [$searchLower]);
             } else {
