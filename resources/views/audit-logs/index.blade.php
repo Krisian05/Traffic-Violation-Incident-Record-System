@@ -82,7 +82,9 @@
             <div>
                 <div class="fw-700" style="font-size:.88rem;color:#1c1917;">Search Audit Records</div>
                 <div style="font-size:.72rem;color:#a8a29e;">
-                    @if($isLguScoped && auth()->user()->lgu)
+                    @if(auth()->user()->isTrafficSupervisor())
+                        Traffic enforcement, citation tickets &amp; field officer activity logs ({{ auth()->user()->lgu?->name ?? 'LGU' }})
+                    @elseif($isLguScoped && auth()->user()->lgu)
                         Scoped to {{ auth()->user()->lgu->name }}
                     @else
                         Governance &amp; system-wide activity monitoring

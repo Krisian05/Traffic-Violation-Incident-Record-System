@@ -145,7 +145,8 @@ class RbacFrameworkTest extends TestCase
 
         $this->actingAs($supervisor)
             ->get('/audit-logs')
-            ->assertOk();
+            ->assertOk()
+            ->assertSee('Traffic enforcement, citation tickets &amp; field officer activity logs', false);
 
         $this->actingAs($supervisor)
             ->get('/violators/create')
