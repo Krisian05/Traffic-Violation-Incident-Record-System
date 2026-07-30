@@ -29,7 +29,7 @@
             </div>
         </div>
         <div class="d-flex align-items-center gap-2 ms-auto">
-            @if($search || ($plate ?? ''))
+            @if($search || ($plate ?? '') || ($selectedLguId ?? '') || (($sort ?? 'name') !== 'name'))
                 <a href="{{ route('violators.index') }}" class="vlt-clear-btn">
                     <i class="bi bi-x-lg"></i> Clear filters
                 </a>
@@ -45,7 +45,7 @@
         <form method="GET" action="{{ route('violators.index') }}">
             <div class="d-flex flex-wrap align-items-end gap-2">
 
-                <div style="flex:2.5;min-width:0;">
+                <div style="flex:2.2;min-width:180px;">
                     <label class="vlt-filter-label"><i class="bi bi-person-bounding-box me-1"></i>Name / License No.</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text vlt-filt-icon"><i class="bi bi-search"></i></span>
@@ -55,7 +55,19 @@
                     </div>
                 </div>
 
-                <div style="flex:1.6;min-width:0;">
+                <div style="flex:1.8;min-width:160px;">
+                    <label class="vlt-filter-label"><i class="bi bi-geo-alt-fill me-1"></i>LGU / Municipality</label>
+                    <select name="lgu_id" class="form-select form-select-sm vlt-filt-input" onchange="this.form.submit()">
+                        <option value="">All LGUs / Municipalities</option>
+                        @foreach($lgus as $lguItem)
+                            <option value="{{ $lguItem->id }}" {{ (string)($selectedLguId ?? '') === (string)$lguItem->id ? 'selected' : '' }}>
+                                {{ $lguItem->name }} ({{ $lguItem->province }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div style="flex:1.4;min-width:130px;">
                     <label class="vlt-filter-label"><i class="bi bi-car-front me-1"></i>Plate Number</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text vlt-filt-icon"><i class="bi bi-upc-scan"></i></span>
@@ -63,6 +75,16 @@
                             placeholder="e.g. ABC 1234"
                             value="{{ $plate ?? '' }}">
                     </div>
+                </div>
+
+                <div style="flex:1.3;min-width:130px;">
+                    <label class="vlt-filter-label"><i class="bi bi-sort-down me-1"></i>Sort By</label>
+                    <select name="sort" class="form-select form-select-sm vlt-filt-input" onchange="this.form.submit()">
+                        <option value="name" {{ ($sort ?? 'name') === 'name' ? 'selected' : '' }}>Motorist Name (A-Z)</option>
+                        <option value="lgu" {{ ($sort ?? '') === 'lgu' ? 'selected' : '' }}>LGU / Municipality</option>
+                        <option value="violations_desc" {{ ($sort ?? '') === 'violations_desc' ? 'selected' : '' }}>Most Violations</option>
+                        <option value="latest" {{ ($sort ?? '') === 'latest' ? 'selected' : '' }}>Latest Registered</option>
+                    </select>
                 </div>
 
                 <div style="flex-shrink:0;">
@@ -115,6 +137,11 @@
                                title="View motorist profile">
                                 {{ $v->full_name }}
                             </a>
+                            @if($v->lgu)
+                                <span class="badge bg-light text-muted border ms-1 fw-500" style="font-size:0.68rem;" title="LGU / Municipality">
+                                    <i class="bi bi-geo-alt-fill text-danger me-0.5"></i>{{ $v->lgu->name }}
+                                </span>
+                            @endif
                             <div style="font-size:.69rem;color:#a8a29e;margin-top:2px;">
                                 <i class="bi bi-eye me-1" style="font-size:.6rem;"></i>Click row to view profile
                             </div>

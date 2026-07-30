@@ -13,12 +13,21 @@ class ViolatorController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Violator::withCount('violations')
+        $user = Auth::user();
+
+        $query = Violator::with(['lgu'])
+            ->withCount('violations')
             ->withCount(['violations as pending_count' => fn($q) => $q->whereIn('status', ['pending', 'partial'])])
             ->withCount(['violations as overdue_count' => fn($q) => $q->whereIn('status', ['pending', 'partial'])->whereNotNull('due_date')->where('due_date', '<', now()->toDateString())]);
 
-        if ($lguId = $request->input('lgu_id')) {
-            $query->where('lgu_id', $lguId);
+        // Auto-select or filter by LGU / Municipality
+        $selectedLguId = $request->input('lgu_id');
+        if (is_null($selectedLguId) && $user && $user->lgu_id) {
+            $selectedLguId = (string) $user->lgu_id;
+        }
+
+        if ($selectedLguId) {
+            $query->where('violators.lgu_id', $selectedLguId);
         }
 
         if ($status = $request->input('status')) {
@@ -46,10 +55,26 @@ class ViolatorController extends Controller
             });
         }
 
-        $violators = $query->orderBy('last_name')->paginate(15)->withQueryString();
+        // Sorting functionality
+        $sort = $request->input('sort', 'name');
+        if ($sort === 'lgu') {
+            $query->join('lgus', 'violators.lgu_id', '=', 'lgus.id')
+                  ->orderBy('lgus.name', 'asc')
+                  ->orderBy('violators.last_name', 'asc')
+                  ->select('violators.*');
+        } elseif ($sort === 'violations_desc') {
+            $query->orderBy('violations_count', 'desc');
+        } elseif ($sort === 'latest') {
+            $query->orderBy('violators.created_at', 'desc');
+        } else {
+            $query->orderBy('violators.last_name', 'asc');
+        }
+
+        $violators = $query->paginate(15)->withQueryString();
+        $lgus = \App\Models\Lgu::orderBy('name')->get();
         $plate = $request->input('plate');
 
-        return view('violators.index', compact('violators', 'search', 'plate'));
+        return view('violators.index', compact('violators', 'search', 'plate', 'lgus', 'selectedLguId', 'sort'));
     }
 
     public function create()
