@@ -64,8 +64,8 @@ class User extends Authenticatable
         'province_admin'     => 'Provincial Administrator',
         'operator'           => 'LGU Administrator',
         'lgu_admin'          => 'LGU Administrator',
-        'treasurer'          => 'Cashier / Treasurer',
-        'cashier'            => 'Cashier / Treasurer',
+        'treasurer'          => 'Cashier',
+        'cashier'            => 'Cashier',
         'traffic_supervisor' => 'Police / Traffic Supervisor',
         'supervisor'         => 'Police / Traffic Supervisor',
         'traffic_officer'    => 'Issuing Officer / Field Personnel',
@@ -83,7 +83,7 @@ class User extends Authenticatable
 
     public const LGU_ADMIN_ROLES = [
         'operator'           => 'LGU Administrator — Local System Settings & LGU Management',
-        'cashier'            => 'Cashier / Treasurer — Payment Collection, OR Recording & Financial Reports',
+        'cashier'            => 'Cashier — Payment Collection, OR Recording & Financial Reports',
         'traffic_supervisor' => 'Police / Traffic Supervisor — Citation Review & Officer Monitoring',
         'traffic_officer'    => 'Issuing Officer / Field Personnel — Citation Ticket & Incident Issuance (Mobile)',
         'records_officer'    => 'Records Officer — Record Management, Encoding & Documentation',
