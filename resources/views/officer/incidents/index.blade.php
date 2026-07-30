@@ -268,12 +268,6 @@ a.inc-page:hover {
 
 @section('content')
 
-@php
-    $openCount = $incidents->getCollection()->whereIn('status', ['reported', 'assigned_for_investigation'])->count();
-    $reviewCount = $incidents->getCollection()->where('status', 'under_assessment')->count();
-    $closedCount = $incidents->getCollection()->whereIn('status', ['resolved', 'closed', 'referred_to_authority'])->count();
-@endphp
-
 <div class="motshow-section">Search &amp; Filter</div>
 
 <form method="GET" action="{{ route('officer.incidents.index') }}" class="inc-search-shell">

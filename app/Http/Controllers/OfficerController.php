@@ -43,7 +43,7 @@ class OfficerController extends Controller
         $motoristCount      = Violator::count();
         $violationCount     = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->count();
         $incidentCount      = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->count();
-        $openIncidentCount  = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->whereNotIn('status', ['resolved', 'closed'])->count();
+        $openIncidentCount  = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->whereNotIn('status', ['resolved', 'closed', 'referred_to_authority'])->count();
         $overdueCount       = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->overdue()->count();
         $overdueViolations  = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->overdue()
             ->with(['violator', 'violationType', 'vehicle'])
@@ -784,12 +784,10 @@ class OfficerController extends Controller
         $search = trim((string) $request->input('search', ''));
         $status = $request->filled('status') ? (string) $request->input('status') : '';
 
-        $query = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
-            ->with('motorists')
-            ->withCount('motorists');
+        $baseQuery = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId));
 
         if ($search !== '') {
-            $query->where(function ($q) use ($search) {
+            $baseQuery->where(function ($q) use ($search) {
                 $q->where('location', 'like', "%{$search}%")
                   ->orWhere('incident_number', 'like', "%{$search}%")
                   ->orWhereHas('motorists', fn($mq) =>
@@ -797,6 +795,17 @@ class OfficerController extends Controller
                   );
             });
         }
+
+        $statusCounts = (clone $baseQuery)
+            ->selectRaw('status, count(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        $openCount   = (int) ($statusCounts['reported'] ?? 0) + (int) ($statusCounts['assigned_for_investigation'] ?? 0);
+        $reviewCount = (int) ($statusCounts['under_assessment'] ?? 0);
+        $closedCount = (int) ($statusCounts['resolved'] ?? 0) + (int) ($statusCounts['closed'] ?? 0) + (int) ($statusCounts['referred_to_authority'] ?? 0);
+
+        $query = (clone $baseQuery)->with('motorists')->withCount('motorists');
 
         if ($status !== '') {
             $query->where('status', $status);
@@ -807,7 +816,7 @@ class OfficerController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('officer.incidents.index', compact('incidents', 'search', 'status'));
+        return view('officer.incidents.index', compact('incidents', 'search', 'status', 'openCount', 'reviewCount', 'closedCount'));
     }
 
     public function createIncident(): View
