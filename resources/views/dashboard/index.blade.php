@@ -21,7 +21,7 @@
         @endif
     </div>
     <div class="dash-header-right d-flex align-items-center gap-2 flex-wrap">
-        @if(Auth::user()->isOperator() || Auth::user()->isTrafficSupervisor() || Auth::user()->isRecordsOfficer())
+        @if(Auth::user()->isOperator() || Auth::user()->isTrafficSupervisor())
         <a href="{{ route('violators.create') }}" class="btn btn-sm btn-primary">
             <i class="bi bi-person-plus-fill me-1"></i>New Motorist
         </a>

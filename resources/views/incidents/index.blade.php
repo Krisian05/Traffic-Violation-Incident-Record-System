@@ -132,7 +132,7 @@
             <i class="bi bi-flag-fill" style="color:#dc2626;font-size:.95rem;"></i>
             <span class="fw-700" style="font-size:.9rem;color:#1c1917;">Incident Records</span>
         </div>
-        @if(Auth::user()->isOperator() || Auth::user()->isTrafficSupervisor() || Auth::user()->isRecordsOfficer())
+        @if(Auth::user()->isOperator() || Auth::user()->isTrafficSupervisor())
         <a href="{{ route('incidents.create') }}" class="inc-record-btn">
             <i class="bi bi-plus-lg"></i> Record Incident
         </a>

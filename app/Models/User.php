@@ -86,7 +86,6 @@ class User extends Authenticatable
         'cashier'            => 'Cashier/ Treasurer — Payment Collection, OR Recording & Financial Reports',
         'traffic_supervisor' => 'Police / Traffic Supervisor — Citation Review & Officer Monitoring',
         'traffic_officer'    => 'Issuing Officer / Field Personnel — Citation Ticket & Incident Issuance (Mobile)',
-        'records_officer'    => 'Records Officer — Record Management, Encoding & Documentation',
         'auditor'            => 'Auditor / View-Only User — Read-only Access to Reports, Logs & Records',
     ];
 
