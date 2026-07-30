@@ -325,48 +325,7 @@
     </div>
     @endif
 
-    {{-- ── SCAN TO AUTOFILL (AI MULTIMODAL VISION) ── --}}
-    <div class="edit-section shadow-sm mb-3" style="border:1.5px dashed #3b82f6;background:linear-gradient(135deg,#eff6ff 0%,#f0f9ff 100%);border-radius:18px;">
-        <div class="edit-section-body text-center" style="padding:1.25rem 1rem;">
-            <div class="d-inline-flex align-items-center justify-content-center mb-2"
-                 style="width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;box-shadow:0 6px 20px rgba(37,99,235,.35);">
-                <i class="ph-bold ph-aperture" style="font-size:1.75rem;"></i>
-            </div>
-            <div style="font-size:1rem;font-weight:800;color:#0f172a;margin-bottom:.25rem;letter-spacing:-.01em;">
-                Smart AI ID Scanner &amp; Auto-Fill
-            </div>
-            <div style="font-size:.76rem;color:#475569;margin-bottom:.85rem;max-width:320px;margin-left:auto;margin-right:auto;line-height:1.45;">
-                Snap or upload a photo of a Driver's License or Government ID to instantly extract personal details &amp; DL codes.
-            </div>
-            
-            <div class="d-flex align-items-center justify-content-center gap-1 flex-wrap mb-3" style="font-size:.68rem;font-weight:700;">
-                <span class="badge bg-white text-primary border border-primary-subtle rounded-pill px-2 py-1 shadow-2xs">
-                    <i class="ph-bold ph-sparkle me-1"></i>Gemini AI Vision
-                </span>
-                <span class="badge bg-white text-success border border-success-subtle rounded-pill px-2 py-1 shadow-2xs">
-                    <i class="ph-bold ph-check-circle me-1"></i>Auto-Fills Form
-                </span>
-                <span class="badge bg-white text-dark border border-secondary-subtle rounded-pill px-2 py-1 shadow-2xs">
-                    <i class="ph-bold ph-card-holder me-1"></i>DL &amp; Restriction Codes
-                </span>
-            </div>
 
-            <button type="button" class="mob-btn-primary py-2 px-4 shadow-sm" style="font-size:.9rem;border-radius:14px;" onclick="tvirsStartScanner('license_number')">
-                <i class="ph-bold ph-camera me-1" style="font-size:1.1rem;"></i> Scan Driver's License / Valid ID
-            </button>
-        </div>
-    </div>
-
-    <div id="scan-review-banner" class="mob-alert mob-alert-success mb-3" style="display:none;align-items:flex-start;">
-        <i class="ph-fill ph-check-circle" style="font-size:1.15rem;flex-shrink:0;"></i>
-        <div>
-            <div id="scan-review-banner-text"></div>
-            <label style="display:flex;align-items:flex-start;gap:.45rem;margin-top:.55rem;font-size:.78rem;font-weight:700;cursor:pointer;">
-                <input type="checkbox" id="scan-review-confirm" style="width:16px;height:16px;flex-shrink:0;margin-top:.1rem;">
-                <span>I've checked the highlighted fields against the ID and they're correct.</span>
-            </label>
-        </div>
-    </div>
 
     {{-- ── PHOTO ── --}}
     <div class="edit-section">
@@ -577,12 +536,7 @@
         <div class="edit-section-body">
 
             <div class="field-group">
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                    <label class="mob-label mb-0">License Number</label>
-                    <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="border-radius:8px;font-size:.72rem;font-weight:800;" onclick="tvirsStartScanner('license_number')">
-                        <i class="ph ph-qr-code"></i> Scan Barcode
-                    </button>
-                </div>
+                    <label class="mob-label">License Number</label>
                 <div class="field-wrap @error('license_number') is-invalid-wrap @enderror" id="wrap-license-number">
                     <span class="field-adorn"><i class="ph ph-hash"></i></span>
                     <input type="text" name="license_number" id="license_number" value="{{ old('license_number') }}"

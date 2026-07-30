@@ -385,9 +385,6 @@
                 autocomplete="off"
             >
             <button class="mot-search-submit" type="submit">Search</button>
-            <button type="button" class="btn btn-outline-primary py-0 px-2.5 ms-1" style="border-radius:14px;min-height:44px;font-size:.8rem;font-weight:800;white-space:nowrap;" onclick="tvirsStartScanner('motoristSearchInput')">
-                <i class="ph ph-qr-code"></i> Scan ID
-            </button>
         </div>
 
         <div class="mot-search-meta">
