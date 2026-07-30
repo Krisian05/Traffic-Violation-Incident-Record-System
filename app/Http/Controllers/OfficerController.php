@@ -25,18 +25,27 @@ use Illuminate\View\View;
 
 class OfficerController extends Controller
 {
+    private function getLguId(): ?int
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        return ($user && $user->lgu_id && !$user->isSuperAdmin() && !$user->isProvinceAdmin()) ? (int) $user->lgu_id : null;
+    }
+
     // ─────────────────────────────────────────────
     //  DASHBOARD
     // ─────────────────────────────────────────────
 
     public function dashboard(): View
     {
+        $lguId = $this->getLguId();
+
         $motoristCount      = Violator::count();
-        $violationCount     = Violation::count();
-        $incidentCount      = Incident::count();
-        $openIncidentCount  = Incident::whereNotIn('status', ['resolved', 'closed'])->count();
-        $overdueCount       = Violation::overdue()->count();
-        $overdueViolations  = Violation::overdue()
+        $violationCount     = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->count();
+        $incidentCount      = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->count();
+        $openIncidentCount  = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->whereNotIn('status', ['resolved', 'closed'])->count();
+        $overdueCount       = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->overdue()->count();
+        $overdueViolations  = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))->overdue()
             ->with(['violator', 'violationType', 'vehicle'])
             ->orderByDesc('date_of_violation')
             ->get();
@@ -50,9 +59,10 @@ class OfficerController extends Controller
 
     public function motorists(Request $request): View
     {
+        $lguId  = $this->getLguId();
         $search = trim($request->input('search', ''));
 
-        $query = Violator::withCount('violations');
+        $query = Violator::withCount(['violations' => fn($q) => $lguId ? $q->where('lgu_id', $lguId) : $q]);
 
         if ($search !== '') {
             $lk = '%' . mb_strtolower($search) . '%';
@@ -75,6 +85,7 @@ class OfficerController extends Controller
             'q' => ['nullable', 'string', 'max:100'],
         ]);
 
+        $lguId  = $this->getLguId();
         $search = trim($request->input('q', ''));
 
         if ($search === '') {
@@ -82,7 +93,8 @@ class OfficerController extends Controller
         }
 
         $lk = '%' . mb_strtolower($search) . '%';
-        $motorists = Violator::withCount('violations')->select('violators.*')
+        $motorists = Violator::withCount(['violations' => fn($q) => $lguId ? $q->where('lgu_id', $lguId) : $q])
+            ->select('violators.*')
             ->with(['vehicles' => fn($query) => $query->select('id', 'violator_id', 'plate_number')->limit(1)])
             ->where(function ($q) use ($lk) {
                 $q->whereRaw('LOWER(first_name) LIKE ?', [$lk])
@@ -183,8 +195,11 @@ class OfficerController extends Controller
 
     public function showMotorist(Violator $violator): View
     {
+        $lguId = $this->getLguId();
+
         $violator->load([
             'vehicles.photos',
+            'violations' => fn($q) => $lguId ? $q->where('lgu_id', $lguId) : $q,
             'violations.violationType',
             'violations.vehicle',
             'violations.recorder',
@@ -194,7 +209,8 @@ class OfficerController extends Controller
             'incidentMotorists.vehicle',
         ]);
 
-        $incidents = Incident::with(['motorists.chargeType'])
+        $incidents = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->with(['motorists.chargeType'])
             ->whereHas('motorists', fn($q) => $q->where('violator_id', $violator->id))
             ->orderByDesc('date_of_incident')
             ->orderByDesc('created_at')
@@ -266,8 +282,19 @@ class OfficerController extends Controller
 
     public function showVehicle(Vehicle $vehicle): View
     {
-        $vehicle->load(['violator', 'photos', 'violations.violationType', 'violations.violator']);
-        $vehicle->loadCount('violations');
+        $lguId = $this->getLguId();
+        if ($lguId && $vehicle->lgu_id && (int) $vehicle->lgu_id !== (int) $lguId) {
+            abort(403, 'Unauthorized access to cross-LGU vehicle record.');
+        }
+
+        $vehicle->load([
+            'violator',
+            'photos',
+            'violations' => fn($q) => $lguId ? $q->where('lgu_id', $lguId) : $q,
+            'violations.violationType',
+            'violations.violator',
+        ]);
+        $vehicle->loadCount(['violations' => fn($q) => $lguId ? $q->where('lgu_id', $lguId) : $q]);
 
         $allPhotos = $vehicle->photos->isNotEmpty()
             ? $vehicle->photos
@@ -391,11 +418,15 @@ class OfficerController extends Controller
 
     public function createViolation(Violator $violator): View
     {
+        $lguId = $this->getLguId();
+
         $violationTypes = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
-        $allVehicles = Vehicle::with('violator:id,first_name,middle_name,last_name')
+        $allVehicles = Vehicle::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->with('violator:id,first_name,middle_name,last_name')
             ->orderBy('plate_number')
             ->get(['id', 'violator_id', 'plate_number', 'make', 'model', 'color', 'vehicle_type', 'owner_name']);
-        $relatedIncidents = Incident::whereHas('motorists', fn($q) => $q->where('violator_id', $violator->id))
+        $relatedIncidents = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->whereHas('motorists', fn($q) => $q->where('violator_id', $violator->id))
             ->orderByDesc('date_of_incident')
             ->orderByDesc('created_at')
             ->get(['id', 'incident_number', 'date_of_incident', 'location']);
@@ -518,7 +549,7 @@ class OfficerController extends Controller
         unset($data['photos']);
         $data['violator_id'] = $violator->id;
         $data['recorded_by'] = Auth::id();
-        $data['lgu_id']      = Lgu::findByPsgcCityCode($request->input('_loc_city_code'))?->id;
+        $data['lgu_id']      = Lgu::findByPsgcCityCode($request->input('_loc_city_code'))?->id ?? $this->getLguId();
 
         $violation = Violation::create($data);
 
@@ -537,6 +568,11 @@ class OfficerController extends Controller
 
     public function showViolation(Violation $violation): View
     {
+        $lguId = $this->getLguId();
+        if ($lguId && $violation->lgu_id && (int) $violation->lgu_id !== (int) $lguId) {
+            abort(403, 'Unauthorized access to cross-LGU violation record.');
+        }
+
         $violation->load(['violationType', 'vehicle.violator', 'vehiclePhotos', 'recorder', 'violator', 'incident']);
 
         return view('officer.violations.show', compact('violation'));
@@ -544,13 +580,20 @@ class OfficerController extends Controller
 
     public function editViolation(Violation $violation): View
     {
+        $lguId = $this->getLguId();
+        if ($lguId && $violation->lgu_id && (int) $violation->lgu_id !== (int) $lguId) {
+            abort(403, 'Unauthorized access to cross-LGU violation record.');
+        }
+
         $this->authorize('update', $violation);
         $violation->load(['violator', 'vehiclePhotos']);
         $violationTypes = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
-        $allVehicles = Vehicle::with('violator:id,first_name,middle_name,last_name')
+        $allVehicles = Vehicle::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->with('violator:id,first_name,middle_name,last_name')
             ->orderBy('plate_number')
             ->get(['id', 'violator_id', 'plate_number', 'make', 'model', 'color', 'vehicle_type', 'owner_name']);
-        $relatedIncidents = Incident::whereHas('motorists', fn($q) => $q->where('violator_id', $violation->violator_id))
+        $relatedIncidents = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->whereHas('motorists', fn($q) => $q->where('violator_id', $violation->violator_id))
             ->orderByDesc('date_of_incident')
             ->orderByDesc('created_at')
             ->get(['id', 'incident_number', 'date_of_incident', 'location']);
@@ -743,10 +786,13 @@ class OfficerController extends Controller
 
     public function incidents(Request $request): View
     {
+        $lguId  = $this->getLguId();
         $search = trim((string) $request->input('search', ''));
         $status = $request->filled('status') ? (string) $request->input('status') : '';
 
-        $query = Incident::with('motorists')->withCount('motorists');
+        $query = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->with('motorists')
+            ->withCount('motorists');
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
@@ -772,6 +818,7 @@ class OfficerController extends Controller
 
     public function createIncident(): View
     {
+        $lguId = $this->getLguId();
         $chargeTypes     = Cache::remember('incident_charge_types', 600, fn() => IncidentChargeType::orderBy('name')->get());
         $violators       = Violator::orderBy('last_name')->orderBy('first_name')
                               ->get([
@@ -787,7 +834,8 @@ class OfficerController extends Controller
                                   'temporary_address',
                                   'permanent_address',
                               ]);
-        $vehiclesByOwner = Vehicle::orderBy('plate_number')
+        $vehiclesByOwner = Vehicle::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->orderBy('plate_number')
             ->get(['id', 'violator_id', 'plate_number', 'vehicle_type', 'make', 'model', 'color', 'owner_name', 'or_number', 'cr_number', 'chassis_number'])
             ->groupBy('violator_id');
 
@@ -866,7 +914,7 @@ class OfficerController extends Controller
                 'location'         => $request->input('location'),
                 'gps_lat'          => $request->input('gps_lat'),
                 'gps_lng'          => $request->input('gps_lng'),
-                'lgu_id'           => Lgu::findByPsgcCityCode($request->input('_loc_city_code'))?->id,
+                'lgu_id'           => Lgu::findByPsgcCityCode($request->input('_loc_city_code'))?->id ?? $this->getLguId(),
                 'description'      => $request->input('description'),
                 'status'           => 'reported',
                 'recorded_by'      => Auth::id(),
@@ -1089,6 +1137,11 @@ class OfficerController extends Controller
 
     public function showIncident(Incident $incident): View
     {
+        $lguId = $this->getLguId();
+        if ($lguId && $incident->lgu_id && (int) $incident->lgu_id !== (int) $lguId) {
+            abort(403, 'Unauthorized access to cross-LGU incident record.');
+        }
+
         $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'recorder', 'media', 'parties', 'statusHistories.changedBy']);
 
         return view('officer.incidents.show', compact('incident'));
@@ -1096,6 +1149,11 @@ class OfficerController extends Controller
 
     public function editIncident(Incident $incident): View
     {
+        $lguId = $this->getLguId();
+        if ($lguId && $incident->lgu_id && (int) $incident->lgu_id !== (int) $lguId) {
+            abort(403, 'Unauthorized access to cross-LGU incident record.');
+        }
+
         $this->authorize('update', $incident);
         $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'media', 'parties']);
         $chargeTypes = Cache::remember('incident_charge_types', 600, fn() => IncidentChargeType::orderBy('name')->get());
@@ -1105,6 +1163,11 @@ class OfficerController extends Controller
 
     public function updateIncident(Request $request, Incident $incident): RedirectResponse
     {
+        $lguId = $this->getLguId();
+        if ($lguId && $incident->lgu_id && (int) $incident->lgu_id !== (int) $lguId) {
+            abort(403, 'Unauthorized access to cross-LGU incident record.');
+        }
+
         $this->authorize('update', $incident);
 
         $validated = $request->validate([
