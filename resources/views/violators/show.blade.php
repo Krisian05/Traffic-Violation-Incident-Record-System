@@ -91,6 +91,11 @@
                         <div class="vlt-stat-lbl">Vehicles</div>
                     </div>
                     <div class="vlt-stat-divider"></div>
+                    <div class="vlt-stat-item" title="Active (unsettled) violations">
+                        <div class="vlt-stat-num" style="color:#b45309;">{{ $activeVc }}</div>
+                        <div class="vlt-stat-lbl">Active</div>
+                    </div>
+                    <div class="vlt-stat-divider"></div>
                     <a href="{{ route('violations.index', ['search' => $violator->full_name, 'status' => 'settled']) }}"
                        class="vlt-stat-item text-decoration-none" title="View settled violations">
                         <div class="vlt-stat-num" style="color:#15803d;">
@@ -232,42 +237,6 @@
             </div>
         </div>
 
-        {{-- Violations by Type --}}
-        @if($violationsByType->isNotEmpty())
-        <div class="vlt-info-card mb-4">
-            <div class="vlt-card-header">
-                <span class="vlt-section-icon" style="background:#fff1f2;">
-                    <i class="bi bi-bar-chart-fill" style="color:#dc2626;"></i>
-                </span>
-                <div>
-                    <div class="vlt-section-title">Violations by Type</div>
-                    <div class="vlt-section-sub">Active (unsettled) offenses breakdown</div>
-                </div>
-            </div>
-            <div class="vlt-info-list">
-                @foreach($violationsByType as $row)
-                <div class="vlt-info-row">
-                    <a href="{{ route('violations.index', ['search' => $violator->full_name, 'type' => $row['type']->id]) }}"
-                       class="vlt-info-label text-decoration-none" style="text-transform:none;letter-spacing:0;font-size:.82rem;color:#57534e;" title="Filter violations by this type">
-                        {{ $row['type']->name }}
-                    </a>
-                    <a href="{{ route('violations.index', ['search' => $violator->full_name, 'type' => $row['type']->id]) }}"
-                       class="vlt-vio-badge {{ $row['count'] > 1 ? 'vlt-recidivist' : 'vlt-once' }} text-decoration-none"
-                       style="font-size:.68rem;padding:.18rem .55rem;"
-                       title="View {{ $row['count'] }} violation{{ $row['count'] !== 1 ? 's' : '' }}">
-                        {{ $row['count'] }}
-                    </a>
-                </div>
-                @endforeach
-                <div class="vlt-info-row" style="border-bottom:none;background:#fdf8f0;">
-                    <span class="vlt-info-label" style="text-transform:none;letter-spacing:0;font-size:.82rem;color:#1c1917;font-weight:700;">Active Total</span>
-                    <span class="vlt-vio-badge vlt-recidivist" style="font-size:.68rem;padding:.18rem .55rem;">
-                        {{ $activeVc }}
-                    </span>
-                </div>
-            </div>
-        </div>
-        @endif
 
     </div>
 
