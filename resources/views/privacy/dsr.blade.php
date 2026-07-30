@@ -174,12 +174,20 @@ document.addEventListener('DOMContentLoaded', function () {
         dropdown.style.display = 'none';
     }
 
+    function clearFormFields() {
+        if (emailInput) emailInput.value = '';
+        if (contactInput) contactInput.value = '';
+        if (licenseInput) licenseInput.value = '';
+        if (ticketInput) ticketInput.value = '';
+    }
+
     nameInput.addEventListener('input', function () {
         const query = this.value.trim();
         clearTimeout(debounceTimer);
 
         if (query.length < 1) {
             hideDropdown();
+            clearFormFields();
             return;
         }
 
