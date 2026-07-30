@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Lgu;
 use App\Models\User;
 use App\Models\Violation;
+use App\Models\Violator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Spatie\Activitylog\Models\Activity;
@@ -50,6 +52,59 @@ class DataPrivacyComplianceTest extends TestCase
             'log_name' => 'privacy',
             'event'    => 'data_subject_request',
         ]);
+    }
+
+    public function test_dsr_submission_succeeds_without_email(): void
+    {
+        $response = $this->post('/privacy/data-subject-request', [
+            'full_name'      => 'Maria Santos',
+            'email'          => null,
+            'contact_number' => '09189998888',
+            'license_number' => 'N02-99-123456',
+            'ticket_number'  => 'TVIRS-CEB-BAL-2026-000002',
+            'request_type'   => 'correction',
+            'details'        => 'Requesting update to my contact number.',
+        ]);
+
+        $response->assertRedirect('/privacy/data-subject-request');
+        $response->assertSessionHas('success');
+    }
+
+    public function test_motorist_search_autocomplete_scopes_by_lgu_for_cashier(): void
+    {
+        $lgu1 = Lgu::factory()->create(['name' => 'Balamban']);
+        $lgu2 = Lgu::factory()->create(['name' => 'Barili']);
+
+        $cashierBalamban = User::factory()->create(['role' => 'cashier', 'lgu_id' => $lgu1->id]);
+        $globalAdmin     = User::factory()->create(['role' => 'admin', 'lgu_id' => null]);
+
+        $violatorBalamban = Violator::factory()->create([
+            'first_name'     => 'Juan',
+            'last_name'      => 'Dela Cruz',
+            'contact_number' => '09171111111',
+            'license_number' => 'N01-11-111111',
+            'lgu_id'         => $lgu1->id,
+        ]);
+
+        $violatorBarili = Violator::factory()->create([
+            'first_name'     => 'Juanito',
+            'last_name'      => 'Reyes',
+            'contact_number' => '09172222222',
+            'license_number' => 'N02-22-222222',
+            'lgu_id'         => $lgu2->id,
+        ]);
+
+        // Cashier from Balamban searching "Juan" should ONLY see Balamban violator
+        $response = $this->actingAs($cashierBalamban)->getJson('/privacy/search-motorists?q=Juan');
+        $response->assertStatus(200);
+        $response->assertJsonFragment(['full_name' => 'Juan Dela Cruz']);
+        $response->assertJsonMissing(['full_name' => 'Juanito Reyes']);
+
+        // Global admin searching "Juan" should see BOTH violators across LGUs
+        $responseAdmin = $this->actingAs($globalAdmin)->getJson('/privacy/search-motorists?q=Juan');
+        $responseAdmin->assertStatus(200);
+        $responseAdmin->assertJsonFragment(['full_name' => 'Juan Dela Cruz']);
+        $responseAdmin->assertJsonFragment(['full_name' => 'Juanito Reyes']);
     }
 
     public function test_data_retention_cleanup_command_executes_successfully(): void

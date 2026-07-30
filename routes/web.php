@@ -32,6 +32,7 @@ Route::get('/health', [HealthCheckController::class, 'check'])->name('health');
 Route::get('/privacy-policy', [PrivacyController::class, 'policy'])->name('privacy.policy');
 Route::get('/privacy/data-subject-request', [PrivacyController::class, 'showDsrForm'])->name('privacy.dsr');
 Route::post('/privacy/data-subject-request', [PrivacyController::class, 'submitDsr'])->name('privacy.dsr.submit');
+Route::get('/privacy/search-motorists', [PrivacyController::class, 'searchMotorists'])->name('privacy.dsr.search');
 
 // Guest-only
 Route::middleware('guest')->group(function () {

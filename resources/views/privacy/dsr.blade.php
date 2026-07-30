@@ -27,36 +27,82 @@
                 @csrf
 
                 <div class="row g-3 mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-600" style="font-size:.85rem;">Full Name <span class="text-danger">*</span></label>
-                        <input type="text" name="full_name" class="form-control @error('full_name') is-invalid @enderror" value="{{ old('full_name') }}" required placeholder="Juan Dela Cruz">
-                        @error('full_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="col-md-6 position-relative">
+                        <label class="form-label fw-600 d-flex align-items-center justify-content-between" style="font-size:.85rem;">
+                            <span>Full Name <span class="text-danger">*</span></span>
+                            <span class="badge bg-light text-muted border fw-500" style="font-size:0.68rem;">
+                                <i class="bi bi-search me-0.5 text-warning"></i> Type name to search
+                            </span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-person-fill"></i></span>
+                            <input type="text" name="full_name" id="fullNameInput" 
+                                   class="form-control border-start-0 @error('full_name') is-invalid @enderror" 
+                                   value="{{ old('full_name') }}" required 
+                                   placeholder="Type name (e.g. Juan Dela Cruz)" 
+                                   autocomplete="off">
+                            <span class="input-group-text bg-white d-none" id="fullNameSpinner">
+                                <span class="spinner-border spinner-border-sm text-warning" role="status"></span>
+                            </span>
+                        </div>
+                        @error('full_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+
+                        {{-- Interactive Autocomplete Suggestions Dropdown --}}
+                        <div class="dropdown-menu shadow-lg border-0 rounded-3 p-0 mt-1 w-100 position-absolute start-0 overflow-hidden d-none" 
+                             id="motoristDropdown" 
+                             style="z-index: 1060; max-height: 290px; overflow-y: auto; background: #ffffff; border: 1px solid #e2e8f0 !important;">
+                        </div>
                     </div>
+
                     <div class="col-md-6">
-                        <label class="form-label fw-600" style="font-size:.85rem;">Email Address <span class="text-danger">*</span></label>
-                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" required placeholder="juan@example.com">
-                        @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <label class="form-label fw-600" style="font-size:.85rem;">Email Address (Optional)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-envelope-fill"></i></span>
+                            <input type="email" name="email" id="emailInput" 
+                                   class="form-control border-start-0 @error('email') is-invalid @enderror" 
+                                   value="{{ old('email') }}" 
+                                   placeholder="juan@example.com">
+                        </div>
+                        @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
                 </div>
 
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label class="form-label fw-600" style="font-size:.85rem;">Contact Number <span class="text-danger">*</span></label>
-                        <input type="text" name="contact_number" class="form-control @error('contact_number') is-invalid @enderror" value="{{ old('contact_number') }}" required placeholder="09171234567">
-                        @error('contact_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="input-group">
+                            <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-telephone-fill"></i></span>
+                            <input type="text" name="contact_number" id="contactInput" 
+                                   class="form-control border-start-0 @error('contact_number') is-invalid @enderror" 
+                                   value="{{ old('contact_number') }}" required 
+                                   placeholder="09171234567">
+                        </div>
+                        @error('contact_number')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-600" style="font-size:.85rem;">Driver's License No. (Optional)</label>
-                        <input type="text" name="license_number" class="form-control @error('license_number') is-invalid @enderror" value="{{ old('license_number') }}" placeholder="A01-12-345678">
-                        @error('license_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="input-group">
+                            <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-card-text"></i></span>
+                            <input type="text" name="license_number" id="licenseInput" 
+                                   class="form-control border-start-0 @error('license_number') is-invalid @enderror" 
+                                   value="{{ old('license_number') }}" 
+                                   placeholder="A01-12-345678">
+                        </div>
+                        @error('license_number')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
                 </div>
 
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label class="form-label fw-600" style="font-size:.85rem;">Citation Ticket No. (Optional)</label>
-                        <input type="text" name="ticket_number" class="form-control @error('ticket_number') is-invalid @enderror" value="{{ old('ticket_number') }}" placeholder="TVIRS-CEB-BAL-2026-000001">
-                        @error('ticket_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="input-group">
+                            <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-ticket-perforated-fill"></i></span>
+                            <input type="text" name="ticket_number" id="ticketInput" 
+                                   class="form-control border-start-0 @error('ticket_number') is-invalid @enderror" 
+                                   value="{{ old('ticket_number') }}" 
+                                   placeholder="TVIRS-CEB-BAL-2026-000001">
+                        </div>
+                        @error('ticket_number')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-600" style="font-size:.85rem;">Request Type <span class="text-danger">*</span></label>
@@ -76,7 +122,7 @@
                     <textarea name="details" rows="5" class="form-control @error('details') is-invalid @enderror" required placeholder="Please describe your specific privacy request or the details you wish to access or correct...">{{ old('details') }}</textarea>
                     @error('details')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     <div class="form-text" style="font-size:.78rem;">
-                        <i class="bi bi-lock me-1"></i> Your request is transmitted securely and will be processed strictly by authorized Data Protection Officers (DPO).
+                        <i class="bi bi-lock me-1 text-success"></i> Your request is transmitted securely and will be processed strictly by authorized Data Protection Officers (DPO).
                     </div>
                 </div>
 
@@ -90,4 +136,130 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchUrl = "{{ route('privacy.dsr.search') }}";
+    const nameInput = document.getElementById('fullNameInput');
+    const emailInput = document.getElementById('emailInput');
+    const contactInput = document.getElementById('contactInput');
+    const licenseInput = document.getElementById('licenseInput');
+    const ticketInput = document.getElementById('ticketInput');
+    const dropdown = document.getElementById('motoristDropdown');
+    const spinner = document.getElementById('fullNameSpinner');
+
+    let debounceTimer = null;
+
+    nameInput.addEventListener('input', function () {
+        const query = this.value.trim();
+        clearTimeout(debounceTimer);
+
+        if (query.length < 1) {
+            dropdown.classList.add('d-none');
+            dropdown.innerHTML = '';
+            return;
+        }
+
+        if (spinner) spinner.classList.remove('d-none');
+
+        debounceTimer = setTimeout(() => {
+            fetch(`${searchUrl}?q=${encodeURIComponent(query)}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (spinner) spinner.classList.add('d-none');
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    dropdown.innerHTML = `
+                        <div class="px-3 py-2.5 text-muted small">
+                            <i class="bi bi-info-circle me-1"></i> No matching motorist profiles found
+                        </div>`;
+                    dropdown.classList.remove('d-none');
+                    return;
+                }
+
+                let html = '<div class="px-3 py-2 bg-light border-bottom text-muted fw-700 text-uppercase" style="font-size:0.68rem; letter-spacing: 0.05em;">Select Registered Motorist</div>';
+                data.forEach(m => {
+                    const licenseBadge = m.license_number ? `<span class="badge bg-secondary opacity-75 ms-1" style="font-size:0.7rem;"><i class="bi bi-card-text me-0.5"></i>${escapeHtml(m.license_number)}</span>` : '';
+                    const emailTxt = m.email ? `<span class="text-muted ms-2" style="font-size:0.75rem;"><i class="bi bi-envelope me-1"></i>${escapeHtml(m.email)}</span>` : '';
+                    const ticketTxt = m.ticket_number ? `<span class="text-muted ms-2" style="font-size:0.75rem;"><i class="bi bi-ticket-perforated me-1"></i>Ticket: ${escapeHtml(m.ticket_number)}</span>` : '';
+
+                    html += `
+                        <button type="button" class="dropdown-item p-2.5 border-bottom text-wrap motorist-select-item"
+                                data-name="${escapeHtml(m.full_name)}"
+                                data-email="${escapeHtml(m.email)}"
+                                data-contact="${escapeHtml(m.contact_number)}"
+                                data-license="${escapeHtml(m.license_number)}"
+                                data-ticket="${escapeHtml(m.ticket_number)}"
+                                style="transition: background-color 0.15s ease;">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="fw-700 text-dark" style="font-size:0.88rem;">
+                                    <i class="bi bi-person-circle text-warning me-1.5"></i> ${escapeHtml(m.full_name)}
+                                </span>
+                                ${licenseBadge}
+                            </div>
+                            <div class="mt-1 d-flex flex-wrap align-items-center gap-1">
+                                ${emailTxt}
+                                ${ticketTxt}
+                            </div>
+                        </button>`;
+                });
+
+                dropdown.innerHTML = html;
+                dropdown.classList.remove('d-none');
+            })
+            .catch(err => {
+                console.error('Error fetching motorists:', err);
+                if (spinner) spinner.classList.add('d-none');
+                dropdown.classList.add('d-none');
+            });
+        }, 200);
+    });
+
+    // Auto-fill form fields when clicking a motorist item
+    dropdown.addEventListener('click', function (e) {
+        const btn = e.target.closest('.motorist-select-item');
+        if (!btn) return;
+
+        const name = btn.getAttribute('data-name');
+        const email = btn.getAttribute('data-email');
+        const contact = btn.getAttribute('data-contact');
+        const license = btn.getAttribute('data-license');
+        const ticket = btn.getAttribute('data-ticket');
+
+        if (name) nameInput.value = name;
+        if (emailInput) emailInput.value = email || '';
+        if (contactInput && contact) contactInput.value = contact;
+        if (licenseInput && license) licenseInput.value = license;
+        if (ticketInput && ticket) ticketInput.value = ticket;
+
+        dropdown.classList.add('d-none');
+
+        // Visual flash feedback on auto-filled inputs
+        [nameInput, emailInput, contactInput, licenseInput, ticketInput].forEach(el => {
+            if (el && el.value) {
+                el.classList.add('bg-warning-subtle');
+                setTimeout(() => el.classList.remove('bg-warning-subtle'), 1000);
+            }
+        });
+    });
+
+    // Close dropdown on outside click
+    document.addEventListener('click', function (e) {
+        if (!nameInput.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.add('d-none');
+        }
+    });
+
+    function escapeHtml(str) {
+        return String(str || '').replace(/[&<>"']/g, function (m) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+        });
+    }
+});
+</script>
 @endsection
