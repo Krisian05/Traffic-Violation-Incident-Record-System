@@ -84,11 +84,6 @@ class Violator extends Model
         return $this->hasMany(Violation::class);
     }
 
-    public function lgu()
-    {
-        return $this->belongsTo(Lgu::class);
-    }
-
     public function incidentMotorists()
     {
         return $this->hasMany(IncidentMotorist::class);
