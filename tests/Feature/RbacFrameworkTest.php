@@ -362,4 +362,23 @@ class RbacFrameworkTest extends TestCase
         $this->actingAs($lguAdmin2)->get("/violations/{$violation2->id}/edit")->assertOk();
         $this->actingAs($lguAdmin2)->get("/incidents/{$incident2->id}/edit")->assertOk();
     }
+
+    public function test_login_clears_unauthorized_intended_url_to_prevent_403(): void
+    {
+        $lguAdmin = User::factory()->lguAdmin()->create(['password' => bcrypt('password123')]);
+
+        // Simulate visiting an admin-only page while unauthenticated
+        session(['url.intended' => 'http://localhost/lgus']);
+
+        $response = $this->post('/login', [
+            'username' => $lguAdmin->username,
+            'password' => 'password123',
+        ]);
+
+        $response->assertRedirect('/dashboard');
+        $this->assertAuthenticatedAs($lguAdmin);
+
+        // Accessing dashboard should return 200 OK
+        $this->get('/dashboard')->assertOk();
+    }
 }

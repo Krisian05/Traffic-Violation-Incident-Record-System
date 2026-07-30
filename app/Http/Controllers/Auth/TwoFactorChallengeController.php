@@ -70,6 +70,46 @@ class TwoFactorChallengeController extends Controller
             return redirect()->route('officer.dashboard');
         }
 
+        $this->sanitizeIntendedUrl($user);
+
+        if ($user->isProvinceAdmin()) {
+            return redirect()->intended(route('province.dashboard'));
+        }
+
         return redirect()->intended('/dashboard');
+    }
+
+    private function sanitizeIntendedUrl(User $user): void
+    {
+        $intended = session()->get('url.intended');
+        if (! $intended) {
+            return;
+        }
+
+        $path = parse_url($intended, PHP_URL_PATH) ?? '';
+
+        if ($user->isSuperAdmin()) {
+            return;
+        }
+
+        if (str_starts_with($path, '/lgus')) {
+            session()->forget('url.intended');
+            return;
+        }
+
+        if (str_starts_with($path, '/province') && ! $user->isProvinceAdmin()) {
+            session()->forget('url.intended');
+            return;
+        }
+
+        if (str_starts_with($path, '/officer') && ! $user->isTrafficOfficer()) {
+            session()->forget('url.intended');
+            return;
+        }
+
+        if (str_starts_with($path, '/cashier') && ! in_array($user->role, ['cashier', 'treasurer', 'admin', 'super_admin'])) {
+            session()->forget('url.intended');
+            return;
+        }
     }
 }
