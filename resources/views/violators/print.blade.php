@@ -456,7 +456,7 @@
     {{-- ── VIOLATIONS BY TYPE (summary) ── --}}
     @if($violationsByType->isNotEmpty())
     <div class="section">
-        <div class="section-title">Violation Summary by Type</div>
+        <div class="section-title">Violation Summary by Type <span style="font-size:10px;font-weight:normal;color:#78716c;">(Active / Unsettled: {{ $activeVc }})</span></div>
         <div style="border:1px solid #e7e2db;border-radius:5px;overflow:hidden;">
             @foreach($violationsByType as $row)
             <div class="vtype-row">

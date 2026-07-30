@@ -241,7 +241,7 @@
                 </span>
                 <div>
                     <div class="vlt-section-title">Violations by Type</div>
-                    <div class="vlt-section-sub">Breakdown of offense categories</div>
+                    <div class="vlt-section-sub">Active (unsettled) offenses breakdown</div>
                 </div>
             </div>
             <div class="vlt-info-list">
@@ -260,9 +260,9 @@
                 </div>
                 @endforeach
                 <div class="vlt-info-row" style="border-bottom:none;background:#fdf8f0;">
-                    <span class="vlt-info-label" style="text-transform:none;letter-spacing:0;font-size:.82rem;color:#1c1917;font-weight:700;">Total</span>
+                    <span class="vlt-info-label" style="text-transform:none;letter-spacing:0;font-size:.82rem;color:#1c1917;font-weight:700;">Active Total</span>
                     <span class="vlt-vio-badge vlt-recidivist" style="font-size:.68rem;padding:.18rem .55rem;">
-                        {{ $vc }}
+                        {{ $activeVc }}
                     </span>
                 </div>
             </div>

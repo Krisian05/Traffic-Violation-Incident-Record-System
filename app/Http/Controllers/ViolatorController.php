@@ -181,7 +181,11 @@ class ViolatorController extends Controller
             'incidentMotorists.incident',
         ]);
 
-        $violationsByType = $violator->violations
+        // Exclude settled violations from the type breakdown
+        $activeViolations  = $violator->violations->where('status', '!=', 'settled');
+        $activeVc          = $activeViolations->count();
+
+        $violationsByType = $activeViolations
             ->groupBy('violation_type_id')
             ->map(fn($group) => [
                 'type'  => $group->first()->violationType,
@@ -190,7 +194,7 @@ class ViolatorController extends Controller
             ->sortByDesc('count')
             ->values();
 
-        return view('violators.show', compact('violator', 'violationsByType'));
+        return view('violators.show', compact('violator', 'violationsByType', 'activeVc'));
     }
 
     public function printRecord(Violator $violator)
@@ -204,7 +208,11 @@ class ViolatorController extends Controller
             'incidentMotorists.chargeType',
         ]);
 
-        $violationsByType = $violator->violations
+        // Exclude settled violations from the type breakdown
+        $activeViolations  = $violator->violations->where('status', '!=', 'settled');
+        $activeVc          = $activeViolations->count();
+
+        $violationsByType = $activeViolations
             ->groupBy('violation_type_id')
             ->map(fn($group) => [
                 'type'  => $group->first()->violationType,
@@ -213,7 +221,7 @@ class ViolatorController extends Controller
             ->sortByDesc('count')
             ->values();
 
-        return view('violators.print', compact('violator', 'violationsByType'));
+        return view('violators.print', compact('violator', 'violationsByType', 'activeVc'));
     }
 
     public function edit(Violator $violator)
