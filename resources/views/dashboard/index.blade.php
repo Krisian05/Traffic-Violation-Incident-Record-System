@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'LGU Operational Dashboard')
+@section('title', Auth::user()->isTrafficSupervisor() ? 'Traffic Enforcement Dashboard' : 'LGU Operational Dashboard')
 
 @section('content')
 
@@ -12,8 +12,13 @@
 @endphp
 <div class="dash-header-bar mb-3">
     <div class="dash-greeting">
+        @if(Auth::user()->isTrafficSupervisor())
+        <span class="dash-greeting-text">Traffic Police Command &mdash; Good {{ $grWord }}, <strong>{{ Auth::user()->name }}</strong> 👮‍♂️</span>
+        <span class="dash-greeting-sub">{{ now()->format('l, F d, Y') }} &mdash; Enforcement Oversight &amp; Field Personnel Monitoring</span>
+        @else
         <span class="dash-greeting-text">Good {{ $grWord }}, <strong>{{ Auth::user()->name }}</strong> 👋</span>
         <span class="dash-greeting-sub">{{ now()->format('l, F d, Y') }} &mdash; Traffic Violation Incident Record System</span>
+        @endif
     </div>
     <div class="dash-header-right d-flex align-items-center gap-2 flex-wrap">
         @if(Auth::user()->isOperator() || Auth::user()->isTrafficSupervisor() || Auth::user()->isRecordsOfficer())
@@ -180,6 +185,90 @@
 {{-- ── Stat Cards ── --}}
 <div class="row g-4 mb-4">
 
+    @if(Auth::user()->isTrafficSupervisor())
+    {{-- Supervisor KPI Card 1: Active Officers --}}
+    <div class="col-6 col-xl-3 stat-card" data-delay="50">
+        <a href="{{ route('audit-logs.index') }}" class="stat-card-link">
+        <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative">
+            <div class="stat-bg-blob" style="background:rgba(59,130,246,.06);"></div>
+            <div class="card-body d-flex align-items-center gap-3 py-4">
+                <div class="stat-icon-wrap" style="background:linear-gradient(135deg,#60a5fa,#3b82f6);">
+                    <i class="bi bi-person-badge-fill"></i>
+                </div>
+                <div>
+                    <div class="stat-label">Active Field Officers</div>
+                    <div class="stat-number" id="stat-officers" data-target="{{ $totalOfficers }}">0</div>
+                    <div class="stat-sub">field personnel in LGU</div>
+                </div>
+            </div>
+            <div class="stat-card-footer">View logs <i class="bi bi-arrow-right"></i></div>
+        </div>
+        </a>
+    </div>
+
+    {{-- Supervisor KPI Card 2: Citations Issued --}}
+    <div class="col-6 col-xl-3 stat-card" data-delay="150">
+        <a href="{{ route('violations.index', array_filter(['month' => now()->month, 'year' => now()->year, 'lgu_id' => $lguId])) }}" class="stat-card-link">
+        <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative">
+            <div class="stat-bg-blob" style="background:rgba(245,158,11,.06);"></div>
+            <div class="card-body d-flex align-items-center gap-3 py-4">
+                <div class="stat-icon-wrap" style="background:linear-gradient(135deg,#fb923c,#f59e0b);">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <div>
+                    <div class="stat-label">Citations Issued</div>
+                    <div class="stat-number" id="stat-violations-month" data-target="{{ $violationsThisMonth }}">0</div>
+                    <div class="stat-sub">{{ now()->format('F Y') }}</div>
+                </div>
+            </div>
+            <div class="stat-card-footer">View citations <i class="bi bi-arrow-right"></i></div>
+        </div>
+        </a>
+    </div>
+
+    {{-- Supervisor KPI Card 3: Incidents Logged --}}
+    <div class="col-6 col-xl-3 stat-card" data-delay="250">
+        <a href="{{ route('incidents.index', array_filter(['date_from' => now()->startOfMonth()->toDateString(), 'date_to' => now()->endOfMonth()->toDateString(), 'lgu_id' => $lguId])) }}" class="stat-card-link">
+        <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative">
+            <div class="stat-bg-blob" style="background:rgba(99,102,241,.06);"></div>
+            <div class="card-body d-flex align-items-center gap-3 py-4">
+                <div class="stat-icon-wrap" style="background:linear-gradient(135deg,#818cf8,#6366f1);">
+                    <i class="bi bi-flag-fill"></i>
+                </div>
+                <div>
+                    <div class="stat-label">Incidents Logged</div>
+                    <div class="stat-number" id="stat-incidents-month" data-target="{{ $incidentsThisMonth }}">0</div>
+                    <div class="stat-sub">{{ now()->format('F Y') }}</div>
+                </div>
+            </div>
+            <div class="stat-card-footer">View incidents <i class="bi bi-arrow-right"></i></div>
+        </div>
+        </a>
+    </div>
+
+    {{-- Supervisor KPI Card 4: Overdue Citations --}}
+    <div class="col-6 col-xl-3 stat-card" data-delay="350">
+        <a href="{{ route('violations.index', array_filter(['status' => 'overdue', 'lgu_id' => $lguId])) }}" class="stat-card-link">
+        <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative">
+            <div class="stat-bg-blob" style="background:rgba(239,68,68,.06);"></div>
+            <div class="card-body d-flex align-items-center gap-3 py-4">
+                <div class="stat-icon-wrap" style="background:linear-gradient(135deg,#f87171,#ef4444);">
+                    <i class="bi bi-alarm-fill"></i>
+                    <span class="stat-pulse" style="background:#fca5a5;"></span>
+                </div>
+                <div>
+                    <div class="stat-label">Overdue Citations</div>
+                    <div class="stat-number" id="stat-overdue" data-target="{{ $overdueTotal }}">0</div>
+                    <div class="stat-sub">unsettled past due</div>
+                </div>
+            </div>
+            <div class="stat-card-footer">Review overdue <i class="bi bi-arrow-right"></i></div>
+        </div>
+        </a>
+    </div>
+
+    @else
+    {{-- Standard LGU Admin KPI Cards --}}
     <div class="col-6 col-xl-3 stat-card" data-delay="50">
         <a href="{{ route('violators.index', array_filter(['lgu_id' => $lguId])) }}" class="stat-card-link">
         <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative">
@@ -256,6 +345,7 @@
         </div>
         </a>
     </div>
+    @endif
 
 </div>
 
