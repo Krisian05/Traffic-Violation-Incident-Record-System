@@ -128,6 +128,19 @@
                 </div>
                 @endif
 
+                {{-- Log Category --}}
+                <div style="flex:1.6;min-width:140px;">
+                    <label class="filter-label"><i class="bi bi-tags me-1"></i>Record Category</label>
+                    <select name="category" class="form-select form-select-sm filt-input">
+                        <option value="">All Categories</option>
+                        <option value="violation" {{ ($category ?? '') === 'violation' ? 'selected' : '' }}>Violations &amp; Citations</option>
+                        <option value="incident" {{ ($category ?? '') === 'incident' ? 'selected' : '' }}>Traffic Incidents</option>
+                        <option value="violator" {{ ($category ?? '') === 'violator' ? 'selected' : '' }}>Motorists &amp; Profiles</option>
+                        <option value="vehicle" {{ ($category ?? '') === 'vehicle' ? 'selected' : '' }}>Vehicles</option>
+                        <option value="auth" {{ ($category ?? '') === 'auth' ? 'selected' : '' }}>Officer Logins (Auth)</option>
+                    </select>
+                </div>
+
                 {{-- Event Type --}}
                 <div style="flex:1.5;min-width:130px;">
                     <label class="filter-label"><i class="bi bi-lightning-charge me-1"></i>Event Type</label>

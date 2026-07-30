@@ -54,12 +54,18 @@ class AuditLogController extends Controller
             });
         }
 
+        $category = trim($request->input('category', ''));
+
         // Scope Police Traffic Supervisor logs to enforcement, incident, motorist, vehicle, and officer auth categories
         if ($user && $user->isTrafficSupervisor()) {
             $query->where(function ($sq) {
                 $sq->whereIn('log_name', ['violation', 'incident', 'violator', 'vehicle', 'auth', 'default'])
                    ->orWhereNull('log_name');
             });
+        }
+
+        if ($category !== '') {
+            $query->where('log_name', $category);
         }
 
         if ($search !== '') {
@@ -111,7 +117,7 @@ class AuditLogController extends Controller
         $selectedLgu = $lguId ? Lgu::find($lguId) : null;
 
         return view('audit-logs.index', compact(
-            'logs', 'search', 'event', 'dateFrom', 'dateTo', 'causer', 'events',
+            'logs', 'search', 'category', 'event', 'dateFrom', 'dateTo', 'causer', 'events',
             'lguId', 'lgus', 'isLguScoped', 'selectedLgu',
             'totalLogs', 'todayLogs', 'loginLogs', 'mutationLogs'
         ));
