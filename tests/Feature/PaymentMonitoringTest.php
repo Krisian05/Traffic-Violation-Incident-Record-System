@@ -81,12 +81,30 @@ class PaymentMonitoringTest extends TestCase
 
         $response->assertRedirect();
         $violation->refresh();
-
         $this->assertSame('settled', $violation->status);
         $this->assertNotNull($violation->settled_at);
         $this->assertSame(1, $violation->payments()->count());
         $this->assertEqualsWithDelta(1000.0, (float) $violation->payments()->sum('amount_paid'), 0.001);
         $this->assertEqualsWithDelta(0.0, $violation->balanceRemaining(), 0.001);
+    }
+
+    public function test_settlement_from_cashier_redirects_to_exact_ticket_number_page(): void
+    {
+        $lgu       = Lgu::factory()->create();
+        $cashier   = User::factory()->cashier()->create(['lgu_id' => $lgu->id]);
+        $violation = $this->makeViolation(['lgu_id' => $lgu->id, 'ticket_number' => 'TVIRS-TEST-0001']);
+
+        $response = $this->actingAs($cashier)
+            ->from(route('violations.cashier', ['search' => 'Juan Motorist']))
+            ->patch(route('violations.settle', $violation), [
+                'or_number'      => 'OR-9999',
+                'cashier_name'   => 'Juan Cruz',
+                'payment_method' => 'cash',
+            ]);
+
+        $response->assertRedirect(route('violations.cashier', ['search' => 'TVIRS-TEST-0001']));
+        $violation->refresh();
+        $this->assertSame('settled', $violation->status);
     }
 
     public function test_partial_payment_sets_status_partial_then_settled_on_second_payment(): void

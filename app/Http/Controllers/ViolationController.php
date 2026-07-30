@@ -472,6 +472,20 @@ class ViolationController extends Controller
             ? 'Violation settled successfully.'
             : 'Partial payment recorded. Remaining balance: ₱' . number_format($violation->balanceRemaining(), 2) . '.';
 
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'status'  => $violation->status,
+            ]);
+        }
+
+        $referer = $request->header('Referer', '');
+        if (str_contains($referer, '/cashier') || $request->is('cashier*')) {
+            return redirect()->route('violations.cashier', ['search' => $violation->ticket_number ?: $violation->id])
+                ->with('success', $message);
+        }
+
         return back()->with('success', $message);
     }
 

@@ -90,6 +90,7 @@ class PaymentService
     public function syncViolationStatus(Violation $violation, ?Payment $latestPayment = null): void
     {
         $violation->refresh();
+        $violation->loadMissing('violationType');
 
         // Only count active (non-voided) payments
         $totalPaid = (float) $violation->activePayments()->sum('amount_paid');
