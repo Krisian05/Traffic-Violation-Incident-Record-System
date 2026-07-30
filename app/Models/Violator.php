@@ -69,6 +69,11 @@ class Violator extends Model
         return implode(' ', $parts);
     }
 
+    public function lgu()
+    {
+        return $this->belongsTo(Lgu::class);
+    }
+
     public function vehicles()
     {
         return $this->hasMany(Vehicle::class);
