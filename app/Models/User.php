@@ -64,8 +64,8 @@ class User extends Authenticatable
         'province_admin'     => 'Provincial Administrator',
         'operator'           => 'LGU Administrator',
         'lgu_admin'          => 'LGU Administrator',
-        'treasurer'          => 'Treasurer',
-        'cashier'            => 'Cashier',
+        'treasurer'          => 'Cashier / Treasurer',
+        'cashier'            => 'Cashier / Treasurer',
         'traffic_supervisor' => 'Police / Traffic Supervisor',
         'supervisor'         => 'Police / Traffic Supervisor',
         'traffic_officer'    => 'Issuing Officer / Field Personnel',
@@ -83,8 +83,8 @@ class User extends Authenticatable
 
     public const LGU_ADMIN_ROLES = [
         'operator'           => 'LGU Administrator — Local System Settings & LGU Management',
-        'treasurer'          => 'Treasurer — Collection Monitoring & Financial Reports',
-        'cashier'            => 'Cashier — Payment Validation & Collection Settlement',
+        'cashier'            => 'Cashier / Treasurer — Payment Collection, OR Recording & Financial Reports',
+        'treasurer'          => 'Cashier / Treasurer — Payment Collection, OR Recording & Financial Reports',
         'traffic_supervisor' => 'Police / Traffic Supervisor — Citation Review & Officer Monitoring',
         'traffic_officer'    => 'Issuing Officer / Field Personnel — Citation Ticket & Incident Issuance (Mobile)',
         'records_officer'    => 'Records Officer — Record Management, Encoding & Documentation',
@@ -128,12 +128,12 @@ class User extends Authenticatable
 
     public function isTreasurer(): bool
     {
-        return $this->role === 'treasurer';
+        return in_array($this->role, ['treasurer', 'cashier']);
     }
 
     public function isCashier(): bool
     {
-        return $this->role === 'cashier';
+        return in_array($this->role, ['cashier', 'treasurer']);
     }
 
     public function isTrafficSupervisor(): bool

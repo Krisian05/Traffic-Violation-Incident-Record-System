@@ -33,6 +33,8 @@ class RoleMiddleware
             'issuing_officer'    => ['traffic_officer', 'issuing_officer'],
             'traffic_supervisor' => ['traffic_supervisor', 'supervisor'],
             'supervisor'         => ['traffic_supervisor', 'supervisor'],
+            'treasurer'          => ['treasurer', 'cashier'],
+            'cashier'            => ['cashier', 'treasurer'],
             'auditor'            => ['auditor', 'view_only'],
             'view_only'          => ['auditor', 'view_only'],
         ];

@@ -155,8 +155,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/violations/{violation}/payments/{payment}/receipt', [ViolationController::class, 'printReceipt'])->name('payments.receipt');
     });
 
-    // ── PAYMENT MANAGEMENT (Treasurer / Admin) ────────────────────────────
-    Route::middleware('role:admin,treasurer')->group(function () {
+    // ── PAYMENT MANAGEMENT (Cashier / Treasurer / Admin) ────────────────────
+    Route::middleware('role:admin,treasurer,cashier')->group(function () {
         Route::patch('/payments/{payment}/void', [PaymentController::class, 'void'])->name('payments.void');
         Route::patch('/payments/{payment}/correct', [PaymentController::class, 'correct'])->name('payments.correct');
     });

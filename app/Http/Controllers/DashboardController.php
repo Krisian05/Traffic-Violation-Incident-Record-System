@@ -377,11 +377,8 @@ class DashboardController extends Controller
         if ($user->isProvinceAdmin()) {
             return redirect()->route('province.dashboard');
         }
-        if ($user->isCashier()) {
+        if ($user->isCashier() || $user->isTreasurer()) {
             return redirect()->route('violations.cashier');
-        }
-        if ($user->isTreasurer()) {
-            return redirect()->route('payments.report');
         }
 
         $lguId = ($user->lgu_id && !$user->isSuperAdmin() && !$user->isProvinceAdmin()) ? $user->lgu_id : null;

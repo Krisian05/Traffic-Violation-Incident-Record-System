@@ -24,7 +24,7 @@ class PaymentPolicy
      */
     public function void(User $user, Payment $payment): bool
     {
-        if (!$user->isTreasurer() && !$user->isSuperAdmin()) {
+        if (!$user->isTreasurer() && !$user->isCashier() && !$user->isSuperAdmin()) {
             return false;
         }
 
@@ -32,7 +32,7 @@ class PaymentPolicy
             return false;
         }
 
-        // Treasurer can only void payments for their own LGU
+        // Treasurer / Cashier can only void payments for their own LGU
         if ($user->lgu_id && $payment->violation?->lgu_id && (int) $user->lgu_id !== (int) $payment->violation->lgu_id) {
             return false;
         }
@@ -41,11 +41,11 @@ class PaymentPolicy
     }
 
     /**
-     * Correcting payment method — same rules as void (Treasurer / Super Admin only).
+     * Correcting payment method — same rules as void (Cashier / Treasurer / Super Admin only).
      */
     public function correct(User $user, Payment $payment): bool
     {
-        if (!$user->isTreasurer() && !$user->isSuperAdmin()) {
+        if (!$user->isTreasurer() && !$user->isCashier() && !$user->isSuperAdmin()) {
             return false;
         }
 
