@@ -58,7 +58,7 @@
         <form method="GET" action="{{ route('violations.index') }}" id="vio-filter-form">
             <div class="d-flex flex-wrap align-items-end gap-2">
 
-                <div style="flex:3.2;min-width:200px;">
+                <div style="flex:2;min-width:180px;">
                     <label class="filter-label"><i class="bi bi-search me-1"></i>Search Violator / Plate No.</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text filt-icon"><i class="bi bi-search"></i></span>
@@ -68,7 +68,7 @@
                     </div>
                 </div>
 
-                <div style="flex:1.8;min-width:0;">
+                <div style="flex:1.5;min-width:130px;">
                     <label class="filter-label"><i class="bi bi-tag me-1"></i>Violation Type</label>
                     <select name="type" class="form-select form-select-sm filt-input">
                         <option value="">All Types</option>
@@ -78,7 +78,7 @@
                     </select>
                 </div>
 
-                <div style="flex:1.3;min-width:110px;">
+                <div style="flex:1.2;min-width:110px;">
                     <label class="filter-label"><i class="bi bi-activity me-1"></i>Status</label>
                     <select name="status" class="form-select form-select-sm filt-input">
                         <option value="">All Statuses</option>
@@ -89,7 +89,7 @@
                     </select>
                 </div>
 
-                <div style="flex:1.5;min-width:0;">
+                <div style="flex:1.2;min-width:115px;">
                     <label class="filter-label"><i class="bi bi-calendar-month me-1"></i>Month</label>
                     <select name="month" class="form-select form-select-sm filt-input">
                         <option value="">Any Month</option>
@@ -99,7 +99,7 @@
                     </select>
                 </div>
 
-                <div style="flex:.9;min-width:0;">
+                <div style="flex:1;min-width:85px;">
                     <label class="filter-label"><i class="bi bi-calendar-year me-1"></i>Year</label>
                     <input type="number" name="year" class="form-control form-control-sm filt-input"
                         placeholder="{{ date('Y') }}"
@@ -107,13 +107,13 @@
                         min="2000" max="{{ date('Y') }}">
                 </div>
 
-                <div style="flex:1.3;min-width:120px;">
+                <div style="flex:1.2;min-width:125px;">
                     <label class="filter-label"><i class="bi bi-calendar-event me-1"></i>Date From</label>
                     <input type="date" name="date_from" class="form-control form-control-sm filt-input"
                         value="{{ request('date_from') }}">
                 </div>
 
-                <div style="flex:1.3;min-width:120px;">
+                <div style="flex:1.2;min-width:125px;">
                     <label class="filter-label"><i class="bi bi-calendar-event me-1"></i>Date To</label>
                     <input type="date" name="date_to" class="form-control form-control-sm filt-input"
                         value="{{ request('date_to') }}">
