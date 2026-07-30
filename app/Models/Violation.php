@@ -66,7 +66,6 @@ class Violation extends Model
         'ticket_number',
         'citation_ticket_photo',
         'valid_id_photo',
-        'signature_photo',
         'status',
         'notes',
         'recorded_by',

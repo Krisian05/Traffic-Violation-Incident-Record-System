@@ -241,8 +241,6 @@
                 @error('photos')<div style="font-size:.72rem;color:#dc2626;margin-top:.25rem;">{{ $message }}</div>@enderror
             </div>
 
-            @include('partials.signature-pad', ['padId' => 'sig_pad_online'])
-
             <div class="mb-4">
                 <label class="mob-label">Notes</label>
                 <textarea name="notes" rows="2"

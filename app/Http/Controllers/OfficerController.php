@@ -478,7 +478,6 @@ class OfficerController extends Controller
             'ticket_number'         => ['nullable', 'string', 'max:50', 'unique:violations,ticket_number'],
             'citation_ticket_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
             'valid_id_photo'        => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
-            'signature_photo'       => ['nullable', 'string'],
             'status'                => ['required', 'in:pending,settled'],
             'notes'                 => ['nullable', 'string', 'max:1000'],
         ]);
@@ -539,18 +538,6 @@ class OfficerController extends Controller
         if ($request->hasFile('valid_id_photo')) {
             $data['valid_id_photo'] = $request->file('valid_id_photo')
                 ->store('valid-id-photos', uploads_disk());
-        }
-
-        if ($request->hasFile('signature_photo')) {
-            $data['signature_photo'] = $request->file('signature_photo')->store('signature-photos', uploads_disk());
-        } elseif (!empty($request->input('signature_photo')) && str_contains($request->input('signature_photo'), ';base64,')) {
-            $sigData = $request->input('signature_photo');
-            $img = explode(',', $sigData)[1] ?? null;
-            if ($img) {
-                $filename = 'signature-photos/' . \Illuminate\Support\Str::uuid() . '.png';
-                Storage::disk(uploads_disk())->put($filename, base64_decode($img));
-                $data['signature_photo'] = $filename;
-            }
         }
 
         unset($data['photos']);

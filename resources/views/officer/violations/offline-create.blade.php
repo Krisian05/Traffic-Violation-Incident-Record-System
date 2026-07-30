@@ -265,8 +265,6 @@
                 <div id="picker-offline-veh-photos"></div>
             </div>
 
-            @include('partials.signature-pad', ['padId' => 'sig_pad_offline'])
-
             <div class="mb-4">
                 <label class="mob-label">Notes</label>
                 <textarea name="notes" rows="2" class="form-control mob-input" style="min-height:auto;resize:none;" placeholder="Optional remarks..."></textarea>
