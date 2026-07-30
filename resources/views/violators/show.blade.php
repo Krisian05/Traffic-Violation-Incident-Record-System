@@ -467,7 +467,7 @@
                                         </a>
                                         @endcan
                                         @can('settle', $viol)
-                                        @if($viol->status === 'pending')
+                                        @if(in_array($viol->status, ['pending', 'partial']))
                                         <button type="button" class="vlt-act-btn vlt-act-settle"
                                             data-id="{{ $viol->id }}"
                                             data-type="{{ $viol->violationType?->name ?? '' }}"
@@ -676,10 +676,10 @@
     border-top: 1px solid #f0ebe3;
     padding-top: .85rem;
 }
-.vlt-stat-item { flex: 1; text-align: center; }
-.vlt-stat-num { font-size: 1.3rem; font-weight: 700; line-height: 1; }
-.vlt-stat-lbl { font-size: .7rem; color: #a8a29e; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-top: .2rem; }
-.vlt-stat-divider { width: 1px; background: #f0ebe3; }
+.vlt-stat-item { flex: 1; text-align: center; padding: 0 .25rem; }
+.vlt-stat-num { font-size: 1.15rem; font-weight: 700; line-height: 1; }
+.vlt-stat-lbl { font-size: .62rem; color: #a8a29e; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-top: .2rem; }
+.vlt-stat-divider { width: 1px; background: #f0ebe3; flex-shrink: 0; }
 
 /* ─── INFO CARD ─── */
 .vlt-info-card {
