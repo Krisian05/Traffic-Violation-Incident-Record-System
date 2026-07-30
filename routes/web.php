@@ -200,7 +200,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
     // ── AUDIT LOGS ────────────────────────────────────────────────────────────
-    Route::middleware('role:admin,province_admin,operator,auditor')->group(function () {
+    Route::middleware('role:admin,province_admin,operator,auditor,traffic_supervisor')->group(function () {
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
     });
 

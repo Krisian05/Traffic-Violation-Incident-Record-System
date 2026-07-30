@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Incident;
 use App\Models\Vehicle;
 use App\Models\Violator;
@@ -427,6 +428,18 @@ class DashboardController extends Controller
             ? round(($settledCount / $totalViolationsAll) * 100)
             : 0;
 
+        // Officer Activity metrics (LGU Scoped for Supervisors & Officers Oversight)
+        $totalOfficers = User::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->whereIn('role', ['traffic_officer', 'issuing_officer'])
+            ->count();
+
+        $topIssuingOfficers = User::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+            ->whereIn('role', ['traffic_officer', 'issuing_officer'])
+            ->withCount(['violations' => fn($q) => $q->when($lguId, fn($vq) => $vq->where('lgu_id', $lguId))->whereMonth('date_of_violation', now()->month)->whereYear('date_of_violation', now()->year)])
+            ->orderByDesc('violations_count')
+            ->limit(5)
+            ->get();
+
         return view('dashboard.index', compact(
             'totalViolators',
             'totalVehicles',
@@ -441,7 +454,9 @@ class DashboardController extends Controller
             'freshPendingTotal',
             'totalViolationsAll',
             'settledCount',
-            'settlementRate'
+            'settlementRate',
+            'totalOfficers',
+            'topIssuingOfficers'
         ));
     }
 }

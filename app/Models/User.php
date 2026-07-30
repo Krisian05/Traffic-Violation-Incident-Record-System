@@ -175,6 +175,11 @@ class User extends Authenticatable
         return $this->hasMany(Violation::class, 'recorded_by');
     }
 
+    public function violations()
+    {
+        return $this->recordedViolations();
+    }
+
     public function lgu()
     {
         return $this->belongsTo(Lgu::class);

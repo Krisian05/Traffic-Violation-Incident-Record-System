@@ -16,7 +16,7 @@
         <span class="dash-greeting-sub">{{ now()->format('l, F d, Y') }} &mdash; Traffic Violation Incident Record System</span>
     </div>
     <div class="dash-header-right d-flex align-items-center gap-2 flex-wrap">
-        @if(Auth::user()->isOperator())
+        @if(Auth::user()->isOperator() || Auth::user()->isTrafficSupervisor() || Auth::user()->isRecordsOfficer())
         <a href="{{ route('violators.create') }}" class="btn btn-sm btn-primary">
             <i class="bi bi-person-plus-fill me-1"></i>New Motorist
         </a>
@@ -258,6 +258,90 @@
     </div>
 
 </div>
+
+@if(Auth::user()->isTrafficSupervisor())
+{{-- ── Traffic Supervisor Officer Oversight Panel (LGU Scoped) ── --}}
+<div class="card border-0 shadow-sm mb-4 overflow-hidden" style="border-radius:14px;background:#fffdf9;border:1px solid #ddd0be!important;">
+    <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <span class="rounded d-flex align-items-center justify-content-center" style="width:32px;height:32px;background:#eff6ff;color:#1d4ed8;">
+                <i class="bi bi-shield-lock-fill" style="font-size:1.1rem;"></i>
+            </span>
+            <div>
+                <h6 class="fw-700 mb-0" style="color:#1c1917;font-size:.95rem;">Field Personnel &amp; Citation Oversight</h6>
+                <span class="text-muted" style="font-size:.75rem;">LGU Officers &amp; Citation Performance for {{ Auth::user()->lgu?->name ?? 'Assigned LGU' }}</span>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ route('audit-logs.index') }}" class="btn btn-sm btn-outline-primary fw-600">
+                <i class="bi bi-clock-history me-1"></i>Audit Officer Logs
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="p-3 rounded h-100 d-flex flex-column justify-content-between" style="background:#f8fafc;border:1px solid #e2e8f0;">
+                    <div>
+                        <span class="text-muted text-uppercase fw-700" style="font-size:.7rem;letter-spacing:.05em;">LGU Field Personnel</span>
+                        <div class="d-flex align-items-baseline gap-2 mt-1">
+                            <span class="fw-800" style="font-size:2rem;color:#1e293b;">{{ $totalOfficers }}</span>
+                            <span class="text-secondary fw-600" style="font-size:.85rem;">Active Officers</span>
+                        </div>
+                        <p class="text-muted mb-0 mt-2" style="font-size:.8rem;line-height:1.4;">
+                            Field personnel assigned to citation ticket issuance and mobile traffic enforcement in your LGU.
+                        </p>
+                    </div>
+                    <div class="mt-3 pt-3 border-top" style="border-color:#cbd5e1!important;">
+                        <a href="{{ route('violations.index', array_filter(['lgu_id' => $lguId])) }}" class="text-primary fw-600" style="font-size:.8rem;text-decoration:none;">
+                            Review All Citations <i class="bi bi-arrow-right me-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <h6 class="fw-700 mb-2" style="font-size:.85rem;color:#334155;">Top Citation Issuing Officers (This Month)</h6>
+                @if($topIssuingOfficers->isEmpty())
+                    <div class="text-muted p-3 text-center rounded" style="background:#f8fafc;border:1px dashed #cbd5e1;font-size:.82rem;">
+                        No citations issued by officers this month yet.
+                    </div>
+                @else
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="font-size:.85rem;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Officer Name</th>
+                                    <th>Username</th>
+                                    <th class="text-center">Role</th>
+                                    <th class="text-end">Citations Issued</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($topIssuingOfficers as $officer)
+                                <tr>
+                                    <td class="fw-600" style="color:#1e293b;">
+                                        <i class="bi bi-person-badge me-1 text-primary"></i> {{ $officer->name }}
+                                    </td>
+                                    <td class="text-secondary" style="font-family:ui-monospace,monospace;font-size:.78rem;">
+                                        {{ $officer->username }}
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-light text-dark border" style="font-size:.7rem;">{{ $officer->role_label }}</span>
+                                    </td>
+                                    <td class="text-end fw-700 text-primary">
+                                        {{ number_format($officer->violations_count) }} citation{{ $officer->violations_count != 1 ? 's' : '' }}
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 
 {{-- ── Analytics Overview ── --}}
 <div class="analytics-section mb-4">

@@ -138,6 +138,23 @@ class RbacFrameworkTest extends TestCase
             ->get('/reports')
             ->assertOk();
 
+        $this->actingAs($supervisor)
+            ->get('/dashboard')
+            ->assertOk()
+            ->assertSee('Field Personnel &amp; Citation Oversight', false);
+
+        $this->actingAs($supervisor)
+            ->get('/audit-logs')
+            ->assertOk();
+
+        $this->actingAs($supervisor)
+            ->get('/violators/create')
+            ->assertOk();
+
+        $this->actingAs($supervisor)
+            ->get('/incidents/create')
+            ->assertOk();
+
         // Cannot delete violations or manage users
         $this->actingAs($supervisor)
             ->get('/users')

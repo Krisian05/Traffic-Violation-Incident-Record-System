@@ -284,7 +284,7 @@
                     <div class="vlt-section-title">Vehicles</div>
                     <div class="vlt-section-sub">Registered vehicles of this motorist</div>
                 </div>
-                @if(Auth::user()->isOperator())
+                @if(Auth::user()->isOperator() || Auth::user()->isTrafficSupervisor() || Auth::user()->isRecordsOfficer())
                     <a href="{{ route('vehicles.create', $violator) }}" class="vlt-add-inline-btn ms-auto">
                         <i class="bi bi-plus-lg"></i> Add Vehicle
                     </a>
@@ -409,7 +409,7 @@
                     </div>
                     <div class="vlt-section-sub">Complete record of offenses</div>
                 </div>
-                @if(Auth::user()->isOperator())
+                @if(Auth::user()->isOperator() || Auth::user()->isTrafficSupervisor() || Auth::user()->isRecordsOfficer())
                     <a href="{{ route('violations.create', $violator) }}" class="vlt-add-inline-btn vlt-add-danger ms-auto">
                         <i class="bi bi-plus-lg"></i> Add Violation
                     </a>

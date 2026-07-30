@@ -1007,7 +1007,7 @@
         @endif
         @if(!auth()->user()->isProvinceAdmin() && !auth()->user()->isCashier() && !auth()->user()->isTreasurer())
         <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
-            <i class="bi bi-speedometer2"></i> LGU Operational Dashboard
+            <i class="bi bi-speedometer2"></i> {{ Auth::user()->isTrafficSupervisor() ? 'Traffic Enforcement Dashboard' : 'LGU Operational Dashboard' }}
         </a>
         @endif
         @if(Auth::user()->isCashier() || Auth::user()->isTreasurer())
@@ -1049,7 +1049,7 @@
         <a href="{{ route('privacy.policy') }}" class="{{ request()->routeIs('privacy.*') ? 'active' : '' }}">
             <i class="bi bi-shield-check"></i> Data Privacy Policy
         </a>
-        @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin() || Auth::user()->isLguAdmin() || Auth::user()->isAuditor())
+        @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin() || Auth::user()->isLguAdmin() || Auth::user()->isAuditor() || Auth::user()->isTrafficSupervisor())
         <a href="{{ route('audit-logs.index') }}" class="{{ request()->routeIs('audit-logs.*') ? 'active' : '' }}">
             <i class="bi bi-clock-history"></i> Audit Trail
         </a>

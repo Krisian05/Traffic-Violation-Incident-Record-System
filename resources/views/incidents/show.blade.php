@@ -202,7 +202,7 @@
                                 @else
                                     <span class="fw-700" style="color:#1c1917;font-size:.9rem;">{{ $m->motorist_name ?? '—' }}</span>
                                     <span class="mot-tag mot-tag-unreg"><i class="bi bi-exclamation-circle me-1"></i>Unregistered</span>
-                                    @if(Auth::user()->isOperator())
+                                    @if(Auth::user()->isOperator() || Auth::user()->isTrafficSupervisor() || Auth::user()->isRecordsOfficer())
                                     <a href="{{ route('violators.create-from-incident', $m) }}"
                                        style="font-size:.7rem;padding:.18rem .5rem;background:#dbeafe;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:8px;text-decoration:none;font-weight:600;">
                                         <i class="bi bi-person-plus-fill me-1"></i>Register
@@ -570,7 +570,7 @@
         </div>
 
         {{-- Actions --}}
-        @if(Auth::user()->isOperator())
+        @if(Auth::user()->isOperator() || Auth::user()->isTrafficSupervisor() || Auth::user()->isRecordsOfficer())
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header d-flex align-items-center gap-2 py-3">
                 <span class="rounded d-flex align-items-center justify-content-center"

@@ -34,7 +34,7 @@
                     <i class="bi bi-x-lg"></i> Clear filters
                 </a>
             @endif
-            @if(Auth::user()->isOperator())
+            @if(Auth::user()->isOperator() || Auth::user()->isTrafficSupervisor() || Auth::user()->isRecordsOfficer())
                 <a href="{{ route('violators.create') }}" class="vlt-add-btn">
                     <i class="bi bi-person-plus-fill"></i> Add Motorist
                 </a>

@@ -34,8 +34,8 @@ class PrivacyController extends Controller
 
         $query = Violator::query();
 
-        // Scope by LGU / region if user belongs to a specific LGU
-        if ($user && $user->lgu_id) {
+        // Scope by LGU / region if user belongs to a specific LGU and isn't global/province admin
+        if ($user && $user->lgu_id && ! $user->isSuperAdmin() && ! $user->isProvinceAdmin()) {
             $query->where('lgu_id', $user->lgu_id);
         }
 
