@@ -139,6 +139,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/violations/{violation}/print-thermal', [ViolationController::class, 'printThermal'])->name('violations.print-thermal');
     Route::post('/violations/{violation}/send-sms', [ViolationController::class, 'sendSms'])->name('violations.send-sms');
 
+    // ── SMS GATEWAY ───────────────────────────────────────────────────────────
+    Route::get('/sms-gateway', [\App\Http\Controllers\SmsController::class, 'index'])->name('sms.index');
+    Route::post('/sms-gateway/settings', [\App\Http\Controllers\SmsController::class, 'updateSettings'])->name('sms.settings');
+
     Route::middleware('role:operator,records_officer,traffic_supervisor')->group(function () {
         Route::get('/violators/{violator}/violations/create', [ViolationController::class, 'create'])->name('violations.create');
         Route::post('/violators/{violator}/violations', [ViolationController::class, 'store'])->name('violations.store');

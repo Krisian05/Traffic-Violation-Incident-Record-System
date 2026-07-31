@@ -1060,6 +1060,9 @@
         <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">
             <i class="bi bi-people-fill"></i> Users
         </a>
+        <a href="{{ route('sms.index') }}" class="{{ request()->routeIs('sms.*') ? 'active' : '' }}">
+            <i class="bi bi-chat-left-text-fill"></i> SMS Gateway
+        </a>
         @if(Auth::user()->isSuperAdmin())
         <a href="{{ route('lgus.index') }}" class="{{ request()->routeIs('lgus.*') ? 'active' : '' }}">
             <i class="bi bi-building"></i> LGUs
