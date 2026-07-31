@@ -216,6 +216,10 @@ class ViolationController extends Controller
 
         app(NotificationService::class)->notifyNewViolation($violation);
 
+        if (!$violation->lgu || $violation->lgu->sms_auto_send) {
+            app(\App\Services\SmsService::class)->sendCitationSms($violation);
+        }
+
         // Save photos only for manual vehicle entry
         if ($request->hasFile('photos') && empty($request->input('vehicle_id'))) {
             foreach (\array_slice($request->file('photos'), 0, 4) as $file) {
@@ -226,6 +230,15 @@ class ViolationController extends Controller
 
         return redirect()->route('violators.show', $violator)
             ->with('success', 'Violation recorded successfully.');
+    }
+
+    public function sendSms(Request $request, Violation $violation)
+    {
+        $result = app(\App\Services\SmsService::class)->sendCitationSms($violation);
+        if ($result['success']) {
+            return back()->with('success', $result['message']);
+        }
+        return back()->with('error', $result['message']);
     }
 
     public function show(Violation $violation)

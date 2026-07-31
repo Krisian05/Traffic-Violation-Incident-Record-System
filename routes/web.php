@@ -137,6 +137,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/violations/{violation}', [ViolationController::class, 'show'])->name('violations.show');
     Route::get('/violations/{violation}/print', [ViolationController::class, 'printRecord'])->name('violations.print');
     Route::get('/violations/{violation}/print-thermal', [ViolationController::class, 'printThermal'])->name('violations.print-thermal');
+    Route::post('/violations/{violation}/send-sms', [ViolationController::class, 'sendSms'])->name('violations.send-sms');
 
     Route::middleware('role:operator,records_officer,traffic_supervisor')->group(function () {
         Route::get('/violators/{violator}/violations/create', [ViolationController::class, 'create'])->name('violations.create');

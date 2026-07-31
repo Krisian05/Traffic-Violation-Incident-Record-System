@@ -29,9 +29,13 @@ class LguController extends Controller
             'treasurer_office'    => ['nullable', 'string', 'max:255'],
             'gcash_qr_image'      => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
             'maya_qr_image'       => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'sms_api_key'         => ['nullable', 'string', 'max:255'],
+            'sms_sender_name'     => ['nullable', 'string', 'max:11'],
+            'sms_auto_send'       => ['nullable', 'boolean'],
         ]);
 
         $data['code'] = strtoupper($data['code']);
+        $data['sms_auto_send'] = $request->has('sms_auto_send');
 
         if ($request->hasFile('gcash_qr_image')) {
             $data['gcash_qr_path'] = $request->file('gcash_qr_image')->store('lgus/gcash_qrs', 'public');
@@ -61,9 +65,13 @@ class LguController extends Controller
             'treasurer_office'    => ['nullable', 'string', 'max:255'],
             'gcash_qr_image'      => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
             'maya_qr_image'       => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'sms_api_key'         => ['nullable', 'string', 'max:255'],
+            'sms_sender_name'     => ['nullable', 'string', 'max:11'],
+            'sms_auto_send'       => ['nullable', 'boolean'],
         ]);
 
         $data['code'] = strtoupper($data['code']);
+        $data['sms_auto_send'] = $request->has('sms_auto_send');
 
         if ($request->hasFile('gcash_qr_image')) {
             if ($lgu->gcash_qr_path) {

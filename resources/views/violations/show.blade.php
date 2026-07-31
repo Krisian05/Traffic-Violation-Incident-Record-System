@@ -583,6 +583,48 @@
                     </li>
                 </ul>
             </div>
+        {{-- SMS Gateway Notification Card --}}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header d-flex align-items-center gap-2 py-3" style="background:linear-gradient(135deg,#eff6ff 0%,#fff 100%);">
+                <span class="rounded d-flex align-items-center justify-content-center" style="width:28px;height:28px;background:#dbeafe;">
+                    <i class="bi bi-chat-left-text-fill text-primary" style="font-size:.85rem;"></i>
+                </span>
+                <span class="fw-600" style="font-size:.925rem;color:#1e40af;">SMS Gateway Notification</span>
+            </div>
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted" style="font-size:.78rem;">SMS Dispatch Status:</span>
+                    @if($violation->sms_status === 'sent')
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1" style="font-size:.75rem;">
+                            <i class="bi bi-check-circle-fill me-1"></i>Sent
+                        </span>
+                    @elseif($violation->sms_status === 'failed')
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1" style="font-size:.75rem;" title="{{ $violation->sms_error }}">
+                            <i class="bi bi-x-circle-fill me-1"></i>Failed
+                        </span>
+                    @else
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-1" style="font-size:.75rem;">
+                            <i class="bi bi-clock me-1"></i>Not Sent
+                        </span>
+                    @endif
+                </div>
+                @if($violation->sms_sent_at)
+                <div class="text-muted mb-2" style="font-size:.72rem;">
+                    <i class="bi bi-calendar-event me-1"></i>Sent at: {{ $violation->sms_sent_at->format('M d, Y g:i A') }}
+                </div>
+                @endif
+                @if($violation->sms_error)
+                <div class="alert alert-danger py-1 px-2 mb-2" style="font-size:.72rem;line-height:1.3;">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $violation->sms_error }}
+                </div>
+                @endif
+                <form method="POST" action="{{ route('violations.send-sms', $violation) }}">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-primary w-100 btn-sm d-inline-flex align-items-center justify-content-center gap-2 fw-600">
+                        <i class="bi bi-send-fill" style="font-size:.8rem;"></i> {{ $violation->sms_status === 'sent' ? 'Resend SMS Citation' : 'Send SMS Citation' }}
+                    </button>
+                </form>
+            </div>
         </div>
 
         {{-- Actions --}}

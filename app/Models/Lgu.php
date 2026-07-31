@@ -19,6 +19,9 @@ class Lgu extends Model
         'treasurer_office',
         'gcash_qr_path',
         'maya_qr_path',
+        'sms_api_key',
+        'sms_sender_name',
+        'sms_auto_send',
     ];
 
     public function users(): HasMany

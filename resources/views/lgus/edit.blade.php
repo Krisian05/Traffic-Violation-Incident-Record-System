@@ -148,6 +148,46 @@
                     @error('maya_qr_image')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-text">Upload a new image to replace the existing one. This will be printed on the citation tickets.</div>
+            {{-- SMS Gateway Configuration --}}
+            <div class="card border-0 mb-4 p-3" style="background:#f0f9ff;border-radius:12px;border:1px solid #bae6fd!important;">
+                <h6 class="fw-700 mb-3" style="color:#0369a1;"><i class="bi bi-chat-left-text-fill me-2"></i>SMS Gateway Configuration</h6>
+                
+                <div class="mb-3">
+                    <label class="lgu-label">Semaphore SMS API Key (Optional)</label>
+                    <div class="input-group">
+                        <span class="input-group-text lgu-ig-icon" style="background:#e0f2fe;border-color:#bae6fd;">
+                            <i class="bi bi-key-fill" style="color:#0284c7;"></i>
+                        </span>
+                        <input type="password" name="sms_api_key"
+                               class="form-control lgu-input @error('sms_api_key') is-invalid @enderror"
+                               value="{{ old('sms_api_key', $lgu->sms_api_key) }}"
+                               maxlength="255" placeholder="e.g. 9a8b7c6d5e4f3a2b1c0d">
+                        @error('sms_api_key')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="form-text">Leave blank to use system fallback / log gateway.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="lgu-label">SMS Sender Name</label>
+                    <div class="input-group">
+                        <span class="input-group-text lgu-ig-icon" style="background:#e0f2fe;border-color:#bae6fd;">
+                            <i class="bi bi-tag-fill" style="color:#0284c7;"></i>
+                        </span>
+                        <input type="text" name="sms_sender_name"
+                               class="form-control lgu-input @error('sms_sender_name') is-invalid @enderror"
+                               value="{{ old('sms_sender_name', $lgu->sms_sender_name ?? 'TVIRS') }}"
+                               maxlength="11" placeholder="e.g. TVIRS or CEBU-TRAFFIC">
+                        @error('sms_sender_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="form-text">Max 11 characters registered with Semaphore/Gateway.</div>
+                </div>
+
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" name="sms_auto_send" id="sms_auto_send" value="1" {{ old('sms_auto_send', $lgu->sms_auto_send ?? true) ? 'checked' : '' }}>
+                    <label class="form-check-label fw-600" for="sms_auto_send" style="font-size:.85rem;color:#0369a1;">
+                        Automatically send SMS citation upon ticket issuance by enforcers
+                    </label>
+                </div>
             </div>
 
             <div class="d-flex gap-2 pt-2">

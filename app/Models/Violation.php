@@ -74,6 +74,9 @@ class Violation extends Model
         'payment_method',
         'receipt_photo',
         'settled_at',
+        'sms_status',
+        'sms_sent_at',
+        'sms_error',
     ];
 
     protected $casts = [
