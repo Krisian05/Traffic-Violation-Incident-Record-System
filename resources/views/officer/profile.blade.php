@@ -143,7 +143,10 @@
                         @forelse($user->devices as $device)
                             <div class="list-group-item d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="fw-600">{{ $device->label }}</div>
+                                    <div class="fw-600">
+                                        <i class="bi {{ $device->device_icon }} me-1 text-primary"></i>
+                                        {{ $device->formatted_label }}
+                                    </div>
                                     <div class="text-muted" style="font-size:.78rem;">IP: {{ $device->ip_address }} · Last used: {{ $device->last_used_at ? $device->last_used_at->diffForHumans() : 'Never' }}</div>
                                 </div>
                                 <span class="badge bg-success text-white"><i class="bi bi-check-circle me-1"></i>Active</span>

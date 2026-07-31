@@ -167,8 +167,11 @@
         @forelse($user->devices->sortByDesc('last_used_at') as $device)
             <div class="d-flex align-items-center justify-content-between py-2" style="border-bottom:1px solid #f0ebe3;">
                 <div>
-                    <div style="font-size:.85rem;font-weight:700;color:#1c1917;">{{ $device->label ?? 'Unknown device' }}</div>
-                    <div style="font-size:.72rem;color:#a8a29e;">
+                    <div style="font-size:.85rem;font-weight:700;color:#1c1917;">
+                        <i class="bi {{ $device->device_icon }} me-1" style="color:#0284c7;"></i>
+                        {{ $device->formatted_label }}
+                    </div>
+                    <div style="font-size:.72rem;color:#a8a29e;margin-top:2px;">
                         Last used {{ $device->last_used_at?->diffForHumans() ?? 'never' }} · {{ $device->ip_address }}
                     </div>
                 </div>

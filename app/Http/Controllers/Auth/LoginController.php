@@ -200,24 +200,10 @@ class LoginController extends Controller
             return 'Unknown device';
         }
 
-        $os = match (true) {
-            str_contains($userAgent, 'Android') => 'Android',
-            str_contains($userAgent, 'iPhone'), str_contains($userAgent, 'iPad') => 'iOS',
-            str_contains($userAgent, 'Windows') => 'Windows',
-            str_contains($userAgent, 'Macintosh') => 'macOS',
-            str_contains($userAgent, 'Linux') => 'Linux',
-            default => 'Unknown OS',
-        };
+        $phoneModel = DeviceRegistration::parsePhoneModel($userAgent);
+        $browser = DeviceRegistration::parseBrowser($userAgent);
 
-        $browser = match (true) {
-            str_contains($userAgent, 'Chrome') => 'Chrome',
-            str_contains($userAgent, 'Firefox') => 'Firefox',
-            str_contains($userAgent, 'Safari') => 'Safari',
-            str_contains($userAgent, 'Edg/') => 'Edge',
-            default => 'Browser',
-        };
-
-        return "{$os} · {$browser}";
+        return "{$phoneModel} · {$browser}";
     }
 
     public function logout(Request $request)
