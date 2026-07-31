@@ -2407,5 +2407,6 @@ window.addEventListener('pageshow', function (e) {
     }
 });
 </script>
+@stack('scripts')
 </body>
 </html>
