@@ -29,7 +29,7 @@ class ViolationPolicy
         return true;
     }
 
-    // Editing violations: Super Admin, or LGU Admin / Records Officer / Traffic Supervisor for own LGU record
+    // Editing violations: Super Admin, or LGU Admin / Records Officer / Traffic Supervisor for own LGU record; Issuing Officer for own recorded violation
     public function update(User $user, Violation $violation): bool
     {
         if ($user->isAuditor() || $user->isCashier() || $user->isTreasurer()) {
@@ -40,6 +40,10 @@ class ViolationPolicy
             return true;
         }
 
+        if ($user->isIssuingOfficer()) {
+            return (int) $violation->recorded_by === (int) $user->id;
+        }
+
         if ($user->lgu_id && $violation->lgu_id && (int) $user->lgu_id !== (int) $violation->lgu_id) {
             return false;
         }
@@ -48,7 +52,7 @@ class ViolationPolicy
             return true;
         }
 
-        return $user->isIssuingOfficer() && $violation->recorded_by === $user->id;
+        return (int) $violation->recorded_by === (int) $user->id;
     }
 
     // Deleting violations: Only owning LGU Admin and Super Admin

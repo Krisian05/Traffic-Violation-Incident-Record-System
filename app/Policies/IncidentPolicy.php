@@ -29,7 +29,7 @@ class IncidentPolicy
         return true;
     }
 
-    // Editing incidents: Super Admin, or LGU Admin / Records Officer / Traffic Supervisor for own LGU record
+    // Editing incidents: Super Admin, or LGU Admin / Records Officer / Traffic Supervisor for own LGU record; Issuing Officer for own recorded incident
     public function update(User $user, Incident $incident): bool
     {
         if ($user->isAuditor() || $user->isCashier() || $user->isTreasurer()) {
@@ -40,6 +40,10 @@ class IncidentPolicy
             return true;
         }
 
+        if ($user->isIssuingOfficer()) {
+            return (int) $incident->recorded_by === (int) $user->id;
+        }
+
         if ($user->lgu_id && $incident->lgu_id && (int) $user->lgu_id !== (int) $incident->lgu_id) {
             return false;
         }
@@ -48,7 +52,7 @@ class IncidentPolicy
             return true;
         }
 
-        return $user->isIssuingOfficer() && $incident->recorded_by === $user->id;
+        return (int) $incident->recorded_by === (int) $user->id;
     }
 
     // Only owning LGU Admin / Super Admin can delete incidents or their media

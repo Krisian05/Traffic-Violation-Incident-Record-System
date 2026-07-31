@@ -289,19 +289,13 @@ class OfficerController extends Controller
 
     public function showVehicle(Vehicle $vehicle): View
     {
-        $lguId = $this->getLguId();
-        if ($lguId && $vehicle->lgu_id && (int) $vehicle->lgu_id !== (int) $lguId) {
-            abort(403, 'Unauthorized access to cross-LGU vehicle record.');
-        }
-
         $vehicle->load([
             'violator',
             'photos',
-            'violations' => fn($q) => $lguId ? $q->where('lgu_id', $lguId) : $q,
             'violations.violationType',
             'violations.violator',
         ]);
-        $vehicle->loadCount(['violations' => fn($q) => $lguId ? $q->where('lgu_id', $lguId) : $q]);
+        $vehicle->loadCount(['violations']);
 
         $allPhotos = $vehicle->photos->isNotEmpty()
             ? $vehicle->photos
@@ -562,11 +556,6 @@ class OfficerController extends Controller
 
     public function showViolation(Violation $violation): View
     {
-        $lguId = $this->getLguId();
-        if ($lguId && $violation->lgu_id && (int) $violation->lgu_id !== (int) $lguId) {
-            abort(403, 'Unauthorized access to cross-LGU violation record.');
-        }
-
         $violation->load(['violationType', 'vehicle.violator', 'vehiclePhotos', 'recorder', 'violator', 'incident']);
 
         return view('officer.violations.show', compact('violation'));
@@ -574,12 +563,8 @@ class OfficerController extends Controller
 
     public function editViolation(Violation $violation): View
     {
-        $lguId = $this->getLguId();
-        if ($lguId && $violation->lgu_id && (int) $violation->lgu_id !== (int) $lguId) {
-            abort(403, 'Unauthorized access to cross-LGU violation record.');
-        }
-
         $this->authorize('update', $violation);
+        $lguId = $this->getLguId();
         $violation->load(['violator', 'vehiclePhotos']);
         $violationTypes = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
         $allVehicles = Vehicle::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
@@ -1140,11 +1125,6 @@ class OfficerController extends Controller
 
     public function showIncident(Incident $incident): View
     {
-        $lguId = $this->getLguId();
-        if ($lguId && $incident->lgu_id && (int) $incident->lgu_id !== (int) $lguId) {
-            abort(403, 'Unauthorized access to cross-LGU incident record.');
-        }
-
         $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'recorder', 'media', 'parties', 'statusHistories.changedBy']);
 
         return view('officer.incidents.show', compact('incident'));
@@ -1152,11 +1132,6 @@ class OfficerController extends Controller
 
     public function editIncident(Incident $incident): View
     {
-        $lguId = $this->getLguId();
-        if ($lguId && $incident->lgu_id && (int) $incident->lgu_id !== (int) $lguId) {
-            abort(403, 'Unauthorized access to cross-LGU incident record.');
-        }
-
         $this->authorize('update', $incident);
         $incident->load(['motorists.violator', 'motorists.vehicle', 'motorists.chargeType', 'media', 'parties']);
         $chargeTypes = Cache::remember('incident_charge_types', 600, fn() => IncidentChargeType::orderBy('name')->get());
@@ -1166,11 +1141,6 @@ class OfficerController extends Controller
 
     public function updateIncident(Request $request, Incident $incident): RedirectResponse
     {
-        $lguId = $this->getLguId();
-        if ($lguId && $incident->lgu_id && (int) $incident->lgu_id !== (int) $lguId) {
-            abort(403, 'Unauthorized access to cross-LGU incident record.');
-        }
-
         $this->authorize('update', $incident);
 
         $validated = $request->validate([

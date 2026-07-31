@@ -94,7 +94,7 @@ class OfficerMobileLguScopingTest extends TestCase
         $res1->assertDontSee('LGU 2 Location Beta');
     }
 
-    public function test_officer_cannot_view_cross_lgu_violation(): void
+    public function test_officer_can_view_cross_lgu_violation(): void
     {
         $vType = ViolationType::factory()->create();
         $violator = Violator::factory()->create();
@@ -108,18 +108,24 @@ class OfficerMobileLguScopingTest extends TestCase
 
         $this->actingAs($this->officerLgu1)
             ->get('/officer/violations/' . $violationLgu2->id)
-            ->assertStatus(403);
+            ->assertOk();
     }
 
-    public function test_officer_cannot_view_cross_lgu_incident(): void
+    public function test_officer_can_view_cross_lgu_incident_but_cannot_edit_if_not_recorder(): void
     {
         $incLgu2 = Incident::factory()->create([
             'lgu_id' => $this->lgu2->id,
             'recorded_by' => $this->officerLgu2->id,
         ]);
 
+        // Viewing is allowed across LGUs
         $this->actingAs($this->officerLgu1)
             ->get('/officer/incidents/' . $incLgu2->id)
-            ->assertStatus(403);
+            ->assertOk();
+
+        // Editing is forbidden if not recorded by officer
+        $this->actingAs($this->officerLgu1)
+            ->get('/officer/incidents/' . $incLgu2->id . '/edit')
+            ->assertForbidden();
     }
 }
