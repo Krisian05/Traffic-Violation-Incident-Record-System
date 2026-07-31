@@ -280,6 +280,8 @@
     cursor: pointer; transition: all .15s;
 }
 .usr-submit-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(180,83,9,.45); }
+</style>
+
 <script>
 function toggleEditDevice(id) {
     const form = document.getElementById('device-edit-form-' + id);
