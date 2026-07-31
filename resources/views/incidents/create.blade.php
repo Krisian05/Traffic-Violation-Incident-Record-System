@@ -706,39 +706,136 @@ function checkExpiryWarning(input) {
     }
 }
 
+let selectedMediaList = [];
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function handleMediaUpload(input) {
     const container = document.getElementById('media-preview-container');
-    container.innerHTML = '';
+    if (!container) return;
+
+    // Save existing user input values for currently displayed cards
+    const existingCards = container.querySelectorAll('.media-preview-card');
+    existingCards.forEach((card, idx) => {
+        if (selectedMediaList[idx]) {
+            const typeSelect = card.querySelector('select[name="media_types[]"]');
+            const captionInput = card.querySelector('input[name="captions[]"]');
+            if (typeSelect) selectedMediaList[idx].type = typeSelect.value;
+            if (captionInput) selectedMediaList[idx].caption = captionInput.value;
+        }
+    });
+
+    const newFiles = Array.from(input.files || []);
+    if (newFiles.length === 0) return;
 
     // Aggregate size check (warn if total > 200MB)
     let totalBytes = 0;
-    Array.from(input.files).forEach(f => { totalBytes += f.size; });
+    selectedMediaList.forEach(item => { totalBytes += item.file.size; });
+    newFiles.forEach(f => { totalBytes += f.size; });
     if (totalBytes > 200 * 1024 * 1024) {
         alert('Total upload size exceeds 200MB. Please reduce the number or size of files.');
         input.value = '';
         return;
     }
 
+    newFiles.forEach(file => {
+        selectedMediaList.push({
+            file: file,
+            type: 'scene',
+            caption: ''
+        });
+    });
+
+    syncMediaFilesInput(input);
+    renderMediaPreviews();
+}
+
+function syncMediaFilesInput(input) {
+    if (!input) input = document.getElementById('media-upload');
+    if (!input) return;
+    try {
+        if (window.DataTransfer) {
+            const dt = new DataTransfer();
+            selectedMediaList.forEach(item => dt.items.add(item.file));
+            input.files = dt.files;
+        }
+    } catch (e) {
+        console.warn('DataTransfer sync error:', e);
+    }
+}
+
+function removeMediaFile(index) {
+    const container = document.getElementById('media-preview-container');
+    if (container) {
+        const existingCards = container.querySelectorAll('.media-preview-card');
+        existingCards.forEach((card, idx) => {
+            if (selectedMediaList[idx]) {
+                const typeSelect = card.querySelector('select[name="media_types[]"]');
+                const captionInput = card.querySelector('input[name="captions[]"]');
+                if (typeSelect) selectedMediaList[idx].type = typeSelect.value;
+                if (captionInput) selectedMediaList[idx].caption = captionInput.value;
+            }
+        });
+    }
+
+    selectedMediaList.splice(index, 1);
+    const input = document.getElementById('media-upload');
+    syncMediaFilesInput(input);
+    renderMediaPreviews();
+}
+
+function renderMediaPreviews() {
+    const container = document.getElementById('media-preview-container');
+    if (!container) return;
+    container.innerHTML = '';
+
     const mediaTypes = ['scene', 'ticket', 'document', 'other'];
     const mediaLabels = { scene: 'Scene Photo', ticket: 'Citation Ticket', document: 'Document', other: 'Other' };
 
-    Array.from(input.files).forEach(function (file, i) {
+    selectedMediaList.forEach(function (item, i) {
+        const file = item.file;
         const isPdf = file.name.toLowerCase().endsWith('.pdf');
-        const col   = document.createElement('div');
-        col.className = 'col-md-4 col-6';
+        const col = document.createElement('div');
+        col.className = 'col-md-4 col-6 media-preview-card';
 
         const thumb = isPdf
-            ? `<div class="d-flex align-items-center justify-content-center bg-light rounded mb-1" style="height:90px;font-size:2rem;color:#6b7280;"><i class="bi bi-file-earmark-pdf-fill text-danger"></i></div>`
-            : `<img src="${URL.createObjectURL(file)}" class="rounded mb-1 w-100" style="height:90px;object-fit:cover;" alt="">`;
+            ? `<div class="d-flex align-items-center justify-content-center bg-light rounded" style="height:90px;font-size:2rem;color:#6b7280;"><i class="bi bi-file-earmark-pdf-fill text-danger"></i></div>`
+            : `<img src="${URL.createObjectURL(file)}" class="rounded w-100" style="height:90px;object-fit:cover;" alt="">`;
 
         col.innerHTML = `
-            <div class="border rounded p-2" style="font-size:.75rem;">
-                ${thumb}
-                <div class="text-truncate text-muted mb-1" title="${file.name}">${file.name}</div>
-                <select name="media_types[]" class="form-select form-select-sm mb-1">
-                    ${mediaTypes.map(t => `<option value="${t}">${mediaLabels[t]}</option>`).join('')}
+            <div class="border rounded p-2 bg-white position-relative shadow-sm" style="font-size:.75rem;">
+                <div class="position-relative mb-1">
+                    ${thumb}
+                    <button type="button"
+                            onclick="removeMediaFile(${i})"
+                            class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle p-0 d-inline-flex align-items-center justify-content-center"
+                            style="width:24px;height:24px;font-size:.75rem;box-shadow:0 2px 4px rgba(0,0,0,0.25);z-index:5;line-height:1;"
+                            title="Cancel photo">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                    <div class="text-truncate text-muted" title="${escapeHtml(file.name)}" style="font-size:.72rem;max-width:65%;">${escapeHtml(file.name)}</div>
+                    <button type="button"
+                            onclick="removeMediaFile(${i})"
+                            class="btn btn-sm text-danger p-0 border-0 flex-shrink-0"
+                            style="font-size:.72rem;font-weight:600;"
+                            title="Cancel photo">
+                        <i class="bi bi-trash3 me-1"></i>Cancel
+                    </button>
+                </div>
+                <select name="media_types[]" class="form-select form-select-sm mb-1" style="font-size:.75rem;">
+                    ${mediaTypes.map(t => `<option value="${t}" ${item.type === t ? 'selected' : ''}>${mediaLabels[t]}</option>`).join('')}
                 </select>
-                <input type="text" name="captions[]" class="form-control form-control-sm" placeholder="Caption (optional)">
+                <input type="text" name="captions[]" class="form-control form-control-sm" style="font-size:.75rem;" placeholder="Caption (optional)" value="${escapeHtml(item.caption || '')}">
             </div>`;
         container.appendChild(col);
     });

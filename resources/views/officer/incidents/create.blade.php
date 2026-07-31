@@ -514,21 +514,105 @@ document.addEventListener('DOMContentLoaded', function () {
         renumberRows();
     });
 
-    document.getElementById('mediaInput').addEventListener('change', function () {
+    let officerSelectedMediaList = [];
+
+    function handleOfficerMediaUpload(input) {
         const preview = document.getElementById('media-preview-container');
+        if (!preview) return;
+
+        const existingCards = preview.querySelectorAll('.incident-media-card');
+        existingCards.forEach((card, idx) => {
+            if (officerSelectedMediaList[idx]) {
+                const typeSelect = card.querySelector('select[name="media_types[]"]');
+                const captionInput = card.querySelector('input[name="captions[]"]');
+                if (typeSelect) officerSelectedMediaList[idx].type = typeSelect.value;
+                if (captionInput) officerSelectedMediaList[idx].caption = captionInput.value;
+            }
+        });
+
+        const newFiles = Array.from(input.files || []);
+        if (newFiles.length === 0) return;
+
+        newFiles.forEach(file => {
+            officerSelectedMediaList.push({ file: file, type: 'scene', caption: '' });
+        });
+
+        syncOfficerMediaFilesInput(input);
+        renderOfficerMediaPreviews();
+    }
+
+    function syncOfficerMediaFilesInput(input) {
+        if (!input) input = document.getElementById('mediaInput');
+        if (!input) return;
+        try {
+            if (window.DataTransfer) {
+                const dt = new DataTransfer();
+                officerSelectedMediaList.forEach(item => dt.items.add(item.file));
+                input.files = dt.files;
+            }
+        } catch (e) {
+            console.warn(e);
+        }
+    }
+
+    window.removeOfficerMediaFile = function(index) {
+        const preview = document.getElementById('media-preview-container');
+        if (preview) {
+            const existingCards = preview.querySelectorAll('.incident-media-card');
+            existingCards.forEach((card, idx) => {
+                if (officerSelectedMediaList[idx]) {
+                    const typeSelect = card.querySelector('select[name="media_types[]"]');
+                    const captionInput = card.querySelector('input[name="captions[]"]');
+                    if (typeSelect) officerSelectedMediaList[idx].type = typeSelect.value;
+                    if (captionInput) officerSelectedMediaList[idx].caption = captionInput.value;
+                }
+            });
+        }
+
+        officerSelectedMediaList.splice(index, 1);
+        const input = document.getElementById('mediaInput');
+        syncOfficerMediaFilesInput(input);
+        renderOfficerMediaPreviews();
+    };
+
+    function renderOfficerMediaPreviews() {
+        const preview = document.getElementById('media-preview-container');
+        if (!preview) return;
         preview.innerHTML = '';
-        Array.from(this.files).forEach((file) => {
+
+        officerSelectedMediaList.forEach((item, i) => {
+            const file = item.file;
             const isPdf = file.name.toLowerCase().endsWith('.pdf');
             const card = document.createElement('div');
-            card.className = 'incident-media-card';
-            card.innerHTML = (isPdf
-                ? '<div style="aspect-ratio:4/3;border-radius:10px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;margin-bottom:.45rem;"><i class="ph-fill ph-file-pdf" style="font-size:2rem;color:#dc2626;"></i></div>'
-                : '<img src="' + URL.createObjectURL(file) + '" alt="' + escapeHtml(file.name) + '">') +
-                '<div style="font-size:.72rem;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:.35rem;">' + escapeHtml(file.name) + '</div>' +
-                '<select name="media_types[]" class="form-select mob-select" style="margin-bottom:.35rem;"><option value="scene">Scene</option><option value="ticket">Ticket</option><option value="document">Document</option><option value="other">Other</option></select>' +
-                '<input type="text" name="captions[]" class="form-control mob-input" placeholder="Caption (optional)">';
+            card.className = 'incident-media-card position-relative';
+            const mediaTypes = ['scene', 'ticket', 'document', 'other'];
+            const mediaLabels = { scene: 'Scene', ticket: 'Ticket', document: 'Document', other: 'Other' };
+
+            card.innerHTML = `
+                <div class="position-relative mb-1">
+                    ${isPdf
+                        ? '<div style="aspect-ratio:4/3;border-radius:10px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;"><i class="ph-fill ph-file-pdf" style="font-size:2rem;color:#dc2626;"></i></div>'
+                        : '<img src="' + URL.createObjectURL(file) + '" alt="' + escapeHtml(file.name) + '" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;">'}
+                    <button type="button" onclick="removeOfficerMediaFile(${i})" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:.75rem;z-index:5;" title="Cancel photo">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
+                <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                    <div style="font-size:.72rem;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:65%;">${escapeHtml(file.name)}</div>
+                    <button type="button" onclick="removeOfficerMediaFile(${i})" class="btn btn-sm text-danger p-0 border-0 flex-shrink-0" style="font-size:.72rem;font-weight:600;" title="Cancel photo">
+                        Cancel
+                    </button>
+                </div>
+                <select name="media_types[]" class="form-select mob-select" style="margin-bottom:.35rem;">
+                    ${mediaTypes.map(t => `<option value="${t}" ${item.type === t ? 'selected' : ''}>${mediaLabels[t]}</option>`).join('')}
+                </select>
+                <input type="text" name="captions[]" class="form-control mob-input" placeholder="Caption (optional)" value="${escapeHtml(item.caption || '')}">`;
             preview.appendChild(card);
         });
+    }
+
+    document.getElementById('mediaInput').addEventListener('change', function () {
+        handleOfficerMediaUpload(this);
     });
 
     function toggleOwnerSection(checkbox) {
