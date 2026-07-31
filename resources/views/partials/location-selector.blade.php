@@ -9,25 +9,31 @@
       $inputSize  — Bootstrap input size: 'sm' or ''          (default: 'sm')
 --}}
 @php
+    $userLgu     = Auth::user()?->lgu;
+    $lguCityCode = $userLgu?->psgc_city_code;
+    $lguName     = $userLgu?->name;
+    $defaultLguLoc = $lguName ? ($lguName . ($userLgu->province ? ', ' . $userLgu->province : '')) : null;
+
     $locField    = $fieldName    ?? 'location';
     $locRequired = $required     ?? false;
     $locLabel    = $label        ?? 'Location';
     $locSize     = (isset($inputSize) && $inputSize === '') ? '' : 'sm';
-    $locInitial  = $initialValue ?? null;
+    $locInitial  = $initialValue ?? $defaultLguLoc;
+
     // Unique prefix so multiple selectors can coexist on one page
     $uid         = 'loc_' . preg_replace('/[^a-z0-9]/i', '_', $locField);
 
-    // Restore values after validation failure; fall back to the model's saved value on first load
-    $oldRegion   = old('_loc_region_code');
-    $oldProvince = old('_loc_province_code');
-    $oldCity     = old('_loc_city_code');
+    // Restore values after validation failure; fall back to the model's saved value or LGU default codes on first load
+    $oldRegion   = old('_loc_region_code', empty($initialValue) && $lguCityCode ? '070000000' : null);
+    $oldProvince = old('_loc_province_code', empty($initialValue) && $lguCityCode ? '072200000' : null);
+    $oldCity     = old('_loc_city_code', empty($initialValue) && $lguCityCode ? $lguCityCode : null);
     $oldBarangay = old('_loc_barangay_code');
     $oldSpecific = old('_loc_specific');
     $oldLocation = old($locField, $locInitial);
 
     // Show the "current location" banner when editing an existing record
     // that has a saved text value but no PSGC codes yet.
-    $showCurrentBanner = !empty($locInitial) && empty($oldRegion);
+    $showCurrentBanner = !empty($initialValue) && empty($oldRegion);
 @endphp
 
 <div>

@@ -104,7 +104,7 @@
                     </div>
                     <div class="col-6">
                         <input type="text" id="offline_loc_municipality" class="form-control mob-input"
-                               placeholder="Municipality" value="Balamban, Cebu" autocomplete="off">
+                               placeholder="Municipality" value="{{ Auth::user()?->lgu ? (Auth::user()->lgu->name . (Auth::user()->lgu->province ? ', ' . Auth::user()->lgu->province : '')) : 'Balamban, Cebu' }}" autocomplete="off">
                     </div>
                 </div>
                 <div id="offline_location_preview" class="offline-loc-preview">
