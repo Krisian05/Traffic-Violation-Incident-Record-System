@@ -141,13 +141,22 @@
                     <h6 class="fw-700 mb-3">Registered Mobile Enforcement Devices</h6>
                     <div class="list-group list-group-flush" style="font-size:.88rem;">
                         @forelse($user->devices as $device)
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="fw-600">
-                                        <i class="bi {{ $device->device_icon }} me-1 text-primary"></i>
-                                        {{ $device->formatted_label }}
+                            <div class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                <div style="flex:1;min-width:0;margin-right:.5rem;">
+                                    <div class="fw-600 d-flex align-items-center gap-1">
+                                        <i class="bi {{ $device->device_icon }} text-primary me-1"></i>
+                                        <span>{{ $device->formatted_label }}</span>
+                                        <button type="button" class="btn btn-link btn-sm p-0 text-muted ms-1" onclick="toggleOffDevEdit({{ $device->id }})" title="Edit Device Name">
+                                            <i class="bi bi-pencil-square" style="font-size:.8rem;"></i>
+                                        </button>
                                     </div>
-                                    <div class="text-muted" style="font-size:.78rem;">IP: {{ $device->ip_address }} · Last used: {{ $device->last_used_at ? $device->last_used_at->diffForHumans() : 'Never' }}</div>
+                                    <form id="off-dev-form-{{ $device->id }}" method="POST" action="{{ route('users.devices.update', [$user, $device]) }}" style="display:none;margin-top:.35rem;" class="align-items-center gap-2">
+                                        @csrf @method('PUT')
+                                        <input type="text" name="label" class="form-control form-control-sm" value="{{ $device->label ?: 'Realme 15T' }}" placeholder="e.g. Realme 15T" required style="max-width:200px;font-size:.78rem;">
+                                        <button type="submit" class="btn btn-sm btn-primary py-0 px-2" style="font-size:.75rem;">Save</button>
+                                        <button type="button" class="btn btn-sm btn-light py-0 px-2" onclick="toggleOffDevEdit({{ $device->id }})" style="font-size:.75rem;">Cancel</button>
+                                    </form>
+                                    <div class="text-muted" style="font-size:.75rem;margin-top:2px;">IP: {{ $device->ip_address }} · Last used: {{ $device->last_used_at ? $device->last_used_at->diffForHumans() : 'Never' }}</div>
                                 </div>
                                 <span class="badge bg-success text-white"><i class="bi bi-check-circle me-1"></i>Active</span>
                             </div>
@@ -187,4 +196,12 @@
         </div>
     </div>
 </div>
+<script>
+function toggleOffDevEdit(id) {
+    const form = document.getElementById('off-dev-form-' + id);
+    if (form) {
+        form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+    }
+}
+</script>
 @endsection

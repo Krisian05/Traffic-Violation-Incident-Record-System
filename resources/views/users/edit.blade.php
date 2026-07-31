@@ -166,18 +166,30 @@
     <div class="usr-form-body">
         @forelse($user->devices->sortByDesc('last_used_at') as $device)
             <div class="d-flex align-items-center justify-content-between py-2" style="border-bottom:1px solid #f0ebe3;">
-                <div>
-                    <div style="font-size:.85rem;font-weight:700;color:#1c1917;">
-                        <i class="bi {{ $device->device_icon }} me-1" style="color:#0284c7;"></i>
-                        {{ $device->formatted_label }}
+                <div style="flex:1;min-width:0;margin-right:1rem;">
+                    <div style="font-size:.85rem;font-weight:700;color:#1c1917;display:flex;align-items:center;gap:.35rem;">
+                        <i class="bi {{ $device->device_icon }}" style="color:#0284c7;"></i>
+                        <span>{{ $device->formatted_label }}</span>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-muted ms-1" onclick="toggleEditDevice({{ $device->id }})" title="Edit Device Name">
+                            <i class="bi bi-pencil-square" style="font-size:.85rem;"></i>
+                        </button>
                     </div>
+                    
+                    {{-- Edit Form (hidden by default) --}}
+                    <form id="device-edit-form-{{ $device->id }}" method="POST" action="{{ route('users.devices.update', [$user, $device]) }}" style="display:none;margin-top:.4rem;" class="align-items-center gap-2">
+                        @csrf @method('PUT')
+                        <input type="text" name="label" class="form-control form-control-sm" value="{{ $device->label ?: 'Realme 15T' }}" placeholder="e.g. Realme 15T" required style="max-width:220px;font-size:.78rem;">
+                        <button type="submit" class="btn btn-sm btn-primary py-0 px-2" style="font-size:.75rem;">Save</button>
+                        <button type="button" class="btn btn-sm btn-light py-0 px-2" onclick="toggleEditDevice({{ $device->id }})" style="font-size:.75rem;">Cancel</button>
+                    </form>
+
                     <div style="font-size:.72rem;color:#a8a29e;margin-top:2px;">
                         Last used {{ $device->last_used_at?->diffForHumans() ?? 'never' }} · {{ $device->ip_address }}
                     </div>
                 </div>
                 <form method="POST" action="{{ route('users.devices.destroy', [$user, $device]) }}" data-confirm="Revoke this device? The officer will need to re-register on next login.">
                     @csrf @method('DELETE')
-                    <button type="submit" class="usr-act-btn" style="background:#fff1f2;color:#b91c1c;border:1.5px solid #fca5a5;">
+                    <button type="submit" class="usr-act-btn" style="background:#fff1f2;color:#b91c1c;border:1.5px solid #fca5a5;" title="Revoke Device">
                         <i class="bi bi-trash-fill"></i>
                     </button>
                 </form>
@@ -268,6 +280,12 @@
     cursor: pointer; transition: all .15s;
 }
 .usr-submit-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(180,83,9,.45); }
-</style>
-
+<script>
+function toggleEditDevice(id) {
+    const form = document.getElementById('device-edit-form-' + id);
+    if (form) {
+        form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+    }
+}
+</script>
 @endsection

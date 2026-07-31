@@ -33,6 +33,12 @@ class DeviceRegistration extends Model
         $ua = $this->user_agent ?? '';
         $label = $this->label ?? '';
 
+        // If label is customized (e.g. "Realme 15T" or "Realme Phone"), respect it!
+        if (!empty($label) && !str_starts_with($label, 'Android Phone (K)') && !str_contains($label, '· Chrome') && !str_contains($label, '· Safari')) {
+            $browser = static::parseBrowser($ua);
+            return "{$label} · {$browser}";
+        }
+
         $phoneModel = static::parsePhoneModel($ua, $label);
         $browser = static::parseBrowser($ua);
 
@@ -54,7 +60,7 @@ class DeviceRegistration extends Model
             return 'bi-tablet-fill';
         }
 
-        if (str_contains($ua, 'mobile') || str_contains($ua, 'android') || str_contains($ua, 'iphone')) {
+        if (str_contains($ua, 'mobile') || str_contains($ua, 'android') || str_contains($ua, 'iphone') || str_contains(strtolower($this->label ?? ''), 'realme') || str_contains(strtolower($this->label ?? ''), 'phone')) {
             return 'bi-phone-fill';
         }
 
@@ -67,7 +73,7 @@ class DeviceRegistration extends Model
     public static function parsePhoneModel(?string $userAgent, ?string $fallbackLabel = null): string
     {
         if (empty($userAgent)) {
-            return $fallbackLabel ?: 'Unknown Device';
+            return $fallbackLabel ?: 'Mobile Device';
         }
 
         // 1. Check for Android phone models: "Android <version>; <Model>"
@@ -77,6 +83,15 @@ class DeviceRegistration extends Model
 
             // Remove Build/xxxx if appended
             $rawModel = preg_replace('/ Build\/.*/i', '', $rawModel);
+            $rawModel = trim($rawModel);
+
+            // If Chrome User-Agent Reduction sent generic placeholder 'K'
+            if (strtoupper($rawModel) === 'K' || strtoupper($rawModel) === 'BUILD' || strlen($rawModel) <= 1) {
+                if (!empty($fallbackLabel) && !str_starts_with($fallbackLabel, 'Android Phone (K)') && !str_contains($fallbackLabel, '· Chrome')) {
+                    return "{$fallbackLabel} ({$androidVer})";
+                }
+                return "Android Phone ({$androidVer})";
+            }
 
             $brand = static::resolveBrandName($rawModel);
             return "{$brand} ({$androidVer})";
@@ -113,7 +128,7 @@ class DeviceRegistration extends Model
             return 'Linux PC';
         }
 
-        return $fallbackLabel ?: 'Unknown Device';
+        return $fallbackLabel ?: 'Mobile Device';
     }
 
     /**
@@ -123,20 +138,19 @@ class DeviceRegistration extends Model
     {
         $m = strtoupper($model);
 
+        // Realme
+        if (str_starts_with($m, 'RMX') || str_contains($m, 'REALME')) {
+            return "Realme " . $model;
+        }
+
         // Samsung
         if (str_starts_with($m, 'SM-') || str_starts_with($m, 'GT-') || str_starts_with($m, 'SCH-') || str_contains($m, 'SAMSUNG')) {
             return "Samsung " . $model;
         }
 
         // Xiaomi / Redmi / POCO
-        if (str_contains($m, 'REDMI')) {
+        if (str_contains($m, 'REDMI') || str_contains($m, 'POCO') || str_starts_with($m, 'MI ') || str_starts_with($m, '220') || str_starts_with($m, '210') || str_starts_with($m, 'M20') || str_starts_with($m, 'M21')) {
             return "Xiaomi " . $model;
-        }
-        if (str_contains($m, 'POCO')) {
-            return "Xiaomi " . $model;
-        }
-        if (str_starts_with($m, 'MI ') || str_starts_with($m, '220') || str_starts_with($m, '210') || str_starts_with($m, 'M20') || str_starts_with($m, 'M21')) {
-            return "Xiaomi ({$model})";
         }
 
         // OPPO
@@ -147,11 +161,6 @@ class DeviceRegistration extends Model
         // Vivo
         if (str_starts_with($m, 'V2') || str_starts_with($m, 'V1') || str_contains($m, 'VIVO')) {
             return "Vivo " . $model;
-        }
-
-        // Realme
-        if (str_starts_with($m, 'RMX') || str_contains($m, 'REALME')) {
-            return "Realme " . $model;
         }
 
         // Google Pixel

@@ -208,6 +208,7 @@ Route::middleware('auth')->group(function () {
     // ── USERS (admin and LGU admin) ─────────────────────────────────────────
     Route::middleware('role:admin,operator')->group(function () {
         Route::resource('users', UserController::class);
+        Route::put('/users/{user}/devices/{device}', [DeviceRegistrationController::class, 'update'])->name('users.devices.update');
         Route::delete('/users/{user}/devices/{device}', [DeviceRegistrationController::class, 'destroy'])->name('users.devices.destroy');
     });
 
