@@ -207,6 +207,11 @@
     // True when the selected region has provinces
     let hasProvinces = true;
 
+    // Preserve target PSGC codes for auto-restoration / auto-cascade on load
+    let targetProvince = hidPC.value;
+    let targetCity     = hidCC.value;
+    let targetBarangay = hidBC.value;
+
     // ── Helpers ────────────────────────────────────────────────────────────────
 
     function spin(key, on) { spins[key].style.display = on ? '' : 'none'; }
@@ -296,7 +301,7 @@
 
         populate(selR, data, '— Select Region —');
 
-        // Restore saved region (after validation failure)
+        // Restore saved region (after validation failure or LGU default)
         if (hidRC.value) {
             selR.value = hidRC.value;
             if (selR.value) selR.dispatchEvent(new Event('change'));
@@ -307,9 +312,12 @@
 
     selR.addEventListener('change', async function () {
         hidRC.value = this.value;
-        // Hide the "current location" banner once the user starts picking from dropdowns
         const banner = $(uid + '_current_banner');
         if (banner) banner.style.display = 'none';
+
+        const pToRestore = targetProvince || hidPC.value;
+        const cToRestore = targetCity     || hidCC.value;
+
         resetBelow('province');
         prow.style.display = '';
         if (!this.value) return;
@@ -329,8 +337,10 @@
             if (!cities) return;
             populate(selC, cities, '— Select City / Municipality —');
 
-            if (hidCC.value) {
-                selC.value = hidCC.value;
+            if (cToRestore) {
+                selC.value  = cToRestore;
+                hidCC.value = cToRestore;
+                targetCity  = null;
                 if (selC.value) selC.dispatchEvent(new Event('change'));
             }
         } else {
@@ -338,8 +348,10 @@
             prow.style.display = '';
             populate(selP, provinces, '— Select Province —');
 
-            if (hidPC.value) {
-                selP.value = hidPC.value;
+            if (pToRestore) {
+                selP.value     = pToRestore;
+                hidPC.value    = pToRestore;
+                targetProvince = null;
                 if (selP.value) selP.dispatchEvent(new Event('change'));
             }
         }
@@ -350,6 +362,8 @@
 
     selP.addEventListener('change', async function () {
         hidPC.value = this.value;
+        const cToRestore = targetCity || hidCC.value;
+
         resetBelow('city');
         if (!this.value) return;
 
@@ -357,8 +371,10 @@
         if (!cities) return;
         populate(selC, cities, '— Select City / Municipality —');
 
-        if (hidCC.value) {
-            selC.value = hidCC.value;
+        if (cToRestore) {
+            selC.value  = cToRestore;
+            hidCC.value = cToRestore;
+            targetCity  = null;
             if (selC.value) selC.dispatchEvent(new Event('change'));
         }
         assembleLocation();
@@ -368,6 +384,8 @@
 
     selC.addEventListener('change', async function () {
         hidCC.value = this.value;
+        const bToRestore = targetBarangay || hidBC.value;
+
         resetBelow('barangay');
         if (!this.value) { assembleLocation(); return; }
 
@@ -375,8 +393,10 @@
         if (!brgys) return;
         populate(selB, brgys, '— Select Barangay —');
 
-        if (hidBC.value) {
-            selB.value = hidBC.value;
+        if (bToRestore) {
+            selB.value  = bToRestore;
+            hidBC.value = bToRestore;
+            targetBarangay = null;
             if (selB.value) assembleLocation();
         }
         assembleLocation();
