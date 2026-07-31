@@ -69,6 +69,20 @@
     text-align: center;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform .12s, background .12s, border-color .12s;
+    -webkit-tap-highlight-color: transparent;
+}
+.db-stat-tile:hover, .db-stat-tile:focus {
+    background: rgba(255,255,255,.18);
+    border-color: rgba(255,255,255,.3);
+    color: inherit;
+}
+.db-stat-tile:active {
+    transform: scale(.96);
+    color: inherit;
 }
 .db-stat-tile--red {
     background: rgba(239,68,68,.22);
@@ -266,18 +280,18 @@
 
     {{-- Stats --}}
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;position:relative;z-index:1;">
-        <div class="db-stat-tile">
+        <a href="{{ route('officer.motorists.index') }}" class="db-stat-tile">
             <div class="db-stat-num">{{ $motoristCount }}</div>
             <div class="db-stat-lbl">Motorists</div>
-        </div>
-        <div class="db-stat-tile">
+        </a>
+        <a href="{{ route('officer.violations.index') }}" class="db-stat-tile">
             <div class="db-stat-num db-stat-num--amber">{{ $violationCount }}</div>
             <div class="db-stat-lbl">Violations</div>
-        </div>
-        <div class="db-stat-tile">
+        </a>
+        <a href="{{ route('officer.incidents.index') }}" class="db-stat-tile">
             <div class="db-stat-num db-stat-num--green">{{ $incidentCount }}</div>
             <div class="db-stat-lbl">Incidents</div>
-        </div>
+        </a>
     </div>
 
 </div>
