@@ -394,20 +394,20 @@
                     <table class="table align-middle mb-0" id="history-table">
                         <thead>
                             <tr>
-                                <th style="padding-left:1.25rem;white-space:nowrap;width:125px;">
+                                <th style="padding-left:1.25rem;white-space:nowrap;width:130px;">
                                     <span class="vlt-th-inner"><i class="bi bi-calendar-event-fill me-1"></i>Date</span>
                                 </th>
-                                <th style="min-width:230px;">
+                                <th style="min-width:250px;">
                                     <span class="vlt-th-inner"><i class="bi bi-tag-fill me-1"></i>Violation</span>
                                 </th>
-                                <th style="white-space:nowrap;width:110px;">
-                                    <span class="vlt-th-inner"><i class="bi bi-car-front-fill me-1"></i>Vehicle</span>
+                                <th class="text-center" style="white-space:nowrap;width:110px;">
+                                    <span class="vlt-th-inner justify-content-center"><i class="bi bi-car-front-fill me-1"></i>Vehicle</span>
                                 </th>
-                                <th class="text-center" style="white-space:nowrap;width:125px;">
-                                    <span class="vlt-th-inner"><i class="bi bi-activity me-1"></i>Status</span>
+                                <th class="text-center" style="white-space:nowrap;width:130px;">
+                                    <span class="vlt-th-inner justify-content-center"><i class="bi bi-activity me-1"></i>Status</span>
                                 </th>
-                                <th class="text-center" style="white-space:nowrap;width:145px;">
-                                    <span class="vlt-th-inner"><i class="bi bi-lightning-charge-fill me-1"></i>Actions</span>
+                                <th class="text-center" style="white-space:nowrap;width:150px;padding-right:1rem;">
+                                    <span class="vlt-th-inner justify-content-center"><i class="bi bi-lightning-charge-fill me-1"></i>Actions</span>
                                 </th>
                             </tr>
                         </thead>
@@ -433,7 +433,7 @@
                                         @endif
                                     </div>
                                 </td>
-                                <td style="font-size:.84rem;color:#57534e;white-space:nowrap;">
+                                <td class="text-center" style="font-size:.84rem;color:#57534e;white-space:nowrap;">
                                     @if($viol->vehicle?->plate_number)
                                         <span class="vlt-plate-chip">{{ $viol->vehicle->plate_number }}</span>
                                     @else
@@ -458,26 +458,26 @@
                                         <i class="bi {{ $sc['icon'] }}"></i> {{ ucfirst($displayStatus) }}
                                     </span>
                                 </td>
-                                <td class="text-center vlt-history-act" style="white-space:nowrap;">
-                                    <div class="d-flex justify-content-center align-items-center gap-2 flex-nowrap">
-                                        <a href="{{ route('violations.show', $viol) }}" class="vlt-act-btn vlt-act-view" title="View details">
+                                <td class="text-center vlt-history-act" style="white-space:nowrap;width:150px;padding-right:1rem;">
+                                    <div class="d-inline-flex align-items-center justify-content-center gap-2">
+                                        <a href="{{ route('violations.show', $viol) }}" class="vlt-act-btn vlt-act-view" title="View details" style="width:30px;height:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">
                                             <i class="bi bi-eye-fill"></i>
                                         </a>
                                         @can('update', $viol)
-                                        <a href="{{ route('violations.edit', $viol) }}" class="vlt-act-btn vlt-act-edit" title="Edit">
+                                        <a href="{{ route('violations.edit', $viol) }}" class="vlt-act-btn vlt-act-edit" title="Edit" style="width:30px;height:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">
                                             <i class="bi bi-pencil-fill"></i>
                                         </a>
                                         @endcan
                                         @if($viol->status === 'settled')
-                                            <span class="vlt-act-btn vlt-act-settled" title="Already settled">
-                                                <i class="bi bi-check2-circle"></i> Settled
+                                            <span class="vlt-act-btn vlt-act-settled" title="Already settled" style="flex-shrink:0;">
+                                                <i class="bi bi-check2-circle me-1"></i>Settled
                                             </span>
                                         @else
                                             @can('settle', $viol)
                                             @if(in_array($viol->status, ['pending', 'partial']))
                                             <a href="{{ route('violations.cashier', ['search' => $viol->ticket_number ?: $viol->id]) }}"
-                                               class="vlt-act-btn vlt-act-settle" title="Process payment in Cashier Portal">
-                                                <i class="bi bi-receipt"></i> Settle
+                                               class="vlt-act-btn vlt-act-settle" title="Process payment in Cashier Portal" style="flex-shrink:0;">
+                                                <i class="bi bi-receipt me-1"></i>Settle
                                             </a>
                                             @endif
                                             @endcan
