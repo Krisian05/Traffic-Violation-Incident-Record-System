@@ -69,6 +69,11 @@ class Violator extends Model
         return implode(' ', $parts);
     }
 
+    public function getAddressAttribute(): ?string
+    {
+        return $this->permanent_address ?: $this->temporary_address;
+    }
+
     public function lgu()
     {
         return $this->belongsTo(Lgu::class);

@@ -487,9 +487,9 @@
                         </span>
                     </div>
                     <div class="info-cell">
-                        <span class="info-lbl">Address</span>
-                        <span class="info-val @if(!($violation->violator->temporary_address ?? $violation->violator->address)) empty @endif">
-                            {{ $violation->violator->temporary_address ?? $violation->violator->address ?? '—' }}
+                        <span class="info-lbl">Permanent Address</span>
+                        <span class="info-val @if(!($violation->violator?->permanent_address ?: ($violation->violator?->temporary_address ?: $violation->violator?->address))) empty @endif">
+                            {{ $violation->violator?->permanent_address ?: ($violation->violator?->temporary_address ?: ($violation->violator?->address ?: '—')) }}
                         </span>
                     </div>
                     <div class="info-cell">

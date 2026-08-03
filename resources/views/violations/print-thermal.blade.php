@@ -137,7 +137,7 @@
     
     <div class="field-row">
         <div class="field-label">ADDRESS:</div>
-        <div class="field-value">{{ strtoupper($violation->violator?->address ?? '') }}</div>
+        <div class="field-value">{{ strtoupper($violation->violator?->permanent_address ?: ($violation->violator?->temporary_address ?: ($violation->violator?->address ?? ''))) }}</div>
     </div>
     
     <div class="field-row">

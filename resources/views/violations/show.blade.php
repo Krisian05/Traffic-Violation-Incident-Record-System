@@ -501,8 +501,8 @@
                         @if($violation->violator->contact_number)
                         <li><i class="bi bi-telephone-fill me-2" style="color:#6d28d9;font-size:.7rem;"></i>{{ $violation->violator->contact_number }}</li>
                         @endif
-                        @if($violation->violator->address)
-                        <li><i class="bi bi-geo-alt-fill me-2" style="color:#6d28d9;font-size:.7rem;"></i>{{ $violation->violator->address }}</li>
+                        @if($violation->violator?->permanent_address || $violation->violator?->temporary_address || $violation->violator?->address)
+                        <li><i class="bi bi-geo-alt-fill me-2" style="color:#6d28d9;font-size:.7rem;"></i>{{ $violation->violator?->permanent_address ?: ($violation->violator?->temporary_address ?: $violation->violator?->address) }}</li>
                         @endif
                     </ul>
                 </div>
