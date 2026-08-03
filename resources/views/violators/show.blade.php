@@ -874,9 +874,9 @@ a.vlt-stat-item:hover .vlt-stat-num { text-decoration: underline; text-underline
 .vlt-act-edit:hover { background:#d97706;color:#fff;border-color:#d97706;transform:translateY(-2px);box-shadow:0 4px 12px rgba(217,119,6,.3); }
 .vlt-act-del { background:#fff1f2;color:#b91c1c;border-color:#fca5a5; }
 .vlt-act-del:hover { background:#dc2626;color:#fff;border-color:#dc2626;transform:translateY(-2px);box-shadow:0 4px 12px rgba(220,38,38,.3); }
-.vlt-act-settle { background:#f0fdf4;color:#15803d;border-color:#86efac; }
-.vlt-act-settle:hover { background:#15803d;color:#fff;border-color:#15803d;transform:translateY(-2px);box-shadow:0 4px 12px rgba(21,128,61,.3); }
-.vlt-act-settled { background:#f0fdf4;color:#15803d;border-color:#86efac; cursor:default; opacity:.85; }
+.vlt-act-settle { background:#fff1f2;color:#dc2626;border-color:#fca5a5;font-weight:700; }
+.vlt-act-settle:hover { background:#dc2626;color:#fff;border-color:#dc2626;transform:translateY(-2px);box-shadow:0 4px 12px rgba(220,38,38,.3); }
+.vlt-act-settled { background:#f0fdf4;color:#15803d;border-color:#86efac; cursor:default; opacity:1; font-weight:700; }
 
 .fw-700 { font-weight: 700; }
 .expiry-expired { color: #dc2626; font-weight: 700; }

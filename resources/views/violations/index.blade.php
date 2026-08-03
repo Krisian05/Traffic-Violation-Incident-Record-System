@@ -650,17 +650,17 @@
 }
 
 .act-settle {
-    background: #f0fdf4;
-    color: #15803d;
-    border-color: #86efac;
-    box-shadow: 0 1px 4px rgba(21,128,61,.1);
+    background: #fff1f2;
+    color: #dc2626;
+    border-color: #fca5a5;
+    box-shadow: 0 1px 4px rgba(220,38,38,.1);
 }
 .act-settle:hover {
-    background: #15803d;
+    background: #dc2626;
     color: #fff;
-    border-color: #15803d;
+    border-color: #dc2626;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(21,128,61,.3);
+    box-shadow: 0 4px 12px rgba(220,38,38,.3);
 }
 
 /* ── Empty state ── */
