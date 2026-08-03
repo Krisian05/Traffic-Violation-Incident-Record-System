@@ -67,11 +67,11 @@ class SmsController extends Controller
         }
 
         $lgu->update([
-            'sms_provider'      => $data['sms_provider'],
-            'textbee_api_key'   => $data['textbee_api_key'],
-            'textbee_device_id' => $data['textbee_device_id'],
-            'sms_api_key'       => $data['sms_api_key'],
-            'sms_sender_name'   => $data['sms_sender_name'] ?: 'TVIRS',
+            'sms_provider'      => $data['sms_provider'] ?? 'textbee',
+            'textbee_api_key'   => $data['textbee_api_key'] ?? null,
+            'textbee_device_id' => $data['textbee_device_id'] ?? null,
+            'sms_api_key'       => $data['sms_api_key'] ?? null,
+            'sms_sender_name'   => ($data['sms_sender_name'] ?? null) ?: 'TVIRS',
             'sms_auto_send'     => $request->has('sms_auto_send'),
         ]);
 

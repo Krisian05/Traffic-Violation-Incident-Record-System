@@ -95,6 +95,12 @@
             </p>
         </div>
 
+        @if(session('error'))
+            <div class="alert alert-danger rounded-4 mb-3 border-0 shadow" style="background: rgba(220, 38, 38, 0.9); color: #fff; backdrop-filter: blur(10px);">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ session('error') }}
+            </div>
+        @endif
+
         {{-- Search Form Card --}}
         <div class="glass-card p-4 mb-4">
             <form action="{{ route('online-payment.search') }}" method="POST">

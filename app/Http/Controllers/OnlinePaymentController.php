@@ -55,8 +55,11 @@ class OnlinePaymentController extends Controller
 
         $query = trim($request->input('search'));
 
-        // If exact ticket match exists, redirect straight to checkout
-        $exactViolation = Violation::where('ticket_number', $query)->first();
+        // If exact or partial ticket match exists, redirect straight to checkout
+        $exactViolation = Violation::where('ticket_number', $query)
+            ->orWhere('ticket_number', 'like', "%{$query}%")
+            ->first();
+
         if ($exactViolation) {
             return redirect()->route('online-payment.checkout', $exactViolation->ticket_number);
         }
@@ -73,8 +76,14 @@ class OnlinePaymentController extends Controller
         $cleanTicket = trim($ticket);
         $violation = Violation::with(['violator', 'violationType', 'lgu', 'payments', 'vehicle'])
             ->where('ticket_number', $cleanTicket)
+            ->orWhere('ticket_number', 'like', "%{$cleanTicket}%")
             ->orWhere('id', $cleanTicket)
-            ->firstOrFail();
+            ->first();
+
+        if (!$violation) {
+            return redirect()->route('online-payment.index', ['search' => $cleanTicket])
+                ->with('error', "Citation ticket '{$cleanTicket}' was not found. Please check your ticket number or search by License Number or Plate Number.");
+        }
 
         $lgu = $violation->lgu ?: $violation->violator?->lgu;
 
