@@ -92,14 +92,26 @@ class OnlinePaymentTest extends TestCase
     }
 
     /** @test */
-    public function processing_online_gcash_payment_automatically_records_in_database_and_marks_settled()
+    public function processing_online_gcash_payment_redirects_to_verification_gate_and_confirming_received_marks_settled()
     {
         $this->assertEquals('pending', $this->violation->status);
         $this->assertEquals(0, Payment::count());
 
-        $response = $this->post(route('online-payment.process', $this->violation), [
+        $processResponse = $this->post(route('online-payment.process', $this->violation), [
             'payment_method' => 'gcash',
             'mobile_number'  => '09171234567',
+        ]);
+
+        // Assert process redirects to merchant verification gate
+        $processResponse->assertStatus(302);
+        $this->assertStringContainsString('/verify/', $processResponse->headers->get('Location'));
+
+        // Confirm money received
+        $response = $this->post(route('online-payment.confirm-received', [
+            'violation' => $this->violation->id,
+            'ref'       => 'TXN-TEST-12345',
+        ]), [
+            'payment_method' => 'gcash',
         ]);
 
         // Assert payment recorded in database
@@ -110,7 +122,7 @@ class OnlinePaymentTest extends TestCase
         $this->assertEquals('gcash', $payment->payment_method);
         $this->assertEquals(1500.00, $payment->amount_paid);
         $this->assertStringStartsWith('OR-ONL-', $payment->or_number);
-        $this->assertStringContainsString('Online Portal', $payment->cashier_name);
+        $this->assertStringContainsString('Online Merchant Gateway', $payment->cashier_name);
 
         // Assert violation is now settled
         $this->violation->refresh();

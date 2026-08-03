@@ -158,6 +158,107 @@ class OnlinePaymentController extends Controller
     }
 
     /**
+     * Live merchant verification gateway (Awaiting Money Received).
+     */
+    public function verifyGateway(string $ticket, string $ref)
+    {
+        $cleanTicket = trim($ticket);
+        $violationQuery = Violation::with(['violator', 'violationType', 'lgu', 'payments', 'vehicle'])
+            ->where('ticket_number', $cleanTicket)
+            ->orWhere('ticket_number', 'like', "%{$cleanTicket}%");
+
+        if (is_numeric($cleanTicket)) {
+            $violationQuery->orWhere('id', (int) $cleanTicket);
+        }
+
+        $violation = $violationQuery->firstOrFail();
+
+        // If already settled, redirect directly to receipt
+        if ($violation->isSettled() && $violation->latestPayment) {
+            return redirect()->route('online-payment.receipt', $violation->latestPayment);
+        }
+
+        return view('online-payment.verification', [
+            'violation'        => $violation,
+            'lgu'              => $violation->lgu ?: $violation->violator?->lgu,
+            'balanceRemaining' => $violation->balanceRemaining(),
+            'transactionRef'   => $ref,
+            'paymentMethod'    => request('method', 'gcash'),
+        ]);
+    }
+
+    /**
+     * AJAX endpoint to check if money has been received.
+     */
+    public function checkStatus(Violation $violation, string $ref)
+    {
+        $settled = $violation->isSettled();
+        $latestPayment = $violation->latestPayment;
+
+        return response()->json([
+            'settled'     => $settled,
+            'status'      => $settled ? 'received' : 'pending',
+            'receipt_url' => $latestPayment ? route('online-payment.receipt', $latestPayment) : null,
+        ]);
+    }
+
+    /**
+     * Confirm money received and record settlement.
+     */
+    public function confirmReceived(Request $request, Violation $violation, string $ref)
+    {
+        $balance = $violation->balanceRemaining();
+        if ($balance <= 0 || $violation->isSettled()) {
+            $latest = $violation->latestPayment;
+            return redirect()->route('online-payment.receipt', $latest);
+        }
+
+        $method = $request->input('payment_method', 'gcash');
+
+        // Generate unique standard Official Receipt Number for online payment
+        $dateStr = now()->format('Ymd');
+        $randomSuffix = strtoupper(Str::random(5));
+        $orNumber = "OR-ONL-{$dateStr}-{$randomSuffix}";
+
+        while (Payment::where('or_number', $orNumber)->exists()) {
+            $randomSuffix = strtoupper(Str::random(5));
+            $orNumber = "OR-ONL-{$dateStr}-{$randomSuffix}";
+        }
+
+        $methodLabel = match ($method) {
+            'gcash' => 'GCash Merchant',
+            'maya'  => 'Maya Merchant',
+            'card'  => 'Credit/Debit Card',
+            default => 'Online Gateway',
+        };
+
+        $collector = User::where('role', 'admin')->first() ?: User::first();
+        $paymentService = app(PaymentService::class);
+
+        $payment = $paymentService->recordPayment(
+            $violation,
+            [
+                'or_number'      => $orNumber,
+                'cashier_name'   => "Online Merchant Gateway ({$methodLabel})",
+                'payment_method' => $method,
+                'amount_paid'    => $balance,
+                'paid_at'        => now(),
+            ],
+            $collector
+        );
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success'     => true,
+                'receipt_url' => route('online-payment.receipt', $payment),
+            ]);
+        }
+
+        return redirect()->route('online-payment.receipt', $payment)
+            ->with('success', 'Payment verified and received! Official Receipt generated.');
+    }
+
+    /**
      * Process the online self-service payment checkout.
      */
     public function process(Request $request, Violation $violation)
@@ -177,42 +278,17 @@ class OnlinePaymentController extends Controller
 
         $method = $validated['payment_method'];
 
-        // Generate unique standard Official Receipt Number for online payment
+        // Generate transaction reference for live payment verification gate
         $dateStr = now()->format('Ymd');
-        $randomSuffix = strtoupper(Str::random(5));
-        $orNumber = "OR-ONL-{$dateStr}-{$randomSuffix}";
+        $refSuffix = strtoupper(Str::random(6));
+        $transactionRef = "TXN-{$dateStr}-{$refSuffix}";
 
-        // Ensure OR uniqueness
-        while (Payment::where('or_number', $orNumber)->exists()) {
-            $randomSuffix = strtoupper(Str::random(5));
-            $orNumber = "OR-ONL-{$dateStr}-{$randomSuffix}";
-        }
-
-        $methodLabel = match ($method) {
-            'gcash' => 'GCash Express',
-            'maya'  => 'Maya Wallet',
-            'card'  => 'Credit/Debit Card',
-            default => 'Online Gateway',
-        };
-
-        // System collector user for audit logging
-        $collector = User::where('role', 'admin')->first() ?: User::first();
-
-        $paymentService = app(PaymentService::class);
-        $payment = $paymentService->recordPayment(
-            $violation,
-            [
-                'or_number'      => $orNumber,
-                'cashier_name'   => "Online Portal ({$methodLabel})",
-                'payment_method' => $method,
-                'amount_paid'    => $balance,
-                'paid_at'        => now(),
-            ],
-            $collector
-        );
-
-        return redirect()->route('online-payment.receipt', $payment)
-            ->with('success', 'Payment processed successfully! Official Receipt generated.');
+        // Redirect to merchant payment verification gate (awaiting money received)
+        return redirect()->route('online-payment.verify', [
+            'ticket' => $violation->ticket_number,
+            'ref'    => $transactionRef,
+            'method' => $method,
+        ]);
     }
 
     /**

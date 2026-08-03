@@ -41,6 +41,9 @@ Route::post('/pay/search', [OnlinePaymentController::class, 'search'])->name('on
 Route::get('/pay/ticket/{ticket}', [OnlinePaymentController::class, 'checkout'])->name('online-payment.checkout');
 Route::get('/pay/ticket/{ticket}/gcash', [OnlinePaymentController::class, 'gcashGateway'])->name('online-payment.gcash');
 Route::get('/pay/ticket/{ticket}/maya', [OnlinePaymentController::class, 'mayaGateway'])->name('online-payment.maya');
+Route::get('/pay/ticket/{ticket}/verify/{ref}', [OnlinePaymentController::class, 'verifyGateway'])->name('online-payment.verify');
+Route::get('/pay/ticket/{violation}/status/{ref}', [OnlinePaymentController::class, 'checkStatus'])->name('online-payment.status');
+Route::post('/pay/ticket/{violation}/confirm-received/{ref}', [OnlinePaymentController::class, 'confirmReceived'])->name('online-payment.confirm-received');
 Route::post('/pay/ticket/{violation}/process', [OnlinePaymentController::class, 'process'])->name('online-payment.process');
 Route::get('/pay/receipt/{payment}', [OnlinePaymentController::class, 'receipt'])->name('online-payment.receipt');
 
