@@ -140,8 +140,9 @@
                         </div>
                         <div style="font-size:.88rem;color:#f1f5f9;font-weight:500;">
                             <strong>Motorist:</strong> {{ $v->violator?->full_name ?: 'Unknown' }}
-                            @if($v->vehicle_plate_number)
-                                · <i class="bi bi-car-front-fill me-1" style="color:#60a5fa;"></i>{{ $v->vehicle_plate_number }}
+                            @php $plateNum = $v->vehicle_plate ?: $v->vehicle?->plate_number; @endphp
+                            @if($plateNum)
+                                · <i class="bi bi-car-front-fill me-1" style="color:#60a5fa;"></i>{{ $plateNum }}
                             @endif
                         </div>
                         <div style="font-size:.8rem;color:#cbd5e1;" class="mt-1">

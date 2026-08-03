@@ -90,7 +90,7 @@
                     </div>
                     <div class="col-6">
                         <span class="text-muted d-block" style="font-size:.72rem;">Vehicle Plate</span>
-                        <strong class="text-dark">{{ $violation->vehicle_plate_number ?: 'N/A' }}</strong>
+                        <strong class="text-dark">{{ $violation->vehicle_plate ?: ($violation->vehicle?->plate_number ?: 'N/A') }}</strong>
                     </div>
                     <div class="col-12">
                         <span class="text-muted d-block" style="font-size:.72rem;">Violation Type</span>

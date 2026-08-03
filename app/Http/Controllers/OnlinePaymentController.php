@@ -28,7 +28,10 @@ class OnlinePaymentController extends Controller
                              ->orWhere('first_name', 'like', "%{$query}%")
                              ->orWhere('last_name', 'like', "%{$query}%");
                       })
-                      ->orWhere('vehicle_plate_number', 'like', "%{$query}%");
+                      ->orWhere('vehicle_plate', 'like', "%{$query}%")
+                      ->orWhereHas('vehicle', function ($vq) use ($query) {
+                          $vq->where('plate_number', 'like', "%{$query}%");
+                      });
                 })
                 ->latest('date_of_violation')
                 ->take(10)
@@ -68,7 +71,7 @@ class OnlinePaymentController extends Controller
     {
         // Support ticket number search (case-insensitive & space/hyphen clean)
         $cleanTicket = trim($ticket);
-        $violation = Violation::with(['violator', 'violationType', 'lgu', 'payments'])
+        $violation = Violation::with(['violator', 'violationType', 'lgu', 'payments', 'vehicle'])
             ->where('ticket_number', $cleanTicket)
             ->orWhere('id', $cleanTicket)
             ->firstOrFail();

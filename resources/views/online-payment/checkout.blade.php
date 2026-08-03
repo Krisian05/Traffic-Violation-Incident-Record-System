@@ -130,7 +130,7 @@
                 </div>
                 <div class="col-6">
                     <span class="d-block fw-600" style="font-size:.75rem;color:#cbd5e1;">Vehicle Plate</span>
-                    <strong class="text-white fs-6">{{ $violation->vehicle_plate_number ?: 'N/A' }}</strong>
+                    <strong class="text-white fs-6">{{ $violation->vehicle_plate ?: ($violation->vehicle?->plate_number ?: 'N/A') }}</strong>
                 </div>
                 <div class="col-6">
                     <span class="d-block fw-600" style="font-size:.75rem;color:#cbd5e1;">Date of Citation</span>
