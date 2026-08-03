@@ -554,76 +554,90 @@
         </div>
         @endif
 
-        {{-- Record Meta --}}
-        <div class="card border-0 shadow-sm mb-4" style="border-left:3px solid #d97706!important;">
-            <div class="card-header d-flex align-items-center gap-2 py-3">
-                <span class="rounded d-flex align-items-center justify-content-center"
-                      style="width:28px;height:28px;background:#fef3c7;">
-                    <i class="bi bi-info-circle-fill" style="font-size:.85rem;color:#d97706;"></i>
-                </span>
-                <span class="fw-600" style="font-size:.925rem;color:#292524;">Record Info</span>
-            </div>
-            <div class="card-body p-3">
-                <ul class="mb-0 list-unstyled" style="font-size:.8rem;color:#57534e;line-height:2.2;">
-                    <li>
-                        <span style="color:#a8a29e;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">Record ID</span>
-                        <span class="fw-600">#{{ $violation->id }}</span>
-                    </li>
-                    <li class="border-top pt-2 mt-1" style="border-color:#ede8df!important;">
-                        <span style="color:#a8a29e;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">Recorded By</span>
-                        <span>{{ $violation->recorder?->name ?? '(Deleted User)' }}</span>
-                    </li>
-                    <li class="border-top pt-2 mt-1" style="border-color:#ede8df!important;">
-                        <span style="color:#a8a29e;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">Recorded On</span>
-                        <span>{{ $violation->created_at->format('M d, Y  g:i A') }}</span>
-                    </li>
-                    <li class="border-top pt-2 mt-1" style="border-color:#ede8df!important;">
-                        <span style="color:#a8a29e;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">Last Updated</span>
-                        <span>{{ $violation->updated_at->format('M d, Y  g:i A') }}</span>
-                    </li>
-                </ul>
-            </div>
-        {{-- SMS Gateway Notification Card --}}
+        {{-- Record Info & SMS Gateway Notification Card --}}
         <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header d-flex align-items-center gap-2 py-3" style="background:linear-gradient(135deg,#eff6ff 0%,#fff 100%);">
-                <span class="rounded d-flex align-items-center justify-content-center" style="width:28px;height:28px;background:#dbeafe;">
-                    <i class="bi bi-chat-left-text-fill text-primary" style="font-size:.85rem;"></i>
+            <div class="card-header d-flex align-items-center justify-content-between py-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded d-flex align-items-center justify-content-center"
+                          style="width:28px;height:28px;background:#fef3c7;">
+                        <i class="bi bi-info-circle-fill" style="font-size:.85rem;color:#d97706;"></i>
+                    </span>
+                    <span class="fw-600" style="font-size:.925rem;color:#292524;">Record Info & Dispatch</span>
+                </div>
+                <span class="badge" style="background:#fef3c7;color:#92400e;font-size:.72rem;font-weight:600;">
+                    ID #{{ $violation->id }}
                 </span>
-                <span class="fw-600" style="font-size:.925rem;color:#1e40af;">SMS Gateway Notification</span>
             </div>
             <div class="card-body p-3">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted" style="font-size:.78rem;">SMS Dispatch Status:</span>
-                    @if($violation->sms_status === 'sent')
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1" style="font-size:.75rem;">
-                            <i class="bi bi-check-circle-fill me-1"></i>Sent
-                        </span>
-                    @elseif($violation->sms_status === 'failed')
-                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1" style="font-size:.75rem;" title="{{ $violation->sms_error }}">
-                            <i class="bi bi-x-circle-fill me-1"></i>Failed
-                        </span>
-                    @else
-                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-1" style="font-size:.75rem;">
-                            <i class="bi bi-clock me-1"></i>Not Sent
-                        </span>
+                {{-- Metadata Grid --}}
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <div class="p-2 rounded" style="background:#fafaf9;border:1px solid #f5f5f4;">
+                            <span style="color:#a8a29e;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">Recorded By</span>
+                            <span class="fw-600" style="font-size:.8rem;color:#292524;">{{ $violation->recorder?->name ?? '(Deleted User)' }}</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 rounded" style="background:#fafaf9;border:1px solid #f5f5f4;">
+                            <span style="color:#a8a29e;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">Record ID</span>
+                            <span class="fw-600 font-monospace" style="font-size:.8rem;color:#292524;">#{{ $violation->id }}</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 rounded" style="background:#fafaf9;border:1px solid #f5f5f4;">
+                            <span style="color:#a8a29e;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">Recorded On</span>
+                            <span style="font-size:.78rem;color:#44403c;">{{ $violation->created_at->format('M d, Y  g:i A') }}</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 rounded" style="background:#fafaf9;border:1px solid #f5f5f4;">
+                            <span style="color:#a8a29e;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;">Last Updated</span>
+                            <span style="font-size:.78rem;color:#44403c;">{{ $violation->updated_at->format('M d, Y  g:i A') }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- SMS Gateway Container --}}
+                <div class="p-3 rounded-3" style="background:linear-gradient(135deg,#f0f7ff 0%,#f8fafc 100%);border:1px solid #dbeafe;">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-chat-left-text-fill text-primary" style="font-size:.85rem;"></i>
+                            <span class="fw-600" style="font-size:.82rem;color:#1e40af;">SMS Gateway</span>
+                        </div>
+                        @if($violation->sms_status === 'sent')
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1" style="font-size:.72rem;">
+                                <i class="bi bi-check-circle-fill me-1"></i>Sent
+                            </span>
+                        @elseif($violation->sms_status === 'failed')
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1" style="font-size:.72rem;" title="{{ $violation->sms_error }}">
+                                <i class="bi bi-x-circle-fill me-1"></i>Failed
+                            </span>
+                        @else
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-1" style="font-size:.72rem;">
+                                <i class="bi bi-clock me-1"></i>Not Sent
+                            </span>
+                        @endif
+                    </div>
+
+                    @if($violation->sms_sent_at)
+                    <div class="text-muted mb-2" style="font-size:.72rem;">
+                        <i class="bi bi-calendar-event me-1"></i>Sent at: {{ $violation->sms_sent_at->format('M d, Y g:i A') }}
+                    </div>
                     @endif
+
+                    @if($violation->sms_error)
+                    <div class="alert alert-danger py-1.5 px-2 mb-2 rounded-2" style="font-size:.72rem;line-height:1.35;">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $violation->sms_error }}
+                    </div>
+                    @endif
+
+                    <form method="POST" action="{{ route('violations.send-sms', $violation) }}" class="mt-2">
+                        @csrf
+                        <button type="submit" class="btn btn-primary w-100 btn-sm d-inline-flex align-items-center justify-content-center gap-2 fw-600 shadow-sm" style="font-size:.8rem;padding:.4rem .75rem;">
+                            <i class="bi bi-send-fill" style="font-size:.78rem;"></i> {{ $violation->sms_status === 'sent' ? 'Resend SMS Citation' : 'Send SMS Citation' }}
+                        </button>
+                    </form>
                 </div>
-                @if($violation->sms_sent_at)
-                <div class="text-muted mb-2" style="font-size:.72rem;">
-                    <i class="bi bi-calendar-event me-1"></i>Sent at: {{ $violation->sms_sent_at->format('M d, Y g:i A') }}
-                </div>
-                @endif
-                @if($violation->sms_error)
-                <div class="alert alert-danger py-1 px-2 mb-2" style="font-size:.72rem;line-height:1.3;">
-                    <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $violation->sms_error }}
-                </div>
-                @endif
-                <form method="POST" action="{{ route('violations.send-sms', $violation) }}">
-                    @csrf
-                    <button type="submit" class="btn btn-outline-primary w-100 btn-sm d-inline-flex align-items-center justify-content-center gap-2 fw-600">
-                        <i class="bi bi-send-fill" style="font-size:.8rem;"></i> {{ $violation->sms_status === 'sent' ? 'Resend SMS Citation' : 'Send SMS Citation' }}
-                    </button>
-                </form>
             </div>
         </div>
 
