@@ -106,6 +106,58 @@ class OnlinePaymentController extends Controller
     }
 
     /**
+     * Redirect to full-screen GCash payment portal page.
+     */
+    public function gcashGateway(string $ticket)
+    {
+        $cleanTicket = trim($ticket);
+        $violationQuery = Violation::with(['violator', 'violationType', 'lgu', 'payments', 'vehicle'])
+            ->where('ticket_number', $cleanTicket)
+            ->orWhere('ticket_number', 'like', "%{$cleanTicket}%");
+
+        if (is_numeric($cleanTicket)) {
+            $violationQuery->orWhere('id', (int) $cleanTicket);
+        }
+
+        $violation = $violationQuery->first();
+        if (!$violation) {
+            return redirect()->route('online-payment.index')->with('error', 'Citation ticket not found.');
+        }
+
+        return view('online-payment.gcash', [
+            'violation'       => $violation,
+            'lgu'             => $violation->lgu ?: $violation->violator?->lgu,
+            'balanceRemaining'=> $violation->balanceRemaining(),
+        ]);
+    }
+
+    /**
+     * Redirect to full-screen Maya payment portal page.
+     */
+    public function mayaGateway(string $ticket)
+    {
+        $cleanTicket = trim($ticket);
+        $violationQuery = Violation::with(['violator', 'violationType', 'lgu', 'payments', 'vehicle'])
+            ->where('ticket_number', $cleanTicket)
+            ->orWhere('ticket_number', 'like', "%{$cleanTicket}%");
+
+        if (is_numeric($cleanTicket)) {
+            $violationQuery->orWhere('id', (int) $cleanTicket);
+        }
+
+        $violation = $violationQuery->first();
+        if (!$violation) {
+            return redirect()->route('online-payment.index')->with('error', 'Citation ticket not found.');
+        }
+
+        return view('online-payment.maya', [
+            'violation'       => $violation,
+            'lgu'             => $violation->lgu ?: $violation->violator?->lgu,
+            'balanceRemaining'=> $violation->balanceRemaining(),
+        ]);
+    }
+
+    /**
      * Process the online self-service payment checkout.
      */
     public function process(Request $request, Violation $violation)

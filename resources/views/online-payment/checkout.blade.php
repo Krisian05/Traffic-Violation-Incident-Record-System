@@ -513,11 +513,9 @@
 
         function openGatewayPortal() {
             if (currentMethod === 'gcash') {
-                const modal = new bootstrap.Modal(document.getElementById('gcashModal'));
-                modal.show();
+                window.location.href = "{{ route('online-payment.gcash', $violation->ticket_number) }}";
             } else if (currentMethod === 'maya') {
-                const modal = new bootstrap.Modal(document.getElementById('mayaModal'));
-                modal.show();
+                window.location.href = "{{ route('online-payment.maya', $violation->ticket_number) }}";
             } else if (currentMethod === 'card') {
                 const modal = new bootstrap.Modal(document.getElementById('cardModal'));
                 modal.show();

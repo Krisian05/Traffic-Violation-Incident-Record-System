@@ -39,6 +39,8 @@ Route::get('/privacy/search-motorists', [PrivacyController::class, 'searchMotori
 Route::get('/pay', [OnlinePaymentController::class, 'index'])->name('online-payment.index');
 Route::post('/pay/search', [OnlinePaymentController::class, 'search'])->name('online-payment.search');
 Route::get('/pay/ticket/{ticket}', [OnlinePaymentController::class, 'checkout'])->name('online-payment.checkout');
+Route::get('/pay/ticket/{ticket}/gcash', [OnlinePaymentController::class, 'gcashGateway'])->name('online-payment.gcash');
+Route::get('/pay/ticket/{ticket}/maya', [OnlinePaymentController::class, 'mayaGateway'])->name('online-payment.maya');
 Route::post('/pay/ticket/{violation}/process', [OnlinePaymentController::class, 'process'])->name('online-payment.process');
 Route::get('/pay/receipt/{payment}', [OnlinePaymentController::class, 'receipt'])->name('online-payment.receipt');
 
