@@ -110,9 +110,8 @@
             </div>
 
             {{-- Payment Form Submission to TVIRS Backend --}}
-            <form action="{{ route('online-payment.process', $violation) }}" method="POST" id="gcashForm">
-                @csrf
-                <input type="hidden" name="payment_method" value="gcash">
+            <form action="{{ route('online-payment.verify', ['ticket' => $violation->ticket_number, 'ref' => 'TXN-' . now()->format('Ymd') . '-' . strtoupper(Illuminate\Support\Str::random(6))]) }}" method="GET" id="gcashForm">
+                <input type="hidden" name="method" value="gcash">
 
                 {{-- Step 1: GCash Mobile Number Login --}}
                 <div id="step_login">

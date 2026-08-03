@@ -102,9 +102,9 @@ class OnlinePaymentTest extends TestCase
             'mobile_number'  => '09171234567',
         ]);
 
-        // Assert process redirects to merchant verification gate
+        // Assert process redirects to gcash gateway portal
         $processResponse->assertStatus(302);
-        $this->assertStringContainsString('/verify/', $processResponse->headers->get('Location'));
+        $this->assertStringContainsString('/gcash', $processResponse->headers->get('Location'));
 
         // Confirm money received
         $response = $this->post(route('online-payment.confirm-received', [

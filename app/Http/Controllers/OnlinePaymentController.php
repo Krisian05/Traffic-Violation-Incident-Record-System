@@ -259,7 +259,33 @@ class OnlinePaymentController extends Controller
     }
 
     /**
-     * Process the online self-service payment checkout.
+     * Redirect to 3D-Secure Card payment portal page.
+     */
+    public function cardGateway(string $ticket)
+    {
+        $cleanTicket = trim($ticket);
+        $violationQuery = Violation::with(['violator', 'violationType', 'lgu', 'payments', 'vehicle'])
+            ->where('ticket_number', $cleanTicket)
+            ->orWhere('ticket_number', 'like', "%{$cleanTicket}%");
+
+        if (is_numeric($cleanTicket)) {
+            $violationQuery->orWhere('id', (int) $cleanTicket);
+        }
+
+        $violation = $violationQuery->first();
+        if (!$violation) {
+            return redirect()->route('online-payment.index')->with('error', 'Citation ticket not found.');
+        }
+
+        return view('online-payment.card', [
+            'violation'       => $violation,
+            'lgu'             => $violation->lgu ?: $violation->violator?->lgu,
+            'balanceRemaining'=> $violation->balanceRemaining(),
+        ]);
+    }
+
+    /**
+     * Process the online self-service payment checkout selection.
      */
     public function process(Request $request, Violation $violation)
     {
@@ -278,12 +304,22 @@ class OnlinePaymentController extends Controller
 
         $method = $validated['payment_method'];
 
-        // Generate transaction reference for live payment verification gate
+        if ($method === 'gcash') {
+            return redirect()->route('online-payment.gcash', $violation->ticket_number);
+        }
+
+        if ($method === 'maya') {
+            return redirect()->route('online-payment.maya', $violation->ticket_number);
+        }
+
+        if ($method === 'card') {
+            return redirect()->route('online-payment.card', $violation->ticket_number);
+        }
+
         $dateStr = now()->format('Ymd');
         $refSuffix = strtoupper(Str::random(6));
         $transactionRef = "TXN-{$dateStr}-{$refSuffix}";
 
-        // Redirect to merchant payment verification gate (awaiting money received)
         return redirect()->route('online-payment.verify', [
             'ticket' => $violation->ticket_number,
             'ref'    => $transactionRef,

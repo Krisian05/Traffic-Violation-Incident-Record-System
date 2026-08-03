@@ -95,9 +95,8 @@
             </div>
 
             {{-- Payment Form --}}
-            <form action="{{ route('online-payment.process', $violation) }}" method="POST" id="mayaForm">
-                @csrf
-                <input type="hidden" name="payment_method" value="maya">
+            <form action="{{ route('online-payment.verify', ['ticket' => $violation->ticket_number, 'ref' => 'TXN-' . now()->format('Ymd') . '-' . strtoupper(Illuminate\Support\Str::random(6))]) }}" method="GET" id="mayaForm">
+                <input type="hidden" name="method" value="maya">
 
                 <div id="maya_step_login">
                     <h6 class="fw-800 text-dark mb-2">Log in with Maya</h6>
