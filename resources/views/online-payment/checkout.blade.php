@@ -30,7 +30,7 @@
         .method-card {
             background: rgba(255, 255, 255, 0.08);
             border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
+            border-radius: 18px;
             padding: 1rem;
             cursor: pointer;
             transition: all .2s ease;
@@ -63,20 +63,58 @@
             opacity: 0.95;
         }
         .btn-confirm {
-            background: linear-gradient(135deg, #16a34a, #15803d);
+            background: linear-gradient(135deg, #005ce6, #0041a8);
             border: none;
             color: #ffffff;
             font-size: 1.1rem;
             font-weight: 800;
             border-radius: 16px;
             padding: 1rem;
-            box-shadow: 0 6px 20px rgba(22, 163, 74, 0.45);
+            box-shadow: 0 6px 20px rgba(0, 92, 230, 0.45);
             transition: transform .15s ease, box-shadow .15s ease;
         }
         .btn-confirm:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 28px rgba(22, 163, 74, 0.6);
+            box-shadow: 0 10px 28px rgba(0, 92, 230, 0.6);
             color: #ffffff;
+        }
+        /* Gateway Portal Modals */
+        .gateway-modal .modal-content {
+            border-radius: 28px;
+            border: none;
+            overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+        }
+        .gcash-header {
+            background: #005ce6;
+            color: #fff;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .maya-header {
+            background: #10b981;
+            color: #fff;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .card-header-modal {
+            background: #1e1b4b;
+            color: #fff;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .pin-input {
+            width: 50px;
+            height: 55px;
+            font-size: 1.5rem;
+            text-align: center;
+            border-radius: 12px;
+            border: 2px solid #cbd5e1;
+        }
+        .pin-input:focus {
+            border-color: #005ce6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0,92,230,0.2);
         }
     </style>
 </head>
@@ -168,11 +206,14 @@
             </div>
         </div>
 
-        {{-- Payment Method Selection & Checkout Form --}}
+        {{-- Payment Method Selection & Gateway Checkout Form --}}
         @if($balanceRemaining > 0 && !$violation->isSettled())
-        <form action="{{ route('online-payment.process', $violation) }}" method="POST">
+        <form action="{{ route('online-payment.process', $violation) }}" method="POST" id="mainPaymentForm">
             @csrf
             <input type="hidden" name="payment_method" id="selected_method" value="gcash">
+            <input type="hidden" name="mobile_number" id="final_mobile_number" value="">
+            <input type="hidden" name="card_number" id="final_card_number" value="">
+            <input type="hidden" name="transaction_ref" id="final_transaction_ref" value="">
 
             <h6 class="fw-700 text-white mb-3" style="font-size:.95rem;letter-spacing:.03em;">Select Online Payment Gateway</h6>
 
@@ -180,29 +221,29 @@
                 {{-- GCash Option --}}
                 <div class="col-4">
                     <div class="method-card text-center active" id="card_gcash" onclick="selectMethod('gcash')">
-                        <div class="mb-1" style="width:42px;height:42px;border-radius:12px;background:#005ce6;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:1.15rem;">
+                        <div class="mb-1" style="width:44px;height:44px;border-radius:14px;background:#005ce6;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:1.25rem;box-shadow:0 4px 12px rgba(0,92,230,0.4);">
                             G
                         </div>
                         <div class="fw-800 text-white" style="font-size:.85rem;">GCash</div>
-                        <small class="d-block fw-600" style="font-size:.68rem;color:#cbd5e1;">Express Wallet</small>
+                        <small class="d-block fw-600" style="font-size:.68rem;color:#cbd5e1;">Express Gateway</small>
                     </div>
                 </div>
 
                 {{-- Maya Option --}}
                 <div class="col-4">
                     <div class="method-card text-center" id="card_maya" onclick="selectMethod('maya')">
-                        <div class="mb-1" style="width:42px;height:42px;border-radius:12px;background:#10b981;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:1.15rem;">
+                        <div class="mb-1" style="width:44px;height:44px;border-radius:14px;background:#10b981;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:1.25rem;box-shadow:0 4px 12px rgba(16,185,129,0.4);">
                             M
                         </div>
                         <div class="fw-800 text-white" style="font-size:.85rem;">Maya</div>
-                        <small class="d-block fw-600" style="font-size:.68rem;color:#cbd5e1;">PayMaya</small>
+                        <small class="d-block fw-600" style="font-size:.68rem;color:#cbd5e1;">PayMaya Gateway</small>
                     </div>
                 </div>
 
                 {{-- Credit/Debit Card Option --}}
                 <div class="col-4">
                     <div class="method-card text-center" id="card_card" onclick="selectMethod('card')">
-                        <div class="mb-1" style="width:42px;height:42px;border-radius:12px;background:#8b5cf6;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:1.15rem;">
+                        <div class="mb-1" style="width:44px;height:44px;border-radius:14px;background:#8b5cf6;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:1.25rem;box-shadow:0 4px 12px rgba(139,92,246,0.4);">
                             <i class="bi bi-credit-card-fill"></i>
                         </div>
                         <div class="fw-800 text-white" style="font-size:.85rem;">Card</div>
@@ -211,73 +252,76 @@
                 </div>
             </div>
 
-            {{-- Method Details Dynamic Card --}}
+            {{-- Dynamic Gateway Summary Card --}}
             <div class="glass-card p-4 mb-4">
                 {{-- GCash Details --}}
                 <div id="details_gcash">
-                    <div class="d-flex align-items-center gap-2 mb-3 text-info">
-                        <i class="bi bi-phone-fill fs-5" style="color:#60a5fa;"></i>
-                        <span class="fw-700" style="font-size:.95rem;color:#93c5fd;">GCash Payment Details</span>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-primary px-3 py-2 rounded-pill fw-700" style="background:#005ce6 !important;font-size:.85rem;">
+                            <i class="bi bi-phone-fill me-1"></i> GCash Express Checkout
+                        </span>
                     </div>
                     @if($lgu?->gcash_qr_path)
                         <div class="text-center mb-3">
                             <img src="{{ Storage::url($lgu->gcash_qr_path) }}" alt="LGU GCash QR" style="max-width:180px;border-radius:16px;box-shadow:0 4px 15px rgba(0,0,0,0.3);">
-                            <div class="small fw-600 mt-2" style="font-size:.78rem;color:#e2e8f0;">Scan LGU QR or enter GCash Mobile No below</div>
+                            <div class="small fw-600 mt-2" style="font-size:.78rem;color:#e2e8f0;">Official LGU GCash Merchant QR</div>
                         </div>
                     @endif
                     <div class="mb-3">
-                        <label class="form-label fw-700" style="font-size:.8rem;color:#f1f5f9;">GCash Mobile Number</label>
-                        <input type="text" name="mobile_number" class="form-control form-control-custom" placeholder="e.g. 09171234567">
+                        <label class="form-label fw-700" style="font-size:.82rem;color:#f1f5f9;">GCash Mobile Number</label>
+                        <input type="text" id="input_gcash_mobile" class="form-control form-control-custom" placeholder="e.g. 09171234567" value="09171234567">
                     </div>
                 </div>
 
                 {{-- Maya Details --}}
                 <div id="details_maya" style="display:none;">
-                    <div class="d-flex align-items-center gap-2 mb-3" style="color:#34d399;">
-                        <i class="bi bi-qr-code-scan fs-5"></i>
-                        <span class="fw-700" style="font-size:.95rem;color:#6ee7b7;">Maya Payment Details</span>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success px-3 py-2 rounded-pill fw-700" style="background:#10b981 !important;font-size:.85rem;">
+                            <i class="bi bi-qr-code-scan me-1"></i> Maya Express Checkout
+                        </span>
                     </div>
                     @if($lgu?->maya_qr_path)
                         <div class="text-center mb-3">
                             <img src="{{ Storage::url($lgu->maya_qr_path) }}" alt="LGU Maya QR" style="max-width:180px;border-radius:16px;box-shadow:0 4px 15px rgba(0,0,0,0.3);">
-                            <div class="small fw-600 mt-2" style="font-size:.78rem;color:#e2e8f0;">Scan LGU Maya QR</div>
+                            <div class="small fw-600 mt-2" style="font-size:.78rem;color:#e2e8f0;">Official LGU Maya Merchant QR</div>
                         </div>
                     @endif
                     <div class="mb-3">
-                        <label class="form-label fw-700" style="font-size:.8rem;color:#f1f5f9;">Maya Account / Mobile Number</label>
-                        <input type="text" name="maya_number" class="form-control form-control-custom" placeholder="e.g. 09181234567">
+                        <label class="form-label fw-700" style="font-size:.82rem;color:#f1f5f9;">Maya Mobile / Account Number</label>
+                        <input type="text" id="input_maya_mobile" class="form-control form-control-custom" placeholder="e.g. 09181234567" value="09181234567">
                     </div>
                 </div>
 
                 {{-- Card Details --}}
                 <div id="details_card" style="display:none;">
-                    <div class="d-flex align-items-center gap-2 mb-3" style="color:#c084fc;">
-                        <i class="bi bi-credit-card-2-front-fill fs-5"></i>
-                        <span class="fw-700" style="font-size:.95rem;color:#e9d5ff;">Credit / Debit Card Details</span>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-purple px-3 py-2 rounded-pill fw-700" style="background:#8b5cf6 !important;font-size:.85rem;">
+                            <i class="bi bi-credit-card-2-front-fill me-1"></i> Online Banking / Card Payment
+                        </span>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-700" style="font-size:.8rem;color:#f1f5f9;">Card Number</label>
-                        <input type="text" name="card_number" class="form-control form-control-custom" placeholder="4532 •••• •••• 8901">
+                        <label class="form-label fw-700" style="font-size:.82rem;color:#f1f5f9;">Card Number</label>
+                        <input type="text" id="input_card_number" class="form-control form-control-custom" placeholder="4532 •••• •••• 8901" value="4532 8901 2345 6789">
                     </div>
                     <div class="row g-2">
                         <div class="col-6">
-                            <label class="form-label fw-700" style="font-size:.8rem;color:#f1f5f9;">Expiry (MM/YY)</label>
-                            <input type="text" placeholder="12/28" class="form-control form-control-custom">
+                            <label class="form-label fw-700" style="font-size:.82rem;color:#f1f5f9;">Expiry (MM/YY)</label>
+                            <input type="text" placeholder="12/28" class="form-control form-control-custom" value="12/28">
                         </div>
                         <div class="col-6">
-                            <label class="form-label fw-700" style="font-size:.8rem;color:#f1f5f9;">CVV</label>
-                            <input type="password" placeholder="•••" maxlength="4" class="form-control form-control-custom">
+                            <label class="form-label fw-700" style="font-size:.82rem;color:#f1f5f9;">CVV</label>
+                            <input type="password" placeholder="•••" maxlength="4" class="form-control form-control-custom" value="123">
                         </div>
                     </div>
                 </div>
             </div>
 
             {{-- Submit Action --}}
-            <button type="submit" class="btn btn-confirm w-100 py-3">
-                <i class="bi bi-lock-fill me-2"></i> Confirm & Pay ₱{{ number_format($balanceRemaining, 2) }}
+            <button type="button" class="btn btn-confirm w-100 py-3" id="btnGatewaySubmit" onclick="openGatewayPortal()">
+                <i class="bi bi-arrow-right-circle-fill me-2"></i> Proceed to <span id="gatewayBtnText">GCash Payment</span> (₱{{ number_format($balanceRemaining, 2) }})
             </button>
             <div class="text-center mt-2 fw-600" style="font-size:.78rem;color:#cbd5e1;">
-                By confirming, your payment will be automatically recorded in the TVIRS database.
+                <i class="bi bi-shield-check text-success me-1"></i> Instant electronic receipt and automatic database settlement.
             </div>
         </form>
         @else
@@ -294,8 +338,160 @@
         @endif
     </div>
 
+    {{-- ========================================================================= --}}
+    {{-- REALISTIC GCASH PAYMENT GATEWAY MODAL --}}
+    {{-- ========================================================================= --}}
+    <div class="modal fade gateway-modal" id="gcashModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-dark">
+                <div class="gcash-header">
+                    <div class="fw-900 fs-3 tracking-tight">GCash</div>
+                    <div class="small opacity-90 fw-600">Official Merchant Payment Portal</div>
+                </div>
+                <div class="modal-body p-4 bg-white">
+                    <div class="p-3 bg-light rounded-4 mb-4 border text-center">
+                        <div class="text-muted small fw-700 text-uppercase">Merchant Name</div>
+                        <strong class="fs-6 text-dark d-block mb-1">TVIRS — {{ $lgu?->name ?: 'Traffic Enforcement' }}</strong>
+                        <div class="text-muted small fw-700 text-uppercase">Amount to Pay</div>
+                        <div class="fw-900 fs-2 text-primary">₱{{ number_format($balanceRemaining, 2) }}</div>
+                    </div>
+
+                    {{-- Step 1: Mobile Number --}}
+                    <div id="gcash_step_1">
+                        <h6 class="fw-800 text-dark mb-2">Login to pay with GCash</h6>
+                        <p class="text-muted small mb-3">Enter your 11-digit GCash mobile number to proceed.</p>
+                        <div class="mb-3">
+                            <label class="form-label fw-700 small text-muted">Mobile Number</label>
+                            <div class="input-group">
+                                <span class="input-group-text fw-700">+63</span>
+                                <input type="text" id="gcash_modal_mobile" class="form-control form-control-lg fw-700" placeholder="9171234567" value="9171234567">
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary w-100 py-3 rounded-4 fw-800" style="background:#005ce6;border:none;" onclick="goToGcashStep2()">
+                            Next <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+
+                    {{-- Step 2: MPIN Authentication --}}
+                    <div id="gcash_step_2" style="display:none;">
+                        <h6 class="fw-800 text-dark text-center mb-2">Enter 4-Digit MPIN</h6>
+                        <p class="text-muted small text-center mb-3">Enter your MPIN to authorize ₱{{ number_format($balanceRemaining, 2) }} payment.</p>
+                        <div class="d-flex justify-content-center gap-2 mb-4">
+                            <input type="password" maxlength="1" class="pin-input" value="1">
+                            <input type="password" maxlength="1" class="pin-input" value="2">
+                            <input type="password" maxlength="1" class="pin-input" value="3">
+                            <input type="password" maxlength="1" class="pin-input" value="4">
+                        </div>
+                        <button type="button" class="btn btn-primary w-100 py-3 rounded-4 fw-800" style="background:#005ce6;border:none;" onclick="submitFinalPayment('gcash')">
+                            Pay ₱{{ number_format($balanceRemaining, 2) }} Now
+                        </button>
+                    </div>
+
+                    {{-- Step 3: Processing --}}
+                    <div id="gcash_step_processing" style="display:none;" class="text-center py-4">
+                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                        <h5 class="fw-800 text-dark mb-1">Processing GCash Payment...</h5>
+                        <p class="text-muted small mb-0">Connecting to GCash Payment Gateway. Please do not close this window.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ========================================================================= --}}
+    {{-- REALISTIC MAYA PAYMENT GATEWAY MODAL --}}
+    {{-- ========================================================================= --}}
+    <div class="modal fade gateway-modal" id="mayaModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-dark">
+                <div class="maya-header">
+                    <div class="fw-900 fs-3 tracking-tight">maya</div>
+                    <div class="small opacity-90 fw-600">Express Online Checkout</div>
+                </div>
+                <div class="modal-body p-4 bg-white">
+                    <div class="p-3 bg-light rounded-4 mb-4 border text-center">
+                        <div class="text-muted small fw-700 text-uppercase">Merchant</div>
+                        <strong class="fs-6 text-dark d-block mb-1">TVIRS — {{ $lgu?->name ?: 'Traffic Enforcement' }}</strong>
+                        <div class="text-muted small fw-700 text-uppercase">Total Payable</div>
+                        <div class="fw-900 fs-2 text-success">₱{{ number_format($balanceRemaining, 2) }}</div>
+                    </div>
+
+                    <div id="maya_step_1">
+                        <div class="mb-3">
+                            <label class="form-label fw-700 small text-muted">Maya Account Mobile / Email</label>
+                            <input type="text" id="maya_modal_mobile" class="form-control form-control-lg fw-700" value="09181234567">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-700 small text-muted">Password</label>
+                            <input type="password" class="form-control form-control-lg" value="••••••••">
+                        </div>
+                        <button type="button" class="btn btn-success w-100 py-3 rounded-4 fw-800" style="background:#10b981;border:none;" onclick="submitFinalPayment('maya')">
+                            Authorize Pay ₱{{ number_format($balanceRemaining, 2) }}
+                        </button>
+                    </div>
+
+                    <div id="maya_step_processing" style="display:none;" class="text-center py-4">
+                        <div class="spinner-border text-success mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                        <h5 class="fw-800 text-dark mb-1">Processing Maya Payment...</h5>
+                        <p class="text-muted small mb-0">Verifying transaction with Maya. Please wait...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ========================================================================= --}}
+    {{-- REALISTIC CARD PAYMENT GATEWAY MODAL --}}
+    {{-- ========================================================================= --}}
+    <div class="modal fade gateway-modal" id="cardModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-dark">
+                <div class="card-header-modal">
+                    <div class="fw-900 fs-4 tracking-tight"><i class="bi bi-shield-lock-fill me-2 text-warning"></i>3D Secure Card Checkout</div>
+                    <div class="small opacity-90 fw-600">Visa / Mastercard Secured</div>
+                </div>
+                <div class="modal-body p-4 bg-white">
+                    <div class="p-3 bg-light rounded-4 mb-4 border text-center">
+                        <div class="text-muted small fw-700 text-uppercase">Payment Amount</div>
+                        <div class="fw-900 fs-2 text-purple" style="color:#8b5cf6;">₱{{ number_format($balanceRemaining, 2) }}</div>
+                    </div>
+
+                    <div id="card_step_1">
+                        <div class="mb-3">
+                            <label class="form-label fw-700 small text-muted">Card Number</label>
+                            <input type="text" id="card_modal_num" class="form-control form-control-lg fw-700" value="4532 8901 2345 6789">
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-700 small text-muted">Expiry Date</label>
+                                <input type="text" class="form-control" value="12/28">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-700 small text-muted">CVV Code</label>
+                                <input type="password" class="form-control" value="123">
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-dark w-100 py-3 rounded-4 fw-800" style="background:#1e1b4b;border:none;" onclick="submitFinalPayment('card')">
+                            Pay ₱{{ number_format($balanceRemaining, 2) }}
+                        </button>
+                    </div>
+
+                    <div id="card_step_processing" style="display:none;" class="text-center py-4">
+                        <div class="spinner-border text-dark mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                        <h5 class="fw-800 text-dark mb-1">Authenticating 3D-Secure...</h5>
+                        <p class="text-muted small mb-0">Verifying with your card issuing bank...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        let currentMethod = 'gcash';
+
         function selectMethod(method) {
+            currentMethod = method;
             document.getElementById('selected_method').value = method;
             ['gcash', 'maya', 'card'].forEach(m => {
                 const card = document.getElementById('card_' + m);
@@ -308,6 +504,49 @@
                     details.style.display = 'none';
                 }
             });
+
+            const btnText = document.getElementById('gatewayBtnText');
+            if (method === 'gcash') btnText.innerText = 'GCash Express';
+            else if (method === 'maya') btnText.innerText = 'Maya Gateway';
+            else btnText.innerText = 'Card Gateway';
+        }
+
+        function openGatewayPortal() {
+            if (currentMethod === 'gcash') {
+                const modal = new bootstrap.Modal(document.getElementById('gcashModal'));
+                modal.show();
+            } else if (currentMethod === 'maya') {
+                const modal = new bootstrap.Modal(document.getElementById('mayaModal'));
+                modal.show();
+            } else if (currentMethod === 'card') {
+                const modal = new bootstrap.Modal(document.getElementById('cardModal'));
+                modal.show();
+            }
+        }
+
+        function goToGcashStep2() {
+            document.getElementById('gcash_step_1').style.display = 'none';
+            document.getElementById('gcash_step_2').style.display = 'block';
+        }
+
+        function submitFinalPayment(method) {
+            if (method === 'gcash') {
+                document.getElementById('gcash_step_2').style.display = 'none';
+                document.getElementById('gcash_step_processing').style.display = 'block';
+                document.getElementById('final_mobile_number').value = document.getElementById('gcash_modal_mobile').value;
+            } else if (method === 'maya') {
+                document.getElementById('maya_step_1').style.display = 'none';
+                document.getElementById('maya_step_processing').style.display = 'block';
+                document.getElementById('final_mobile_number').value = document.getElementById('maya_modal_mobile').value;
+            } else if (method === 'card') {
+                document.getElementById('card_step_1').style.display = 'none';
+                document.getElementById('card_step_processing').style.display = 'block';
+                document.getElementById('final_card_number').value = document.getElementById('card_modal_num').value;
+            }
+
+            setTimeout(() => {
+                document.getElementById('mainPaymentForm').submit();
+            }, 1500);
         }
     </script>
 </body>
