@@ -593,8 +593,8 @@
 
 <script>
 window.addEventListener('load', function () {
-    // Generate QR code
-    var qrData = '{{ $violation->ticket_number ? $violation->ticket_number . " — " . ($violation->violator?->full_name ?? "") : url("/violations/" . $violation->id) }}';
+    // Generate QR code for Online Payment Portal
+    var qrData = '{{ url("/pay/ticket/" . $violation->ticket_number) }}';
     QRCode.toCanvas(document.getElementById('violationQrCode'), qrData, {
         width: 72,
         margin: 1,

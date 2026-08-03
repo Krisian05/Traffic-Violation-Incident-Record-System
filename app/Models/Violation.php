@@ -236,6 +236,12 @@ class Violation extends Model
         return max(0.0, round($this->totalAmountDue() - $this->totalAmountPaid(), 2));
     }
 
+    /** Determine if violation is fully settled. */
+    public function isSettled(): bool
+    {
+        return $this->status === 'settled';
+    }
+
     /** Generate a unique suggested OR number for payment settlement. */
     public function suggestOrNumber(): string
     {

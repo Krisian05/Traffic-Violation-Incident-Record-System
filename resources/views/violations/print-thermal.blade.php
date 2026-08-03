@@ -213,22 +213,23 @@
     
     <div class="qr-container">
         <canvas id="thermalTicketQr"></canvas>
-        <div style="font-size: 14px; font-weight: 700; margin-top: 5px;">SCAN TO VERIFY CITATION</div>
+        <div style="font-size: 15px; font-weight: 800; margin-top: 5px;">SCAN TO PAY ONLINE VIA GCASH / MAYA / CARD</div>
+        <div style="font-size: 12px; font-weight: 600; color: #444;">Scan with phone camera to settle citation</div>
     </div>
 
     @if($lgu?->gcash_qr_path)
     <div class="qr-container">
         <img src="{{ Storage::url($lgu->gcash_qr_path) }}" alt="GCash Payment" style="width: 260px; height: 260px; margin-bottom: 8px; object-fit: contain;">
-        <div>GCASH PAYMENT</div>
-        <div style="font-size: 16px; margin-top: 5px;">PHP {{ number_format($violation->violationType?->fine_amount ?? 0, 2) }}</div>
+        <div>GCASH DIRECT QR</div>
+        <div style="font-size: 16px; margin-top: 5px;">PHP {{ number_format($violation->balanceRemaining(), 2) }}</div>
     </div>
     @endif
 
     @if($lgu?->maya_qr_path)
     <div class="qr-container">
         <img src="{{ Storage::url($lgu->maya_qr_path) }}" alt="Maya Payment" style="width: 260px; height: 260px; margin-bottom: 8px; object-fit: contain;">
-        <div>MAYA PAYMENT</div>
-        <div style="font-size: 16px; margin-top: 5px;">PHP {{ number_format($violation->violationType?->fine_amount ?? 0, 2) }}</div>
+        <div>MAYA DIRECT QR</div>
+        <div style="font-size: 16px; margin-top: 5px;">PHP {{ number_format($violation->balanceRemaining(), 2) }}</div>
     </div>
     @endif
     
@@ -238,7 +239,7 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 <script>
 if (document.getElementById('thermalTicketQr')) {
-    QRCode.toCanvas(document.getElementById('thermalTicketQr'), '{{ $violation->ticket_number ?: url("/violations/" . $violation->id) }}', {
+    QRCode.toCanvas(document.getElementById('thermalTicketQr'), '{{ url("/pay/ticket/" . $violation->ticket_number) }}', {
         width: 180,
         margin: 1
     });
