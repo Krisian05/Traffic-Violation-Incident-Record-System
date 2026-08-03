@@ -394,19 +394,19 @@
                     <table class="table align-middle mb-0" id="history-table">
                         <thead>
                             <tr>
-                                <th style="padding-left:1.25rem;">
+                                <th style="padding-left:1.25rem;white-space:nowrap;width:125px;">
                                     <span class="vlt-th-inner"><i class="bi bi-calendar-event-fill me-1"></i>Date</span>
                                 </th>
-                                <th>
+                                <th style="min-width:230px;">
                                     <span class="vlt-th-inner"><i class="bi bi-tag-fill me-1"></i>Violation</span>
                                 </th>
-                                <th>
+                                <th style="white-space:nowrap;width:110px;">
                                     <span class="vlt-th-inner"><i class="bi bi-car-front-fill me-1"></i>Vehicle</span>
                                 </th>
-                                <th class="text-center">
+                                <th class="text-center" style="white-space:nowrap;width:125px;">
                                     <span class="vlt-th-inner"><i class="bi bi-activity me-1"></i>Status</span>
                                 </th>
-                                <th class="text-center">
+                                <th class="text-center" style="white-space:nowrap;width:145px;">
                                     <span class="vlt-th-inner"><i class="bi bi-lightning-charge-fill me-1"></i>Actions</span>
                                 </th>
                             </tr>
@@ -414,31 +414,33 @@
                         <tbody>
                             @foreach($violator->violations->sortByDesc('date_of_violation') as $viol)
                             <tr class="vlt-tbl-row vlt-history-row" data-href="{{ route('violations.show', $viol) }}">
-                                <td style="padding-left:1.25rem;">
-                                    <span style="font-size:.84rem;color:#57534e;">
+                                <td style="padding-left:1.25rem;white-space:nowrap;">
+                                    <span style="font-size:.84rem;color:#57534e;font-weight:600;">
                                         <i class="bi bi-calendar-check me-1" style="color:#a8a29e;font-size:.72rem;"></i>
                                         {{ $viol->date_of_violation->format('M d, Y') }}
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="vlt-vtype-pill">
-                                        <i class="bi bi-exclamation-octagon-fill me-1" style="font-size:.6rem;"></i>
-                                        {{ $viol->violationType?->name ?? '—' }}
-                                    </span>
-                                    @if($viol->lgu)
-                                        <span class="badge rounded-pill bg-light text-secondary border ms-1" style="font-size:.65rem;font-weight:600;" title="Encoded by {{ $viol->lgu->name }}">
-                                            <i class="bi bi-building me-1"></i>{{ $viol->lgu->code ?? $viol->lgu->name }}
+                                    <div class="d-inline-flex align-items-center gap-1.5 flex-wrap">
+                                        <span class="vlt-vtype-pill">
+                                            <i class="bi bi-exclamation-octagon-fill me-1" style="font-size:.6rem;"></i>
+                                            {{ $viol->violationType?->name ?? '—' }}
                                         </span>
-                                    @endif
+                                        @if($viol->lgu)
+                                            <span class="badge rounded-pill bg-light text-secondary border" style="font-size:.65rem;font-weight:600;" title="Encoded by {{ $viol->lgu->name }}">
+                                                <i class="bi bi-building me-1"></i>{{ $viol->lgu->code ?? $viol->lgu->name }}
+                                            </span>
+                                        @endif
+                                    </div>
                                 </td>
-                                <td style="font-size:.84rem;color:#57534e;">
+                                <td style="font-size:.84rem;color:#57534e;white-space:nowrap;">
                                     @if($viol->vehicle?->plate_number)
                                         <span class="vlt-plate-chip">{{ $viol->vehicle->plate_number }}</span>
                                     @else
                                         <span style="color:#c4b8a8;font-weight:600;">—</span>
                                     @endif
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center" style="white-space:nowrap;">
                                     @php
                                         $isOverdue = $viol->isOverdue();
                                         $displayStatus = $isOverdue ? 'overdue' : $viol->status;
@@ -456,7 +458,7 @@
                                         <i class="bi {{ $sc['icon'] }}"></i> {{ ucfirst($displayStatus) }}
                                     </span>
                                 </td>
-                                <td class="text-center vlt-history-act" style="min-width:130px;">
+                                <td class="text-center vlt-history-act" style="white-space:nowrap;">
                                     <div class="d-flex justify-content-center align-items-center gap-2 flex-nowrap">
                                         <a href="{{ route('violations.show', $viol) }}" class="vlt-act-btn vlt-act-view" title="View details">
                                             <i class="bi bi-eye-fill"></i>
@@ -487,6 +489,22 @@
                         </tbody>
                     </table>
                 </div>
+                @if($violator->violations->count() > 5)
+                <div id="history-pagination-row" class="d-flex align-items-center justify-content-between px-3 py-2 border-top" style="background:#fafaf9;font-size:.8rem;">
+                    <div style="color:#78716c;">
+                        Showing <span id="vio-showing-start" class="fw-700" style="color:#292524;">1</span> to <span id="vio-showing-end" class="fw-700" style="color:#292524;">5</span> of <span class="fw-700" style="color:#292524;">{{ $vc }}</span> violations
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        <button type="button" id="btn-vio-prev" class="btn btn-sm btn-outline-secondary py-1 px-2.5 rounded-2" style="font-size:.75rem;font-weight:600;" disabled onclick="changeVioPage(-1)">
+                            <i class="bi bi-chevron-left me-1"></i>Previous
+                        </button>
+                        <span id="vio-page-indicator" class="px-2 fw-600" style="color:#44403c;font-size:.78rem;">Page 1 of 1</span>
+                        <button type="button" id="btn-vio-next" class="btn btn-sm btn-outline-secondary py-1 px-2.5 rounded-2" style="font-size:.75rem;font-weight:600;" onclick="changeVioPage(1)">
+                            Next<i class="bi bi-chevron-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+                @endif
             @endif
         </div>
 
@@ -1045,9 +1063,58 @@ document.querySelectorAll('.vlt-inc-row[data-href]').forEach(function (row) {
         if (e.target.closest('a'))            return;
         if (e.target.closest('button'))       return;
         if (e.target.closest('form'))         return;
-        window.location.href = row.dataset.href;
-    });
-});
+// ── 5-per-page Violation History Pagination ──
+let vioCurrentPage = 1;
+const vioPageSize = 5;
+
+function initVioPagination() {
+    const rows = document.querySelectorAll('.vlt-history-row');
+    const totalRows = rows.length;
+    if (totalRows <= vioPageSize) {
+        const pagRow = document.getElementById('history-pagination-row');
+        if (pagRow) pagRow.style.display = 'none';
+        return;
+    }
+
+    const totalPages = Math.ceil(totalRows / vioPageSize);
+    
+    window.changeVioPage = function(delta) {
+        vioCurrentPage += delta;
+        if (vioCurrentPage < 1) vioCurrentPage = 1;
+        if (vioCurrentPage > totalPages) vioCurrentPage = totalPages;
+
+        const startIdx = (vioCurrentPage - 1) * vioPageSize;
+        const endIdx = startIdx + vioPageSize;
+
+        rows.forEach((row, index) => {
+            if (index >= startIdx && index < endIdx) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        const startDisplay = startIdx + 1;
+        const endDisplay = Math.min(endIdx, totalRows);
+
+        const startEl = document.getElementById('vio-showing-start');
+        const endEl = document.getElementById('vio-showing-end');
+        const pageIndEl = document.getElementById('vio-page-indicator');
+        const btnPrev = document.getElementById('btn-vio-prev');
+        const btnNext = document.getElementById('btn-vio-next');
+
+        if (startEl) startEl.textContent = startDisplay;
+        if (endEl) endEl.textContent = endDisplay;
+        if (pageIndEl) pageIndEl.textContent = `Page ${vioCurrentPage} of ${totalPages}`;
+
+        if (btnPrev) btnPrev.disabled = (vioCurrentPage <= 1);
+        if (btnNext) btnNext.disabled = (vioCurrentPage >= totalPages);
+    };
+
+    window.changeVioPage(0);
+}
+
+document.addEventListener('DOMContentLoaded', initVioPagination);
 </script>
 
 @endsection
