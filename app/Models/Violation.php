@@ -196,9 +196,15 @@ class Violation extends Model
     /** True if this violation instance is past its due date and still unpaid/partially paid. */
     public function isOverdue(): bool
     {
-        return in_array($this->status, ['pending', 'partial'], true)
-            && $this->due_date
-            && now()->startOfDay()->gt($this->due_date);
+        if (!in_array($this->status, ['pending', 'partial'], true) || empty($this->due_date)) {
+            return false;
+        }
+
+        $dueDate = $this->due_date instanceof \Carbon\CarbonInterface
+            ? $this->due_date
+            : \Carbon\Carbon::parse($this->due_date);
+
+        return now()->startOfDay()->gt($dueDate->startOfDay());
     }
 
     /** Additional penalty added once a violation passes its due_date (0 if not overdue or not configured). */

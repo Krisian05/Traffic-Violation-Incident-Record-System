@@ -74,11 +74,17 @@ class OnlinePaymentController extends Controller
     {
         // Support ticket number search (case-insensitive & space/hyphen clean)
         $cleanTicket = trim($ticket);
-        $violation = Violation::with(['violator', 'violationType', 'lgu', 'payments', 'vehicle'])
+        
+        $violationQuery = Violation::with(['violator', 'violationType', 'lgu', 'payments', 'vehicle'])
             ->where('ticket_number', $cleanTicket)
-            ->orWhere('ticket_number', 'like', "%{$cleanTicket}%")
-            ->orWhere('id', $cleanTicket)
-            ->first();
+            ->orWhere('ticket_number', 'like', "%{$cleanTicket}%");
+
+        // Safely check integer ID for PostgreSQL compatibility without throwing type 22P02 exception
+        if (is_numeric($cleanTicket)) {
+            $violationQuery->orWhere('id', (int) $cleanTicket);
+        }
+
+        $violation = $violationQuery->first();
 
         if (!$violation) {
             return redirect()->route('online-payment.index', ['search' => $cleanTicket])
