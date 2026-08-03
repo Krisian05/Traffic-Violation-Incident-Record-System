@@ -58,6 +58,33 @@ class SmsService
     }
 
     /**
+     * Send 72-hour payment reminder SMS to violator.
+     */
+    public function send72HourReminderSms(Violation $violation): array
+    {
+        $violator = $violation->violator;
+        $recipient = $violator?->contact_number;
+
+        if (empty($recipient)) {
+            return ['success' => false, 'message' => 'No contact number recorded for motorist'];
+        }
+
+        $ticketNo = $violation->ticket_number ?? 'CIT-' . $violation->id;
+        $fine = number_format($violation->type?->penalty_amount ?? 0, 2);
+        $dueDate = $violation->due_date ? $violation->due_date->format('M d, Y') : 'N/A';
+
+        $message = "TVIRS 72-Hour Notice: Citation #{$ticketNo} fine of P{$fine} is due on {$dueDate}. Settle at LGU Treasurer or scan ticket QR to avoid late fees.";
+
+        $result = $this->dispatch($violation, $recipient, $message);
+
+        if ($result['success']) {
+            $violation->update(['sms_reminder_sent_at' => now()]);
+        }
+
+        return $result;
+    }
+
+    /**
      * Execute SMS HTTP POST to Semaphore API or fallback log.
      */
     protected function dispatch(Violation $violation, string $recipient, string $message): array

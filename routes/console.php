@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('tvirs:backup')->dailyAt('02:00');
+Schedule::command('sms:send-72h-reminders')->hourly();

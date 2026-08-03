@@ -76,6 +76,7 @@ class Violation extends Model
         'settled_at',
         'sms_status',
         'sms_sent_at',
+        'sms_reminder_sent_at',
         'sms_error',
     ];
 
@@ -83,6 +84,8 @@ class Violation extends Model
         'date_of_violation' => 'date',
         'due_date'          => 'date',
         'settled_at'        => 'datetime',
+        'sms_sent_at'       => 'datetime',
+        'sms_reminder_sent_at' => 'datetime',
     ];
 
     public static function generateTicketNumber(?int $lguId = null): string
