@@ -413,7 +413,7 @@
                         </thead>
                         <tbody>
                             @foreach($violator->violations->sortByDesc('date_of_violation') as $viol)
-                            <tr class="vlt-tbl-row vlt-history-row" data-href="{{ route('violations.show', $viol) }}">
+                            <tr class="vlt-tbl-row vlt-history-row" data-href="{{ route('violations.show', $viol) }}" style="{{ $loop->index >= 5 ? 'display:none;' : '' }}">
                                 <td style="padding-left:1.25rem;white-space:nowrap;">
                                     <span style="font-size:.84rem;color:#57534e;font-weight:600;">
                                         <i class="bi bi-calendar-check me-1" style="color:#a8a29e;font-size:.72rem;"></i>
@@ -1063,34 +1063,33 @@ document.querySelectorAll('.vlt-inc-row[data-href]').forEach(function (row) {
         if (e.target.closest('a'))            return;
         if (e.target.closest('button'))       return;
         if (e.target.closest('form'))         return;
+        window.location.href = row.dataset.href;
+    });
+});
+
 // ── 5-per-page Violation History Pagination ──
-let vioCurrentPage = 1;
-const vioPageSize = 5;
+(function() {
+    let vioCurrentPage = 1;
+    const vioPageSize = 5;
 
-function initVioPagination() {
-    const rows = document.querySelectorAll('.vlt-history-row');
-    const totalRows = rows.length;
-    if (totalRows <= vioPageSize) {
-        const pagRow = document.getElementById('history-pagination-row');
-        if (pagRow) pagRow.style.display = 'none';
-        return;
-    }
+    function applyVioPage(page) {
+        const rows = document.querySelectorAll('#history-table tbody .vlt-history-row');
+        const totalRows = rows.length;
+        if (totalRows <= vioPageSize) return;
 
-    const totalPages = Math.ceil(totalRows / vioPageSize);
-    
-    window.changeVioPage = function(delta) {
-        vioCurrentPage += delta;
-        if (vioCurrentPage < 1) vioCurrentPage = 1;
-        if (vioCurrentPage > totalPages) vioCurrentPage = totalPages;
+        const totalPages = Math.ceil(totalRows / vioPageSize) || 1;
+        if (page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+        vioCurrentPage = page;
 
         const startIdx = (vioCurrentPage - 1) * vioPageSize;
         const endIdx = startIdx + vioPageSize;
 
-        rows.forEach((row, index) => {
+        rows.forEach(function(row, index) {
             if (index >= startIdx && index < endIdx) {
-                row.style.display = '';
+                row.style.setProperty('display', '', 'important');
             } else {
-                row.style.display = 'none';
+                row.style.setProperty('display', 'none', 'important');
             }
         });
 
@@ -1105,16 +1104,19 @@ function initVioPagination() {
 
         if (startEl) startEl.textContent = startDisplay;
         if (endEl) endEl.textContent = endDisplay;
-        if (pageIndEl) pageIndEl.textContent = `Page ${vioCurrentPage} of ${totalPages}`;
+        if (pageIndEl) pageIndEl.textContent = 'Page ' + vioCurrentPage + ' of ' + totalPages;
 
         if (btnPrev) btnPrev.disabled = (vioCurrentPage <= 1);
         if (btnNext) btnNext.disabled = (vioCurrentPage >= totalPages);
+    }
+
+    window.changeVioPage = function(delta) {
+        applyVioPage(vioCurrentPage + delta);
     };
 
-    window.changeVioPage(0);
-}
-
-document.addEventListener('DOMContentLoaded', initVioPagination);
+    applyVioPage(1);
+    document.addEventListener('DOMContentLoaded', function() { applyVioPage(1); });
+})();
 </script>
 
 @endsection
