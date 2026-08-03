@@ -421,7 +421,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="d-inline-flex align-items-center gap-1.5 flex-wrap">
+                                    <div class="d-inline-flex align-items-center gap-2 flex-wrap" style="row-gap:.35rem;">
                                         <span class="vlt-vtype-pill">
                                             <i class="bi bi-exclamation-octagon-fill me-1" style="font-size:.6rem;"></i>
                                             {{ $viol->violationType?->name ?? '—' }}
