@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('title', 'SMS Gateway')
-@section('topbar-sub', 'Manage Semaphore SMS API settings & dispatch logs')
+@section('topbar-sub', 'Manage Android SIM Gateway (Free) & Semaphore SMS API settings')
 
 @section('breadcrumbs')
     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" style="color:#78716c;">Dashboard</a></li>
@@ -17,7 +17,7 @@
         <div>
             <h5 class="mb-0 fw-700" style="color:#1c1917;">SMS Gateway Center</h5>
             <div style="font-size:.8rem;color:#78716c;">
-                Monitor outbound citation SMS messages & configure Semaphore API settings
+                Monitor outbound citation SMS messages & configure Android SIM Gateway or Semaphore API
             </div>
         </div>
     </div>
@@ -55,9 +55,15 @@
         <div class="card border-0 shadow-sm p-3 h-100" style="border-left:4px solid #0284c7!important;">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <div class="text-muted fw-600 mb-1" style="font-size:.78rem;text-transform:uppercase;">Gateway Provider</div>
-                    <div class="fw-700" style="font-size:1.1rem;color:#0369a1;">
-                        {{ $lgu?->sms_api_key ? 'Semaphore API' : 'Local Log Driver' }}
+                    <div class="text-muted fw-600 mb-1" style="font-size:.78rem;text-transform:uppercase;">Gateway Mode</div>
+                    <div class="fw-700" style="font-size:1.05rem;color:#0369a1;">
+                        @if(($lgu?->sms_provider ?? 'textbee') === 'textbee')
+                            <i class="bi bi-phone-vibrate me-1 text-success"></i>Android SIM Gateway (Free ₱0)
+                        @elseif($lgu?->sms_provider === 'semaphore')
+                            <i class="bi bi-cloud-check me-1 text-primary"></i>Semaphore API
+                        @else
+                            <i class="bi bi-terminal me-1 text-secondary"></i>Local Log Gateway
+                        @endif
                     </div>
                 </div>
                 <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:40px;height:40px;background:#e0f2fe;">
@@ -95,21 +101,54 @@
                     @endif
 
                     <div class="mb-3">
-                        <label class="form-label fw-600" style="font-size:.82rem;">Semaphore API Key</label>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text"><i class="bi bi-key-fill text-muted"></i></span>
-                            <input type="password" name="sms_api_key" class="form-control" placeholder="Semaphore API Key" value="{{ old('sms_api_key', $lgu?->sms_api_key) }}">
-                        </div>
-                        <div class="form-text" style="font-size:.72rem;">Enter API key from Semaphore.co to enable live SMS delivery.</div>
+                        <label class="form-label fw-600" style="font-size:.82rem;">Gateway Provider</label>
+                        <select name="sms_provider" id="sms_provider_select" class="form-select form-select-sm" onchange="toggleProviderFields(this.value)">
+                            <option value="textbee" {{ old('sms_provider', $lgu?->sms_provider ?? 'textbee') === 'textbee' ? 'selected' : '' }}>📱 Android SIM Gateway (Textbee.dev — Free ₱0)</option>
+                            <option value="semaphore" {{ old('sms_provider', $lgu?->sms_provider) === 'semaphore' ? 'selected' : '' }}>☁️ Semaphore SMS API (Prepaid Paid Credits)</option>
+                            <option value="local" {{ old('sms_provider', $lgu?->sms_provider) === 'local' ? 'selected' : '' }}>💻 Local Test Log Gateway (No SMS Sent)</option>
+                        </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-600" style="font-size:.82rem;">SMS Sender Name</label>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text"><i class="bi bi-tag-fill text-muted"></i></span>
-                            <input type="text" name="sms_sender_name" class="form-control" maxlength="11" placeholder="e.g. TVIRS" value="{{ old('sms_sender_name', $lgu?->sms_sender_name ?? 'TVIRS') }}">
+                    {{-- Textbee Fields --}}
+                    <div id="textbee_fields_group" style="{{ old('sms_provider', $lgu?->sms_provider ?? 'textbee') === 'textbee' ? '' : 'display:none;' }}">
+                        <div class="mb-3">
+                            <label class="form-label fw-600" style="font-size:.82rem;">Textbee API Key</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="bi bi-key-fill text-muted"></i></span>
+                                <input type="password" name="textbee_api_key" class="form-control" placeholder="e.g. tb_key_..." value="{{ old('textbee_api_key', $lgu?->textbee_api_key) }}">
+                            </div>
+                            <div class="form-text" style="font-size:.72rem;">Free API Key from Textbee app on Android gateway phone.</div>
                         </div>
-                        <div class="form-text" style="font-size:.72rem;">Max 11 alphanumeric characters registered with Semaphore.</div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-600" style="font-size:.82rem;">Textbee Device ID</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="bi bi-phone-fill text-muted"></i></span>
+                                <input type="text" name="textbee_device_id" class="form-control" placeholder="e.g. 65a1b2c3..." value="{{ old('textbee_device_id', $lgu?->textbee_device_id) }}">
+                            </div>
+                            <div class="form-text" style="font-size:.72rem;">Device ID generated inside Textbee Android app.</div>
+                        </div>
+                    </div>
+
+                    {{-- Semaphore Fields --}}
+                    <div id="semaphore_fields_group" style="{{ old('sms_provider', $lgu?->sms_provider) === 'semaphore' ? '' : 'display:none;' }}">
+                        <div class="mb-3">
+                            <label class="form-label fw-600" style="font-size:.82rem;">Semaphore API Key</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="bi bi-key-fill text-muted"></i></span>
+                                <input type="password" name="sms_api_key" class="form-control" placeholder="Semaphore API Key" value="{{ old('sms_api_key', $lgu?->sms_api_key) }}">
+                            </div>
+                            <div class="form-text" style="font-size:.72rem;">Enter API key from Semaphore.co to enable live SMS delivery.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-600" style="font-size:.82rem;">SMS Sender Name</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="bi bi-tag-fill text-muted"></i></span>
+                                <input type="text" name="sms_sender_name" class="form-control" maxlength="11" placeholder="e.g. TVIRS" value="{{ old('sms_sender_name', $lgu?->sms_sender_name ?? 'TVIRS') }}">
+                            </div>
+                            <div class="form-text" style="font-size:.72rem;">Max 11 alphanumeric characters registered with Semaphore.</div>
+                        </div>
                     </div>
 
                     <div class="form-check form-switch mb-4">
@@ -124,6 +163,19 @@
                     </button>
                 </form>
             </div>
+        </div>
+
+        {{-- 📱 Android SIM Setup Guide Card --}}
+        <div class="card border-0 shadow-sm p-3" style="background:#f0fdf4;border:1px solid #bbf7d0!important;border-radius:12px;">
+            <h6 class="fw-700 mb-2" style="color:#15803d;font-size:.88rem;">
+                <i class="bi bi-phone-vibrate me-2"></i>How to Setup Free Android SIM Gateway
+            </h6>
+            <ol class="mb-0 ps-3" style="font-size:.78rem;color:#166534;line-height:1.6;">
+                <li>Get any spare Android phone loaded with an <strong>unlimited text SIM promo</strong>.</li>
+                <li>Open Chrome on the Android phone, go to <a href="https://textbee.dev" target="_blank" class="fw-700 text-decoration-underline" style="color:#15803d;">textbee.dev</a>, and install the free app.</li>
+                <li>Open app ➔ tap <strong>Register Device</strong> to get your <strong>API Key</strong> & <strong>Device ID</strong>.</li>
+                <li>Paste them above and tap <strong>Save Gateway Configuration</strong>. Done!</li>
+            </ol>
         </div>
     </div>
 
@@ -215,4 +267,23 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+function toggleProviderFields(provider) {
+    const textbeeGroup = document.getElementById('textbee_fields_group');
+    const semaphoreGroup = document.getElementById('semaphore_fields_group');
+    if (provider === 'textbee') {
+        textbeeGroup.style.display = '';
+        semaphoreGroup.style.display = 'none';
+    } else if (provider === 'semaphore') {
+        textbeeGroup.style.display = 'none';
+        semaphoreGroup.style.display = '';
+    } else {
+        textbeeGroup.style.display = 'none';
+        semaphoreGroup.style.display = 'none';
+    }
+}
+</script>
+@endpush
 @endsection

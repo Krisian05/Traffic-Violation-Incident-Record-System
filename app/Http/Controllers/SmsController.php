@@ -49,10 +49,13 @@ class SmsController extends Controller
     public function updateSettings(Request $request)
     {
         $data = $request->validate([
-            'lgu_id'          => ['required', 'exists:lgus,id'],
-            'sms_api_key'     => ['nullable', 'string', 'max:255'],
-            'sms_sender_name' => ['nullable', 'string', 'max:11'],
-            'sms_auto_send'   => ['nullable', 'boolean'],
+            'lgu_id'            => ['required', 'exists:lgus,id'],
+            'sms_provider'      => ['required', 'in:textbee,semaphore,local'],
+            'textbee_api_key'   => ['nullable', 'string', 'max:255'],
+            'textbee_device_id' => ['nullable', 'string', 'max:255'],
+            'sms_api_key'       => ['nullable', 'string', 'max:255'],
+            'sms_sender_name'   => ['nullable', 'string', 'max:11'],
+            'sms_auto_send'     => ['nullable', 'boolean'],
         ]);
 
         $lgu = Lgu::findOrFail($data['lgu_id']);
@@ -64,9 +67,12 @@ class SmsController extends Controller
         }
 
         $lgu->update([
-            'sms_api_key'     => $data['sms_api_key'],
-            'sms_sender_name' => $data['sms_sender_name'] ?: 'TVIRS',
-            'sms_auto_send'   => $request->has('sms_auto_send'),
+            'sms_provider'      => $data['sms_provider'],
+            'textbee_api_key'   => $data['textbee_api_key'],
+            'textbee_device_id' => $data['textbee_device_id'],
+            'sms_api_key'       => $data['sms_api_key'],
+            'sms_sender_name'   => $data['sms_sender_name'] ?: 'TVIRS',
+            'sms_auto_send'     => $request->has('sms_auto_send'),
         ]);
 
         return back()->with('success', 'SMS Gateway configuration updated successfully.');

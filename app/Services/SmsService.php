@@ -63,64 +63,115 @@ class SmsService
     protected function dispatch(Violation $violation, string $recipient, string $message): array
     {
         $lgu = $violation->lgu;
-        $apiKey = $lgu?->sms_api_key ?: config('services.semaphore.api_key', env('SEMAPHORE_API_KEY'));
-        $senderName = $lgu?->sms_sender_name ?: config('services.semaphore.sender_name', 'TVIRS');
+        $provider = $lgu?->sms_provider ?? 'textbee';
 
-        // Sanitize phone number (convert 09xx to +639xx if needed)
+        // Format phone number to international +63 format
         $cleanPhone = preg_replace('/[^0-9+]/', '', $recipient);
+        if (str_starts_with($cleanPhone, '09')) {
+            $cleanPhone = '+639' . substr($cleanPhone, 2);
+        } elseif (str_starts_with($cleanPhone, '9') && strlen($cleanPhone) === 10) {
+            $cleanPhone = '+63' . $cleanPhone;
+        }
 
-        if (!empty($apiKey)) {
-            try {
-                $response = Http::asForm()->post('https://api.semaphore.co/api/v4/messages', [
-                    'apikey'     => $apiKey,
-                    'number'     => $cleanPhone,
-                    'message'    => $message,
-                    'sendername' => $senderName,
-                ]);
+        // 1. Android SIM Gateway via Textbee.dev
+        if ($provider === 'textbee') {
+            $apiKey = $lgu?->textbee_api_key ?: env('TEXTBEE_API_KEY');
+            $deviceId = $lgu?->textbee_device_id ?: env('TEXTBEE_DEVICE_ID');
 
-                if ($response->successful()) {
-                    $violation->update([
-                        'sms_status'  => 'sent',
-                        'sms_sent_at' => now(),
-                        'sms_error'   => null,
+            if (!empty($apiKey) && !empty($deviceId)) {
+                try {
+                    $response = Http::withHeaders([
+                        'x-api-key' => $apiKey,
+                    ])->post("https://api.textbee.dev/api/v1/gateway/devices/{$deviceId}/send-sms", [
+                        'recipients' => [$cleanPhone],
+                        'message'    => $message,
                     ]);
 
-                    Log::info("SMS Gateway successfully sent ticket #{$violation->ticket_number} to {$cleanPhone}");
+                    if ($response->successful()) {
+                        $violation->update([
+                            'sms_status'  => 'sent',
+                            'sms_sent_at' => now(),
+                            'sms_error'   => null,
+                        ]);
 
-                    return ['success' => true, 'message' => 'SMS notification dispatched successfully via Semaphore API'];
+                        Log::info("SMS Gateway (Textbee Android SIM) sent ticket #{$violation->ticket_number} to {$cleanPhone}");
+
+                        return ['success' => true, 'message' => 'SMS citation sent via Android SIM Gateway (Textbee)'];
+                    }
+
+                    $errorMsg = 'Textbee Gateway Error: ' . $response->body();
+                    $violation->update([
+                        'sms_status' => 'failed',
+                        'sms_error'  => $errorMsg,
+                    ]);
+
+                    return ['success' => false, 'message' => $errorMsg];
+                } catch (\Throwable $e) {
+                    $errorMsg = 'Textbee Connection Error: ' . $e->getMessage();
+                    $violation->update([
+                        'sms_status' => 'failed',
+                        'sms_error'  => $errorMsg,
+                    ]);
+
+                    return ['success' => false, 'message' => $errorMsg];
                 }
-
-                $errorMsg = 'Semaphore API Error: ' . $response->body();
-                $violation->update([
-                    'sms_status' => 'failed',
-                    'sms_error'  => $errorMsg,
-                ]);
-
-                Log::error($errorMsg);
-
-                return ['success' => false, 'message' => $errorMsg];
-            } catch (\Throwable $e) {
-                $errorMsg = 'SMS Dispatch Error: ' . $e->getMessage();
-                $violation->update([
-                    'sms_status' => 'failed',
-                    'sms_error'  => $errorMsg,
-                ]);
-
-                Log::error($errorMsg);
-
-                return ['success' => false, 'message' => $errorMsg];
             }
-        } else {
-            // Development / Fallback logger
-            $violation->update([
-                'sms_status'  => 'sent',
-                'sms_sent_at' => now(),
-                'sms_error'   => 'Logged locally (No API key set)',
-            ]);
-
-            Log::info("SMS [LOCAL LOG GATEWAY] To: {$cleanPhone} | Sender: {$senderName} | Message: {$message}");
-
-            return ['success' => true, 'message' => 'SMS logged locally (Configure Semaphore API Key in LGU Settings for live SMS)'];
         }
+
+        // 2. Semaphore API Gateway
+        if ($provider === 'semaphore') {
+            $apiKey = $lgu?->sms_api_key ?: config('services.semaphore.api_key', env('SEMAPHORE_API_KEY'));
+            $senderName = $lgu?->sms_sender_name ?: config('services.semaphore.sender_name', 'TVIRS');
+
+            if (!empty($apiKey)) {
+                try {
+                    $response = Http::asForm()->post('https://api.semaphore.co/api/v4/messages', [
+                        'apikey'     => $apiKey,
+                        'number'     => $cleanPhone,
+                        'message'    => $message,
+                        'sendername' => $senderName,
+                    ]);
+
+                    if ($response->successful()) {
+                        $violation->update([
+                            'sms_status'  => 'sent',
+                            'sms_sent_at' => now(),
+                            'sms_error'   => null,
+                        ]);
+
+                        Log::info("SMS Gateway (Semaphore) sent ticket #{$violation->ticket_number} to {$cleanPhone}");
+
+                        return ['success' => true, 'message' => 'SMS notification dispatched via Semaphore API'];
+                    }
+
+                    $errorMsg = 'Semaphore API Error: ' . $response->body();
+                    $violation->update([
+                        'sms_status' => 'failed',
+                        'sms_error'  => $errorMsg,
+                    ]);
+
+                    return ['success' => false, 'message' => $errorMsg];
+                } catch (\Throwable $e) {
+                    $errorMsg = 'Semaphore Dispatch Error: ' . $e->getMessage();
+                    $violation->update([
+                        'sms_status' => 'failed',
+                        'sms_error'  => $errorMsg,
+                    ]);
+
+                    return ['success' => false, 'message' => $errorMsg];
+                }
+            }
+        }
+
+        // 3. Fallback Development / Log Gateway
+        $violation->update([
+            'sms_status'  => 'sent',
+            'sms_sent_at' => now(),
+            'sms_error'   => 'Logged locally (No active Gateway API key set)',
+        ]);
+
+        Log::info("SMS [LOCAL LOG GATEWAY] To: {$cleanPhone} | Message: {$message}");
+
+        return ['success' => true, 'message' => 'SMS logged locally (Configure Textbee API Key & Device ID in SMS Gateway Settings for free SIM sending)'];
     }
 }

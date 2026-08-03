@@ -153,33 +153,36 @@
                 <h6 class="fw-700 mb-3" style="color:#0369a1;"><i class="bi bi-chat-left-text-fill me-2"></i>SMS Gateway Configuration</h6>
                 
                 <div class="mb-3">
-                    <label class="lgu-label">Semaphore SMS API Key (Optional)</label>
-                    <div class="input-group">
-                        <span class="input-group-text lgu-ig-icon" style="background:#e0f2fe;border-color:#bae6fd;">
-                            <i class="bi bi-key-fill" style="color:#0284c7;"></i>
-                        </span>
-                        <input type="password" name="sms_api_key"
-                               class="form-control lgu-input @error('sms_api_key') is-invalid @enderror"
-                               value="{{ old('sms_api_key', $lgu->sms_api_key) }}"
-                               maxlength="255" placeholder="e.g. 9a8b7c6d5e4f3a2b1c0d">
-                        @error('sms_api_key')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-                    <div class="form-text">Leave blank to use system fallback / log gateway.</div>
+                    <label class="lgu-label">Gateway Provider</label>
+                    <select name="sms_provider" class="form-select lgu-input" onchange="document.getElementById('edit_tb_fields').style.display = (this.value === 'textbee' ? '' : 'none'); document.getElementById('edit_sem_fields').style.display = (this.value === 'semaphore' ? '' : 'none');">
+                        <option value="textbee" {{ old('sms_provider', $lgu->sms_provider ?? 'textbee') === 'textbee' ? 'selected' : '' }}>📱 Android SIM Gateway (Textbee.dev — Free ₱0)</option>
+                        <option value="semaphore" {{ old('sms_provider', $lgu->sms_provider) === 'semaphore' ? 'selected' : '' }}>☁️ Semaphore SMS API (Paid Credits)</option>
+                        <option value="local" {{ old('sms_provider', $lgu->sms_provider) === 'local' ? 'selected' : '' }}>💻 Local Test Log Gateway (No SMS Sent)</option>
+                    </select>
                 </div>
 
-                <div class="mb-3">
-                    <label class="lgu-label">SMS Sender Name</label>
-                    <div class="input-group">
-                        <span class="input-group-text lgu-ig-icon" style="background:#e0f2fe;border-color:#bae6fd;">
-                            <i class="bi bi-tag-fill" style="color:#0284c7;"></i>
-                        </span>
-                        <input type="text" name="sms_sender_name"
-                               class="form-control lgu-input @error('sms_sender_name') is-invalid @enderror"
-                               value="{{ old('sms_sender_name', $lgu->sms_sender_name ?? 'TVIRS') }}"
-                               maxlength="11" placeholder="e.g. TVIRS or CEBU-TRAFFIC">
-                        @error('sms_sender_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                {{-- Textbee --}}
+                <div id="edit_tb_fields" style="{{ old('sms_provider', $lgu->sms_provider ?? 'textbee') === 'textbee' ? '' : 'display:none;' }}">
+                    <div class="mb-3">
+                        <label class="lgu-label">Textbee API Key</label>
+                        <input type="password" name="textbee_api_key" class="form-control lgu-input" placeholder="e.g. tb_key_..." value="{{ old('textbee_api_key', $lgu->textbee_api_key) }}">
                     </div>
-                    <div class="form-text">Max 11 characters registered with Semaphore/Gateway.</div>
+                    <div class="mb-3">
+                        <label class="lgu-label">Textbee Device ID</label>
+                        <input type="text" name="textbee_device_id" class="form-control lgu-input" placeholder="e.g. 65a1b2c3..." value="{{ old('textbee_device_id', $lgu->textbee_device_id) }}">
+                    </div>
+                </div>
+
+                {{-- Semaphore --}}
+                <div id="edit_sem_fields" style="{{ old('sms_provider', $lgu->sms_provider) === 'semaphore' ? '' : 'display:none;' }}">
+                    <div class="mb-3">
+                        <label class="lgu-label">Semaphore SMS API Key</label>
+                        <input type="password" name="sms_api_key" class="form-control lgu-input" placeholder="e.g. 9a8b7c6d..." value="{{ old('sms_api_key', $lgu->sms_api_key) }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="lgu-label">SMS Sender Name</label>
+                        <input type="text" name="sms_sender_name" class="form-control lgu-input" maxlength="11" placeholder="e.g. TVIRS" value="{{ old('sms_sender_name', $lgu->sms_sender_name ?? 'TVIRS') }}">
+                    </div>
                 </div>
 
                 <div class="form-check form-switch mt-2">

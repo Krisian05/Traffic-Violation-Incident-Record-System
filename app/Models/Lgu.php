@@ -22,6 +22,9 @@ class Lgu extends Model
         'sms_api_key',
         'sms_sender_name',
         'sms_auto_send',
+        'sms_provider',
+        'textbee_api_key',
+        'textbee_device_id',
     ];
 
     public function users(): HasMany
