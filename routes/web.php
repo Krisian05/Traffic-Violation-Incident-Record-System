@@ -25,6 +25,8 @@ use App\Http\Controllers\ViolationTypeController;
 use App\Http\Controllers\ViolationVehiclePhotoController;
 use App\Http\Controllers\ViolatorController;
 use App\Http\Controllers\PrivacyController;
+use App\Http\Controllers\GuestPaymentController;
+use App\Http\Controllers\PaymentClaimController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('welcome'))->name('home');
@@ -33,6 +35,14 @@ Route::get('/privacy-policy', [PrivacyController::class, 'policy'])->name('priva
 Route::get('/privacy/data-subject-request', [PrivacyController::class, 'showDsrForm'])->name('privacy.dsr');
 Route::post('/privacy/data-subject-request', [PrivacyController::class, 'submitDsr'])->name('privacy.dsr.submit');
 Route::get('/privacy/search-motorists', [PrivacyController::class, 'searchMotorists'])->name('privacy.dsr.search');
+
+// Guest QR payment flow — no login, access controlled only by the violation's
+// non-guessable public_payment_token (never ticket_number, which is sequential).
+Route::prefix('pay/{token}')->name('guest-payment.')->group(function () {
+    Route::get('/', [GuestPaymentController::class, 'show'])->name('show')->middleware('throttle:20,1');
+    Route::post('/claim', [GuestPaymentController::class, 'submitClaim'])->name('claim')->middleware('throttle:5,1');
+    Route::get('/claim-status', [GuestPaymentController::class, 'claimStatus'])->name('claim-status')->middleware('throttle:20,1');
+});
 
 // Guest-only
 Route::middleware('guest')->group(function () {
@@ -159,6 +169,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/cashier', [ViolationController::class, 'cashier'])->name('violations.cashier');
         Route::patch('/violations/{violation}/settle', [ViolationController::class, 'settle'])->name('violations.settle')->middleware('throttle:10,1');
         Route::get('/violations/{violation}/payments/{payment}/receipt', [ViolationController::class, 'printReceipt'])->name('payments.receipt');
+
+        Route::get('/online-payment-claims', [PaymentClaimController::class, 'index'])->name('payment-claims.index');
+        Route::post('/online-payment-claims/{paymentClaim}/verify', [PaymentClaimController::class, 'verify'])->name('payment-claims.verify')->middleware('throttle:10,1');
+        Route::post('/online-payment-claims/{paymentClaim}/reject', [PaymentClaimController::class, 'reject'])->name('payment-claims.reject')->middleware('throttle:10,1');
     });
 
     // ── PAYMENT MANAGEMENT (Cashier / Treasurer / Admin) ────────────────────

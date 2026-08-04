@@ -32,6 +32,12 @@ class Violation extends Model
             if (empty($model->ticket_number)) {
                 $model->ticket_number = static::generateTicketNumber($model->lgu_id);
             }
+
+            // Non-guessable token for the public guest-payment page (ticket_number is
+            // sequential and must never be used to grant access to a citation's details).
+            if (empty($model->public_payment_token)) {
+                $model->public_payment_token = (string) \Illuminate\Support\Str::uuid();
+            }
         });
     }
 
@@ -64,6 +70,7 @@ class Violation extends Model
         'gps_lat',
         'gps_lng',
         'ticket_number',
+        'public_payment_token',
         'citation_ticket_photo',
         'valid_id_photo',
         'status',
@@ -170,6 +177,18 @@ class Violation extends Model
     public function latestPayment()
     {
         return $this->hasOne(Payment::class)->active()->latestOfMany('paid_at');
+    }
+
+    /** Guest-submitted online GCash payment claims awaiting staff verification. */
+    public function paymentClaims()
+    {
+        return $this->hasMany(PaymentClaim::class);
+    }
+
+    /** The most recent claim still awaiting staff review, if any. */
+    public function pendingPaymentClaim()
+    {
+        return $this->hasOne(PaymentClaim::class)->where('status', 'pending_review')->latestOfMany();
     }
 
     // ── Scopes ─────────────────────────────────────────────────────────────

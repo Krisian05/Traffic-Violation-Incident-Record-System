@@ -1014,6 +1014,9 @@
         <a href="{{ route('violations.cashier') }}" class="{{ request()->routeIs('violations.cashier') ? 'active' : '' }}">
             <i class="bi bi-wallet2"></i> Cashier
         </a>
+        <a href="{{ route('payment-claims.index') }}" class="{{ request()->routeIs('payment-claims.*') ? 'active' : '' }}">
+            <i class="bi bi-phone-vibrate"></i> Online GCash Claims
+        </a>
         @endif
 
         <div class="nav-label">Records</div>

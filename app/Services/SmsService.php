@@ -88,6 +88,26 @@ class SmsService
     }
 
     /**
+     * Send online GCash payment confirmation SMS once a staff member verifies a payment claim.
+     */
+    public function sendPaymentConfirmationSms(Violation $violation, \App\Models\Payment $payment): array
+    {
+        $violator = $violation->violator;
+        $recipient = $violator?->contact_number;
+
+        if (empty($recipient)) {
+            return ['success' => false, 'message' => 'No contact number recorded for motorist'];
+        }
+
+        $ticketNo = $violation->ticket_number ?? 'CIT-' . $violation->id;
+        $amount = number_format($payment->amount_paid, 2);
+
+        $message = "TVIRS Payment Confirmed: Citation #{$ticketNo} — P{$amount} paid via GCash. OR#: {$payment->or_number}. Thank you.";
+
+        return $this->dispatch($violation, $recipient, $message);
+    }
+
+    /**
      * Execute SMS HTTP POST to Semaphore API or fallback log.
      */
     protected function dispatch(Violation $violation, string $recipient, string $message): array
