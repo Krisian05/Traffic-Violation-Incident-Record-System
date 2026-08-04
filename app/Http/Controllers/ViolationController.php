@@ -216,10 +216,6 @@ class ViolationController extends Controller
 
         app(NotificationService::class)->notifyNewViolation($violation);
 
-        if (!$violation->lgu || $violation->lgu->sms_auto_send) {
-            app(\App\Services\SmsService::class)->sendCitationSms($violation);
-        }
-
         // Save photos only for manual vehicle entry
         if ($request->hasFile('photos') && empty($request->input('vehicle_id'))) {
             foreach (\array_slice($request->file('photos'), 0, 4) as $file) {

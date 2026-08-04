@@ -46,7 +46,7 @@ class SmsNotificationTest extends TestCase
 
         $type = ViolationType::create([
             'name' => 'No Helmet',
-            'penalty_amount' => 500,
+            'fine_amount' => 500,
         ]);
 
         $violation = Violation::create([
@@ -79,7 +79,7 @@ class SmsNotificationTest extends TestCase
 
         $type = ViolationType::create([
             'name' => 'Reckless Driving',
-            'penalty_amount' => 1000,
+            'fine_amount' => 1000,
         ]);
 
         $violation = Violation::create([

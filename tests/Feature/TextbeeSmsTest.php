@@ -53,7 +53,7 @@ class TextbeeSmsTest extends TestCase
 
         $type = ViolationType::create([
             'name' => 'Illegal Parking',
-            'penalty_amount' => 500,
+            'fine_amount' => 500,
         ]);
 
         $violation = Violation::create([

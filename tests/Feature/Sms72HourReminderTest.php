@@ -45,7 +45,7 @@ class Sms72HourReminderTest extends TestCase
 
         $type = ViolationType::create([
             'name' => 'Over-speeding',
-            'penalty_amount' => 1500,
+            'fine_amount' => 1500,
         ]);
 
         $oldViolation = Violation::create([

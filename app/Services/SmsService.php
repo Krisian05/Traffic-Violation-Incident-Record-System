@@ -26,12 +26,12 @@ class SmsService
         }
 
         $lguName = $violation->lgu?->name ?? 'LGU Traffic Office';
-        $violationType = $violation->type?->name ?? 'Traffic Violation';
+        $violationType = $violation->violationType?->name ?? 'Traffic Violation';
         $ticketNo = $violation->ticket_number ?? 'CIT-' . $violation->id;
-        $fine = number_format($violation->type?->penalty_amount ?? 0, 2);
+        $fine = number_format($violation->totalAmountDue(), 2);
         $dueDate = $violation->due_date ? $violation->due_date->format('M d, Y') : 'N/A';
 
-        $message = "TVIRS Citation #{$ticketNo}: Issued for {$violationType} at {$lguName}. Fine: P{$fine}, Due Date: {$dueDate}. Please settle at LGU Treasurer or scan ticket QR.";
+        $message = "#{$ticketNo}: Issued for {$violationType} at {$lguName}. Fine: P{$fine}, Due Date: {$dueDate}. Failure to settle within the period stipulated will mean a waiver and criminal complaint against you will be filed in pursuant to the provisions of Ordinance No. 2005-09 otherwise known as the Municipal Traffic Enforcement Code 2005.";
 
         return $this->dispatch($violation, $recipient, $message);
     }
@@ -48,11 +48,12 @@ class SmsService
             return ['success' => false, 'message' => 'No contact number recorded for motorist'];
         }
 
+        $violationType = $violation->violationType?->name ?? 'Traffic Violation';
         $ticketNo = $violation->ticket_number ?? 'CIT-' . $violation->id;
-        $fine = number_format($violation->type?->penalty_amount ?? 0, 2);
+        $fine = number_format($violation->totalAmountDue(), 2);
         $dueDate = $violation->due_date ? $violation->due_date->format('M d, Y') : 'N/A';
 
-        $message = "TVIRS Reminder: Citation #{$ticketNo} fine of P{$fine} is due on {$dueDate}. Settle early at LGU Treasurer to avoid late penalties.";
+        $message = "#{$ticketNo} (Reminder): Fine of P{$fine} for {$violationType} is due on {$dueDate}. Failure to settle within the period stipulated will mean a waiver and criminal complaint against you will be filed in pursuant to the provisions of Ordinance No. 2005-09 otherwise known as the Municipal Traffic Enforcement Code 2005.";
 
         return $this->dispatch($violation, $recipient, $message);
     }
@@ -69,11 +70,13 @@ class SmsService
             return ['success' => false, 'message' => 'No contact number recorded for motorist'];
         }
 
+        $lguName = $violation->lgu?->name ?? 'LGU Traffic Office';
+        $violationType = $violation->violationType?->name ?? 'Traffic Violation';
         $ticketNo = $violation->ticket_number ?? 'CIT-' . $violation->id;
-        $fine = number_format($violation->type?->penalty_amount ?? 0, 2);
+        $fine = number_format($violation->totalAmountDue(), 2);
         $dueDate = $violation->due_date ? $violation->due_date->format('M d, Y') : 'N/A';
 
-        $message = "TVIRS 72-Hour Notice: Citation #{$ticketNo} fine of P{$fine} is due on {$dueDate}. Settle at LGU Treasurer or scan ticket QR to avoid late fees.";
+        $message = "#{$ticketNo} (72-Hour Notice): Issued for {$violationType} at {$lguName}. Fine: P{$fine}, Due Date: {$dueDate}. Failure to settle within the period stipulated will mean a waiver and criminal complaint against you will be filed in pursuant to the provisions of Ordinance No. 2005-09 otherwise known as the Municipal Traffic Enforcement Code 2005.";
 
         $result = $this->dispatch($violation, $recipient, $message);
 
