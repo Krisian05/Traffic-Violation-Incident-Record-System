@@ -376,16 +376,23 @@
     {{-- Pending Tickets List --}}
     @if(isset($pendingTickets) && $pendingTickets->count() > 0)
         <div class="mt-5">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-clock-history text-muted fs-5"></i>
-                    <h5 class="fw-800 text-stone-900 mb-0" style="font-family: 'Instrument Sans', sans-serif;">Unpaid / Pending Citation Tickets</h5>
+            <div class="card border-0 shadow-sm" style="border-radius: 16px; overflow: hidden; border: 1.5px solid #fde68a !important; background: #fffbeb;">
+                <div class="card-header border-0 px-4 py-3 d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%); border-bottom: 1.5px solid #fde68a !important;">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="d-inline-flex align-items-center justify-content-center bg-white shadow-sm rounded-circle" style="width:34px;height:34px;border:1px solid #fcd34d;color:#d97706;">
+                            <i class="bi bi-clock-history"></i>
+                        </span>
+                        <div>
+                            <h5 class="fw-800 mb-0" style="font-family: 'Instrument Sans', sans-serif; color: #92400e; font-size: .95rem;">Unpaid / Pending Citation Tickets</h5>
+                            <div style="font-size:.72rem; color:#b45309;">Motorist citations awaiting cashier payment or settlement</div>
+                        </div>
+                    </div>
+                    <span class="badge fw-700 font-monospace" style="background:#fef3c7; color:#92400e; border:1px solid #fcd34d; padding:.4rem .75rem; border-radius:8px;">
+                        <i class="bi bi-exclamation-circle me-1"></i>{{ $pendingTickets->total() }} Total Pending
+                    </span>
                 </div>
-                <span class="badge bg-secondary-subtle text-secondary font-monospace">{{ $pendingTickets->total() }} Total Pending</span>
-            </div>
-            <div class="card border-0 shadow-sm" style="border-radius: 16px; overflow: hidden; border: 1px solid #e7e2db;">
                 <div class="table-responsive">
-                    <table class="table align-middle mb-0" style="font-size: .88rem;">
+                    <table class="table align-middle mb-0" style="font-size: .88rem; background: #fff;">
                         <thead style="background-color: #faf9f6; border-bottom: 1px solid #e7e2db;">
                             <tr>
                                 <th class="p-3 fw-700 text-muted" style="width: 25%;">Ticket Number</th>
