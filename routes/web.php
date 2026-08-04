@@ -24,7 +24,6 @@ use App\Http\Controllers\ViolationController;
 use App\Http\Controllers\ViolationTypeController;
 use App\Http\Controllers\ViolationVehiclePhotoController;
 use App\Http\Controllers\ViolatorController;
-use App\Http\Controllers\OnlinePaymentController;
 use App\Http\Controllers\PrivacyController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,19 +33,6 @@ Route::get('/privacy-policy', [PrivacyController::class, 'policy'])->name('priva
 Route::get('/privacy/data-subject-request', [PrivacyController::class, 'showDsrForm'])->name('privacy.dsr');
 Route::post('/privacy/data-subject-request', [PrivacyController::class, 'submitDsr'])->name('privacy.dsr.submit');
 Route::get('/privacy/search-motorists', [PrivacyController::class, 'searchMotorists'])->name('privacy.dsr.search');
-
-// ── PUBLIC ONLINE PAYMENT PORTAL ───────────────────────────────────────
-Route::get('/pay', [OnlinePaymentController::class, 'index'])->name('online-payment.index');
-Route::post('/pay/search', [OnlinePaymentController::class, 'search'])->name('online-payment.search');
-Route::get('/pay/ticket/{ticket}', [OnlinePaymentController::class, 'checkout'])->name('online-payment.checkout');
-Route::get('/pay/ticket/{ticket}/gcash', [OnlinePaymentController::class, 'gcashGateway'])->name('online-payment.gcash');
-Route::get('/pay/ticket/{ticket}/maya', [OnlinePaymentController::class, 'mayaGateway'])->name('online-payment.maya');
-Route::get('/pay/ticket/{ticket}/card', [OnlinePaymentController::class, 'cardGateway'])->name('online-payment.card');
-Route::get('/pay/ticket/{ticket}/verify/{ref}', [OnlinePaymentController::class, 'verifyGateway'])->name('online-payment.verify');
-Route::get('/pay/ticket/{violation}/status/{ref}', [OnlinePaymentController::class, 'checkStatus'])->name('online-payment.status');
-Route::post('/pay/ticket/{violation}/confirm-received/{ref}', [OnlinePaymentController::class, 'confirmReceived'])->name('online-payment.confirm-received');
-Route::post('/pay/ticket/{violation}/process', [OnlinePaymentController::class, 'process'])->name('online-payment.process');
-Route::get('/pay/receipt/{payment}', [OnlinePaymentController::class, 'receipt'])->name('online-payment.receipt');
 
 // Guest-only
 Route::middleware('guest')->group(function () {

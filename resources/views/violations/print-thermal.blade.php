@@ -213,8 +213,7 @@
     
     <div class="qr-container">
         <canvas id="thermalTicketQr"></canvas>
-        <div style="font-size: 15px; font-weight: 800; margin-top: 5px;">SCAN TO PAY ONLINE VIA GCASH / MAYA / CARD</div>
-        <div style="font-size: 12px; font-weight: 600; color: #444;">Scan with phone camera to settle citation</div>
+        <div style="font-size: 14px; font-weight: 700; margin-top: 5px;">SCAN TO VERIFY CITATION</div>
     </div>
 
     @if($lgu?->gcash_qr_path)
@@ -239,7 +238,7 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 <script>
 if (document.getElementById('thermalTicketQr')) {
-    QRCode.toCanvas(document.getElementById('thermalTicketQr'), '{{ url("/pay/ticket/" . $violation->ticket_number) }}', {
+    QRCode.toCanvas(document.getElementById('thermalTicketQr'), '{{ url("/violations/" . $violation->id) }}', {
         width: 180,
         margin: 1
     });

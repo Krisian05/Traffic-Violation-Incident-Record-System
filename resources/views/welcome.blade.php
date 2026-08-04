@@ -494,10 +494,6 @@
         <div class="divider"></div>
 
         <div class="cta-group">
-            <a href="{{ route('online-payment.index') }}" class="btn-cta-primary" style="background: linear-gradient(135deg, #16a34a, #15803d); box-shadow: 0 4px 24px rgba(22,163,74,0.4);">
-                <i class="bi bi-credit-card-fill"></i>
-                Pay Citation Online
-            </a>
             @auth
                 <a href="{{ url('/dashboard') }}" class="btn-cta-primary">
                     <i class="bi bi-speedometer2"></i>
