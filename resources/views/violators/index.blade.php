@@ -43,17 +43,10 @@
     </div>
     <div class="vlt-filter-body">
         <form method="GET" action="{{ route('violators.index') }}">
+            @if($search)
+                <input type="hidden" name="search" value="{{ $search }}">
+            @endif
             <div class="d-flex flex-wrap align-items-end gap-2">
-
-                <div style="flex:2.2;min-width:180px;">
-                    <label class="vlt-filter-label"><i class="bi bi-person-bounding-box me-1"></i>Name / License No.</label>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text vlt-filt-icon"><i class="bi bi-search"></i></span>
-                        <input type="text" name="search" class="form-control vlt-filt-input"
-                            placeholder="e.g. Juan Dela Cruz or A-1234-56"
-                            value="{{ $search }}">
-                    </div>
-                </div>
 
                 <div style="flex:1.8;min-width:160px;">
                     <label class="vlt-filter-label"><i class="bi bi-geo-alt-fill me-1"></i>LGU / Municipality</label>
@@ -100,6 +93,34 @@
 
 {{-- ── Table Card ── --}}
 <div class="vlt-table-card">
+
+    <div class="vlt-table-header px-4 py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: linear-gradient(135deg, #fdf8f0 0%, #faf5ee 100%);">
+        <div class="d-flex align-items-center gap-2">
+            <span class="d-inline-flex align-items-center justify-content-center bg-white shadow-sm rounded-circle" style="width:34px;height:34px;border:1px solid #e7e0d6;color:#dc2626;">
+                <i class="bi bi-person-bounding-box"></i>
+            </span>
+            <div>
+                <div class="fw-700" style="font-size:.88rem;color:#1c1917;">Motorist / Violator Records</div>
+                <div style="font-size:.72rem;color:#a8a29e;">Search motorists by Name or License Number below</div>
+            </div>
+        </div>
+
+        <form method="GET" action="{{ route('violators.index') }}" class="d-flex align-items-center gap-2" style="min-width:280px; max-width:440px; flex:1;">
+            @if($selectedLguId ?? '') <input type="hidden" name="lgu_id" value="{{ $selectedLguId }}"> @endif
+            @if($plate ?? '') <input type="hidden" name="plate" value="{{ $plate }}"> @endif
+            @if(($sort ?? 'name') !== 'name') <input type="hidden" name="sort" value="{{ $sort }}"> @endif
+            
+            <div class="input-group input-group-sm w-100 shadow-sm" style="border-radius:8px; overflow:hidden;">
+                <span class="input-group-text vlt-filt-icon"><i class="bi bi-search"></i></span>
+                <input type="text" name="search" class="form-control vlt-filt-input"
+                    placeholder="Name / License No. (e.g. Juan Dela Cruz or A-1234-56)"
+                    value="{{ $search }}">
+                <button type="submit" class="vlt-btn-search" style="border-radius:0;">
+                    <i class="bi bi-search me-1"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
 
     <div class="table-responsive">
         <table class="table align-middle mb-0" id="violators-table">
