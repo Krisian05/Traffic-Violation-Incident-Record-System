@@ -196,13 +196,13 @@
         $ticketStr = $violation->ticket_number ?: (string)$violation->id;
         $ticketLen = strlen($ticketStr);
         // Auto-scale font size so ticket number ALWAYS fits on a single line on 48mm/80mm thermal paper
-        $ticketFontSize = $ticketLen > 26 ? '12px' : ($ticketLen > 22 ? '14px' : ($ticketLen > 18 ? '16px' : '20px'));
+        $ticketFontSize = $ticketLen > 26 ? '13px' : ($ticketLen > 22 ? '15px' : ($ticketLen > 18 ? '17px' : '20px'));
     @endphp
 
     <div style="margin: 20px 0; border: 2px solid #000; padding: 10px; border-radius: 4px; text-align: left;">
-        <div style="font-size: 13px; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">CITATION / O.R. REF NO.:</div>
-        <div style="font-size: {{ $ticketFontSize }}; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin-bottom: 8px;">
-            {{ $ticketStr }}
+        <div style="font-size: 13px; font-weight: 900; letter-spacing: 0.05em; margin-bottom: 4px;">CITATION / O.R. REF NO.:</div>
+        <div style="font-size: {{ $ticketFontSize }}; font-weight: 900; font-family: 'Arial Black', 'Segoe UI Black', Arial, sans-serif; -webkit-text-stroke: 0.5px #000; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin-bottom: 8px;">
+            <strong>{{ $ticketStr }}</strong>
         </div>
         @if($violation->violationType?->fine_amount)
         <div style="border-top: 2px dashed #000; padding-top: 6px; display: flex; justify-content: space-between; align-items: center;">
