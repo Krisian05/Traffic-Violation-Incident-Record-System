@@ -158,9 +158,16 @@
     
     <div class="text-center title-text" style="margin: 25px 0 15px;">VIOLATION(S)</div>
     
-    <div style="display: flex; margin-bottom: 20px;">
-        <span style="margin-right: 12px; font-size: 20px; font-weight: 900;">[X]</span>
-        <span style="font-size: 20px; font-weight: 900;">{{ strtoupper($violation->violationType?->name ?? '') }}</span>
+    <div style="margin-bottom: 20px;">
+        <div style="display: flex; align-items: flex-start;">
+            <span style="margin-right: 12px; font-size: 20px; font-weight: 900;">[X]</span>
+            <span style="font-size: 20px; font-weight: 900;">{{ strtoupper($violation->violationType?->name ?? '') }}</span>
+        </div>
+        @if($violation->violationType?->fine_amount)
+        <div style="margin-top: 8px; font-size: 18px; font-weight: 900; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; display: inline-block;">
+            FINE AMOUNT: PHP {{ number_format($violation->violationType->fine_amount, 2) }}
+        </div>
+        @endif
     </div>
     
     <div class="field-row">
@@ -192,21 +199,22 @@
     
     <div style="margin: 20px 0; border: 2px solid #000; padding: 10px; border-radius: 4px; text-align: left;">
         <div style="font-size: 13px; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">CITATION / O.R. REF NO.:</div>
-        <div style="font-size: 22px; font-weight: 900; word-break: break-all; line-height: 1.1;">
+        <div style="font-size: 22px; font-weight: 900; word-break: break-all; line-height: 1.1; margin-bottom: 8px;">
             {{ $violation->ticket_number ?: $violation->id }}
         </div>
+        @if($violation->violationType?->fine_amount)
+        <div style="border-top: 2px dashed #000; padding-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; font-weight: 800;">AMOUNT DUE:</span>
+            <span style="font-size: 20px; font-weight: 900;">PHP {{ number_format($violation->violationType->fine_amount, 2) }}</span>
+        </div>
+        @endif
     </div>
     
-    <div style="margin-top: 35px;">
+    <div style="margin-top: 35px; margin-bottom: 30px;">
         <div>Apprehending Traffic Officer:</div>
         <div style="border-bottom: 2px solid #000; min-height: 40px; margin-top: 15px; text-align: center; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px;">
             {{ strtoupper($violation->recorder?->name ?? '') }}
         </div>
-    </div>
-    
-    <div class="text-center" style="margin-top: 50px;">
-        <div style="border-bottom: 2px solid #000; width: 80%; margin: 0 auto; min-height: 30px;"></div>
-        <div style="margin-top: 5px;">Chairman BATOM</div>
     </div>
     
     <div class="qr-container">
