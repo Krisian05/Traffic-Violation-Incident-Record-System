@@ -163,11 +163,6 @@
             <span style="margin-right: 12px; font-size: 20px; font-weight: 900;">[X]</span>
             <span style="font-size: 20px; font-weight: 900;">{{ strtoupper($violation->violationType?->name ?? '') }}</span>
         </div>
-        @if($violation->violationType?->fine_amount)
-        <div style="margin-top: 8px; font-size: 18px; font-weight: 900; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; display: inline-block;">
-            FINE AMOUNT: PHP {{ number_format($violation->violationType->fine_amount, 2) }}
-        </div>
-        @endif
     </div>
     
     <div class="field-row">
@@ -197,10 +192,17 @@
         Failure to settle within the period stipulated will mean a waiver and criminal complaint against you will be filed in pursuant to the provisions of {{ $lgu?->ordinance_reference ?? 'Ordinance No. 2005-09' }} otherwise known as the Municipal Traffic Enforcement Code 2005.
     </div>
     
+    @php
+        $ticketStr = $violation->ticket_number ?: (string)$violation->id;
+        $ticketLen = strlen($ticketStr);
+        // Auto-scale font size so ticket number ALWAYS fits on a single line on 48mm/80mm thermal paper
+        $ticketFontSize = $ticketLen > 26 ? '12px' : ($ticketLen > 22 ? '14px' : ($ticketLen > 18 ? '16px' : '20px'));
+    @endphp
+
     <div style="margin: 20px 0; border: 2px solid #000; padding: 10px; border-radius: 4px; text-align: left;">
         <div style="font-size: 13px; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">CITATION / O.R. REF NO.:</div>
-        <div style="font-size: 22px; font-weight: 900; word-break: break-all; line-height: 1.1; margin-bottom: 8px;">
-            {{ $violation->ticket_number ?: $violation->id }}
+        <div style="font-size: {{ $ticketFontSize }}; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin-bottom: 8px;">
+            {{ $ticketStr }}
         </div>
         @if($violation->violationType?->fine_amount)
         <div style="border-top: 2px dashed #000; padding-top: 6px; display: flex; justify-content: space-between; align-items: center;">
