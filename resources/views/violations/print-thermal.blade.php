@@ -209,38 +209,37 @@
         <div style="margin-top: 5px;">Chairman BATOM</div>
     </div>
     
-    <div class="divider"></div>
-    
     <div class="qr-container">
-        <canvas id="thermalTicketQr"></canvas>
+        <img id="thermalTicketQrImg" 
+             src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={{ urlencode(route('guest-payment.show', $violation->public_payment_token)) }}" 
+             alt="Citation QR Code" 
+             style="width: 180px; height: 180px; image-rendering: pixelated; margin-bottom: 8px; display: block;"
+             crossorigin="anonymous"
+             onerror="this.onerror=null; this.src='https://quickchart.io/qr?size=220&text={{ urlencode(route('guest-payment.show', $violation->public_payment_token)) }}';">
+        <canvas id="thermalTicketQr" style="display: none;"></canvas>
         <div style="font-size: 14px; font-weight: 700; margin-top: 5px;">SCAN TO VIEW &amp; PAY CITATION</div>
     </div>
-
-    @if($lgu?->gcash_qr_path)
-    <div class="qr-container">
-        <img src="{{ Storage::url($lgu->gcash_qr_path) }}" alt="GCash Payment" style="width: 260px; height: 260px; margin-bottom: 8px; object-fit: contain;">
-        <div>GCASH DIRECT QR</div>
-        <div style="font-size: 16px; margin-top: 5px;">PHP {{ number_format($violation->balanceRemaining(), 2) }}</div>
-    </div>
-    @endif
-
-    @if($lgu?->maya_qr_path)
-    <div class="qr-container">
-        <img src="{{ Storage::url($lgu->maya_qr_path) }}" alt="Maya Payment" style="width: 260px; height: 260px; margin-bottom: 8px; object-fit: contain;">
-        <div>MAYA DIRECT QR</div>
-        <div style="font-size: 16px; margin-top: 5px;">PHP {{ number_format($violation->balanceRemaining(), 2) }}</div>
-    </div>
-    @endif
     
-    <div style="height: 60px;"></div>
+    <div style="height: 40px;"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 <script>
+const qrUrl = @json(route("guest-payment.show", $violation->public_payment_token));
 if (document.getElementById('thermalTicketQr')) {
-    QRCode.toCanvas(document.getElementById('thermalTicketQr'), '{{ route("guest-payment.show", $violation->public_payment_token) }}', {
+    QRCode.toCanvas(document.getElementById('thermalTicketQr'), qrUrl, {
         width: 180,
         margin: 1
+    }, function (err) {
+        if (!err) {
+            const canvas = document.getElementById('thermalTicketQr');
+            const img = document.getElementById('thermalTicketQrImg');
+            if (canvas && img) {
+                try {
+                    img.src = canvas.toDataURL('image/png');
+                } catch(e) {}
+            }
+        }
     });
 }
 </script>
@@ -313,7 +312,7 @@ async function printViaWebBluetooth() {
         updateStatus("Rendering receipt image...");
         window.scrollTo(0, 0);
         const slip = document.getElementById('print-area');
-        const canvas = await html2canvas(slip, { scale: 1, backgroundColor: '#ffffff', logging: false });
+        const canvas = await html2canvas(slip, { scale: 1, backgroundColor: '#ffffff', logging: false, useCORS: true, allowTaint: true });
 
         updateStatus("Encoding print data...");
         const printData = convertCanvasToEscPos(canvas);
