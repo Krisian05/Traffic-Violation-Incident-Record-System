@@ -25,8 +25,8 @@ class PayMongoService
 
         $violation->loadMissing(['violator', 'violationType']);
 
-        // Amount in centavos (PHP 100.00 = 10000 centavos)
-        $amountInCentavos = (int) round($amount * 100);
+        // Amount in centavos (PHP 100.00 = 10000 centavos; PayMongo min is 2000 centavos / ₱20.00)
+        $amountInCentavos = max((int) round($amount * 100), 2000);
 
         $violatorName = $violation->violator?->full_name ?: 'Motorist';
         $violatorPhone = $violation->violator?->phone_number ?: null;

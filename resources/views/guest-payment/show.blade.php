@@ -120,97 +120,25 @@
             <strong style="font-size: 1.8rem; color: #b91c1c;">₱{{ number_format($violation->balanceRemaining(), 2) }}</strong>
         </div>
 
-        <ul class="nav nav-pills nav-justified mb-3 p-1 bg-white rounded-3 border" id="paymentTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="paymongo-tab" data-bs-toggle="pill" data-bs-target="#paymongo-panel" type="button" role="tab">
-                    <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Pay Online (Instant)
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="manual-tab" data-bs-toggle="pill" data-bs-target="#manual-panel" type="button" role="tab">
-                    <i class="bi bi-qr-code me-1"></i> Static QR / Claim
-                </button>
-            </li>
-        </ul>
-
-        <div class="tab-content" id="paymentTabsContent">
-            <!-- TAB 1: PAYMONGO INSTANT ONLINE CHECKOUT -->
-            <div class="tab-pane fade show active" id="paymongo-panel" role="tabpanel">
-                <div class="card shadow-sm mb-3">
-                    <div class="card-body p-4 text-center">
-                        <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
-                            <span class="payment-method-badge"><i class="bi bi-phone"></i> GCash</span>
-                            <span class="payment-method-badge"><i class="bi bi-qr-code-scan"></i> QR Ph</span>
-                            <span class="payment-method-badge"><i class="bi bi-wallet2"></i> Maya</span>
-                            <span class="payment-method-badge"><i class="bi bi-credit-card"></i> Cards</span>
-                        </div>
-                        <h6 class="fw-800 text-dark mb-2">Instant Online Settlement via PayMongo</h6>
-                        <p class="text-muted mb-4" style="font-size: .85rem;">
-                            Pay securely using your preferred e-wallet or bank card. Your citation will be automatically marked as <strong>Settled</strong> within seconds upon completion.
-                        </p>
-
-                        <form action="{{ route('guest-payment.paymongo-checkout', $violation->public_payment_token) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="btn btn-paymongo w-100 py-3 fs-6">
-                                <i class="bi bi-shield-lock-fill me-2"></i> Proceed to PayMongo Checkout
-                            </button>
-                        </form>
-                    </div>
+        <div class="card shadow-sm mb-3">
+            <div class="card-body p-4 text-center">
+                <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+                    <span class="payment-method-badge"><i class="bi bi-phone"></i> GCash</span>
+                    <span class="payment-method-badge"><i class="bi bi-qr-code-scan"></i> QR Ph</span>
+                    <span class="payment-method-badge"><i class="bi bi-wallet2"></i> Maya</span>
+                    <span class="payment-method-badge"><i class="bi bi-credit-card"></i> Cards</span>
                 </div>
-            </div>
+                <h6 class="fw-800 text-dark mb-2">Instant Online Settlement via PayMongo</h6>
+                <p class="text-muted mb-4" style="font-size: .85rem;">
+                    Pay securely using your preferred e-wallet or bank card. Your citation will be automatically marked as <strong>Settled</strong> within seconds upon completion.
+                </p>
 
-            <!-- TAB 2: MANUAL QR CODE & REFERENCE CLAIM -->
-            <div class="tab-pane fade" id="manual-panel" role="tabpanel">
-                <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-white border-0 pt-4 px-4">
-                        <h6 class="fw-800 mb-0"><i class="bi bi-phone-fill me-1" style="color:#0069f5;"></i> Pay via Static Municipal QR</h6>
-                    </div>
-                    <div class="card-body p-4">
-                        @if($lgu?->gcash_qr_path)
-                            <div class="text-center mb-3">
-                                <img src="{{ uploaded_file_url($lgu->gcash_qr_path) }}" alt="GCash QR" style="width: 220px; height: 220px; object-fit: contain; border: 1px solid #e7e2db; border-radius: 12px; padding: 8px;">
-                            </div>
-                        @endif
-                        <ol class="mb-4" style="font-size: .85rem; padding-left: 1.2rem;">
-                            <li class="mb-2">Open GCash/Maya app and scan the QR above.</li>
-                            <li class="mb-2">Send exactly <strong>₱{{ number_format($violation->balanceRemaining(), 2) }}</strong>.</li>
-                            <li class="mb-2">Write your ticket number in payment note: <strong>{{ $violation->ticket_number }}</strong>.</li>
-                            <li>Submit your transaction reference number below for staff verification.</li>
-                        </ol>
-
-                        <form action="{{ route('guest-payment.claim', $violation->public_payment_token) }}" method="POST" enctype="multipart/form-data">
-                            @csrf
-                            <div class="mb-3">
-                                <label class="form-label fw-700" style="font-size: .82rem;">GCash Reference Number <span class="text-danger">*</span></label>
-                                <input type="text" name="claimed_reference" class="form-control" required maxlength="100" placeholder="e.g., 1234567890123">
-                                @error('claimed_reference')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-700" style="font-size: .82rem;">Amount Sent <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text">₱</span>
-                                    <input type="number" name="claimed_amount" class="form-control" step="0.01" min="0.01" max="{{ $violation->balanceRemaining() }}" value="{{ old('claimed_amount', number_format($violation->balanceRemaining(), 2, '.', '')) }}" required>
-                                </div>
-                                @error('claimed_amount')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-700" style="font-size: .82rem;">Your Name <span class="text-muted" style="font-weight:400;">(optional)</span></label>
-                                <input type="text" name="claimant_name" class="form-control" maxlength="150" value="{{ old('claimant_name') }}">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-700" style="font-size: .82rem;">Contact Number <span class="text-muted" style="font-weight:400;">(optional)</span></label>
-                                <input type="text" name="claimant_contact" class="form-control" maxlength="30" value="{{ old('claimant_contact') }}">
-                            </div>
-                            <div class="mb-4">
-                                <label class="form-label fw-700" style="font-size: .82rem;">Screenshot <span class="text-muted" style="font-weight:400;">(optional)</span></label>
-                                <input type="file" name="screenshot" class="form-control" accept="image/*">
-                            </div>
-                            <button type="submit" class="btn btn-success fw-700 w-100 py-2">
-                                <i class="bi bi-send-check me-1"></i> Submit Manual Claim
-                            </button>
-                        </form>
-                    </div>
-                </div>
+                <form action="{{ route('guest-payment.paymongo-checkout', $violation->public_payment_token) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-paymongo w-100 py-3 fs-6">
+                        <i class="bi bi-shield-lock-fill me-2"></i> Proceed to PayMongo Checkout
+                    </button>
+                </form>
             </div>
         </div>
 

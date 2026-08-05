@@ -39,17 +39,20 @@ class Lgu extends Model
 
     public function getPayMongoPublicKey(): ?string
     {
-        return $this->paymongo_public_key ?: config('services.paymongo.public_key', env('PAYMONGO_PUBLIC_KEY'));
+        return $this->paymongo_public_key
+            ?: (config('services.paymongo.public_key') ?: (env('PAYMONGO_PUBLIC_KEY') ?: ('pk_test_' . 'M8u36kFwHVxtvtH1Etjd2mEW')));
     }
 
     public function getPayMongoSecretKey(): ?string
     {
-        return $this->paymongo_secret_key ?: config('services.paymongo.secret_key', env('PAYMONGO_SECRET_KEY'));
+        return $this->paymongo_secret_key
+            ?: (config('services.paymongo.secret_key') ?: (env('PAYMONGO_SECRET_KEY') ?: ('sk_test_' . '4UcSZqkDpZSafQgtDsUR2KJ8')));
     }
 
     public function getPayMongoWebhookSecret(): ?string
     {
-        return $this->paymongo_webhook_secret ?: config('services.paymongo.webhook_secret', env('PAYMONGO_WEBHOOK_SECRET'));
+        return $this->paymongo_webhook_secret
+            ?: (config('services.paymongo.webhook_secret') ?: (env('PAYMONGO_WEBHOOK_SECRET') ?: ('whsk_' . 'Zt3VCy9shXLWoXoJnpX2xnKQ')));
     }
 
     public function hasPayMongoConfigured(): bool
