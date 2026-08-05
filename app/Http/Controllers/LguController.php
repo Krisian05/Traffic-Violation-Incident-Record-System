@@ -27,8 +27,6 @@ class LguController extends Controller
             'psgc_city_code'      => ['nullable', 'string', 'max:20', 'unique:lgus,psgc_city_code'],
             'ordinance_reference' => ['nullable', 'string', 'max:255'],
             'treasurer_office'    => ['nullable', 'string', 'max:255'],
-            'gcash_qr_image'      => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
-            'maya_qr_image'       => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
             'sms_api_key'         => ['nullable', 'string', 'max:255'],
             'sms_sender_name'     => ['nullable', 'string', 'max:11'],
             'sms_auto_send'       => ['nullable', 'boolean'],
@@ -36,13 +34,6 @@ class LguController extends Controller
 
         $data['code'] = strtoupper($data['code']);
         $data['sms_auto_send'] = $request->has('sms_auto_send');
-
-        if ($request->hasFile('gcash_qr_image')) {
-            $data['gcash_qr_path'] = $request->file('gcash_qr_image')->store('lgus/gcash_qrs', 'public');
-        }
-        if ($request->hasFile('maya_qr_image')) {
-            $data['maya_qr_path'] = $request->file('maya_qr_image')->store('lgus/maya_qrs', 'public');
-        }
 
         Lgu::create($data);
 
@@ -63,8 +54,6 @@ class LguController extends Controller
             'psgc_city_code'      => ['nullable', 'string', 'max:20', "unique:lgus,psgc_city_code,{$lgu->id}"],
             'ordinance_reference' => ['nullable', 'string', 'max:255'],
             'treasurer_office'    => ['nullable', 'string', 'max:255'],
-            'gcash_qr_image'      => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
-            'maya_qr_image'       => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
             'sms_api_key'         => ['nullable', 'string', 'max:255'],
             'sms_sender_name'     => ['nullable', 'string', 'max:11'],
             'sms_auto_send'       => ['nullable', 'boolean'],
@@ -72,19 +61,6 @@ class LguController extends Controller
 
         $data['code'] = strtoupper($data['code']);
         $data['sms_auto_send'] = $request->has('sms_auto_send');
-
-        if ($request->hasFile('gcash_qr_image')) {
-            if ($lgu->gcash_qr_path) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($lgu->gcash_qr_path);
-            }
-            $data['gcash_qr_path'] = $request->file('gcash_qr_image')->store('lgus/gcash_qrs', 'public');
-        }
-        if ($request->hasFile('maya_qr_image')) {
-            if ($lgu->maya_qr_path) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($lgu->maya_qr_path);
-            }
-            $data['maya_qr_path'] = $request->file('maya_qr_image')->store('lgus/maya_qrs', 'public');
-        }
 
         $lgu->update($data);
 

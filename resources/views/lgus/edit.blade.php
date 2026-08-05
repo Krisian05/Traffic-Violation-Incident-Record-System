@@ -112,42 +112,6 @@
                 </div>
             </div>
 
-            <div class="mb-4">
-                <label class="lgu-label">GCash QR Code Image (Optional)</label>
-                @if($lgu->gcash_qr_path)
-                    <div class="mb-2">
-                        <img src="{{ Storage::url($lgu->gcash_qr_path) }}" alt="GCash QR" style="max-height: 150px; border: 1px solid #ccc; border-radius: 8px;">
-                    </div>
-                @endif
-                <div class="input-group">
-                    <span class="input-group-text lgu-ig-icon" style="background:#f3f4f6;border-color:#d1d5db;">
-                        <i class="bi bi-qr-code-scan" style="color:#4b5563;"></i>
-                    </span>
-                    <input type="file" name="gcash_qr_image"
-                           class="form-control lgu-input @error('gcash_qr_image') is-invalid @enderror"
-                           accept="image/png, image/jpeg, image/jpg">
-                    @error('gcash_qr_image')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="form-text">Upload a new image to replace the existing one. This will be printed on the citation tickets.</div>
-            </div>
-
-            <div class="mb-4">
-                <label class="lgu-label">Maya QR Code Image (Optional)</label>
-                @if($lgu->maya_qr_path)
-                    <div class="mb-2">
-                        <img src="{{ Storage::url($lgu->maya_qr_path) }}" alt="Maya QR" style="max-height: 150px; border: 1px solid #ccc; border-radius: 8px;">
-                    </div>
-                @endif
-                <div class="input-group">
-                    <span class="input-group-text lgu-ig-icon" style="background:#f3f4f6;border-color:#d1d5db;">
-                        <i class="bi bi-qr-code-scan" style="color:#4b5563;"></i>
-                    </span>
-                    <input type="file" name="maya_qr_image"
-                           class="form-control lgu-input @error('maya_qr_image') is-invalid @enderror"
-                           accept="image/png, image/jpeg, image/jpg">
-                    @error('maya_qr_image')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="form-text">Upload a new image to replace the existing one. This will be printed on the citation tickets.</div>
             {{-- SMS Gateway Configuration --}}
             <div class="card border-0 mb-4 p-3" style="background:#f0f9ff;border-radius:12px;border:1px solid #bae6fd!important;">
                 <h6 class="fw-700 mb-3" style="color:#0369a1;"><i class="bi bi-chat-left-text-fill me-2"></i>SMS Gateway Configuration</h6>
