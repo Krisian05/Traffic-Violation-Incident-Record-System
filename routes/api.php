@@ -5,6 +5,9 @@ use App\Http\Controllers\Api\OfficerApiController;
 use App\Http\Controllers\HealthCheckController;
 use Illuminate\Support\Facades\Route;
 
+// Unauthenticated PayMongo Webhook Callback Listener
+Route::post('/webhooks/paymongo', [\App\Http\Controllers\PayMongoWebhookController::class, 'handle'])->name('webhooks.paymongo');
+
 Route::prefix('v1')->group(function () {
     // Health Check route
     Route::get('/health', [HealthCheckController::class, 'check']);

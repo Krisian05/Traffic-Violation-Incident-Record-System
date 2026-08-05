@@ -25,7 +25,37 @@ class Lgu extends Model
         'sms_provider',
         'textbee_api_key',
         'textbee_device_id',
+        'gateway_provider',
+        'paymongo_public_key',
+        'paymongo_secret_key',
+        'paymongo_webhook_secret',
+        'enable_manual_qr_claim',
     ];
+
+    protected $hidden = [
+        'paymongo_secret_key',
+        'paymongo_webhook_secret',
+    ];
+
+    public function getPayMongoPublicKey(): ?string
+    {
+        return $this->paymongo_public_key ?: config('services.paymongo.public_key', env('PAYMONGO_PUBLIC_KEY'));
+    }
+
+    public function getPayMongoSecretKey(): ?string
+    {
+        return $this->paymongo_secret_key ?: config('services.paymongo.secret_key', env('PAYMONGO_SECRET_KEY'));
+    }
+
+    public function getPayMongoWebhookSecret(): ?string
+    {
+        return $this->paymongo_webhook_secret ?: config('services.paymongo.webhook_secret', env('PAYMONGO_WEBHOOK_SECRET'));
+    }
+
+    public function hasPayMongoConfigured(): bool
+    {
+        return !empty($this->getPayMongoSecretKey());
+    }
 
     public function users(): HasMany
     {

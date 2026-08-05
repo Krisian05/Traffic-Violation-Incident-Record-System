@@ -40,6 +40,9 @@ Route::get('/privacy/search-motorists', [PrivacyController::class, 'searchMotori
 // non-guessable public_payment_token (never ticket_number, which is sequential).
 Route::prefix('pay/{token}')->name('guest-payment.')->group(function () {
     Route::get('/', [GuestPaymentController::class, 'show'])->name('show')->middleware('throttle:20,1');
+    Route::post('/paymongo-checkout', [GuestPaymentController::class, 'createPayMongoCheckout'])->name('paymongo-checkout')->middleware('throttle:5,1');
+    Route::get('/checkout-status', [GuestPaymentController::class, 'checkoutStatus'])->name('checkout-status')->middleware('throttle:20,1');
+    Route::get('/check-session-status/{sessionRef}', [GuestPaymentController::class, 'checkSessionStatus'])->name('check-session-status')->middleware('throttle:30,1');
     Route::post('/claim', [GuestPaymentController::class, 'submitClaim'])->name('claim')->middleware('throttle:5,1');
     Route::get('/claim-status', [GuestPaymentController::class, 'claimStatus'])->name('claim-status')->middleware('throttle:20,1');
 });

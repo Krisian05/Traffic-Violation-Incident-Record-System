@@ -191,6 +191,18 @@ class Violation extends Model
         return $this->hasOne(PaymentClaim::class)->where('status', 'pending_review')->latestOfMany();
     }
 
+    /** Online checkout sessions created via payment gateways (e.g. PayMongo). */
+    public function onlinePaymentSessions()
+    {
+        return $this->hasMany(OnlinePaymentSession::class);
+    }
+
+    /** Pending online checkout session, if any. */
+    public function activeOnlineSession()
+    {
+        return $this->hasOne(OnlinePaymentSession::class)->where('status', 'pending')->latestOfMany();
+    }
+
     // ── Scopes ─────────────────────────────────────────────────────────────
 
     /** Unpaid/partially-paid violations whose due_date has passed. */

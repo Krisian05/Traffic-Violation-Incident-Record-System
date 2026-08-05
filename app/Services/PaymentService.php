@@ -21,7 +21,7 @@ class PaymentService
     /**
      * @param array{or_number:string,cashier_name:string,payment_method:string,amount_paid?:float|null,paid_at?:\DateTimeInterface|null,receipt_photo?:string|null} $data
      */
-    public function recordPayment(Violation $violation, array $data, User $collector): Payment
+    public function recordPayment(Violation $violation, array $data, ?User $collector = null): Payment
     {
         return DB::transaction(function () use ($violation, $data, $collector) {
             $violation = Violation::whereKey($violation->id)->lockForUpdate()->firstOrFail();
@@ -49,7 +49,7 @@ class PaymentService
                 'payment_method' => $data['payment_method'],
                 'or_number'      => $data['or_number'],
                 'cashier_name'   => $data['cashier_name'],
-                'collected_by'   => $collector->id,
+                'collected_by'   => $collector?->id,
                 'paid_at'        => $data['paid_at'] ?? now(),
                 'receipt_photo'  => $data['receipt_photo'] ?? null,
             ]);
@@ -57,6 +57,46 @@ class PaymentService
             $this->syncViolationStatus($violation, $payment);
 
             app(NotificationService::class)->notifyPaymentSettled($violation, $payment);
+
+            return $payment;
+        });
+    }
+
+    /**
+     * Settle a violation automatically when confirmed via PayMongo webhook.
+     */
+    public function settleFromOnlineSession(\App\Models\OnlinePaymentSession $session, string $gatewayPaymentId, ?string $paymentMethod = 'gcash', ?array $rawWebhookPayload = null): Payment
+    {
+        return DB::transaction(function () use ($session, $gatewayPaymentId, $paymentMethod, $rawWebhookPayload) {
+            $session = \App\Models\OnlinePaymentSession::whereKey($session->id)->lockForUpdate()->firstOrFail();
+
+            if ($session->isPaid() && $session->payment_id) {
+                return Payment::findOrFail($session->payment_id);
+            }
+
+            $violation = Violation::whereKey($session->violation_id)->lockForUpdate()->firstOrFail();
+
+            $orNumber = $violation->suggestOrNumber();
+            $cashierName = 'PayMongo Gateway (' . strtoupper($paymentMethod ?: 'GCASH') . ' — Ref ' . $gatewayPaymentId . ')';
+
+            $payment = $this->recordPayment($violation, [
+                'or_number'      => $orNumber,
+                'cashier_name'   => $cashierName,
+                'payment_method' => strtolower($paymentMethod ?: 'gcash'),
+                'amount_paid'    => $session->amount,
+                'paid_at'        => now(),
+            ], null);
+
+            $session->update([
+                'status'              => 'paid',
+                'gateway_payment_id'  => $gatewayPaymentId,
+                'payment_method_used' => $paymentMethod,
+                'payment_id'          => $payment->id,
+                'paid_at'             => now(),
+                'raw_payload'         => $rawWebhookPayload ?: $session->raw_payload,
+            ]);
+
+            app(SmsService::class)->sendPaymentConfirmationSms($violation, $payment);
 
             return $payment;
         });

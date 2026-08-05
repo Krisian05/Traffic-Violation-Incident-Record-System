@@ -43,4 +43,11 @@ return [
         'key' => env('OCR_SPACE_API_KEY', 'K88828882888957'),
     ],
 
+    'paymongo' => [
+        'public_key'     => env('PAYMONGO_PUBLIC_KEY'),
+        'secret_key'     => env('PAYMONGO_SECRET_KEY'),
+        'webhook_secret' => env('PAYMONGO_WEBHOOK_SECRET'),
+        'base_url'       => env('PAYMONGO_BASE_URL', 'https://api.paymongo.com/v1'),
+    ],
+
 ];
