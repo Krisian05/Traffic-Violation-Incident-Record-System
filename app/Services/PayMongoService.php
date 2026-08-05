@@ -54,8 +54,15 @@ class PayMongoService
                         [
                             'currency'    => 'PHP',
                             'amount'      => $amountInCentavos,
-                            'name'        => "Citation Ticket {$ticketNum}",
+                            'name'        => "Citation Fine ({$ticketNum})",
                             'description' => "Violation fine for: {$violationName}",
+                            'quantity'    => 1,
+                        ],
+                        [
+                            'currency'    => 'PHP',
+                            'amount'      => 1000, // ₱10.00 convenience fee
+                            'name'        => "Online Convenience Fee",
+                            'description' => "Processing fee for instant online gateway settlement",
                             'quantity'    => 1,
                         ],
                     ],

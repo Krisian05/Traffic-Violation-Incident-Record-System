@@ -115,9 +115,13 @@
     @else
         <div class="p-3 mb-3" style="background-color: #fef2f2; border-radius: 12px; border: 1px solid #fca5a5;">
             <div class="d-flex align-items-center justify-content-between">
-                <span class="text-muted fw-600" style="font-size: .75rem;">TOTAL AMOUNT DUE</span>
+                <span class="text-muted fw-600" style="font-size: .75rem;">FINE AMOUNT</span>
+                <span class="text-muted" style="font-size: .75rem;">+ ₱10.00 Online Fee</span>
             </div>
-            <strong style="font-size: 1.8rem; color: #b91c1c;">₱{{ number_format($violation->balanceRemaining(), 2) }}</strong>
+            <div class="d-flex align-items-baseline justify-content-between mt-1">
+                <strong style="font-size: 1.8rem; color: #b91c1c;">₱{{ number_format($violation->balanceRemaining(), 2) }}</strong>
+                <span class="fw-700 text-dark" style="font-size: .9rem;">Total at checkout: ₱{{ number_format($violation->balanceRemaining() + 10, 2) }}</span>
+            </div>
         </div>
 
         <div class="card shadow-sm mb-3">
@@ -136,7 +140,7 @@
                 <form action="{{ route('guest-payment.paymongo-checkout', $violation->public_payment_token) }}" method="POST">
                     @csrf
                     <button type="submit" class="btn btn-paymongo w-100 py-3 fs-6">
-                        <i class="bi bi-shield-lock-fill me-2"></i> Proceed to PayMongo Checkout
+                        <i class="bi bi-shield-lock-fill me-2"></i> Proceed to PayMongo Checkout (₱{{ number_format($violation->balanceRemaining() + 10, 2) }})
                     </button>
                 </form>
             </div>
