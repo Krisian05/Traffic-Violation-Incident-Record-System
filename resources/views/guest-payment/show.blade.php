@@ -114,8 +114,9 @@
         </div>
     @else
         @php
-            $fineAmount = $violation->balanceRemaining();
-            $onlineFee  = round(10.00 + (($fineAmount / 10.0) * 0.25), 2);
+            $fineAmount    = $violation->balanceRemaining();
+            $subtotal      = $fineAmount + 10.00;
+            $onlineFee     = round(10.00 + (($subtotal / 10.0) * 0.25), 2);
             $checkoutTotal = $fineAmount + $onlineFee;
         @endphp
         <div class="p-3 mb-3" style="background-color: #fef2f2; border-radius: 12px; border: 1px solid #fca5a5;">

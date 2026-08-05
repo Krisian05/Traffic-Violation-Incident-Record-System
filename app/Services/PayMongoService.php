@@ -33,8 +33,9 @@ class PayMongoService
         $ticketNum = $violation->ticket_number ?: ('#' . $violation->id);
         $violationName = $violation->violationType?->name ?: 'Traffic Citation Fine';
 
-        // Dynamic convenience fee: Base ₱10.00 + ₱0.25 for every ₱10.00 of fine amount
-        $feeAmount = round(10.00 + (($amount / 10.0) * 0.25), 2);
+        // Dynamic convenience fee: Base ₱10.00 + ₱0.25 for every ₱10.00 of (fine + base fee)
+        $subtotalAmount = $amount + 10.00;
+        $feeAmount = round(10.00 + (($subtotalAmount / 10.0) * 0.25), 2);
         $feeInCentavos = (int) round($feeAmount * 100);
 
         $baseUrl = config('services.paymongo.base_url', 'https://api.paymongo.com/v1');
