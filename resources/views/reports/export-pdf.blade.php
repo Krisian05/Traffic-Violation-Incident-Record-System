@@ -206,6 +206,27 @@
         </tbody>
     </table>
 
+    <div style="margin-top: 40px; margin-bottom: 20px; width: 100%;">
+        <table style="width: 100%; border: none;">
+            <tr>
+                <td style="width: 50%; border: none; vertical-align: top;">
+                    <div>Prepared by:</div>
+                    <div style="border-bottom: 1px solid #000; width: 180px; margin-top: 30px;"></div>
+                    <div style="font-size: 10px; font-weight: bold; margin-top: 3px;">{{ Auth::user()->name ?? 'System Administrator' }}</div>
+                    <div style="font-size: 8px; font-style: italic;">Operation PNCO</div>
+                </td>
+                <td style="width: 50%; border: none; vertical-align: top; text-align: right;">
+                    <div style="display: inline-block; text-align: left;">
+                        <div>Noted by:</div>
+                        <div style="border-bottom: 1px solid #000; width: 180px; margin-top: 30px;"></div>
+                        <div style="font-size: 10px; font-weight: bold; margin-top: 3px;">{{ $lgu?->police_chief_name ?? 'PLTCOL RUEL L BURLAT' }}</div>
+                        <div style="font-size: 8px; font-style: italic;">{{ $lgu?->police_chief_title ?? 'Chief of Police' }}</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
     <div class="footer">
         Generated automatically by the TVIRS System. Page 1 of 1.
     </div>

@@ -132,10 +132,27 @@
                     <div class="form-text">Full address printed below the police station name on reports.</div>
                 </div>
 
-                <div class="mb-2">
+                <div class="mb-3">
                     <label class="lgu-label">Official LGU Seal / Logo</label>
                     <input type="file" name="seal" class="form-control lgu-input" accept="image/*">
                     <div class="form-text">Upload custom LGU logo/seal image (PNG, JPG, max 2MB).</div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <label class="lgu-label">Police Chief / Supervisor ("Noted by:")</label>
+                        <input type="text" name="police_chief_name" class="form-control lgu-input"
+                               placeholder="e.g. PLTCOL RUEL L BURLAT"
+                               value="{{ old('police_chief_name') }}">
+                        <div class="form-text">Name printed under "Noted by:" on document signatures.</div>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="lgu-label">Police Chief Title / Designation</label>
+                        <input type="text" name="police_chief_title" class="form-control lgu-input"
+                               placeholder="e.g. Chief of Police"
+                               value="{{ old('police_chief_title') }}">
+                        <div class="form-text">Designation printed below the police chief name.</div>
+                    </div>
                 </div>
             </div>
 

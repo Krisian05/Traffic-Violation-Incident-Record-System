@@ -20,6 +20,8 @@ class Lgu extends Model
         'police_station_name',
         'police_station_address',
         'seal_path',
+        'police_chief_name',
+        'police_chief_title',
         'gcash_qr_path',
         'maya_qr_path',
         'sms_api_key',
@@ -134,6 +136,29 @@ class Lgu extends Model
         }
 
         return asset('images/Balamban.png');
+    }
+
+    public function getPoliceChiefNameAttribute(): string
+    {
+        if (!empty($this->attributes['police_chief_name'])) {
+            return $this->attributes['police_chief_name'];
+        }
+
+        $name = strtoupper($this->name ?? 'BALAMBAN');
+        if ($name === 'BALAMBAN' || ($this->code ?? '') === 'BAL') {
+            return 'PLTCOL RUEL L BURLAT';
+        }
+
+        return 'CHIEF OF POLICE';
+    }
+
+    public function getPoliceChiefTitleAttribute(): string
+    {
+        if (!empty($this->attributes['police_chief_title'])) {
+            return $this->attributes['police_chief_title'];
+        }
+
+        return 'Chief of Police';
     }
 
     /** Resolve an LGU from the PSGC city/municipality code captured by the location selector. */

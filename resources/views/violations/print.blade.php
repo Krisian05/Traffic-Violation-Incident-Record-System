@@ -539,8 +539,8 @@
         <div>
             <div>Noted by:</div>
             <div style="border-bottom: 1pt solid #000; width: 130pt; margin-top: 26pt; margin-left: 50pt;"></div>
-            <div style="font-size: 9pt; font-weight: 600; margin-top: 2pt; text-align: center; width: 130pt; margin-left: 50pt;">PLTCOL RUEL L BURLAT</div>
-            <div style="font-size: 8pt; font-style: italic; margin-top: 2pt; text-align: center; width: 130pt; margin-left: 50pt;">Chief of Police</div>
+            <div style="font-size: 9pt; font-weight: 600; margin-top: 2pt; text-align: center; width: 130pt; margin-left: 50pt;">{{ $lgu?->police_chief_name ?? 'PLTCOL RUEL L BURLAT' }}</div>
+            <div style="font-size: 8pt; font-style: italic; margin-top: 2pt; text-align: center; width: 130pt; margin-left: 50pt;">{{ $lgu?->police_chief_title ?? 'Chief of Police' }}</div>
         </div>
     </div>
 

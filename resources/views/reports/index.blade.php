@@ -1151,8 +1151,8 @@
     <div class="rpt-sig-col">
         <div class="rpt-sig-label">Noted by:</div>
         <div class="rpt-sig-line"></div>
-        <div class="rpt-sig-name">PLTCOL RUEL L BURLAT</div>
-        <div class="rpt-sig-title">Chief of Police</div>
+        <div class="rpt-sig-name">{{ ($selectedLguObj ?? auth()->user()?->lgu ?? \App\Models\Lgu::where('code', 'BAL')->first())?->police_chief_name ?? 'PLTCOL RUEL L BURLAT' }}</div>
+        <div class="rpt-sig-title">{{ ($selectedLguObj ?? auth()->user()?->lgu ?? \App\Models\Lgu::where('code', 'BAL')->first())?->police_chief_title ?? 'Chief of Police' }}</div>
     </div>
 </div>
 

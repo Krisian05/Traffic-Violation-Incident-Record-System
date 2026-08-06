@@ -388,8 +388,8 @@
     <div class="print-sig-block">
         <div class="print-sig-label">Noted by:</div>
         <div class="print-sig-line"></div>
-        <div class="print-sig-name">PLTCOL RUEL L BURLAT</div>
-        <div class="print-sig-title">Chief of Police</div>
+        <div class="print-sig-name">{{ (auth()->user()?->lgu ?? \App\Models\Lgu::where('code', 'BAL')->first())?->police_chief_name ?? 'PLTCOL RUEL L BURLAT' }}</div>
+        <div class="print-sig-title">{{ (auth()->user()?->lgu ?? \App\Models\Lgu::where('code', 'BAL')->first())?->police_chief_title ?? 'Chief of Police' }}</div>
     </div>
 </div>
 <div class="print-doc-footer" style="display:none;">
