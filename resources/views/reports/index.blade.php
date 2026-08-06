@@ -1308,7 +1308,7 @@
     body[data-print-section="violators"]           .rpt-printable[data-rpt-section="violators"]           { display: block !important; }
     body[data-print-section="overdue"]             .rpt-printable[data-rpt-section="overdue"]             { display: block !important; }
     body[data-print-section="offenders"]           .rpt-printable[data-rpt-section="offenders"]           { display: block !important; }
-    /* ── Incident analytics: portrait A4, 2 charts per page ── */
+    /* ── Incident analytics: portrait bond paper, 1 chart card per row (100% width) ── */
     body[data-print-section="incident-analytics"] { margin: 0; }
     body[data-print-section="incident-analytics"] .rpt-filter-card,
     body[data-print-section="incident-analytics"] .rpt-printable:not([data-rpt-section="incident-analytics"]) { display: none !important; }
@@ -1316,20 +1316,21 @@
     body[data-print-section="incident-analytics"] #incAnalyticsSection .rpt-card { box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
     body[data-print-section="incident-analytics"] #incAnalyticsSection .rpt-card-header { display: none !important; }
     body[data-print-section="incident-analytics"] #incAnalyticsSection .card-body { padding: 0 !important; }
-    /* 2 charts per page side by side */
+    /* 1 chart card per row (100% width) for a perfect fit on bond paper */
     body[data-print-section="incident-analytics"] .inc-charts-grid {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        margin: 0 !important;
+        display: block !important;
         width: 100% !important;
+        margin: 0 !important;
     }
     body[data-print-section="incident-analytics"] .inc-charts-grid > div {
-        width: 50% !important;
-        flex: 0 0 50% !important;
-        max-width: 50% !important;
-        height: 42vh !important;
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        height: 250px !important;
         box-sizing: border-box !important;
-        padding: 6px !important;
+        padding: 0 0 14px 0 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
     }
     /* Force page break after 2nd chart */
     body[data-print-section="incident-analytics"] .inc-charts-grid > div:nth-child(2) {
