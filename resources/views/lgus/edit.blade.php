@@ -35,7 +35,7 @@
 
         <div class="row g-4">
             {{-- CARD 1: Basic LGU Information --}}
-            <div class="col-lg-6">
+            <div class="col-lg-4">
                 <div class="card border-0 shadow-sm rounded-3 h-100">
                     <div class="card-header bg-white py-3 border-bottom d-flex align-items-center gap-2">
                         <i class="bi bi-building text-primary fs-5"></i>
@@ -49,39 +49,38 @@
                                     <i class="bi bi-geo-alt-fill text-primary"></i>
                                 </span>
                                 <select id="psgc_city_select" class="form-select lgu-input">
-                                    <option value="">— Optional: pick to auto-fill name &amp; PSGC code —</option>
+                                    <option value="">— Optional: pick to auto-fill —</option>
                                 </select>
                             </div>
-                            <div class="form-text">Selecting a city/municipality auto-fills its name and PSGC code below.</div>
+                            <div class="form-text">Selecting a city/municipality auto-fills its name &amp; code.</div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-5 mb-3">
-                                <label class="lgu-label">LGU Code <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text lgu-ig-icon style-rose">
-                                        <i class="bi bi-hash text-danger"></i>
-                                    </span>
-                                    <input type="text" name="code"
-                                           class="form-control lgu-input @error('code') is-invalid @enderror"
-                                           value="{{ old('code', $lgu->code) }}"
-                                           maxlength="10" required placeholder="e.g. BAL"
-                                           style="text-transform:uppercase;">
-                                    @error('code')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                </div>
+                        <div class="mb-3">
+                            <label class="lgu-label">LGU Code <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text lgu-ig-icon style-rose">
+                                    <i class="bi bi-hash text-danger"></i>
+                                </span>
+                                <input type="text" name="code"
+                                       class="form-control lgu-input @error('code') is-invalid @enderror"
+                                       value="{{ old('code', $lgu->code) }}"
+                                       maxlength="10" required placeholder="e.g. BAL"
+                                       style="text-transform:uppercase;">
+                                @error('code')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
-                            <div class="col-md-7 mb-3">
-                                <label class="lgu-label">Name <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text lgu-ig-icon style-blue">
-                                        <i class="bi bi-signpost-split text-primary"></i>
-                                    </span>
-                                    <input type="text" name="name" id="lgu_name"
-                                           class="form-control lgu-input @error('name') is-invalid @enderror"
-                                           value="{{ old('name', $lgu->name) }}"
-                                           required placeholder="e.g. Balamban">
-                                    @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="lgu-label">Name <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text lgu-ig-icon style-blue">
+                                    <i class="bi bi-signpost-split text-primary"></i>
+                                </span>
+                                <input type="text" name="name" id="lgu_name"
+                                       class="form-control lgu-input @error('name') is-invalid @enderror"
+                                       value="{{ old('name', $lgu->name) }}"
+                                       required placeholder="e.g. Balamban">
+                                @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                         </div>
 
@@ -133,13 +132,12 @@
                 </div>
             </div>
 
-            {{-- RIGHT COLUMN: CARD 2 & CARD 3 --}}
-            <div class="col-lg-6">
-                {{-- CARD 2: Police Station & Document Header Settings --}}
-                <div class="card border-0 shadow-sm rounded-3 mb-4">
+            {{-- CARD 2: Police Station & Document Header Settings --}}
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
                     <div class="card-header bg-white py-3 border-bottom d-flex align-items-center gap-2">
                         <i class="bi bi-shield-lock-fill text-danger fs-5"></i>
-                        <h6 class="fw-bold mb-0 text-dark">2. Police Station &amp; Document Header Settings</h6>
+                        <h6 class="fw-bold mb-0 text-dark">2. Police Station &amp; Document Header</h6>
                     </div>
                     <div class="card-body p-4">
                         <div class="mb-3">
@@ -147,7 +145,7 @@
                             <input type="text" name="police_station_name" class="form-control lgu-input"
                                    placeholder="e.g. BALAMBAN MUNICIPAL POLICE STATION"
                                    value="{{ old('police_station_name', $lgu->police_station_name) }}">
-                            <div class="form-text">Printed on citation documents, motorist records, and incident reports. Auto-generated if blank.</div>
+                            <div class="form-text">Printed on citation documents &amp; reports. Auto-generated if blank.</div>
                         </div>
 
                         <div class="mb-3">
@@ -155,45 +153,46 @@
                             <input type="text" name="police_station_address" class="form-control lgu-input"
                                    placeholder="e.g. Brgy. Sta Cruz-Sto Nino, Balamban, Cebu"
                                    value="{{ old('police_station_address', $lgu->police_station_address) }}">
-                            <div class="form-text">Full address printed below the police station name on report headers.</div>
+                            <div class="form-text">Full address printed below station name.</div>
                         </div>
 
                         <div class="mb-3">
                             <label class="lgu-label">Official LGU Seal / Logo</label>
                             @if($lgu->seal_url)
                                 <div class="d-flex align-items-center gap-3 mb-2 p-2 bg-light rounded-2 border">
-                                    <img src="{{ $lgu->seal_url }}" alt="Seal" style="width:48px;height:48px;object-fit:contain;border-radius:6px;border:1px solid #cbd5e1;padding:2px;background:#fff;">
+                                    <img src="{{ $lgu->seal_url }}" alt="Seal" style="width:44px;height:44px;object-fit:contain;border-radius:6px;border:1px solid #cbd5e1;padding:2px;background:#fff;">
                                     <div>
                                         <div class="fw-bold text-dark small">Current Seal Image</div>
-                                        <div class="text-muted" style="font-size:0.75rem;">Active on official printouts and report headers</div>
+                                        <div class="text-muted" style="font-size:0.72rem;">Active on official printouts</div>
                                     </div>
                                 </div>
                             @endif
                             <input type="file" name="seal" class="form-control lgu-input" accept="image/*">
-                            <div class="form-text">Upload custom LGU logo/seal image (PNG, JPG, max 10MB).</div>
+                            <div class="form-text">Upload custom logo/seal (PNG, JPG, max 10MB).</div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-2">
-                                <label class="lgu-label">Police Chief / Supervisor ("Noted by:")</label>
-                                <input type="text" name="police_chief_name" class="form-control lgu-input"
-                                       placeholder="e.g. PLTCOL RUEL L BURLAT"
-                                       value="{{ old('police_chief_name', $lgu->police_chief_name) }}">
-                                <div class="form-text">Name under "Noted by:" on signatures.</div>
-                            </div>
-                            <div class="col-md-6 mb-2">
-                                <label class="lgu-label">Chief Title / Designation</label>
-                                <input type="text" name="police_chief_title" class="form-control lgu-input"
-                                       placeholder="e.g. Chief of Police"
-                                       value="{{ old('police_chief_title', $lgu->police_chief_title) }}">
-                                <div class="form-text">Designation below police chief name.</div>
-                            </div>
+                        <div class="mb-3">
+                            <label class="lgu-label">Police Chief / Supervisor ("Noted by:")</label>
+                            <input type="text" name="police_chief_name" class="form-control lgu-input"
+                                   placeholder="e.g. PLTCOL RUEL L BURLAT"
+                                   value="{{ old('police_chief_name', $lgu->police_chief_name) }}">
+                            <div class="form-text">Name under "Noted by:" on document signatures.</div>
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="lgu-label">Chief Title / Designation</label>
+                            <input type="text" name="police_chief_title" class="form-control lgu-input"
+                                   placeholder="e.g. Chief of Police"
+                                   value="{{ old('police_chief_title', $lgu->police_chief_title) }}">
+                            <div class="form-text">Designation below police chief name.</div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {{-- CARD 3: SMS Gateway Configuration --}}
-                <div class="card border-0 shadow-sm rounded-3">
+            {{-- CARD 3: SMS Gateway Configuration --}}
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
                     <div class="card-header bg-white py-3 border-bottom d-flex align-items-center gap-2">
                         <i class="bi bi-chat-left-text-fill text-info fs-5"></i>
                         <h6 class="fw-bold mb-0 text-dark">3. SMS Gateway Configuration</h6>
