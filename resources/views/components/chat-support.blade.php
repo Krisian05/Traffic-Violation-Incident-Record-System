@@ -240,9 +240,12 @@
                  👋 Hello! I am your <strong>TVIRS LGU Support Assistant</strong>. How can I guide you today?
                 <div class="mt-2 text-muted" style="font-size:.74rem;">Tap a common question below or type your custom query:</div>
                 <div class="tvrs-faq-pills mt-2" id="tvrsFaqPills">
+                    <button class="tvrs-faq-pill" onclick="sendFaq('faq_add_user')">👤 Add User Account</button>
                     <button class="tvrs-faq-pill" onclick="sendFaq('faq_sms_setup')">📱 SMS Gateway Setup</button>
                     <button class="tvrs-faq-pill" onclick="sendFaq('faq_gcash_claim')">💳 Verify GCash Claims</button>
                     <button class="tvrs-faq-pill" onclick="sendFaq('faq_settle_ticket')">💵 Cashier Settlement</button>
+                    <button class="tvrs-faq-pill" onclick="sendFaq('faq_motorist_setup')">🚗 Add Motorist</button>
+                    <button class="tvrs-faq-pill" onclick="sendFaq('faq_incidents_info')">🚩 Road Incidents</button>
                     <button class="tvrs-faq-pill" onclick="sendFaq('faq_ocr_scanner')">📷 Driver License OCR</button>
                     <button class="tvrs-faq-pill" onclick="sendFaq('faq_thermal_printer')">🖨️ Thermal Printer Setup</button>
                     <button class="tvrs-faq-pill" onclick="sendFaq('faq_collection_report')">📊 Treasury Reports</button>
@@ -328,9 +331,12 @@ function hideTypingIndicator() {
 
 function sendFaq(faqId) {
     const faqMap = {
+        'faq_add_user': 'How to add a new user or enforcer account?',
         'faq_sms_setup': 'How to setup free Android SIM Gateway for SMS?',
         'faq_gcash_claim': 'How do Cashiers verify online GCash payment claims?',
         'faq_settle_ticket': 'How to settle a violation ticket at Cashier counter?',
+        'faq_motorist_setup': 'How to add or search motorists?',
+        'faq_incidents_info': 'How to check or log road incidents?',
         'faq_ocr_scanner': 'How does the Officer License OCR Scanner work?',
         'faq_thermal_printer': 'How to print on Bluetooth thermal printer?',
         'faq_collection_report': 'How to generate Treasury Collection Reports?'
@@ -344,23 +350,30 @@ function sendFaq(faqId) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
         body: JSON.stringify({ message: questionText, faq_id: faqId })
     })
-    .then(res => res.json())
+    .then(async res => {
+        if (res.status === 419) {
+            return { success: false, message: 'Your session expired. Please refresh the page.' };
+        }
+        const text = await res.text();
+        try { return JSON.parse(text); } catch(e) { return { success: false, message: 'Server error. Please try again.' }; }
+    })
     .then(data => {
         hideTypingIndicator();
         if (data.success && data.answer) {
             appendBotMessage(data.answer);
             updateQuotaDisplay(data.daily_remaining);
         } else {
-            appendBotMessage('Sorry, I encountered an issue retrieving the FAQ. Please try again.');
+            appendBotMessage(data.message || 'Sorry, I encountered an issue retrieving the FAQ. Please try again.');
         }
     })
     .catch(err => {
         hideTypingIndicator();
-        appendBotMessage('Network error occurred while fetching support response.');
+        appendBotMessage('Network connection issue. Please check your internet connection.');
     });
 }
 
@@ -378,23 +391,30 @@ function handleChatSubmit(e) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
         body: JSON.stringify({ message: message })
     })
-    .then(res => res.json())
+    .then(async res => {
+        if (res.status === 419) {
+            return { success: false, message: 'Your session expired. Please refresh the page to continue chatting.' };
+        }
+        const text = await res.text();
+        try { return JSON.parse(text); } catch(e) { return { success: false, message: 'Unable to process AI response. Please try tapping a Quick FAQ.' }; }
+    })
     .then(data => {
         hideTypingIndicator();
         if (data.success && data.answer) {
             appendBotMessage(data.answer);
             updateQuotaDisplay(data.daily_remaining);
         } else {
-            appendBotMessage(data.message || 'Unable to process your query at the moment.');
+            appendBotMessage(data.message || 'Unable to process your query at the moment. Please try selecting a Quick FAQ above.');
         }
     })
     .catch(err => {
         hideTypingIndicator();
-        appendBotMessage('Connection error. Please check your internet network.');
+        appendBotMessage('Network connection issue. Please refresh or try again.');
     });
 }
 

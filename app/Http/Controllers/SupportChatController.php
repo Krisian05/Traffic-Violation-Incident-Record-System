@@ -102,7 +102,7 @@ class SupportChatController extends Controller
             $model = 'gemini-3.6-flash';
             $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
-            $response = Http::timeout(15)->post($endpoint, [
+            $response = Http::timeout(15)->withoutVerifying()->post($endpoint, [
                 'contents' => [
                     [
                         'role' => 'user',
@@ -120,7 +120,7 @@ class SupportChatController extends Controller
             // Fallback to gemini-flash-latest if gemini-3.6-flash fails
             if (!$response->successful()) {
                 $endpointFallback = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={$apiKey}";
-                $response = Http::timeout(15)->post($endpointFallback, [
+                $response = Http::timeout(15)->withoutVerifying()->post($endpointFallback, [
                     'contents' => [
                         [
                             'role' => 'user',
@@ -161,15 +161,15 @@ class SupportChatController extends Controller
             Log::error('Gemini API Error: ' . $response->body());
             return response()->json([
                 'success' => false,
-                'message' => 'Unable to get response from AI provider. Please try again or use Quick FAQs.'
-            ], 502);
+                'message' => 'Unable to get response from AI provider. Please try again or tap one of the Quick FAQs.'
+            ]);
 
         } catch (\Exception $e) {
             Log::error('Chat Support Exception: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred while connecting to AI support: ' . $e->getMessage()
-            ], 500);
+                'message' => 'An error occurred while processing your request: ' . $e->getMessage()
+            ]);
         }
     }
 
