@@ -50,19 +50,19 @@ KNOWLEDGE BASE OF ALL LGU FUNCTIONS IN TVIRS:
    - Manual SMS Alert: Cashiers or Officers can click "Resend SMS" on any violation row to re-dispatch citation details.
 
 5. INCIDENTS & CHARGE TYPES (/incidents & /incident-charge-types):
-   - Incidents: Log traffic accidents, hit-and-run events, or major road incidents. Supports attaching multiple photos/video evidence and mapping locations.
-   - Charge Types: Configure administrative and criminal incident charge categories (e.g. Reckless Driving with Damage to Property).
+   - Incidents (/incidents): Log traffic accidents, hit-and-run events, or major road incidents. Supports attaching multiple photos/video evidence and mapping locations.
+   - Charge Types (/incident-charge-types): Configure administrative and criminal incident charge categories (e.g. Reckless Driving with Damage to Property).
 
-6. VIOLATION TYPES & PENALTIES (/violation-types):
+6. AUDIT LOGS & AUDIT TRAIL (/audit-logs):
+   - Accessing Audit Trail: Authorized roles (Admin, LGU Admin, Auditor, Traffic Supervisor) can view complete activity logs at /audit-logs.
+   - Audited Events: Tracks user logins/logouts, ticket creations, payment settlements, voided OR transactions, and system configuration updates.
+
+7. VIOLATION TYPES & PENALTIES (/violation-types):
    - LGU admins configure violation types, penalty fees for 1st, 2nd, and 3rd offenses, and whether impounding is mandatory.
 
-7. REPORTS & AUDIT TRAIL (/payments/report, /reports, /audit-logs):
+8. REPORTS & RECONCILIATION (/payments/report, /reports):
    - Collection Reports (/payments/report): Summarizes daily collections by Cashier/OR number. Exportable to Excel for LGU Treasury reconciliation.
    - Reports (/reports): Statistical charts on top violations, peak violation hours, officer performance, and downloadable PDF/Excel reports.
-   - Audit Trail (/audit-logs): Complete security log tracking all login events, ticket edits, payment settlements, and system configuration changes.
-
-8. TRAFFIC OFFICER MOBILE APP (/officer/dashboard):
-   - Issuing Tickets: Enforcers issue digital tickets on mobile. Features AI Smart OCR License Scanner (auto-fills driver name & license # from photo). Works offline and syncs when reconnected to cellular data.
 
 BEHAVIOR RULES:
 - Always answer politely, professionally, and clearly.
@@ -81,8 +81,20 @@ EOT;
             [
                 'id' => 'faq_add_user',
                 'question' => 'How to add a new user or enforcer account?',
-                'keywords' => ['add user', 'create user', 'new user', 'register user', 'add enforcer', 'user account'],
+                'keywords' => ['add user', 'create user', 'new user', 'register user', 'add enforcer', 'user account', 'how to add user'],
                 'answer' => "👤 **How to Add a New User Account in TVIRS**\n\n1. Go to **Users** (`/users`) under the *Administration* section on the left sidebar.\n2. Click **+ Create New User**.\n3. Enter the full **Name**, **Username**, **Email**, and select the **Role** (LGU Admin, Cashier, Traffic Supervisor, Issuing Officer/Enforcer, or Auditor).\n4. Set a strong password and select your **LGU**.\n5. Click **Save User**.\n\n*Tip: For field Enforcers, pair their smartphone device under User Details ➔ Registered Devices.*"
+            ],
+            [
+                'id' => 'faq_audit_log',
+                'question' => 'How to see system audit logs?',
+                'keywords' => ['see audit', 'audit log', 'audit trail', 'view audit', 'audit logs', 'how to see audit', 'logs'],
+                'answer' => "🛡️ **Viewing System Audit Logs**\n\n1. Go to **Audit Trail** (`/audit-logs`) on the left sidebar under *References*.\n2. Review timestamped security logs tracking:\n   - User login & logout events\n   - Ticket creations, updates, and voids\n   - Cashier payment settlements & OR number corrections\n   - User account modifications & SMS configuration changes\n3. Use the search bar or date filters to find specific activity records."
+            ],
+            [
+                'id' => 'faq_charge_type',
+                'question' => 'How to view or manage incident charge types?',
+                'keywords' => ['chagre type', 'charge type', 'incident charge', 'see charge', 'charge types', 'how to see chagre type'],
+                'answer' => "⚖️ **Viewing Incident Charge Types**\n\n1. Go to **Charge Types** (`/incident-charge-types`) on the left sidebar under *References*.\n2. View the list of administrative and criminal incident charge categories.\n3. LGU Admins can click **+ Add Charge Type** or **Edit** to update fine classifications or descriptions."
             ],
             [
                 'id' => 'faq_sms_setup',
@@ -105,13 +117,19 @@ EOT;
             [
                 'id' => 'faq_motorist_setup',
                 'question' => 'How to add or search motorists?',
-                'keywords' => ['add motorist', 'setup motorist', 'create motorist', 'driver record', 'new violator'],
+                'keywords' => ['add motorist', 'setup motorist', 'create motorist', 'driver record', 'new violator', 'see motorist'],
                 'answer' => "🚗 **Adding & Searching Motorists**\n\n1. Go to **Motorists** (`/violators`) on the left sidebar.\n2. Search by **Driver's License Number** or **Name** to check existing records.\n3. To add a new driver, click **+ Add Motorist**.\n4. Fill in License Number, Full Name, Contact Number, Address, and License Expiry Date.\n5. Click **Save Motorist**."
+            ],
+            [
+                'id' => 'faq_vehicle_info',
+                'question' => 'How to view vehicle directory?',
+                'keywords' => ['vehicle', 'vehicles', 'plate number', 'see vehicle', 'impound vehicle'],
+                'answer' => "🚘 **Vehicle Directory & Impound Records**\n\n1. Go to **Vehicles** (`/vehicles`) on the left sidebar under *Records*.\n2. Search by **License Plate Number** or **Chassis Number**.\n3. View vehicle ownership details, impound status, and attached citation photo evidence."
             ],
             [
                 'id' => 'faq_incidents_info',
                 'question' => 'How to check or log road incidents?',
-                'keywords' => ['incidents', 'incident stats', 'log incident', 'traffic accident', 'road incident', 'many incidents'],
+                'keywords' => ['incidents', 'incident stats', 'log incident', 'traffic accident', 'road incident', 'many incidents', 'see incident'],
                 'answer' => "🚩 **Checking & Logging Road Incidents**\n\n1. Go to **Incidents** (`/incidents`) to view the list of all reported accidents and hit-and-run incidents.\n2. To log a new incident, click **+ Report Incident**, select Charge Type, attach photo/video evidence, and drop the location pin.\n3. Go to **Reports** (`/reports`) to view statistical breakdowns and peak incident hours."
             ],
             [
@@ -129,7 +147,7 @@ EOT;
             [
                 'id' => 'faq_collection_report',
                 'question' => 'How to generate Treasury Collection Reports?',
-                'keywords' => ['collection report', 'treasury', 'daily collection', 'excel report', 'reconciliation'],
+                'keywords' => ['collection report', 'treasury', 'daily collection', 'excel report', 'reconciliation', 'see report'],
                 'answer' => "📊 **Generating Daily Collection Reports**\n\n1. Go to **Collection Reports** (`/payments/report`).\n2. Filter collections by **Date Range**, **Cashier Name**, or **Payment Method**.\n3. Review total collections, OR number ranges, and transaction counts.\n4. Click **Export to Excel** to download the spreadsheet for LGU Treasury turn-over and audit reconciliation."
             ],
         ];

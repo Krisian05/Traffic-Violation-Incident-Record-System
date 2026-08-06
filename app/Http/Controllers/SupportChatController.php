@@ -99,10 +99,10 @@ class SupportChatController extends Controller
                 $user?->lgu?->name ?? 'LGU'
             );
 
-            $model = 'gemini-3.6-flash';
+            $model = 'gemini-flash-latest';
             $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
-            $response = Http::timeout(20)->withoutVerifying()->post($endpoint, [
+            $response = Http::timeout(15)->withoutVerifying()->post($endpoint, [
                 'contents' => [
                     [
                         'role' => 'user',
@@ -113,13 +113,13 @@ class SupportChatController extends Controller
                 ],
                 'generationConfig' => [
                     'temperature'     => 0.3,
-                    'maxOutputTokens' => 2500,
+                    'maxOutputTokens' => 1200,
                 ]
             ]);
 
-            // Fallback to gemini-flash-latest if gemini-3.6-flash fails
+            // Fallback to gemini-3.6-flash if gemini-flash-latest fails
             if (!$response->successful()) {
-                $endpointFallback = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={$apiKey}";
+                $endpointFallback = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={$apiKey}";
                 $response = Http::timeout(20)->withoutVerifying()->post($endpointFallback, [
                     'contents' => [
                         [
