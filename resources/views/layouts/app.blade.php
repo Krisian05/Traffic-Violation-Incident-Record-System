@@ -1456,6 +1456,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 })();
 </script>
+@auth
+<x-chat-support />
+@endauth
+
 @stack('scripts')
 <script>document.body.style.visibility='visible';</script>
 </body>

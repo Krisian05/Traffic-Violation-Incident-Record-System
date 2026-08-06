@@ -288,4 +288,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/incidents/{incident}/edit', [OfficerController::class, 'editIncident'])->name('incidents.edit');
         Route::put('/incidents/{incident}', [OfficerController::class, 'updateIncident'])->name('incidents.update');
     });
+
+    // ── AI CHAT SUPPORT ───────────────────────────────────────────────────────
+    Route::get('/chat-support/faqs', [\App\Http\Controllers\SupportChatController::class, 'getFaqs'])->name('chat-support.faqs');
+    Route::post('/chat-support/query', [\App\Http\Controllers\SupportChatController::class, 'query'])->name('chat-support.query')->middleware('throttle:20,1');
 });
