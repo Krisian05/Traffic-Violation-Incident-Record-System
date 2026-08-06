@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 class OcrController extends Controller
 {
-    private const GEMINI_MODEL = 'gemini-1.5-flash';
+    private const GEMINI_MODEL = 'gemini-3.6-flash';
 
     private const LABEL_ARTIFACTS = [
         'last name', 'first name', 'middle name', 'sex', 'gender',
