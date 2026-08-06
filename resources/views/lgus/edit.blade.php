@@ -242,16 +242,6 @@
                 </div>
             </div>
         </div>
-
-        {{-- Bottom Action Bar --}}
-        <div class="d-flex align-items-center justify-content-end gap-3 mt-4 pt-3 border-top">
-            <a href="{{ route('lgus.index') }}" class="btn btn-outline-secondary rounded-pill px-4 fw-600">
-                <i class="bi bi-x-circle me-1"></i> Cancel
-            </a>
-            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
-                <i class="bi bi-check-lg me-1"></i> Update LGU Configuration
-            </button>
-        </div>
     </form>
 </div>
 
