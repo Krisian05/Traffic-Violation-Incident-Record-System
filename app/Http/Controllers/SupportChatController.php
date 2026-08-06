@@ -113,15 +113,17 @@ class SupportChatController extends Controller
                 $stats
             );
 
-            $model = 'gemini-flash-latest';
-            $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
-
-            $response = Http::timeout(15)->withoutVerifying()->post($endpoint, [
+            $payloadPrimary = [
+                'systemInstruction' => [
+                    'parts' => [
+                        ['text' => $systemPrompt]
+                    ]
+                ],
                 'contents' => [
                     [
                         'role' => 'user',
                         'parts' => [
-                            ['text' => $systemPrompt . "\n\nUser Question: " . $message]
+                            ['text' => $message]
                         ]
                     ]
                 ],
@@ -129,25 +131,20 @@ class SupportChatController extends Controller
                     'temperature'     => 0.3,
                     'maxOutputTokens' => 1200,
                 ]
-            ]);
+            ];
+
+            $model = 'gemini-flash-latest';
+            $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+            $response = Http::timeout(15)->withoutVerifying()->post($endpoint, $payloadPrimary);
 
             // Fallback to gemini-3.6-flash if gemini-flash-latest fails
             if (!$response->successful()) {
                 $endpointFallback = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={$apiKey}";
-                $response = Http::timeout(20)->withoutVerifying()->post($endpointFallback, [
-                    'contents' => [
-                        [
-                            'role' => 'user',
-                            'parts' => [
-                                ['text' => $systemPrompt . "\n\nUser Question: " . $message]
-                            ]
-                        ]
-                    ],
-                    'generationConfig' => [
-                        'temperature'     => 0.3,
-                        'maxOutputTokens' => 2500,
-                    ]
-                ]);
+                $payloadFallback = $payloadPrimary;
+                $payloadFallback['generationConfig']['maxOutputTokens'] = 2500;
+
+                $response = Http::timeout(20)->withoutVerifying()->post($endpointFallback, $payloadFallback);
             }
 
             if ($response->successful()) {
