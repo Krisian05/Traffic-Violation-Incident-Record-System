@@ -21,19 +21,26 @@ class LguController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'code'                => ['required', 'string', 'max:10', 'alpha_dash', 'unique:lgus,code'],
-            'name'                => ['required', 'string', 'max:150'],
-            'province'            => ['required', 'string', 'max:150'],
-            'psgc_city_code'      => ['nullable', 'string', 'max:20', 'unique:lgus,psgc_city_code'],
-            'ordinance_reference' => ['nullable', 'string', 'max:255'],
-            'treasurer_office'    => ['nullable', 'string', 'max:255'],
-            'sms_api_key'         => ['nullable', 'string', 'max:255'],
-            'sms_sender_name'     => ['nullable', 'string', 'max:11'],
-            'sms_auto_send'       => ['nullable', 'boolean'],
+            'code'                   => ['required', 'string', 'max:10', 'alpha_dash', 'unique:lgus,code'],
+            'name'                   => ['required', 'string', 'max:150'],
+            'province'               => ['required', 'string', 'max:150'],
+            'psgc_city_code'         => ['nullable', 'string', 'max:20', 'unique:lgus,psgc_city_code'],
+            'ordinance_reference'    => ['nullable', 'string', 'max:255'],
+            'treasurer_office'       => ['nullable', 'string', 'max:255'],
+            'police_station_name'    => ['nullable', 'string', 'max:255'],
+            'police_station_address' => ['nullable', 'string', 'max:255'],
+            'seal'                   => ['nullable', 'image', 'max:2048'],
+            'sms_api_key'            => ['nullable', 'string', 'max:255'],
+            'sms_sender_name'        => ['nullable', 'string', 'max:11'],
+            'sms_auto_send'          => ['nullable', 'boolean'],
         ]);
 
         $data['code'] = strtoupper($data['code']);
         $data['sms_auto_send'] = $request->has('sms_auto_send');
+
+        if ($request->hasFile('seal')) {
+            $data['seal_path'] = $request->file('seal')->store('seals', 'public');
+        }
 
         Lgu::create($data);
 
@@ -48,19 +55,26 @@ class LguController extends Controller
     public function update(Request $request, Lgu $lgu)
     {
         $data = $request->validate([
-            'code'                => ['required', 'string', 'max:10', 'alpha_dash', "unique:lgus,code,{$lgu->id}"],
-            'name'                => ['required', 'string', 'max:150'],
-            'province'            => ['required', 'string', 'max:150'],
-            'psgc_city_code'      => ['nullable', 'string', 'max:20', "unique:lgus,psgc_city_code,{$lgu->id}"],
-            'ordinance_reference' => ['nullable', 'string', 'max:255'],
-            'treasurer_office'    => ['nullable', 'string', 'max:255'],
-            'sms_api_key'         => ['nullable', 'string', 'max:255'],
-            'sms_sender_name'     => ['nullable', 'string', 'max:11'],
-            'sms_auto_send'       => ['nullable', 'boolean'],
+            'code'                   => ['required', 'string', 'max:10', 'alpha_dash', "unique:lgus,code,{$lgu->id}"],
+            'name'                   => ['required', 'string', 'max:150'],
+            'province'               => ['required', 'string', 'max:150'],
+            'psgc_city_code'         => ['nullable', 'string', 'max:20', "unique:lgus,psgc_city_code,{$lgu->id}"],
+            'ordinance_reference'    => ['nullable', 'string', 'max:255'],
+            'treasurer_office'       => ['nullable', 'string', 'max:255'],
+            'police_station_name'    => ['nullable', 'string', 'max:255'],
+            'police_station_address' => ['nullable', 'string', 'max:255'],
+            'seal'                   => ['nullable', 'image', 'max:2048'],
+            'sms_api_key'            => ['nullable', 'string', 'max:255'],
+            'sms_sender_name'        => ['nullable', 'string', 'max:11'],
+            'sms_auto_send'          => ['nullable', 'boolean'],
         ]);
 
         $data['code'] = strtoupper($data['code']);
         $data['sms_auto_send'] = $request->has('sms_auto_send');
+
+        if ($request->hasFile('seal')) {
+            $data['seal_path'] = $request->file('seal')->store('seals', 'public');
+        }
 
         $lgu->update($data);
 

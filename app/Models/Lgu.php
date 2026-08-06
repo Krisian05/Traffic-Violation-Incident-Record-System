@@ -17,6 +17,9 @@ class Lgu extends Model
         'psgc_city_code',
         'ordinance_reference',
         'treasurer_office',
+        'police_station_name',
+        'police_station_address',
+        'seal_path',
         'gcash_qr_path',
         'maya_qr_path',
         'sms_api_key',
@@ -73,6 +76,64 @@ class Lgu extends Model
     public function incidents(): HasMany
     {
         return $this->hasMany(Incident::class);
+    }
+
+    public function getPoliceStationNameAttribute(): string
+    {
+        if (!empty($this->attributes['police_station_name'])) {
+            return $this->attributes['police_station_name'];
+        }
+
+        $name = strtoupper($this->name ?? 'BALAMBAN');
+        if (str_contains($name, 'CITY')) {
+            return "{$name} POLICE STATION";
+        }
+
+        return "{$name} MUNICIPAL POLICE STATION";
+    }
+
+    public function getPoliceStationAddressAttribute(): string
+    {
+        if (!empty($this->attributes['police_station_address'])) {
+            return $this->attributes['police_station_address'];
+        }
+
+        $name = $this->name ?? 'Balamban';
+        if (strtoupper($name) === 'BALAMBAN' || ($this->code ?? '') === 'BAL') {
+            return 'Brgy. Sta Cruz-Sto Nino, Balamban, Cebu';
+        }
+
+        $province = $this->province ?? 'Cebu';
+        return "Poblacion, {$name}, {$province}";
+    }
+
+    public function getPoliceOfficeAttribute(): string
+    {
+        $name = strtoupper($this->name ?? '');
+        if ($name === 'CEBU CITY' || ($this->code ?? '') === 'CEB') {
+            return 'CEBU CITY POLICE OFFICE';
+        }
+
+        return 'CEBU POLICE PROVINCIAL OFFICE';
+    }
+
+    public function getSealUrlAttribute(): string
+    {
+        if (!empty($this->attributes['seal_path'])) {
+            return uploaded_file_url($this->attributes['seal_path']);
+        }
+
+        $name = $this->name ?? 'Balamban';
+        $code = $this->code ?? 'BAL';
+
+        if (file_exists(public_path('images/' . $name . '.png'))) {
+            return asset('images/' . $name . '.png');
+        }
+        if (file_exists(public_path('images/' . $code . '.png'))) {
+            return asset('images/' . $code . '.png');
+        }
+
+        return asset('images/Balamban.png');
     }
 
     /** Resolve an LGU from the PSGC city/municipality code captured by the location selector. */

@@ -104,11 +104,11 @@
 <body>
 
 @php
-    $lgu = $violation->lgu;
-    $stationName = $lgu?->name ?? config('app.name');
-    $plate = $violation->vehicle?->plate_number ?? $violation->vehicle_plate;
-    $mm = trim(($violation->vehicle?->make ?? $violation->vehicle_make) . ' ' . ($violation->vehicle?->model ?? $violation->vehicle_model));
-    $color = $violation->vehicle?->color;
+    $lgu         = $violation->lgu ?? $violation->recorder?->lgu ?? auth()->user()?->lgu ?? \App\Models\Lgu::where('code', 'BAL')->first();
+    $stationName = $lgu?->police_station_name ?? ($lgu?->name ? strtoupper($lgu->name) . ' POLICE STATION' : 'BALAMBAN MUNICIPAL POLICE STATION');
+    $plate       = $violation->vehicle?->plate_number ?? $violation->vehicle_plate;
+    $mm          = trim(($violation->vehicle?->make ?? $violation->vehicle_make) . ' ' . ($violation->vehicle?->model ?? $violation->vehicle_model));
+    $color       = $violation->vehicle?->color;
 @endphp
 
 <div id="status">Ready to connect...</div>
@@ -116,8 +116,8 @@
 <div class="slip" id="print-area">
     <div class="text-center header-text">
         <div>Republic of the Philippines</div>
-        <div>Province of Cebu</div>
-        <div>Municipality of {{ $lgu?->name ?? 'Balamban' }}</div>
+        <div>Province of {{ $lgu?->province ?? 'Cebu' }}</div>
+        <div>{{ str_contains(strtolower($lgu?->name ?? ''), 'city') ? 'City' : 'Municipality' }} of {{ $lgu?->name ?? 'Balamban' }}</div>
         <div style="margin-top: 10px; font-size: 18px;">{{ strtoupper($stationName) }}</div>
     </div>
     

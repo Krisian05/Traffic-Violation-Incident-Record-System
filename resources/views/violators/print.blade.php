@@ -258,7 +258,8 @@
 <body>
 
 @php
-    $vc = $violator->violations->count();
+    $lgu     = $violator->lgu ?? auth()->user()?->lgu ?? \App\Models\Lgu::where('code', 'BAL')->first();
+    $vc      = $violator->violations->count();
     $settled = $violator->violations->where('status', 'settled')->count();
     if ($vc >= 3)       { $statusLabel = 'Recidivist';      $statusCls = 'chip-rec'; }
     elseif ($vc >= 2)   { $statusLabel = 'Repeat Offender'; $statusCls = 'chip-rep'; }
@@ -275,11 +276,11 @@
             <div class="doc-agency-republic">Republic of the Philippines</div>
             <div class="doc-agency-npc">NATIONAL POLICE COMMISSION</div>
             <div class="doc-agency-pro7">PHILIPPINE NATIONAL POLICE, POLICE REGIONAL OFFICE 7</div>
-            <div class="doc-agency-cebu">CEBU POLICE PROVINCIAL OFFICE</div>
-            <div class="doc-agency-station">BALAMBAN MUNICIPAL POLICE STATION</div>
-            <div class="doc-agency-address">Brgy. Sta Cruz-Sto Nino, Balamban, Cebu</div>
+            <div class="doc-agency-cebu">{{ strtoupper($lgu?->police_office ?? 'CEBU POLICE PROVINCIAL OFFICE') }}</div>
+            <div class="doc-agency-station">{{ strtoupper($lgu?->police_station_name ?? 'BALAMBAN MUNICIPAL POLICE STATION') }}</div>
+            <div class="doc-agency-address">{{ $lgu?->police_station_address ?? 'Brgy. Sta Cruz-Sto Nino, Balamban, Cebu' }}</div>
         </div>
-        <img src="{{ asset('images/Balamban.png') }}" class="doc-seal" alt="Balamban Seal">
+        <img src="{{ $lgu?->seal_url ?? asset('images/Balamban.png') }}" class="doc-seal" alt="{{ $lgu?->name ?? 'Balamban' }} Seal">
     </div>
     <div class="doc-form-title">Motorist Record</div>
 

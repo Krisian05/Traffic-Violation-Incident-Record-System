@@ -119,6 +119,10 @@ tbody tr:nth-child(even) { background: #f9fafb; }
 </style>
 </head>
 <body>
+@php
+    $lgu = $incident->lgu ?? $incident->recorder?->lgu ?? auth()->user()?->lgu ?? \App\Models\Lgu::where('code', 'BAL')->first();
+@endphp
+
 <div class="page">
 
 
@@ -130,11 +134,11 @@ tbody tr:nth-child(even) { background: #f9fafb; }
                 <div class="rpt-agency-republic">Republic of the Philippines</div>
                 <div class="rpt-agency-npc">NATIONAL POLICE COMMISSION</div>
                 <div class="rpt-agency-pro7">PHILIPPINE NATIONAL POLICE, POLICE REGIONAL OFFICE 7</div>
-                <div class="rpt-agency-cebu">CEBU POLICE PROVINCIAL OFFICE</div>
-                <div class="rpt-agency-station">BALAMBAN MUNICIPAL POLICE STATION</div>
-                <div class="rpt-agency-address">Brgy. Sta Cruz-Sto Nino, Balamban, Cebu</div>
+                <div class="rpt-agency-cebu">{{ strtoupper($lgu?->police_office ?? 'CEBU POLICE PROVINCIAL OFFICE') }}</div>
+                <div class="rpt-agency-station">{{ strtoupper($lgu?->police_station_name ?? 'BALAMBAN MUNICIPAL POLICE STATION') }}</div>
+                <div class="rpt-agency-address">{{ $lgu?->police_station_address ?? 'Brgy. Sta Cruz-Sto Nino, Balamban, Cebu' }}</div>
             </div>
-            <img src="{{ asset('images/Balamban.png') }}" class="rpt-seal" alt="Balamban Seal">
+            <img src="{{ $lgu?->seal_url ?? asset('images/Balamban.png') }}" class="rpt-seal" alt="{{ $lgu?->name ?? 'Balamban' }} Seal">
         </div>
     </div>
     <div class="rpt-form-title">Incident Report</div>

@@ -114,8 +114,8 @@
 <body>
 
     <div class="header">
-        <h2>Cebu Police Provincial Office</h2>
-        <p>{{ $lguName ? ($lguName . ' Traffic & Municipal Police Station') : 'Province of Cebu Traffic Command (All LGUs)' }}</p>
+        <h2>{{ strtoupper($lgu?->police_office ?? 'Cebu Police Provincial Office') }}</h2>
+        <p>{{ strtoupper($lgu?->police_station_name ?? ($lguName ? ($lguName . ' Police Station') : 'Province of Cebu Traffic Command (All LGUs)')) }}</p>
         <p style="font-size: 8px; color: #888;">Traffic Violation Incident Record System (TVIRS)</p>
     </div>
 

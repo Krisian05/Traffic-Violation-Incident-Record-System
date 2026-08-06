@@ -540,7 +540,7 @@ class ReportController extends Controller
             ->groupBy('location')->orderByDesc('total')->limit(7)->get();
 
         $pdf = Pdf::loadView('reports.export-pdf', compact(
-            'periodLabel', 'municipality', 'typeFilterName', 'lguName',
+            'lgu', 'periodLabel', 'municipality', 'typeFilterName', 'lguName',
             'totalViolationsCount', 'settledCount', 'overdueCount',
             'violationsByType', 'violationHotspots'
         ));

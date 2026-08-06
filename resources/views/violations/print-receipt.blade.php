@@ -56,11 +56,14 @@
 </head>
 <body>
 
+@php
+    $lgu = $violation->lgu ?? $violation->recorder?->lgu ?? auth()->user()?->lgu ?? \App\Models\Lgu::where('code', 'BAL')->first();
+@endphp
 <div class="receipt-card">
     <div class="header">
         <div class="agency-title">Republic of the Philippines</div>
-        <div class="lgu-name">{{ $violation->lgu?->name ?? 'BALAMBAN MUNICIPALITY' }}</div>
-        <div style="font-size: 10px; color: #78716c;">OFFICE OF THE MUNICIPAL TREASURER</div>
+        <div class="lgu-name">{{ strtoupper($lgu?->name ?? 'BALAMBAN') }} {{ str_contains(strtolower($lgu?->name ?? ''), 'city') ? 'CITY' : 'MUNICIPALITY' }}</div>
+        <div style="font-size: 10px; color: #78716c;">{{ strtoupper($lgu?->treasurer_office ?? 'OFFICE OF THE MUNICIPAL TREASURER') }}</div>
         <div class="receipt-title">Official Receipt</div>
         <div class="or-number">OR-{{ $payment->or_number }}</div>
         @if($payment->isVoided())

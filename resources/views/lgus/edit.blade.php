@@ -112,6 +112,39 @@
                 </div>
             </div>
 
+            {{-- Police Station Header Configuration --}}
+            <div class="card border-0 mb-4 p-3" style="background:#fef2f2;border-radius:12px;border:1px solid #fecdd3!important;">
+                <h6 class="fw-700 mb-3" style="color:#b91c1c;"><i class="bi bi-shield-lock-fill me-2"></i>Police Station &amp; Document Header Settings</h6>
+
+                <div class="mb-3">
+                    <label class="lgu-label">Police Station Name</label>
+                    <input type="text" name="police_station_name" class="form-control lgu-input"
+                           placeholder="e.g. BALAMBAN MUNICIPAL POLICE STATION"
+                           value="{{ old('police_station_name', $lgu->police_station_name) }}">
+                    <div class="form-text">Displayed on citation documents, motorist records, and incident reports. Auto-generated if left blank.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="lgu-label">Police Station Address</label>
+                    <input type="text" name="police_station_address" class="form-control lgu-input"
+                           placeholder="e.g. Brgy. Sta Cruz-Sto Nino, Balamban, Cebu"
+                           value="{{ old('police_station_address', $lgu->police_station_address) }}">
+                    <div class="form-text">Full address printed below the police station name on reports.</div>
+                </div>
+
+                <div class="mb-2">
+                    <label class="lgu-label">Official LGU Seal / Logo</label>
+                    @if($lgu->seal_url)
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <img src="{{ $lgu->seal_url }}" alt="Seal" style="width:48px;height:48px;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;padding:2px;background:#fff;">
+                            <span class="text-muted small">Current LGU seal logo</span>
+                        </div>
+                    @endif
+                    <input type="file" name="seal" class="form-control lgu-input" accept="image/*">
+                    <div class="form-text">Upload custom LGU logo/seal image (PNG, JPG, max 2MB).</div>
+                </div>
+            </div>
+
             {{-- SMS Gateway Configuration --}}
             <div class="card border-0 mb-4 p-3" style="background:#f0f9ff;border-radius:12px;border:1px solid #bae6fd!important;">
                 <h6 class="fw-700 mb-3" style="color:#0369a1;"><i class="bi bi-chat-left-text-fill me-2"></i>SMS Gateway Configuration</h6>

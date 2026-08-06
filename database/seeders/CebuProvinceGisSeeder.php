@@ -16,18 +16,24 @@ class CebuProvinceGisSeeder extends Seeder
     {
         // 1. Ensure LGUs across Cebu Province exist
         $lgus = [
-            'BAL' => ['name' => 'Balamban', 'code' => 'BAL', 'province' => 'Cebu', 'psgc_city_code' => '072208000'],
-            'CEB' => ['name' => 'Cebu City', 'code' => 'CEB', 'province' => 'Cebu', 'psgc_city_code' => '072217000'],
-            'MAN' => ['name' => 'Mandaue City', 'code' => 'MAN', 'province' => 'Cebu', 'psgc_city_code' => '072230000'],
-            'DAN' => ['name' => 'Danao City', 'code' => 'DAN', 'province' => 'Cebu', 'psgc_city_code' => '072223000'],
-            'CAR' => ['name' => 'Carcar City', 'code' => 'CAR', 'province' => 'Cebu', 'psgc_city_code' => '072214000'],
-            'TAL' => ['name' => 'Talisay City', 'code' => 'TAL', 'province' => 'Cebu', 'psgc_city_code' => '072250000'],
-            'TOL' => ['name' => 'Toledo City', 'code' => 'TOL', 'province' => 'Cebu', 'psgc_city_code' => '072252000'],
+            'BAL' => ['name' => 'Balamban', 'code' => 'BAL', 'province' => 'Cebu', 'psgc_city_code' => '072208000', 'police_station_name' => 'BALAMBAN MUNICIPAL POLICE STATION', 'police_station_address' => 'Brgy. Sta Cruz-Sto Nino, Balamban, Cebu'],
+            'CEB' => ['name' => 'Cebu City', 'code' => 'CEB', 'province' => 'Cebu', 'psgc_city_code' => '072217000', 'police_station_name' => 'CEBU CITY POLICE STATION', 'police_station_address' => 'Gorordo Ave, Cebu City, Cebu'],
+            'MAN' => ['name' => 'Mandaue City', 'code' => 'MAN', 'province' => 'Cebu', 'psgc_city_code' => '072230000', 'police_station_name' => 'MANDAUE CITY POLICE STATION', 'police_station_address' => 'MC Briones St, Mandaue City, Cebu'],
+            'DAN' => ['name' => 'Danao City', 'code' => 'DAN', 'province' => 'Cebu', 'psgc_city_code' => '072223000', 'police_station_name' => 'DANAO CITY POLICE STATION', 'police_station_address' => 'F. Ralota St, Danao City, Cebu'],
+            'CAR' => ['name' => 'Carcar City', 'code' => 'CAR', 'province' => 'Cebu', 'psgc_city_code' => '072214000', 'police_station_name' => 'CARCAR CITY POLICE STATION', 'police_station_address' => 'Poblacion 1, Carcar City, Cebu'],
+            'TAL' => ['name' => 'Talisay City', 'code' => 'TAL', 'province' => 'Cebu', 'psgc_city_code' => '072250000', 'police_station_name' => 'TALISAY CITY POLICE STATION', 'police_station_address' => 'Poblacion, Talisay City, Cebu'],
+            'TOL' => ['name' => 'Toledo City', 'code' => 'TOL', 'province' => 'Cebu', 'psgc_city_code' => '072252000', 'police_station_name' => 'TOLEDO CITY POLICE STATION', 'police_station_address' => 'Poblacion, Toledo City, Cebu'],
         ];
 
         $createdLgus = [];
         foreach ($lgus as $code => $data) {
-            $createdLgus[$code] = Lgu::firstOrCreate(['code' => $code], $data);
+            $lguObj = Lgu::where('code', $code)->first();
+            if ($lguObj) {
+                $lguObj->update($data);
+                $createdLgus[$code] = $lguObj;
+            } else {
+                $createdLgus[$code] = Lgu::create($data);
+            }
         }
 
         // 2. Ensure an admin/recorder user exists
