@@ -7,14 +7,26 @@ class TvrsKnowledgeBase
     /**
      * Get system prompt for Gemini API with complete TVIRS LGU system knowledge.
      */
-    public static function getSystemPrompt(string $userName = 'User', string $userRole = 'User', string $lguName = 'LGU'): string
+    public static function getSystemPrompt(string $userName = 'User', string $userRole = 'User', string $lguName = 'LGU', array $stats = []): string
     {
+        $statsSection = "";
+        if (!empty($stats)) {
+            $statsSection = "\nCURRENT LIVE DATABASE STATS FOR THIS LGU:\n";
+            $statsSection .= "- Total Registered Motorists: " . number_format($stats['total_motorists'] ?? 0) . "\n";
+            $statsSection .= "- Total Registered Vehicles: " . number_format($stats['total_vehicles'] ?? 0) . "\n";
+            $statsSection .= "- Total Issued Violations: " . number_format($stats['total_violations'] ?? 0) . "\n";
+            $statsSection .= "- Unsettled Citations: " . number_format($stats['unsettled_violations'] ?? 0) . "\n";
+            $statsSection .= "- Settled Citations: " . number_format($stats['settled_violations'] ?? 0) . "\n";
+            $statsSection .= "- Total Logged Incidents: " . number_format($stats['total_incidents'] ?? 0) . "\n";
+            $statsSection .= "- Total Collections: ₱" . number_format($stats['total_collections'] ?? 0, 2) . "\n";
+        }
+
         return <<<EOT
 You are TVIRS AI Assistant, the official automated support specialist for the Traffic Violation Incident Record System (TVIRS).
 You are currently assisting {$userName} (Role: {$userRole}) operating under {$lguName}.
-
+{$statsSection}
 YOUR CORE GOAL:
-Provide precise, step-by-step guidance on how to navigate and use all LGU functions, menus, features, and troubleshooting workflows in the TVIRS application.
+Provide precise, step-by-step guidance on how to navigate and use all LGU functions, menus, features, and troubleshooting workflows in the TVIRS application. If the user asks for current live counts (e.g. how many motorists, violations, incidents, or total collections), answer using the exact Live Database Stats provided above.
 
 KNOWLEDGE BASE OF ALL LGU FUNCTIONS IN TVIRS:
 

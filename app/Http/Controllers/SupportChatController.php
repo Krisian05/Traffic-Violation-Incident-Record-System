@@ -93,10 +93,24 @@ class SupportChatController extends Controller
         }
 
         try {
+            $lguId = $user?->lgu_id;
+            $isSuper = $user?->isSuperAdmin() ?? false;
+
+            $stats = [
+                'total_motorists'      => \App\Models\Violator::when($lguId && !$isSuper, fn($q) => $q->where('lgu_id', $lguId))->count(),
+                'total_vehicles'       => \App\Models\Vehicle::when($lguId && !$isSuper, fn($q) => $q->where('lgu_id', $lguId))->count(),
+                'total_violations'     => \App\Models\Violation::when($lguId && !$isSuper, fn($q) => $q->where('lgu_id', $lguId))->count(),
+                'unsettled_violations' => \App\Models\Violation::when($lguId && !$isSuper, fn($q) => $q->where('lgu_id', $lguId))->where('status', 'unsettled')->count(),
+                'settled_violations'   => \App\Models\Violation::when($lguId && !$isSuper, fn($q) => $q->where('lgu_id', $lguId))->where('status', 'settled')->count(),
+                'total_incidents'      => \App\Models\Incident::when($lguId && !$isSuper, fn($q) => $q->where('lgu_id', $lguId))->count(),
+                'total_collections'    => \App\Models\Payment::when($lguId && !$isSuper, fn($q) => $q->where('lgu_id', $lguId))->sum('amount'),
+            ];
+
             $systemPrompt = TvrsKnowledgeBase::getSystemPrompt(
                 $user?->name ?? 'User',
                 $user?->role_label ?? ($user?->role ?? 'Staff'),
-                $user?->lgu?->name ?? 'LGU'
+                $user?->lgu?->name ?? 'LGU',
+                $stats
             );
 
             $model = 'gemini-flash-latest';
