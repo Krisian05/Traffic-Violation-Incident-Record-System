@@ -167,15 +167,53 @@
 
         {{-- 📱 Android SIM Setup Guide Card --}}
         <div class="card border-0 shadow-sm p-3" style="background:#f0fdf4;border:1px solid #bbf7d0!important;border-radius:12px;">
-            <h6 class="fw-700 mb-2" style="color:#15803d;font-size:.88rem;">
-                <i class="bi bi-phone-vibrate me-2"></i>How to Setup Free Android SIM Gateway
-            </h6>
-            <ol class="mb-0 ps-3" style="font-size:.78rem;color:#166534;line-height:1.6;">
-                <li>Get any spare Android phone loaded with an <strong>unlimited text SIM promo</strong>.</li>
-                <li>Open Chrome on the Android phone, go to <a href="https://textbee.dev" target="_blank" class="fw-700 text-decoration-underline" style="color:#15803d;">textbee.dev</a>, and install the free app.</li>
-                <li>Open app ➔ tap <strong>Register Device</strong> to get your <strong>API Key</strong> & <strong>Device ID</strong>.</li>
-                <li>Paste them above and tap <strong>Save Gateway Configuration</strong>. Done!</li>
-            </ol>
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <h6 class="fw-700 m-0" style="color:#15803d;font-size:.88rem;">
+                    <i class="bi bi-phone-vibrate me-2"></i>How to Setup Free Android SIM Gateway (Textbee.dev)
+                </h6>
+                <span class="badge bg-success text-white" style="font-size:.68rem;">₱0 Monthly Cost</span>
+            </div>
+            <p class="mb-3" style="font-size:.76rem;color:#166534;line-height:1.4;">
+                Turn any spare Android smartphone into your LGU's dedicated SMS broadcasting hub to automatically text citation notices to violators.
+            </p>
+            
+            <div class="d-flex flex-column gap-2 mb-3" style="font-size:.76rem;color:#14532d;">
+                <div class="d-flex align-items-start gap-2">
+                    <span class="badge rounded-circle bg-success text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:20px;height:20px;font-size:.68rem;">1</span>
+                    <div>
+                        <strong>Prepare Dedicated Android Phone:</strong> Insert an active SIM card loaded with an <em>Unlimited SMS promo to all networks</em> (Globe/Smart/DITO). Connect phone to Wi-Fi or mobile data.
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-start gap-2">
+                    <span class="badge rounded-circle bg-success text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:20px;height:20px;font-size:.68rem;">2</span>
+                    <div>
+                        <strong>Download Textbee App:</strong> Open Chrome on the phone, visit <a href="https://textbee.dev" target="_blank" class="fw-700 text-decoration-underline" style="color:#15803d;">textbee.dev</a>, download the APK, and tap <em>Install</em> (allow "Install Unknown Apps" if prompted).
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-start gap-2">
+                    <span class="badge rounded-circle bg-success text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:20px;height:20px;font-size:.68rem;">3</span>
+                    <div>
+                        <strong>Register Device & Copy Keys:</strong> Open Textbee app ➔ log in or register ➔ tap <strong>Register Device</strong>. Grant SMS/Phone permissions to generate your unique <strong>API Key</strong> and <strong>Device ID</strong>.
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-start gap-2">
+                    <span class="badge rounded-circle bg-success text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:20px;height:20px;font-size:.68rem;">4</span>
+                    <div>
+                        <strong>Save Credentials in TVIRS:</strong> Paste the <strong>API Key</strong> and <strong>Device ID</strong> into the form above, set Provider to <em>Android SIM Gateway</em>, and click <strong>Save Gateway Configuration</strong>.
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-2.5 rounded border" style="background:#dcfce7;border-color:#86efac!important;font-size:.74rem;color:#14532d;">
+                <div class="fw-700 mb-1"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>Crucial 24/7 Operation Tips:</div>
+                <ul class="mb-0 ps-3" style="line-height:1.45;">
+                    <li>Keep the gateway phone connected to a charger and active Wi-Fi/data.</li>
+                    <li>Turn off <em>Battery Saver / App Optimization</em> for Textbee in Android Settings so background dispatching is never paused.</li>
+                </ul>
+            </div>
         </div>
     </div>
 
