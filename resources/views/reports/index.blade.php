@@ -1308,7 +1308,7 @@
     body[data-print-section="violators"]           .rpt-printable[data-rpt-section="violators"]           { display: block !important; }
     body[data-print-section="overdue"]             .rpt-printable[data-rpt-section="overdue"]             { display: block !important; }
     body[data-print-section="offenders"]           .rpt-printable[data-rpt-section="offenders"]           { display: block !important; }
-    /* ── Incident analytics: portrait bond paper, 1 chart card per row (100% width) ── */
+    /* ── Incident analytics: strictly 1 chart card per bond paper page ── */
     body[data-print-section="incident-analytics"] { margin: 0; }
     body[data-print-section="incident-analytics"] .rpt-filter-card,
     body[data-print-section="incident-analytics"] .rpt-printable:not([data-rpt-section="incident-analytics"]) { display: none !important; }
@@ -1316,7 +1316,8 @@
     body[data-print-section="incident-analytics"] #incAnalyticsSection .rpt-card { box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
     body[data-print-section="incident-analytics"] #incAnalyticsSection .rpt-card-header { display: none !important; }
     body[data-print-section="incident-analytics"] #incAnalyticsSection .card-body { padding: 0 !important; }
-    /* 1 chart card per row (100% width) for a perfect fit on bond paper */
+    
+    /* Strictly 1 chart card per bond paper page (100% width) */
     body[data-print-section="incident-analytics"] .inc-charts-grid {
         display: block !important;
         width: 100% !important;
@@ -1326,33 +1327,47 @@
         width: 100% !important;
         flex: 0 0 100% !important;
         max-width: 100% !important;
-        height: 250px !important;
+        height: 520px !important;
         box-sizing: border-box !important;
-        padding: 0 0 14px 0 !important;
+        padding: 0 0 20px 0 !important;
+        margin-bottom: 0 !important;
+        break-after: page !important;
+        page-break-after: always !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
     }
-    /* Force page break after 2nd chart */
-    body[data-print-section="incident-analytics"] .inc-charts-grid > div:nth-child(2) {
-        break-after: page;
-        page-break-after: always;
+    /* 4th chart card sits on final page with signatures without forcing extra page break */
+    body[data-print-section="incident-analytics"] .inc-charts-grid > div:nth-child(4) {
+        break-after: auto !important;
+        page-break-after: auto !important;
+        height: 420px !important;
     }
     body[data-print-section="incident-analytics"] .inc-chart-panel {
-        padding: .5rem !important;
+        padding: 1rem 1.2rem !important;
         height: 100% !important;
         width: 100% !important;
         box-sizing: border-box !important;
-        border-radius: 6px !important;
+        border-radius: 10px !important;
+        border: 1.5px solid #d1d5db !important;
+        background: #fff !important;
         overflow: hidden !important;
         position: relative !important;
     }
     body[data-print-section="incident-analytics"] .inc-chart-wrap {
-        height: calc(100% - 1.4rem) !important;
+        height: calc(100% - 2.2rem) !important;
         width: 100% !important;
         overflow: hidden !important;
         position: relative !important;
     }
-    body[data-print-section="incident-analytics"] .inc-chart-label { font-size: .7rem !important; margin-bottom: .2rem !important; }
+    body[data-print-section="incident-analytics"] .inc-chart-label {
+        font-size: .95rem !important;
+        font-weight: 800 !important;
+        letter-spacing: .08em !important;
+        margin-bottom: .6rem !important;
+        text-align: center !important;
+        color: #0f766e !important;
+        text-transform: uppercase !important;
+    }
 }
 
 /* ─── Incident Analytics Charts ─── */
@@ -2301,18 +2316,18 @@ function rptToggleShowMore(btn) {
     }
 
     function formatHBarLabel(str) {
-        if (typeof str !== 'string' || str.length <= 22) return str;
+        if (typeof str !== 'string' || str.length <= 42) return str;
         var words = str.split(' ');
         var line1 = '', line2 = '';
         for (var i = 0; i < words.length; i++) {
-            if ((line1 + ' ' + words[i]).trim().length <= 18) {
+            if ((line1 + ' ' + words[i]).trim().length <= 35) {
                 line1 = (line1 + ' ' + words[i]).trim();
             } else {
                 line2 = words.slice(i).join(' ');
                 break;
             }
         }
-        if (line2.length > 20) line2 = line2.substring(0, 18) + '…';
+        if (line2.length > 40) line2 = line2.substring(0, 37) + '…';
         return line2 ? [line1, line2] : line1;
     }
 
@@ -2334,8 +2349,8 @@ function rptToggleShowMore(btn) {
                 responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 8 } }, grid: { color: '#f1f5f9' } },
-                    y: { ticks: { font: { size: 8 }, autoSkip: false }, grid: { color: '#f1f5f9' } }
+                    x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 9 } }, grid: { color: '#f1f5f9' } },
+                    y: { ticks: { font: { size: 9 }, autoSkip: false }, grid: { color: '#f1f5f9' } }
                 }
             }
         });
