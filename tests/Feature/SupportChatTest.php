@@ -3,12 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 class SupportChatTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     public function test_unauthenticated_user_cannot_access_chat_support()
     {
@@ -21,7 +21,7 @@ class SupportChatTest extends TestCase
 
     public function test_authenticated_user_can_fetch_faqs()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->make();
 
         $response = $this->actingAs($user)->getJson(route('chat-support.faqs'));
 
@@ -31,11 +31,11 @@ class SupportChatTest extends TestCase
 
     public function test_quick_faq_query_returns_instant_answer_without_api()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->make();
 
         $response = $this->actingAs($user)->postJson(route('chat-support.query'), [
             'message' => 'SMS Gateway setup',
-            'faq_id'  => 'faq_sms_setup'
+            'faq_id'  => 'faq_sms_setup',
         ]);
 
         $response->assertStatus(200)
