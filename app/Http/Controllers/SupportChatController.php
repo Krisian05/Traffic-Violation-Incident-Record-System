@@ -56,7 +56,7 @@ class SupportChatController extends Controller
         $lowerMsg = mb_strtolower($message);
         foreach (TvrsKnowledgeBase::getQuickFaqs() as $faq) {
             foreach ($faq['keywords'] as $kw) {
-                if (str_contains($lowerMsg, mb_strtolower($kw)) && mb_strlen($message) < 40) {
+                if (str_contains($lowerMsg, mb_strtolower($kw))) {
                     return response()->json([
                         'success'         => true,
                         'answer'          => $faq['answer'],
@@ -64,6 +64,66 @@ class SupportChatController extends Controller
                         'daily_remaining' => self::DAILY_LIMIT - (int) Cache::get($this->getDailyCacheKey(), 0),
                     ]);
                 }
+            }
+        }
+
+        // ── 2b. Dynamic Live Database Count Intent Matching (0 API Cost & Instant) ──
+        $lguId = $user?->lgu_id;
+        $isSuper = $user?->isSuperAdmin() ?? false;
+        $lguName = $user?->lgu?->name ?? 'your LGU';
+
+        if (str_contains($lowerMsg, 'how many') || str_contains($lowerMsg, 'total') || str_contains($lowerMsg, 'count')) {
+            if (str_contains($lowerMsg, 'motorist') || str_contains($lowerMsg, 'violator') || str_contains($lowerMsg, 'driver')) {
+                $count = \App\Models\Violator::when($lguId && !$isSuper, fn($q) => $q->where('lgu_id', $lguId))->count();
+                return response()->json([
+                    'success' => true,
+                    'answer' => "🚗 **Live Registered Motorists & Violators Count**\n\nThere are currently **" . number_format($count) . " registered motorists/violators** saved in the TVIRS database for **{$lguName}**.\n\nYou can search, view, or manage motorist records anytime by navigating to **Motorists** (`/violators`) on the left sidebar.",
+                    'source' => 'live_db_count',
+                    'daily_remaining' => self::DAILY_LIMIT - (int) Cache::get($this->getDailyCacheKey(), 0),
+                ]);
+            }
+
+            if (str_contains($lowerMsg, 'vehicle') || str_contains($lowerMsg, 'car') || str_contains($lowerMsg, 'plate')) {
+                $count = \App\Models\Vehicle::when($lguId && !$isSuper, fn($q) => $q->where('lgu_id', $lguId))->count();
+                return response()->json([
+                    'success' => true,
+                    'answer' => "🚘 **Live Registered Vehicles Count**\n\nThere are currently **" . number_format($count) . " vehicles** registered in the TVIRS database for **{$lguName}**.\n\nYou can search plate numbers or view impound status under **Vehicles** (`/vehicles`).",
+                    'source' => 'live_db_count',
+                    'daily_remaining' => self::DAILY_LIMIT - (int) Cache::get($this->getDailyCacheKey(), 0),
+                ]);
+            }
+
+            if (str_contains($lowerMsg, 'incident') || str_contains($lowerMsg, 'accident')) {
+                $count = \App\Models\Incident::when($lguId && !$isSuper, fn($q) => $q->where('lgu_id', $lguId))->count();
+                return response()->json([
+                    'success' => true,
+                    'answer' => "🚩 **Live Road Incidents Count**\n\nThere are currently **" . number_format($count) . " road incidents & traffic events** recorded for **{$lguName}**.\n\nView the full incident registry or report new accidents under **Incidents** (`/incidents`).",
+                    'source' => 'live_db_count',
+                    'daily_remaining' => self::DAILY_LIMIT - (int) Cache::get($this->getDailyCacheKey(), 0),
+                ]);
+            }
+
+            if (str_contains($lowerMsg, 'ticket') || str_contains($lowerMsg, 'violation') || str_contains($lowerMsg, 'citation')) {
+                $total = \App\Models\Violation::when($lguId && !$isSuper, fn($q) => $q->where('lgu_id', $lguId))->count();
+                $unsettled = \App\Models\Violation::when($lguId && !$isSuper, fn($q) => $q->where('lgu_id', $lguId))->where('status', 'unsettled')->count();
+                $settled = \App\Models\Violation::when($lguId && !$isSuper, fn($q) => $q->where('lgu_id', $lguId))->where('status', 'settled')->count();
+                
+                return response()->json([
+                    'success' => true,
+                    'answer' => "🎫 **Live Citation Tickets Summary**\n\nFor **{$lguName}**, there are:\n- **Total Issued Violations:** " . number_format($total) . "\n- **Unsettled Citations:** " . number_format($unsettled) . "\n- **Settled Citations:** " . number_format($settled) . "\n\nManage tickets under **Violations** (`/violations`) or process settlements at the **Cashier** (`/cashier`).",
+                    'source' => 'live_db_count',
+                    'daily_remaining' => self::DAILY_LIMIT - (int) Cache::get($this->getDailyCacheKey(), 0),
+                ]);
+            }
+
+            if (str_contains($lowerMsg, 'collection') || str_contains($lowerMsg, 'payment') || str_contains($lowerMsg, 'money')) {
+                $totalColl = \App\Models\Payment::whereNull('voided_at')->when($lguId && !$isSuper, fn($q) => $q->whereHas('violation', fn($v) => $v->where('lgu_id', $lguId)))->sum('amount_paid');
+                return response()->json([
+                    'success' => true,
+                    'answer' => "💵 **Live Treasury Collection Summary**\n\nTotal collections recorded for **{$lguName}** is **₱" . number_format($totalColl, 2) . "**.\n\nView detailed cashier breakdowns and export Excel reconciliation reports under **Collection Reports** (`/payments/report`).",
+                    'source' => 'live_db_count',
+                    'daily_remaining' => self::DAILY_LIMIT - (int) Cache::get($this->getDailyCacheKey(), 0),
+                ]);
             }
         }
 
