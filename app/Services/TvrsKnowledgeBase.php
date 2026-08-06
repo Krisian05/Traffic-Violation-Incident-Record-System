@@ -106,7 +106,7 @@ EOT;
                 'id' => 'faq_thermal_printer',
                 'question' => 'How to connect and print receipts on a Bluetooth thermal printer?',
                 'keywords' => ['thermal printer', 'bluetooth printer', 'print receipt', 'thermal ticket', 'pos printer'],
-                'answer' => "🖨️ **Thermal Receipt & Ticket Printing Setup**\n\n1. Turn on your 58mm or 80mm Bluetooth/USB Thermal Printer.\n2. Pair the thermal printer with your Android device or computer Bluetooth.\n3. In TVIRS, open any settled violation ticket or cashier page and click **Print Thermal Receipt**.\n4. Select your paired printer from the print dialog and tap **Print**.\n\n*Note: Citations can also be printed on standard A4 paper by clicking "Print Full Record".*"
+                'answer' => "🖨️ **Thermal Receipt & Ticket Printing Setup**\n\n1. Turn on your 58mm or 80mm Bluetooth/USB Thermal Printer.\n2. Pair the thermal printer with your Android device or computer Bluetooth.\n3. In TVIRS, open any settled violation ticket or cashier page and click **Print Thermal Receipt**.\n4. Select your paired printer from the print dialog and tap **Print**.\n\n*Note: Citations can also be printed on standard A4 paper by clicking 'Print Full Record'.*"
             ],
             [
                 'id' => 'faq_collection_report',
