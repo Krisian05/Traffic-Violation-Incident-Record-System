@@ -1308,7 +1308,7 @@
     body[data-print-section="violators"]           .rpt-printable[data-rpt-section="violators"]           { display: block !important; }
     body[data-print-section="overdue"]             .rpt-printable[data-rpt-section="overdue"]             { display: block !important; }
     body[data-print-section="offenders"]           .rpt-printable[data-rpt-section="offenders"]           { display: block !important; }
-    /* ── Incident analytics: strictly 1 chart card per bond paper page ── */
+    /* ── Incident analytics: Card 1 fits Page 1 below header; Cards 2+ centered top-to-bottom & left-to-right ── */
     body[data-print-section="incident-analytics"] { margin: 0; }
     body[data-print-section="incident-analytics"] .rpt-filter-card,
     body[data-print-section="incident-analytics"] .rpt-printable:not([data-rpt-section="incident-analytics"]) { display: none !important; }
@@ -1317,7 +1317,7 @@
     body[data-print-section="incident-analytics"] #incAnalyticsSection .rpt-card-header { display: none !important; }
     body[data-print-section="incident-analytics"] #incAnalyticsSection .card-body { padding: 0 !important; }
     
-    /* Strictly 1 chart card per bond paper page (100% width) */
+    /* 1 chart card per bond paper page */
     body[data-print-section="incident-analytics"] .inc-charts-grid {
         display: block !important;
         width: 100% !important;
@@ -1327,20 +1327,35 @@
         width: 100% !important;
         flex: 0 0 100% !important;
         max-width: 100% !important;
-        height: 520px !important;
         box-sizing: border-box !important;
-        padding: 0 0 20px 0 !important;
-        margin-bottom: 0 !important;
-        break-after: page !important;
-        page-break-after: always !important;
+        padding: 0 !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
     }
-    /* 4th chart card sits on final page with signatures without forcing extra page break */
+    /* 1st card (Crime Clock): fits Page 1 directly below the document header */
+    body[data-print-section="incident-analytics"] .inc-charts-grid > div:nth-child(1) {
+        height: 350px !important;
+        margin-top: 10px !important;
+        margin-bottom: 0 !important;
+        break-after: page !important;
+        page-break-after: always !important;
+    }
+    /* 2nd & 3rd cards (Offense, Crime Days): centered vertically & horizontally starting on Page 2 */
+    body[data-print-section="incident-analytics"] .inc-charts-grid > div:nth-child(2),
+    body[data-print-section="incident-analytics"] .inc-charts-grid > div:nth-child(3) {
+        height: 500px !important;
+        margin-top: 100px !important;
+        margin-bottom: 0 !important;
+        break-after: page !important;
+        page-break-after: always !important;
+    }
+    /* 4th card (Case Status): sits on Page 4 above signatures */
     body[data-print-section="incident-analytics"] .inc-charts-grid > div:nth-child(4) {
+        height: 380px !important;
+        margin-top: 20px !important;
+        margin-bottom: 20px !important;
         break-after: auto !important;
         page-break-after: auto !important;
-        height: 420px !important;
     }
     body[data-print-section="incident-analytics"] .inc-chart-panel {
         padding: 1rem 1.2rem !important;
