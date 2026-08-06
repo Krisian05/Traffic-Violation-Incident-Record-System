@@ -29,7 +29,7 @@ class LguController extends Controller
             'treasurer_office'       => ['nullable', 'string', 'max:255'],
             'police_station_name'    => ['nullable', 'string', 'max:255'],
             'police_station_address' => ['nullable', 'string', 'max:255'],
-            'seal'                   => ['nullable', 'image', 'max:2048'],
+            'seal'                   => ['nullable', 'image', 'max:10240'],
             'police_chief_name'      => ['nullable', 'string', 'max:255'],
             'police_chief_title'     => ['nullable', 'string', 'max:255'],
             'sms_api_key'            => ['nullable', 'string', 'max:255'],
@@ -41,7 +41,7 @@ class LguController extends Controller
         $data['sms_auto_send'] = $request->has('sms_auto_send');
 
         if ($request->hasFile('seal')) {
-            $data['seal_path'] = $request->file('seal')->store('seals', 'public');
+            $data['seal_path'] = $request->file('seal')->store('seals', uploads_disk());
         }
 
         Lgu::create($data);
@@ -65,7 +65,7 @@ class LguController extends Controller
             'treasurer_office'       => ['nullable', 'string', 'max:255'],
             'police_station_name'    => ['nullable', 'string', 'max:255'],
             'police_station_address' => ['nullable', 'string', 'max:255'],
-            'seal'                   => ['nullable', 'image', 'max:2048'],
+            'seal'                   => ['nullable', 'image', 'max:10240'],
             'police_chief_name'      => ['nullable', 'string', 'max:255'],
             'police_chief_title'     => ['nullable', 'string', 'max:255'],
             'sms_api_key'            => ['nullable', 'string', 'max:255'],
@@ -77,7 +77,7 @@ class LguController extends Controller
         $data['sms_auto_send'] = $request->has('sms_auto_send');
 
         if ($request->hasFile('seal')) {
-            $data['seal_path'] = $request->file('seal')->store('seals', 'public');
+            $data['seal_path'] = $request->file('seal')->store('seals', uploads_disk());
         }
 
         $lgu->update($data);

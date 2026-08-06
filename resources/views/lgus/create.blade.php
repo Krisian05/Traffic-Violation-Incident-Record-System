@@ -135,7 +135,7 @@
                 <div class="mb-3">
                     <label class="lgu-label">Official LGU Seal / Logo</label>
                     <input type="file" name="seal" class="form-control lgu-input" accept="image/*">
-                    <div class="form-text">Upload custom LGU logo/seal image (PNG, JPG, max 2MB).</div>
+                    <div class="form-text">Upload custom LGU logo/seal image (PNG, JPG, max 10MB).</div>
                 </div>
 
                 <div class="row">

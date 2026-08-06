@@ -122,7 +122,11 @@ class Lgu extends Model
     public function getSealUrlAttribute(): string
     {
         if (!empty($this->attributes['seal_path'])) {
-            return uploaded_file_url($this->attributes['seal_path']);
+            $path = $this->attributes['seal_path'];
+            if (file_exists(public_path('storage/' . $path)) || file_exists(storage_path('app/public/' . $path))) {
+                return asset('storage/' . $path);
+            }
+            return uploaded_file_url($path);
         }
 
         $name = $this->name ?? 'Balamban';
