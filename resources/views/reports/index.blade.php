@@ -1293,6 +1293,11 @@
 
 /* ─── SECTION-ONLY PRINT (CSS-driven via body attribute) ─── */
 @media print {
+    /* Hide floating support chat widget and non-printable overlays */
+    #chat-widget, .chat-widget, [class*="chat-widget"], .btn-float, .floating-btn, #chat-container {
+        display: none !important;
+    }
+
     /* When a specific section is chosen, hide every printable block … */
     body[data-print-section] .rpt-printable { display: none !important; }
     /* … then reveal only the targeted one */
@@ -1314,27 +1319,38 @@
     /* 2 charts per page side by side */
     body[data-print-section="incident-analytics"] .inc-charts-grid {
         display: flex !important;
-        flex-wrap: wrap;
+        flex-wrap: wrap !important;
+        margin: 0 !important;
+        width: 100% !important;
     }
     body[data-print-section="incident-analytics"] .inc-charts-grid > div {
         width: 50% !important;
         flex: 0 0 50% !important;
         max-width: 50% !important;
-        height: 50vh !important;
-        box-sizing: border-box;
-        padding: .4rem !important;
+        height: 42vh !important;
+        box-sizing: border-box !important;
+        padding: 6px !important;
     }
     /* Force page break after 2nd chart */
     body[data-print-section="incident-analytics"] .inc-charts-grid > div:nth-child(2) {
         break-after: page;
+        page-break-after: always;
     }
     body[data-print-section="incident-analytics"] .inc-chart-panel {
         padding: .5rem !important;
-        height: 100%;
-        box-sizing: border-box;
+        height: 100% !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
         border-radius: 6px !important;
+        overflow: hidden !important;
+        position: relative !important;
     }
-    body[data-print-section="incident-analytics"] .inc-chart-wrap { height: calc(100% - 1.4rem) !important; }
+    body[data-print-section="incident-analytics"] .inc-chart-wrap {
+        height: calc(100% - 1.4rem) !important;
+        width: 100% !important;
+        overflow: hidden !important;
+        position: relative !important;
+    }
     body[data-print-section="incident-analytics"] .inc-chart-label { font-size: .7rem !important; margin-bottom: .2rem !important; }
 }
 
@@ -2283,11 +2299,28 @@ function rptToggleShowMore(btn) {
         });
     }
 
+    function formatHBarLabel(str) {
+        if (typeof str !== 'string' || str.length <= 22) return str;
+        var words = str.split(' ');
+        var line1 = '', line2 = '';
+        for (var i = 0; i < words.length; i++) {
+            if ((line1 + ' ' + words[i]).trim().length <= 18) {
+                line1 = (line1 + ' ' + words[i]).trim();
+            } else {
+                line2 = words.slice(i).join(' ');
+                break;
+            }
+        }
+        if (line2.length > 20) line2 = line2.substring(0, 18) + '…';
+        return line2 ? [line1, line2] : line1;
+    }
+
     function makeHBarChart(ctx, labels, data) {
+        var formatted = (labels || []).map(formatHBarLabel);
         return new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: labels,
+                labels: formatted,
                 datasets: [{
                     data: data,
                     backgroundColor: CYAN,
@@ -2300,8 +2333,8 @@ function rptToggleShowMore(btn) {
                 responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 9 } }, grid: { color: '#f1f5f9' } },
-                    y: { ticks: { font: { size: 9 } }, grid: { color: '#f1f5f9' } }
+                    x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 8 } }, grid: { color: '#f1f5f9' } },
+                    y: { ticks: { font: { size: 8 }, autoSkip: false }, grid: { color: '#f1f5f9' } }
                 }
             }
         });
@@ -2327,6 +2360,7 @@ function rptToggleShowMore(btn) {
         // Offense labels (wrap long names)
         var offenseLabels = Object.keys(data.byChargeType);
         var offenseData   = Object.values(data.byChargeType);
+        var formattedOffenseLabels = offenseLabels.map(formatHBarLabel);
 
         var statusLabels = ['Reported', 'Under Assessment', 'Assigned for Investigation', 'Resolved', 'Closed', 'Referred to Authority'];
         var statusData   = [
@@ -2341,7 +2375,7 @@ function rptToggleShowMore(btn) {
         if (_clockChart)   { _clockChart.data.datasets[0].data   = data.byHour; _clockChart.update(); }
         else               { _clockChart   = makeLineChart(document.getElementById('incClockChart'),   HOUR_LABELS, data.byHour); }
 
-        if (_offenseChart) { _offenseChart.data.labels = offenseLabels; _offenseChart.data.datasets[0].data = offenseData; _offenseChart.update(); }
+        if (_offenseChart) { _offenseChart.data.labels = formattedOffenseLabels; _offenseChart.data.datasets[0].data = offenseData; _offenseChart.update(); }
         else               { _offenseChart = offenseLabels.length ? makeHBarChart(document.getElementById('incOffenseChart'), offenseLabels, offenseData) : makeBarChart(document.getElementById('incOffenseChart'), ['No data'], [0]); }
 
         if (_daysChart)    { _daysChart.data.datasets[0].data    = data.byDay;  _daysChart.update(); }
