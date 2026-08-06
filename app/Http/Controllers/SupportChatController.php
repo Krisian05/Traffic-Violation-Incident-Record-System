@@ -103,7 +103,7 @@ class SupportChatController extends Controller
                 'unsettled_violations' => \App\Models\Violation::when($lguId && !$isSuper, fn($q) => $q->where('lgu_id', $lguId))->where('status', 'unsettled')->count(),
                 'settled_violations'   => \App\Models\Violation::when($lguId && !$isSuper, fn($q) => $q->where('lgu_id', $lguId))->where('status', 'settled')->count(),
                 'total_incidents'      => \App\Models\Incident::when($lguId && !$isSuper, fn($q) => $q->where('lgu_id', $lguId))->count(),
-                'total_collections'    => \App\Models\Payment::when($lguId && !$isSuper, fn($q) => $q->where('lgu_id', $lguId))->sum('amount'),
+                'total_collections'    => \App\Models\Payment::whereNull('voided_at')->when($lguId && !$isSuper, fn($q) => $q->whereHas('violation', fn($v) => $v->where('lgu_id', $lguId)))->sum('amount_paid'),
             ];
 
             $systemPrompt = TvrsKnowledgeBase::getSystemPrompt(
