@@ -53,6 +53,7 @@ class AdminDashboardScreenTest extends TestCase
 
         // 6. LGU Performance Screen (Province Dashboard comparative monitor)
         $this->actingAs($provinceAdmin)->get('/province/dashboard')->assertStatus(200)->assertSee('Balamban');
+        $this->actingAs($provinceAdmin)->get("/province/dashboard?lgu_id={$lgu->id}&year=2026")->assertStatus(200)->assertSee('Balamban');
 
         // 7. Violation Analytics Screen (Analytics JSON API)
         $this->actingAs($admin)->get('/dashboard/analytics')

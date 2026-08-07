@@ -21,14 +21,14 @@ class ProvinceDashboardController extends Controller
         $lgus = Lgu::orderBy('name')->get();
 
         // Query for every LGU's violation counts and financial totals this year
-        $countsByLgu = Violation::whereYear('date_of_violation', $year)
-            ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))
+        $countsByLgu = Violation::whereYear('violations.date_of_violation', $year)
+            ->when($selectedLguId, fn($q) => $q->where('violations.lgu_id', $selectedLguId))
             ->selectRaw("lgu_id, COUNT(*) as total_violations, SUM(CASE WHEN status = 'settled' THEN 1 ELSE 0 END) as settled_violations")
             ->groupBy('lgu_id')
             ->get()
             ->keyBy('lgu_id');
 
-        $municipalityStats = $lgus->when($selectedLguId, fn($collection) => $collection->where('id', $selectedLguId))
+        $municipalityStats = $lgus->when($selectedLguId, fn($collection) => $collection->where('id', (int) $selectedLguId))
             ->map(function ($lgu) use ($countsByLgu) {
                 $row = $countsByLgu->get($lgu->id);
                 $total = (int) ($row->total_violations ?? 0);
@@ -44,52 +44,52 @@ class ProvinceDashboardController extends Controller
                 ];
             })->sortByDesc('total_violations')->values();
 
-        $baseViolationQuery = Violation::whereYear('date_of_violation', $year)
-            ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId));
+        $baseViolationQuery = Violation::whereYear('violations.date_of_violation', $year)
+            ->when($selectedLguId, fn($q) => $q->where('violations.lgu_id', $selectedLguId));
 
-        $totalViolationsAllTime = Violation::when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))->count();
+        $totalViolationsAllTime = Violation::when($selectedLguId, fn($q) => $q->where('violations.lgu_id', $selectedLguId))->count();
         $totalViolations        = (clone $baseViolationQuery)->count();
-        $totalViolators         = Violator::when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))->count();
+        $totalViolators         = Violator::when($selectedLguId, fn($q) => $q->where('violators.lgu_id', $selectedLguId))->count();
         $totalActiveOfficers    = User::whereIn('role', ['traffic_officer', 'operator'])
-                                    ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))
+                                    ->when($selectedLguId, fn($q) => $q->where('users.lgu_id', $selectedLguId))
                                     ->count();
 
         // Financial Metrics across Province — every settlement writes a Payment row
         // (see PaymentService), so this is now the single source of truth for revenue.
         $totalRevenueCollected = Payment::whereHas('violation', function ($q) use ($year, $selectedLguId) {
-                $q->whereYear('date_of_violation', $year)
-                  ->when($selectedLguId, fn($sq) => $sq->where('lgu_id', $selectedLguId));
+                $q->whereYear('violations.date_of_violation', $year)
+                  ->when($selectedLguId, fn($sq) => $sq->where('violations.lgu_id', $selectedLguId));
             })->sum('amount_paid');
 
         // Outstanding = (base fine + late penalty if overdue) − amount already paid,
         // for every violation not yet fully settled.
         $totalFineAndPenaltyDue = (clone $baseViolationQuery)
-            ->whereIn('status', ['pending', 'partial'])
+            ->whereIn('violations.status', ['pending', 'partial'])
             ->join('violation_types', 'violations.violation_type_id', '=', 'violation_types.id')
             ->selectRaw("COALESCE(SUM(violation_types.fine_amount + CASE WHEN violations.due_date IS NOT NULL AND violations.due_date < CURRENT_DATE THEN COALESCE(violation_types.late_penalty_amount, 0) ELSE 0 END), 0) as total")
             ->value('total');
 
         $totalPaidTowardOutstanding = Payment::whereHas('violation', function ($q) use ($year, $selectedLguId) {
-                $q->whereYear('date_of_violation', $year)
-                  ->whereIn('status', ['pending', 'partial'])
-                  ->when($selectedLguId, fn($sq) => $sq->where('lgu_id', $selectedLguId));
+                $q->whereYear('violations.date_of_violation', $year)
+                  ->whereIn('violations.status', ['pending', 'partial'])
+                  ->when($selectedLguId, fn($sq) => $sq->where('violations.lgu_id', $selectedLguId));
             })->sum('amount_paid');
 
         $totalUncollectedFines = max(0, $totalFineAndPenaltyDue - $totalPaidTowardOutstanding);
 
         // Feature 4: Combined Violation & Incident Location Hotspots & GIS Map Points
-        $baseIncidentQuery = Incident::whereYear('date_of_incident', $year)
-            ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId));
+        $baseIncidentQuery = Incident::whereYear('incidents.date_of_incident', $year)
+            ->when($selectedLguId, fn($q) => $q->where('incidents.lgu_id', $selectedLguId));
 
         $vHotspots = (clone $baseViolationQuery)
-            ->whereNotNull('location')->where('location', '!=', '')
-            ->select('location', DB::raw('COUNT(*) as total'))
-            ->groupBy('location')->get();
+            ->whereNotNull('violations.location')->where('violations.location', '!=', '')
+            ->select('violations.location', DB::raw('COUNT(*) as total'))
+            ->groupBy('violations.location')->get();
 
         $iHotspots = (clone $baseIncidentQuery)
-            ->whereNotNull('location')->where('location', '!=', '')
-            ->select('location', DB::raw('COUNT(*) as total'))
-            ->groupBy('location')->get();
+            ->whereNotNull('incidents.location')->where('incidents.location', '!=', '')
+            ->select('incidents.location', DB::raw('COUNT(*) as total'))
+            ->groupBy('incidents.location')->get();
 
         $mergedHotspots = collect();
         foreach ($vHotspots as $item) {
@@ -102,17 +102,17 @@ class ProvinceDashboardController extends Controller
         $provincialHotspots = $mergedHotspots->sortDesc()->take(5)->map(fn($total, $loc) => (object) ['location' => $loc, 'total' => $total])->values();
 
         $violationPointsQuery = (clone $baseViolationQuery)
-            ->whereNotNull('gps_lat')->whereNotNull('gps_lng')
+            ->whereNotNull('violations.gps_lat')->whereNotNull('violations.gps_lng')
             ->with(['violationType:id,name', 'lgu:id,name'])
             ->limit(100)
-            ->get(['id', 'gps_lat', 'gps_lng', 'location', 'violation_type_id', 'lgu_id', 'date_of_violation']);
+            ->get(['violations.id', 'violations.gps_lat', 'violations.gps_lng', 'violations.location', 'violations.violation_type_id', 'violations.lgu_id', 'violations.date_of_violation']);
 
         if ($violationPointsQuery->isEmpty()) {
-            $violationPointsQuery = Violation::whereNotNull('gps_lat')->whereNotNull('gps_lng')
-                ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))
+            $violationPointsQuery = Violation::whereNotNull('violations.gps_lat')->whereNotNull('violations.gps_lng')
+                ->when($selectedLguId, fn($q) => $q->where('violations.lgu_id', $selectedLguId))
                 ->with(['violationType:id,name', 'lgu:id,name'])
                 ->limit(100)
-                ->get(['id', 'gps_lat', 'gps_lng', 'location', 'violation_type_id', 'lgu_id', 'date_of_violation']);
+                ->get(['violations.id', 'violations.gps_lat', 'violations.gps_lng', 'violations.location', 'violations.violation_type_id', 'violations.lgu_id', 'violations.date_of_violation']);
         }
 
         $violationPoints = $violationPointsQuery->map(fn($v) => [
@@ -127,17 +127,17 @@ class ProvinceDashboardController extends Controller
         ]);
 
         $incidentPointsQuery = (clone $baseIncidentQuery)
-            ->whereNotNull('gps_lat')->whereNotNull('gps_lng')
+            ->whereNotNull('incidents.gps_lat')->whereNotNull('incidents.gps_lng')
             ->with(['lgu:id,name'])
             ->limit(100)
-            ->get(['id', 'gps_lat', 'gps_lng', 'location', 'incident_number', 'lgu_id', 'date_of_incident']);
+            ->get(['incidents.id', 'incidents.gps_lat', 'incidents.gps_lng', 'incidents.location', 'incidents.incident_number', 'incidents.lgu_id', 'incidents.date_of_incident']);
 
         if ($incidentPointsQuery->isEmpty()) {
-            $incidentPointsQuery = Incident::whereNotNull('gps_lat')->whereNotNull('gps_lng')
-                ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))
+            $incidentPointsQuery = Incident::whereNotNull('incidents.gps_lat')->whereNotNull('incidents.gps_lng')
+                ->when($selectedLguId, fn($q) => $q->where('incidents.lgu_id', $selectedLguId))
                 ->with(['lgu:id,name'])
                 ->limit(100)
-                ->get(['id', 'gps_lat', 'gps_lng', 'location', 'incident_number', 'lgu_id', 'date_of_incident']);
+                ->get(['incidents.id', 'incidents.gps_lat', 'incidents.gps_lng', 'incidents.location', 'incidents.incident_number', 'incidents.lgu_id', 'incidents.date_of_incident']);
         }
 
         $incidentPoints = $incidentPointsQuery->map(fn($i) => [
@@ -155,20 +155,20 @@ class ProvinceDashboardController extends Controller
 
         // Feature 5: Repeat Offender Intelligence
         $repeatOffenders = Violator::withCount(['violations' => fn($q) =>
-                $q->whereYear('date_of_violation', $year)
-                  ->when($selectedLguId, fn($sq) => $sq->where('lgu_id', $selectedLguId))
+                $q->whereYear('violations.date_of_violation', $year)
+                  ->when($selectedLguId, fn($sq) => $sq->where('violations.lgu_id', $selectedLguId))
             ])
             ->whereHas('violations', fn($q) =>
-                $q->whereYear('date_of_violation', $year)
-                  ->when($selectedLguId, fn($sq) => $sq->where('lgu_id', $selectedLguId))
+                $q->whereYear('violations.date_of_violation', $year)
+                  ->when($selectedLguId, fn($sq) => $sq->where('violations.lgu_id', $selectedLguId))
             , '>', 1)
             ->orderByDesc('violations_count')
             ->limit(5)
             ->get();
 
         // Feature 6: Officer & Unit Productivity Monitoring
-        $topOfficers = Violation::whereYear('date_of_violation', $year)
-            ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))
+        $topOfficers = Violation::whereYear('violations.date_of_violation', $year)
+            ->when($selectedLguId, fn($q) => $q->where('violations.lgu_id', $selectedLguId))
             ->join('users', 'violations.recorded_by', '=', 'users.id')
             ->select(
                 'users.id', 'users.name', 'users.role',
@@ -182,7 +182,7 @@ class ProvinceDashboardController extends Controller
 
         // Feature 7: Monthly Enforcement Trend Analysis
         $monthlyTrend = (clone $baseViolationQuery)
-            ->get(['date_of_violation'])
+            ->get(['violations.date_of_violation'])
             ->groupBy(fn($v) => (int) ($v->date_of_violation?->format('n') ?? 0))
             ->map(fn($group) => $group->count());
 
