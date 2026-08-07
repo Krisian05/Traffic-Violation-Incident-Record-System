@@ -317,13 +317,7 @@
                     </div>
                 @endif
             @else
-                <div style="font-size:11px;color:#a8a29e;font-style:italic;">No fine set</div>
             @endif
-        </div>
-        {{-- QR Code --}}
-        <div class="qr-block">
-            <canvas id="violationQrCode"></canvas>
-            <div class="qr-label">Scan to verify</div>
         </div>
     </div>
 
@@ -594,17 +588,19 @@
 
 <script>
 window.addEventListener('load', function () {
-    // Generate QR code
-    var qrData = '{{ $violation->ticket_number ? $violation->ticket_number . " — " . ($violation->violator?->full_name ?? "") : url("/violations/" . $violation->id) }}';
-    QRCode.toCanvas(document.getElementById('violationQrCode'), qrData, {
-        width: 72,
-        margin: 1,
-        color: { dark: '#1c1917', light: '#fef2f2' }
-    }, function (error) {
-        if (error) console.error(error);
-    });
+    var qrCanvas = document.getElementById('violationQrCode');
+    if (qrCanvas && typeof QRCode !== 'undefined') {
+        var qrData = '{{ $violation->ticket_number ? $violation->ticket_number . " — " . ($violation->violator?->full_name ?? "") : url("/violations/" . $violation->id) }}';
+        QRCode.toCanvas(qrCanvas, qrData, {
+            width: 72,
+            margin: 1,
+            color: { dark: '#1c1917', light: '#fef2f2' }
+        }, function (error) {
+            if (error) console.error(error);
+        });
+    }
 
-    setTimeout(function () { window.print(); }, 800);
+    setTimeout(function () { window.print(); }, 600);
 });
 </script>
 </body>
