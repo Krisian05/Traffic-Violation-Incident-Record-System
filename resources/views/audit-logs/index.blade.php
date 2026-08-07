@@ -380,7 +380,7 @@
 
     {{-- Pagination Footer --}}
     @if($logs->hasPages())
-    <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center flex-wrap gap-2 no-print">
         <div class="text-muted" style="font-size:0.78rem;font-weight:500;">
             Showing {{ $logs->firstItem() }} to {{ $logs->lastItem() }} of {{ number_format($logs->total()) }} audit entries
         </div>
@@ -733,7 +733,7 @@ a.aud-page:hover { background: #f0f9ff; border-color: #0284c7; color: #0284c7; }
 .gov-ph-title { display: none; }
 
 @media print {
-    .no-print, .sidebar, .topbar, .filter-card, .aud-stat-card { display: none !important; }
+    .no-print, .sidebar, .topbar, .filter-card, .aud-stat-card, .card-footer, .aud-pager { display: none !important; }
     body { background: #fff !important; color: #000 !important; font-size: 10pt; }
     .content { padding: 0 !important; margin: 0 !important; }
     
