@@ -1462,6 +1462,17 @@ document.addEventListener('DOMContentLoaded', function () {
 <x-chat-support />
 @endauth
 
+<script>
+window.addEventListener('beforeprint', function () {
+    window._prevDocTitle = document.title;
+    document.title = ' ';
+});
+window.addEventListener('afterprint', function () {
+    if (window._prevDocTitle) {
+        document.title = window._prevDocTitle;
+    }
+});
+</script>
 @stack('scripts')
 <script>document.body.style.visibility='visible';</script>
 </body>
