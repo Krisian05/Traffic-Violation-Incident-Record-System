@@ -209,8 +209,14 @@
     }
 </style>
 
+@php
+    $currentUser = auth()->user();
+    $persona = \App\Services\TvrsKnowledgeBase::getRolePersona($currentUser);
+    $quickFaqs = \App\Services\TvrsKnowledgeBase::getQuickFaqsForUser($currentUser);
+@endphp
+
 <!-- Floating Trigger Button -->
-<button type="button" class="tvrs-chat-trigger" id="tvrsChatTrigger" title="LGU System Support Assistant" aria-label="Open AI Chat Support">
+<button type="button" class="tvrs-chat-trigger" id="tvrsChatTrigger" title="{{ $persona['trigger_title'] }}" aria-label="Open AI Chat Support">
     <i class="bi bi-robot"></i>
     <span class="tvrs-chat-badge-pulse"></span>
 </button>
@@ -223,10 +229,10 @@
                 <i class="bi bi-robot"></i>
             </div>
             <div>
-                <div class="fw-700" style="font-size:.85rem;line-height:1.2;">TVIRS LGU Assistant</div>
+                <div class="fw-700" id="tvrsAssistantName" style="font-size:.85rem;line-height:1.2;">{{ $persona['assistant_name'] }}</div>
                 <div class="d-flex align-items-center gap-1" style="font-size:.65rem;color:#bfdbfe;">
                     <span class="rounded-circle bg-success" style="width:6px;height:6px;display:inline-block;"></span>
-                    <span>Pre-trained LGU Support Guide</span>
+                    <span id="tvrsAssistantSubtitle">{{ $persona['subtitle'] }}</span>
                 </div>
             </div>
         </div>
@@ -237,18 +243,12 @@
         <!-- Initial Bot Greeting -->
         <div class="tvrs-msg bot">
             <div class="tvrs-msg-bubble">
-                 👋 Hello! I am your <strong>TVIRS LGU Support Assistant</strong>. How can I guide you today?
+                {!! \Illuminate\Support\Str::markdown($persona['greeting']) !!}
                 <div class="mt-2 text-muted" style="font-size:.74rem;">Tap a common question below or type your custom query:</div>
                 <div class="tvrs-faq-pills mt-2" id="tvrsFaqPills">
-                    <button class="tvrs-faq-pill" onclick="sendFaq('faq_add_user')">👤 Add User Account</button>
-                    <button class="tvrs-faq-pill" onclick="sendFaq('faq_sms_setup')">📱 SMS Gateway Setup</button>
-                    <button class="tvrs-faq-pill" onclick="sendFaq('faq_gcash_claim')">💳 Verify GCash Claims</button>
-                    <button class="tvrs-faq-pill" onclick="sendFaq('faq_settle_ticket')">💵 Cashier Settlement</button>
-                    <button class="tvrs-faq-pill" onclick="sendFaq('faq_motorist_setup')">🚗 Add Motorist</button>
-                    <button class="tvrs-faq-pill" onclick="sendFaq('faq_incidents_info')">🚩 Road Incidents</button>
-                    <button class="tvrs-faq-pill" onclick="sendFaq('faq_ocr_scanner')">📷 Driver License OCR</button>
-                    <button class="tvrs-faq-pill" onclick="sendFaq('faq_thermal_printer')">🖨️ Thermal Printer Setup</button>
-                    <button class="tvrs-faq-pill" onclick="sendFaq('faq_collection_report')">📊 Treasury Reports</button>
+                    @foreach($quickFaqs as $faq)
+                        <button class="tvrs-faq-pill" onclick="sendFaq('{{ $faq['id'] }}')">{{ $faq['pill_label'] ?? $faq['question'] }}</button>
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -264,7 +264,7 @@
             </div>
         </form>
         <div class="d-flex align-items-center justify-content-between mt-1 px-1" style="font-size:.65rem;color:#64748b;">
-            <span><i class="bi bi-shield-check text-success me-1"></i>Official LGU Guide</span>
+            <span id="tvrsAssistantBadge"><i class="bi bi-shield-check text-success me-1"></i>{{ $persona['badge'] }}</span>
             <span id="tvrsQuotaText">Daily Free Limit: 1,500</span>
         </div>
     </div>

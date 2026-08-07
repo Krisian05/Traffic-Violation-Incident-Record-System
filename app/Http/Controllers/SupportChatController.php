@@ -14,13 +14,15 @@ class SupportChatController extends Controller
     private const DAILY_LIMIT = 1500;
 
     /**
-     * Get Quick FAQs list for rendering initial chat pills.
+     * Get Quick FAQs list and role persona for rendering initial chat pills and header.
      */
     public function getFaqs()
     {
+        $user = Auth::user();
         return response()->json([
             'success' => true,
-            'faqs' => TvrsKnowledgeBase::getQuickFaqs()
+            'persona' => TvrsKnowledgeBase::getRolePersona($user),
+            'faqs'    => TvrsKnowledgeBase::getQuickFaqsForUser($user)
         ]);
     }
 
@@ -170,7 +172,8 @@ class SupportChatController extends Controller
                 $user?->name ?? 'User',
                 $user?->role_label ?? ($user?->role ?? 'Staff'),
                 $user?->lgu?->name ?? 'LGU',
-                $stats
+                $stats,
+                $user
             );
 
             $payloadPrimary = [

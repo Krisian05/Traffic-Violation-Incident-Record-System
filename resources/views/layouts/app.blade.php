@@ -1027,7 +1027,7 @@
             <i class="bi bi-car-front-fill"></i> Vehicles
         </a>
         <a href="{{ route('violations.index') }}" class="{{ request()->routeIs('violations.*') && !request()->routeIs('violations.cashier') ? 'active' : '' }}">
-            <i class="bi bi-exclamation-triangle-fill"></i> Violations
+            <i class="bi bi-exclamation-triangle-fill"></i> Violation Records
         </a>
 
         @if(Auth::user()->isSuperAdmin() || Auth::user()->isLguAdmin() || Auth::user()->isProvinceAdmin() || Auth::user()->isTreasurer() || Auth::user()->isCashier() || Auth::user()->isAuditor())

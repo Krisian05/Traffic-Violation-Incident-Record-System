@@ -19,14 +19,28 @@ class SupportChatTest extends TestCase
         $response->assertStatus(401);
     }
 
-    public function test_authenticated_user_can_fetch_faqs()
+    public function test_authenticated_user_can_fetch_faqs_and_role_persona()
     {
-        $user = User::factory()->make();
+        $user = User::factory()->make([
+            'name' => 'Balamban Cashier',
+            'role' => 'cashier',
+        ]);
 
         $response = $this->actingAs($user)->getJson(route('chat-support.faqs'));
 
         $response->assertStatus(200)
-                 ->assertJsonStructure(['success', 'faqs']);
+                 ->assertJsonStructure(['success', 'persona', 'faqs'])
+                 ->assertJson([
+                     'persona' => [
+                         'role_key'       => 'cashier',
+                         'assistant_name' => 'TVIRS Cashier Assistant',
+                         'badge'          => 'Official Cashier Guide',
+                     ]
+                 ]);
+
+        // First FAQ for cashier should be Cashier Settlement
+        $faqs = $response->json('faqs');
+        $this->assertEquals('faq_settle_ticket', $faqs[0]['id']);
     }
 
     public function test_quick_faq_query_returns_instant_answer_without_api()
