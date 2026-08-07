@@ -181,9 +181,9 @@
         </div>
     </div>
     
-    <div class="field-row">
-        <div class="field-label">PLACE OF VIOLATION:</div>
-        <div class="field-value">{{ strtoupper($violation->location ?? '') }}</div>
+    <div style="margin-bottom: 12px;">
+        <div class="field-label" style="display: block; margin-bottom: 3px;">PLACE OF VIOLATION:</div>
+        <div class="field-value" style="width: 100%;">{{ strtoupper($violation->location ?? '') }}</div>
     </div>
     
     <div class="flex-row">
