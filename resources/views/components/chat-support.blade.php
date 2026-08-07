@@ -207,6 +207,11 @@
         0%, 80%, 100% { transform: translateY(0); }
         40% { transform: translateY(-5px); }
     }
+    @media print {
+        .tvrs-chat-trigger, .tvrs-chat-card {
+            display: none !important;
+        }
+    }
 </style>
 
 @php
@@ -216,13 +221,13 @@
 @endphp
 
 <!-- Floating Trigger Button -->
-<button type="button" class="tvrs-chat-trigger" id="tvrsChatTrigger" title="{{ $persona['trigger_title'] }}" aria-label="Open AI Chat Support">
+<button type="button" class="tvrs-chat-trigger no-print" id="tvrsChatTrigger" title="{{ $persona['trigger_title'] }}" aria-label="Open AI Chat Support">
     <i class="bi bi-robot"></i>
     <span class="tvrs-chat-badge-pulse"></span>
 </button>
 
 <!-- Chat Card Window -->
-<div class="tvrs-chat-card" id="tvrsChatCard">
+<div class="tvrs-chat-card no-print" id="tvrsChatCard">
     <div class="tvrs-chat-header">
         <div class="d-flex align-items-center gap-2">
             <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center" style="width:30px;height:30px;font-size:.9rem;">
