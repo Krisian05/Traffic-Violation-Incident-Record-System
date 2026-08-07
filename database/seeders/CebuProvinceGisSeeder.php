@@ -72,84 +72,86 @@ class CebuProvinceGisSeeder extends Seeder
 
         // 5. Exact Road & Intersection GPS Coordinates across Cebu Province
         $cebuGisLocations = [
-            // Balamban Hotspots
+            // Balamban Hotspots — verified via Mapcarta/OSM
             [
                 'location' => 'Balamban Public Market, Transcentral Highway',
-                'lat' => 10.5015,
-                'lng' => 123.7170,
+                'lat' => 10.5043,
+                'lng' => 123.7136,
                 'lgu' => $createdLgus['BAL'],
                 'count' => 5,
             ],
             [
-                'location' => 'Nivel Hills, Transcentral Highway, Balamban',
-                'lat' => 10.3685,
-                'lng' => 123.8580,
-                'lgu' => $createdLgus['BAL'],
+                // Nivel Hills is on the Cebu City side of the Transcentral Hwy, near Lahug
+                'location' => 'Nivel Hills, Transcentral Highway, Cebu City',
+                'lat' => 10.3390,
+                'lng' => 123.8860,
+                'lgu' => $createdLgus['CEB'],
                 'count' => 4,
             ],
-            // Mandaue City Hotspots (Exact M.C. Briones St & Hernan Cortes Ave Intersection)
+            // Mandaue City Hotspots — verified via Wikimapia (10°19'22"N = 10.3228, 123°55'28"E = 123.9244)
             [
                 'location' => 'Subangdaku Flyover, M.C. Briones St, Mandaue City',
-                'lat' => 10.3223,
-                'lng' => 123.9247,
+                'lat' => 10.3228,
+                'lng' => 123.9244,
                 'lgu' => $createdLgus['MAN'],
                 'count' => 6,
             ],
             [
                 'location' => 'UN Avenue & M.C. Briones Junction, Mandaue City',
-                'lat' => 10.3340,
-                'lng' => 123.9357,
+                'lat' => 10.3312,
+                'lng' => 123.9352,
                 'lgu' => $createdLgus['MAN'],
                 'count' => 4,
             ],
-            // Cebu City Hotspots
+            // Cebu City Hotspots — verified via Wikipedia & Facebook
             [
                 'location' => 'SRP Coastal Road, South Road Properties, Cebu City',
-                'lat' => 10.2885,
-                'lng' => 123.8770,
+                'lat' => 10.2757,
+                'lng' => 123.8776,
                 'lgu' => $createdLgus['CEB'],
                 'count' => 7,
             ],
             [
                 'location' => 'Fuente Osmeña Circle, Cebu City',
-                'lat' => 10.3117,
-                'lng' => 123.8915,
+                'lat' => 10.3093,
+                'lng' => 123.8924,
                 'lgu' => $createdLgus['CEB'],
                 'count' => 5,
             ],
-            // Danao City Hotspots
+            // Danao City Hotspots — verified via Discover PH (10.52047, 124.03014)
             [
                 'location' => 'Danao City Port Highway, Danao City',
-                'lat' => 10.5255,
-                'lng' => 124.0270,
+                'lat' => 10.5205,
+                'lng' => 124.0301,
                 'lgu' => $createdLgus['DAN'],
                 'count' => 4,
             ],
-            // Carcar City Hotspots
+            // Carcar City Hotspots — verified via Google/Trip.com (10.0988, 123.6440)
             [
                 'location' => 'Carcar Rotunda Highway, Carcar City',
-                'lat' => 10.1062,
-                'lng' => 123.6388,
+                'lat' => 10.0988,
+                'lng' => 123.6440,
                 'lgu' => $createdLgus['CAR'],
                 'count' => 4,
             ],
-            // Talisay City Hotspots
+            // Talisay City Hotspots — verified via Mapcarta (10.26358, 123.83982)
             [
-                'location' => 'Tabunok Flyover, CSCR Expressway, Talisay City',
-                'lat' => 10.2725,
-                'lng' => 123.8425,
+                'location' => 'Tabunok Flyover, Natalio Bacalso Ave, Talisay City',
+                'lat' => 10.2636,
+                'lng' => 123.8398,
                 'lgu' => $createdLgus['TAL'],
                 'count' => 5,
             ],
-            // Toledo City Hotspots
+            // Toledo City Hotspots — verified via Wikipedia (10.3833, 123.6333)
             [
                 'location' => 'Toledo City Port Highway, Toledo City',
-                'lat' => 10.3782,
-                'lng' => 123.6372,
+                'lat' => 10.3833,
+                'lng' => 123.6333,
                 'lgu' => $createdLgus['TOL'],
                 'count' => 3,
             ],
         ];
+
 
         // Clear previous test GIS entries to ensure exact pin placement
         Violation::where('ticket_number', 'LIKE', 'TVIRS-GIS-%')->forceDelete();
