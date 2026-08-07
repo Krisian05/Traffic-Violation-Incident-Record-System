@@ -50,15 +50,14 @@
         .field-value { 
             border-bottom: 2px solid #000; 
             min-height: 24px; 
-            display: flex;
-            align-items: flex-end;
-            padding-bottom: 1px;
+            display: block;
+            padding-bottom: 2px;
             flex-grow: 1;
             font-size: 14px;
             font-weight: 900;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            line-height: 1.3;
         }
 
         .flex-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: flex-end; width: 100%; }
@@ -142,7 +141,7 @@
     
     <div class="field-row">
         <div class="field-label">DATE:</div>
-        <div class="field-value" style="justify-content: center;">
+        <div class="field-value">
             {{ $violation->date_of_violation->format('M d, Y') }}
         </div>
     </div>
