@@ -64,10 +64,10 @@ class RbacFrameworkTest extends TestCase
             ->get('/payments/report')
             ->assertOk();
 
-        // Restricted from system administration (LGUs)
+        // System administration (LGUs access)
         $this->actingAs($provinceAdmin)
             ->get('/lgus')
-            ->assertStatus(403);
+            ->assertOk();
     }
 
     /** 3. LGU Administrator Tests */

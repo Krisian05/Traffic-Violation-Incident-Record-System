@@ -1058,15 +1058,17 @@
         </a>
         @endif
 
-        @if(Auth::user()->isSuperAdmin() || Auth::user()->isLguAdmin())
+        @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin() || Auth::user()->isLguAdmin())
         <div class="nav-label">Administration</div>
+        @if(Auth::user()->isSuperAdmin() || Auth::user()->isLguAdmin())
         <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">
             <i class="bi bi-people-fill"></i> Users
         </a>
         <a href="{{ route('sms.index') }}" class="{{ request()->routeIs('sms.*') ? 'active' : '' }}">
             <i class="bi bi-chat-left-text-fill"></i> SMS Gateway
         </a>
-        @if(Auth::user()->isSuperAdmin())
+        @endif
+        @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin())
         <a href="{{ route('lgus.index') }}" class="{{ request()->routeIs('lgus.*') ? 'active' : '' }}">
             <i class="bi bi-building"></i> LGUs
         </a>

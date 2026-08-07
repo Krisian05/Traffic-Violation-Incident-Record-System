@@ -233,8 +233,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/users/{user}/devices/{device}', [DeviceRegistrationController::class, 'destroy'])->name('users.devices.destroy');
     });
 
-    // ── LGUs (admin only) ────────────────────────────────────────────────────
-    Route::middleware('role:admin')->group(function () {
+    // ── LGUs (admin and province admin) ──────────────────────────────────────
+    Route::middleware('role:admin,province_admin')->group(function () {
         Route::resource('lgus', LguController::class)->except(['show']);
     });
 
