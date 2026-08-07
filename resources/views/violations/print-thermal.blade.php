@@ -34,18 +34,36 @@
         .header-text { font-size: 16px; font-weight: 900; }
         .title-text { font-size: 22px; font-weight: 900; margin: 15px 0; letter-spacing: -0.5px; }
         
-        .field-row { margin-bottom: 12px; }
-        .field-label { display: block; margin-bottom: 2px; }
+        .field-row {
+            display: flex;
+            align-items: flex-end;
+            margin-bottom: 10px;
+        }
+        .field-label {
+            font-size: 15px;
+            font-weight: 900;
+            white-space: nowrap;
+            flex-shrink: 0;
+            margin-right: 6px;
+            min-width: 175px;
+        }
+        .flex-col .field-label {
+            min-width: auto;
+        }
         .field-value { 
             border-bottom: 2px solid #000; 
             min-height: 25px; 
             display: flex;
             align-items: flex-end;
             padding-bottom: 2px;
+            flex-grow: 1;
+            font-size: 16px;
+            font-weight: 900;
+            overflow-wrap: anywhere;
         }
 
-        .flex-row { display: flex; gap: 15px; margin-bottom: 12px; }
-        .flex-col { flex: 1; }
+        .flex-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-end; }
+        .flex-col { flex: 1; display: flex; align-items: flex-end; }
         
         .divider { border-top: 3px dashed #000; margin: 20px 0; }
 
@@ -123,9 +141,9 @@
     
     <div class="text-center title-text">TRAFFIC CITATION TICKET</div>
     
-    <div class="flex-row">
-        <div class="field-label" style="margin-top: 5px;">DATE:</div>
-        <div class="field-value" style="flex-grow: 1; justify-content: center;">
+    <div class="field-row">
+        <div class="field-label">DATE:</div>
+        <div class="field-value" style="justify-content: center;">
             {{ $violation->date_of_violation->format('M d, Y') }}
         </div>
     </div>
@@ -166,13 +184,13 @@
     </div>
     
     <div class="field-row">
-        <div class="field-label">Place of Violation:</div>
+        <div class="field-label">PLACE OF VIOLATION:</div>
         <div class="field-value">{{ strtoupper($violation->location ?? '') }}</div>
     </div>
     
     <div class="flex-row">
         <div class="flex-col" style="flex: 2;">
-            <div class="field-label">Time of Violation:</div>
+            <div class="field-label">TIME OF VIOLATION:</div>
             <div class="field-value">{{ $violation->date_of_violation->format('h:i') }}</div>
         </div>
         <div class="flex-col" style="flex: 1;">
