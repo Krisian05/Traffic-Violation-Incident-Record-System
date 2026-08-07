@@ -104,16 +104,9 @@ class ProvinceDashboardController extends Controller
         $violationPointsQuery = (clone $baseViolationQuery)
             ->whereNotNull('violations.gps_lat')->whereNotNull('violations.gps_lng')
             ->with(['violationType:id,name', 'lgu:id,name'])
-            ->limit(100)
+            ->inRandomOrder()
+            ->limit(300)
             ->get(['violations.id', 'violations.gps_lat', 'violations.gps_lng', 'violations.location', 'violations.violation_type_id', 'violations.lgu_id', 'violations.date_of_violation']);
-
-        if ($violationPointsQuery->isEmpty()) {
-            $violationPointsQuery = Violation::whereNotNull('violations.gps_lat')->whereNotNull('violations.gps_lng')
-                ->when($selectedLguId, fn($q) => $q->where('violations.lgu_id', $selectedLguId))
-                ->with(['violationType:id,name', 'lgu:id,name'])
-                ->limit(100)
-                ->get(['violations.id', 'violations.gps_lat', 'violations.gps_lng', 'violations.location', 'violations.violation_type_id', 'violations.lgu_id', 'violations.date_of_violation']);
-        }
 
         $violationPoints = $violationPointsQuery->map(fn($v) => [
             'id'        => 'v_' . $v->id,
@@ -129,16 +122,9 @@ class ProvinceDashboardController extends Controller
         $incidentPointsQuery = (clone $baseIncidentQuery)
             ->whereNotNull('incidents.gps_lat')->whereNotNull('incidents.gps_lng')
             ->with(['lgu:id,name'])
-            ->limit(100)
+            ->inRandomOrder()
+            ->limit(300)
             ->get(['incidents.id', 'incidents.gps_lat', 'incidents.gps_lng', 'incidents.location', 'incidents.incident_number', 'incidents.lgu_id', 'incidents.date_of_incident']);
-
-        if ($incidentPointsQuery->isEmpty()) {
-            $incidentPointsQuery = Incident::whereNotNull('incidents.gps_lat')->whereNotNull('incidents.gps_lng')
-                ->when($selectedLguId, fn($q) => $q->where('incidents.lgu_id', $selectedLguId))
-                ->with(['lgu:id,name'])
-                ->limit(100)
-                ->get(['incidents.id', 'incidents.gps_lat', 'incidents.gps_lng', 'incidents.location', 'incidents.incident_number', 'incidents.lgu_id', 'incidents.date_of_incident']);
-        }
 
         $incidentPoints = $incidentPointsQuery->map(fn($i) => [
             'id'        => 'i_' . $i->id,

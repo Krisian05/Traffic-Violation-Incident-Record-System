@@ -219,12 +219,21 @@
                 <div class="card-header bg-white p-3 border-0 d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-compass-fill text-danger me-1"></i> Province-Wide 360° Rotatable GIS Heatmap</h6>
-                        <span class="text-muted" style="font-size:.78rem;">Rotatable interactive map showing precise violation & incident hotspot markers</span>
+                        <span class="text-muted" style="font-size:.78rem;">Live GPS-tagged violation &amp; incident locations for {{ $year }} — hover a pin to see details</span>
                     </div>
                     <span class="badge bg-danger-subtle text-danger fw-bold" style="font-size:.75rem;">{{ count($mapPoints) }} Mapped GIS Points</span>
                 </div>
                 <div class="card-body p-3 position-relative">
                     <div id="provinceMap"></div>
+                    @if(count($mapPoints) === 0)
+                    <div class="position-absolute top-50 start-50 translate-middle text-center" style="z-index:999;pointer-events:none;">
+                        <div class="bg-white rounded-4 shadow px-4 py-3" style="border:1.5px dashed #e2e8f0;">
+                            <i class="bi bi-geo-alt text-muted" style="font-size:2rem;"></i>
+                            <div class="fw-bold text-dark mt-1" style="font-size:.9rem;">No GPS-tagged records for {{ $year }}</div>
+                            <div class="text-muted" style="font-size:.78rem;">Officers must capture GPS when issuing tickets for pins to appear</div>
+                        </div>
+                    </div>
+                    @endif
                     <div class="map-rotate-toolbar">
                         <button type="button" class="map-rotate-btn" id="btnRotateLeft" title="Rotate Counter-Clockwise"><i class="bi bi-arrow-counterclockwise"></i> -45°</button>
                         <button type="button" class="map-rotate-btn" id="btnRotateReset" title="Reset North"><i class="bi bi-compass"></i> North</button>
