@@ -38,32 +38,31 @@
             display: flex;
             align-items: flex-end;
             margin-bottom: 10px;
+            width: 100%;
         }
         .field-label {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 900;
             white-space: nowrap;
             flex-shrink: 0;
             margin-right: 6px;
-            min-width: 175px;
-        }
-        .flex-col .field-label {
-            min-width: auto;
         }
         .field-value { 
             border-bottom: 2px solid #000; 
-            min-height: 25px; 
+            min-height: 24px; 
             display: flex;
             align-items: flex-end;
-            padding-bottom: 2px;
+            padding-bottom: 1px;
             flex-grow: 1;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 900;
-            overflow-wrap: anywhere;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .flex-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-end; }
-        .flex-col { flex: 1; display: flex; align-items: flex-end; }
+        .flex-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: flex-end; width: 100%; }
+        .flex-col { flex: 1; display: flex; align-items: flex-end; overflow: hidden; }
         
         .divider { border-top: 3px dashed #000; margin: 20px 0; }
 
