@@ -123,15 +123,18 @@
 </style>
 
 <script>
-function toggleYearSelect(val) {
-    var yearSel = document.getElementById('topYearSelect');
-    if (val === 'yearly') {
-        if (yearSel) yearSel.style.display = 'inline-block';
+function handleUnifiedFilterChange(val) {
+    var form   = document.getElementById('topReportFilterForm');
+    var pInput = document.getElementById('hiddenPeriodInput');
+    var yInput = document.getElementById('hiddenYearInput');
+
+    if (val.startsWith('year:')) {
+        pInput.value = 'yearly';
+        yInput.value = val.split(':')[1];
     } else {
-        if (yearSel) yearSel.style.display = 'none';
+        pInput.value = val;
     }
-    var form = document.getElementById('topReportFilterForm');
-    if (form) form.submit();
+    form.submit();
 }
 
 function setPeriodFilter(from, to) {
@@ -205,26 +208,33 @@ function setPeriodFilter(from, to) {
         <div class="d-flex align-items-center gap-2 flex-wrap no-print">
             <form method="GET" action="{{ route('payments.report') }}" class="d-flex align-items-center gap-2 flex-wrap" id="topReportFilterForm">
                 @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin())
-                <select name="lgu_id" class="form-select form-select-sm shadow-sm pm-filter-input fw-semibold" onchange="this.form.submit()">
+                <select name="lgu_id" class="form-select form-select-sm shadow-sm pm-filter-input fw-semibold" style="width:auto;min-width:170px;" onchange="this.form.submit()">
                     <option value="">All Municipalities / LGUs</option>
                     @foreach($lgus as $lgu)
                         <option value="{{ $lgu->id }}" {{ (string) $selectedLguId === (string) $lgu->id ? 'selected' : '' }}>{{ $lgu->name }}</option>
                     @endforeach
                 </select>
                 @endif
-                <select name="period" id="topPeriodSelect" class="form-select form-select-sm shadow-sm pm-filter-input fw-semibold" onchange="toggleYearSelect(this.value)">
-                    <option value="daily"   {{ $period === 'daily'   ? 'selected' : '' }}>Daily (Today)</option>
-                    <option value="weekly"  {{ $period === 'weekly'  ? 'selected' : '' }}>Weekly (This Week)</option>
-                    <option value="monthly" {{ $period === 'monthly' ? 'selected' : '' }}>Monthly (This Month)</option>
-                    <option value="yearly"  {{ $period === 'yearly'  ? 'selected' : '' }}>Yearly</option>
+
+                <input type="hidden" name="period" id="hiddenPeriodInput" value="{{ $period }}">
+                <input type="hidden" name="year" id="hiddenYearInput" value="{{ $year }}">
+
+                <select class="form-select form-select-sm shadow-sm pm-filter-input fw-bold" style="width:auto;min-width:180px;background-color:#ffffff;" onchange="handleUnifiedFilterChange(this.value)">
+                    <optgroup label="Quick Periods">
+                        <option value="daily"   {{ $period === 'daily'   ? 'selected' : '' }}>Daily (Today)</option>
+                        <option value="weekly"  {{ $period === 'weekly'  ? 'selected' : '' }}>Weekly (This Week)</option>
+                        <option value="monthly" {{ $period === 'monthly' ? 'selected' : '' }}>Monthly (This Month)</option>
+                    </optgroup>
+                    <optgroup label="Annual / Yearly Reports">
+                        @for($y = date('Y'); $y >= 2020; $y--)
+                            <option value="year:{{ $y }}" {{ $period === 'yearly' && $year == $y ? 'selected' : '' }}>Year {{ $y }}</option>
+                        @endfor
+                    </optgroup>
                     @if($period === 'custom')
-                    <option value="custom" selected>Custom Range</option>
+                    <optgroup label="Custom Range">
+                        <option value="custom" selected>Custom Range</option>
+                    </optgroup>
                     @endif
-                </select>
-                <select name="year" id="topYearSelect" class="form-select form-select-sm shadow-sm pm-filter-input fw-semibold" onchange="this.form.submit()" style="{{ $period !== 'yearly' ? 'display:none;' : '' }}">
-                    @for($y = date('Y'); $y >= 2020; $y--)
-                        <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>Year {{ $y }}</option>
-                    @endfor
                 </select>
             </form>
 
