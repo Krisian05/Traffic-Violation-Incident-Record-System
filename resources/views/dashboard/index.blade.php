@@ -443,7 +443,8 @@
             <span class="text-muted" style="font-size:.75rem;" id="aGlobalPeriodLabel">Loading…</span>
         </div>
         <div class="analytics-period-tabs" role="group" aria-label="Period selector">
-            <button class="analytics-tab active" data-period="weekly"  type="button">Weekly</button>
+            <button class="analytics-tab active" data-period="daily"   type="button">Daily</button>
+            <button class="analytics-tab"        data-period="weekly"  type="button">Weekly</button>
             <button class="analytics-tab"        data-period="monthly" type="button">Monthly</button>
             <button class="analytics-tab"        data-period="yearly"  type="button">Yearly</button>
         </div>
@@ -453,7 +454,7 @@
     <div class="row g-3 mb-4">
 
         {{-- Period Violations --}}
-        <div class="col-sm-6 col-xl-4">
+        <div class="col-sm-6 col-xl-3">
             <a href="{{ route('violations.index', array_filter(['lgu_id' => $lguId])) }}" id="aLink-violations" class="stat-card-link analytics-card-link">
             <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative analytics-card">
                 <div class="stat-bg-blob" style="background:rgba(245,158,11,.06);"></div>
@@ -462,7 +463,7 @@
                         <i class="bi bi-exclamation-triangle-fill"></i>
                     </div>
                     <div>
-                        <div class="stat-label" id="aLabel-violations">Weekly Violations</div>
+                        <div class="stat-label" id="aLabel-violations">Daily Violations</div>
                         <div class="stat-number analytics-number" id="aStat-violations">—</div>
                         <div class="d-flex align-items-center gap-2 mt-1">
                             <span class="stat-sub" id="aSub-violations">loading…</span>
@@ -476,7 +477,7 @@
         </div>
 
         {{-- Period Traffic Incidents --}}
-        <div class="col-sm-6 col-xl-4">
+        <div class="col-sm-6 col-xl-3">
             <a href="{{ route('incidents.index', array_filter(['lgu_id' => $lguId])) }}" id="aLink-incidents" class="stat-card-link analytics-card-link">
             <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative analytics-card">
                 <div class="stat-bg-blob" style="background:rgba(99,102,241,.06);"></div>
@@ -485,7 +486,7 @@
                         <i class="bi bi-car-front-fill"></i>
                     </div>
                     <div>
-                        <div class="stat-label" id="aLabel-incidents">Weekly Traffic Incidents</div>
+                        <div class="stat-label" id="aLabel-incidents">Daily Traffic Incidents</div>
                         <div class="stat-number analytics-number" id="aStat-incidents">—</div>
                         <div class="d-flex align-items-center gap-2 mt-1">
                             <span class="stat-sub" id="aSub-incidents">loading…</span>
@@ -499,7 +500,7 @@
         </div>
 
         {{-- Overdue Violations --}}
-        <div class="col-sm-6 col-xl-4">
+        <div class="col-sm-6 col-xl-3">
             <a href="{{ route('violations.index', array_filter(['status' => 'overdue', 'lgu_id' => $lguId])) }}" class="stat-card-link analytics-card-link">
             <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative analytics-card">
                 <div class="stat-bg-blob" style="background:rgba(220,38,38,.06);"></div>
@@ -515,6 +516,28 @@
                     </div>
                 </div>
                 <div class="stat-card-footer">View overdue <i class="bi bi-arrow-right"></i></div>
+            </div>
+            </a>
+        </div>
+
+        {{-- Period Violation Amount (Fine Total) --}}
+        <div class="col-sm-6 col-xl-3">
+            <a href="{{ route('payments.report', array_filter(['lgu_id' => $lguId])) }}" id="aLink-amount" class="stat-card-link analytics-card-link">
+            <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative analytics-card">
+                <div class="stat-bg-blob" style="background:rgba(16,185,129,.06);"></div>
+                <div class="card-body d-flex align-items-center gap-3 py-4">
+                    <div class="stat-icon-wrap" style="background:linear-gradient(135deg,#34d399,#059669);">
+                        <i class="bi bi-cash-coin"></i>
+                    </div>
+                    <div style="min-width:0;">
+                        <div class="stat-label" id="aLabel-amount">Daily Violation Amount</div>
+                        <div class="stat-number analytics-number" id="aStat-amount" style="font-size:1.25rem;">—</div>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <span class="stat-sub" id="aSub-amount">loading…</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card-footer">View report <i class="bi bi-arrow-right"></i></div>
             </div>
             </a>
         </div>
@@ -848,8 +871,8 @@ setInterval(fetchStats, REFRESH_MS);
     const ANALYTICS_URL = '{{ route("dashboard.analytics") }}';
     let   violationsChart = null;
 
-    const PERIOD_LABELS = { weekly: 'Weekly',    monthly: 'Monthly',     yearly: 'Yearly'     };
-    const PERIOD_BADGES = { weekly: 'This Week', monthly: 'This Month',  yearly: 'This Year'  };
+    const PERIOD_LABELS = { daily: 'Daily', weekly: 'Weekly',    monthly: 'Monthly',     yearly: 'Yearly'     };
+    const PERIOD_BADGES = { daily: 'Today', weekly: 'This Week', monthly: 'This Month',  yearly: 'This Year'  };
     const BRGY_COLORS   = ['#6366f1','#8b5cf6','#06b6d4','#0ea5e9','#10b981','#f59e0b','#ef4444'];
 
     function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
@@ -982,6 +1005,7 @@ setInterval(fetchStats, REFRESH_MS);
         // Update labels immediately
         setText('aLabel-violations',        PERIOD_LABELS[period] + ' Violations');
         setText('aLabel-incidents',          PERIOD_LABELS[period] + ' Traffic Incidents');
+        setText('aLabel-amount',             PERIOD_LABELS[period] + ' Violation Amount');
         setText('aChartTitle-violations',    PERIOD_LABELS[period] + ' Violations Trend');
         setText('aChartBadge-violations',    PERIOD_BADGES[period]);
         setText('aChartBadge-barangay',      PERIOD_BADGES[period]);
@@ -999,9 +1023,17 @@ setInterval(fetchStats, REFRESH_MS);
             animateNum(document.getElementById('aStat-incidents'),  data.incidentsCount);
             animateNum(document.getElementById('aStat-overdue'),    data.overdueCount);
 
+            // Violation Amount card
+            const amountEl = document.getElementById('aStat-amount');
+            if (amountEl) {
+                const amt = parseFloat(data.violationAmount || 0);
+                amountEl.textContent = '\u20b1' + amt.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
             // Sub-labels (period range) + global label
             setText('aSub-violations',    data.periodLabel);
             setText('aSub-incidents',     data.periodLabel);
+            setText('aSub-amount',        data.periodLabel);
             setText('aGlobalPeriodLabel', data.periodLabel);
 
             // Trend delta badges
@@ -1038,8 +1070,8 @@ setInterval(fetchStats, REFRESH_MS);
         btn.addEventListener('click', () => loadAnalytics(btn.dataset.period))
     );
 
-    // Initial load
-    loadAnalytics('weekly');
+    // Initial load — daily
+    loadAnalytics('daily');
 })();
 </script>
 

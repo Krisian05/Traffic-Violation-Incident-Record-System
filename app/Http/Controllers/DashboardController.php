@@ -212,6 +212,12 @@ class DashboardController extends Controller
     private function buildAnalytics(string $period, ?int $lguId = null): array
     {
         switch ($period) {
+            case 'daily':
+                $start     = now()->startOfDay();
+                $end       = now()->endOfDay();
+                $prevStart = now()->subDay()->startOfDay();
+                $prevEnd   = now()->subDay()->endOfDay();
+                break;
             case 'monthly':
                 $start     = now()->startOfMonth();
                 $end       = now()->endOfMonth();
@@ -252,7 +258,20 @@ class DashboardController extends Controller
         $incidentsTrend  = $prevIncidents  > 0 ? round(($incidentsDelta  / $prevIncidents)  * 100) : null;
 
         // Build chart data using a single GROUP BY query
-        if ($period === 'weekly') {
+        if ($period === 'daily') {
+            $rawData = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
+                ->selectRaw('EXTRACT(HOUR FROM date_of_violation)::int as h, COUNT(*) as cnt')
+                ->whereBetween('date_of_violation', [$startDate, $endDate])
+                ->groupBy('h')
+                ->pluck('cnt', 'h')
+                ->toArray();
+            $labels = [];
+            $values = [];
+            for ($h = 0; $h < 24; $h++) {
+                $labels[] = str_pad($h, 2, '0', STR_PAD_LEFT) . ':00';
+                $values[] = (int) ($rawData[$h] ?? 0);
+            }
+        } elseif ($period === 'weekly') {
             $rawData = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
                 ->selectRaw('DATE(date_of_violation) as d, COUNT(*) as cnt')
                 ->whereBetween('date_of_violation', [$startDateOnly, $endDateOnly])
@@ -313,12 +332,14 @@ class DashboardController extends Controller
             ->map(fn ($row) => ['label' => $row->location, 'count' => (int) $row->total]);
 
         $periodLabel = match ($period) {
+            'daily'   => now()->format('l, M d, Y'),
             'monthly' => now()->format('F Y'),
             'yearly'  => 'Year ' . now()->year,
-            default   => now()->startOfWeek()->format('M d') . '–' . now()->endOfWeek()->format('M d, Y'),
+            default   => now()->startOfWeek()->format('M d') . '\u2013' . now()->endOfWeek()->format('M d, Y'),
         };
 
         $violationsUrl = match ($period) {
+            'daily'   => route('violations.index', ['date_from' => $startDateOnly, 'date_to' => $endDateOnly]),
             'monthly' => route('violations.index', ['month' => now()->month, 'year' => now()->year]),
             'yearly'  => route('violations.index', ['year' => now()->year]),
             default   => route('violations.index', ['date_from' => $startDateOnly, 'date_to' => $endDateOnly]),
@@ -330,20 +351,29 @@ class DashboardController extends Controller
             default   => route('incidents.index', ['date_from' => $startDateOnly, 'date_to' => $endDateOnly]),
         };
 
+        // Total settled fine amount for the period (by LGU)
+        $violationAmount = \App\Models\Payment::whereHas('violation', function ($q) use ($lguId) {
+                $q->when($lguId, fn($q) => $q->where('lgu_id', $lguId));
+            })
+            ->whereBetween('paid_at', [$start->toDateTimeString(), $end->toDateTimeString()])
+            ->whereNull('voided_at')
+            ->sum('amount_paid');
+
         return [
-            'period'          => $period,
-            'periodLabel'     => $periodLabel,
-            'violationsCount' => $violationsCount,
-            'incidentsCount'  => $incidentsCount,
-            'overdueCount'    => $overdueCount,
-            'violationsDelta' => $violationsDelta,
-            'incidentsDelta'  => $incidentsDelta,
-            'violationsTrend' => $violationsTrend,
-            'incidentsTrend'  => $incidentsTrend,
-            'violationsUrl'   => $violationsUrl,
-            'incidentsUrl'    => $incidentsUrl,
-            'chart'           => ['labels' => $labels, 'values' => $values],
-            'topBarangays'    => $topBarangays->values()->toArray(),
+            'period'           => $period,
+            'periodLabel'      => $periodLabel,
+            'violationsCount'  => $violationsCount,
+            'incidentsCount'   => $incidentsCount,
+            'overdueCount'     => $overdueCount,
+            'violationsDelta'  => $violationsDelta,
+            'incidentsDelta'   => $incidentsDelta,
+            'violationsTrend'  => $violationsTrend,
+            'incidentsTrend'   => $incidentsTrend,
+            'violationsUrl'    => $violationsUrl,
+            'incidentsUrl'     => $incidentsUrl,
+            'violationAmount'  => round((float) $violationAmount, 2),
+            'chart'            => ['labels' => $labels, 'values' => $values],
+            'topBarangays'     => $topBarangays->values()->toArray(),
         ];
     }
 
