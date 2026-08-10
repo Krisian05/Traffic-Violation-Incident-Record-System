@@ -79,9 +79,52 @@
         border-color: #047857;
         box-shadow: 0 4px 10px rgba(5, 150, 105, 0.25);
     }
+
+    /* Print styles */
+    .gov-print-hdr { display: none; }
+    @media print {
+        .no-print, .sidebar, .sidebar-backdrop, .topbar, .hamburger-btn, form, .pagination, .btn, .tvrs-breadcrumb-nav, nav { display: none !important; }
+        body { background: #fff !important; color: #000 !important; font-size: 10pt; margin: 0 !important; padding: 0 !important; }
+        .content { padding: 0 !important; margin: 0 !important; }
+        .main-wrapper { margin-left: 0 !important; }
+        
+        .gov-print-hdr {
+            display: flex !important;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2pt solid #047857;
+            padding-bottom: 8pt;
+            margin-bottom: 12pt;
+        }
+        
+        .pm-card { border: none !important; box-shadow: none !important; margin-bottom: 1rem !important; }
+        .table { width: 100% !important; border-collapse: collapse !important; }
+        .table th, .table td { border: 1px solid #cbd5e1 !important; padding: 4pt 6pt !important; }
+        @page { size: A4 landscape; margin: 10mm; }
+    }
 </style>
 
 <div class="container-fluid px-4 py-3">
+
+    {{-- Official Print Header --}}
+    <div class="gov-print-hdr mb-3">
+        <img src="{{ asset('images/PNP.png') }}" class="gov-ph-seal" alt="PNP Logo" style="height:55px;">
+        <div class="gov-ph-agency text-center flex-grow-1">
+            <div class="gov-ph-republic small text-uppercase" style="letter-spacing:1px;">Republic of the Philippines</div>
+            <div class="gov-ph-npc fw-bold small">NATIONAL POLICE COMMISSION</div>
+            <div class="gov-ph-pro7 fw-bold small">PHILIPPINE NATIONAL POLICE, POLICE REGIONAL OFFICE 7</div>
+            <div class="gov-ph-cebu fw-bold small">CEBU POLICE PROVINCIAL OFFICE</div>
+            <div class="gov-ph-station fw-bold text-success text-uppercase mt-1" style="font-size:0.95rem;">
+                @if(Auth::user()->lgu)
+                    {{ strtoupper(Auth::user()->lgu->name) }} MUNICIPAL TREASURY &amp; TRAFFIC DIVISION
+                @else
+                    TRAFFIC VIOLATION INCIDENT RECORD SYSTEM (TVIRS)
+                @endif
+            </div>
+            <div class="gov-ph-address fst-italic text-muted" style="font-size:0.75rem;">Payment Reconciliation &amp; Transaction Audit Log Report</div>
+        </div>
+        <img src="{{ asset('images/cebu.png') }}" class="gov-ph-seal" alt="Cebu Seal" style="height:55px;">
+    </div>
 
     {{-- Header --}}
     <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
@@ -96,7 +139,7 @@
             </div>
         </div>
 
-        <div class="d-flex align-items-center gap-2 flex-wrap">
+        <div class="d-flex align-items-center gap-2 flex-wrap no-print">
             <form method="GET" action="{{ route('payments.report') }}" class="d-flex align-items-center gap-2">
                 @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin())
                 <select name="lgu_id" class="form-select form-select-sm shadow-sm pm-filter-input fw-semibold" onchange="this.form.submit()">
@@ -116,6 +159,9 @@
             <a href="{{ route('payments.report.export', request()->query()) }}" class="btn btn-sm btn-success shadow-sm fw-bold px-3 py-1-5 rounded-3 d-flex align-items-center gap-1">
                 <i class="bi bi-file-earmark-excel-fill"></i> Export Excel
             </a>
+            <button type="button" onclick="window.print()" class="btn btn-sm btn-outline-secondary shadow-sm fw-bold px-3 py-1-5 rounded-3 d-flex align-items-center gap-1 no-print" title="Print Collection Report">
+                <i class="bi bi-printer-fill"></i> Print Report
+            </button>
         </div>
     </div>
 
@@ -366,10 +412,13 @@
                 <h6 class="fw-bold text-dark mb-0"><i class="bi bi-receipt-cutoff text-success me-1.5"></i> Payment Reconciliation &amp; Transaction Audit Log</h6>
                 <span class="text-muted" style="font-size:0.75rem;">Verified payments issued with Official Receipts (OR)</span>
             </div>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 no-print">
                 <a href="{{ route('payments.report.export', request()->query()) }}" class="btn btn-sm btn-outline-success fw-bold px-3 rounded-2">
                     <i class="bi bi-file-earmark-excel me-1"></i> Download Report (Excel)
                 </a>
+                <button type="button" onclick="window.print()" class="btn btn-sm btn-outline-primary fw-bold px-3 rounded-2 no-print" title="Print Transaction Log">
+                    <i class="bi bi-printer me-1"></i> Print Log
+                </button>
             </div>
         </div>
         <div class="card-body p-3.5">
@@ -480,6 +529,13 @@
                         </tr>
                         @endforelse
                     </tbody>
+                    <tfoot class="table-light border-top">
+                        <tr class="fw-bold text-dark">
+                            <td colspan="4" class="ps-3.5 text-uppercase" style="letter-spacing:0.04em;font-size:0.82rem;">Total Collection</td>
+                            <td class="text-end text-success font-monospace" style="font-size:0.95rem;">₱{{ number_format($payments->sum('amount_paid'), 2) }}</td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
 
