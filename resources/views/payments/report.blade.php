@@ -123,16 +123,14 @@
 </style>
 
 <script>
-function handleUnifiedFilterChange(val) {
+function submitFilterPeriod(period, year) {
     var form   = document.getElementById('topReportFilterForm');
     var pInput = document.getElementById('hiddenPeriodInput');
     var yInput = document.getElementById('hiddenYearInput');
 
-    if (val.startsWith('year:')) {
-        pInput.value = 'yearly';
-        yInput.value = val.split(':')[1];
-    } else {
-        pInput.value = val;
+    pInput.value = period;
+    if (year) {
+        yInput.value = year;
     }
     form.submit();
 }
@@ -219,23 +217,61 @@ function setPeriodFilter(from, to) {
                 <input type="hidden" name="period" id="hiddenPeriodInput" value="{{ $period }}">
                 <input type="hidden" name="year" id="hiddenYearInput" value="{{ $year }}">
 
-                <select class="form-select form-select-sm shadow-sm pm-filter-input fw-bold" style="width:auto;min-width:180px;background-color:#ffffff;" onchange="handleUnifiedFilterChange(this.value)">
-                    <optgroup label="Quick Periods">
-                        <option value="daily"   {{ $period === 'daily'   ? 'selected' : '' }}>Daily (Today)</option>
-                        <option value="weekly"  {{ $period === 'weekly'  ? 'selected' : '' }}>Weekly (This Week)</option>
-                        <option value="monthly" {{ $period === 'monthly' ? 'selected' : '' }}>Monthly (This Month)</option>
-                    </optgroup>
-                    <optgroup label="Annual / Yearly Reports">
+                @php
+                    $currentFilterLabel = match($period) {
+                        'daily'   => 'Daily (Today)',
+                        'weekly'  => 'Weekly (This Week)',
+                        'monthly' => 'Monthly (This Month)',
+                        'custom'  => 'Custom Range',
+                        default   => 'Year ' . $year,
+                    };
+                    $currentFilterIcon = match($period) {
+                        'daily'   => 'bi-sun-fill text-warning',
+                        'weekly'  => 'bi-calendar-week-fill text-primary',
+                        'monthly' => 'bi-calendar-month-fill text-success',
+                        'custom'  => 'bi-funnel-fill text-info',
+                        default   => 'bi-calendar3 text-success',
+                    };
+                @endphp
+
+                <div class="dropdown">
+                    <button class="btn btn-sm bg-white border border-slate-300 fw-bold text-dark shadow-sm dropdown-toggle d-flex align-items-center gap-2 px-3 py-1-5 rounded-3"
+                            type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size:0.875rem;min-height:34px;">
+                        <i class="bi {{ $currentFilterIcon }}"></i>
+                        <span>{{ $currentFilterLabel }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 mt-1 py-2" style="font-size:0.85rem;min-width:210px;z-index:1050;">
+                        <li><h6 class="dropdown-header text-uppercase fw-extrabold text-muted" style="font-size:0.68rem;letter-spacing:0.05em;">Quick Periods</h6></li>
+                        <li>
+                            <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2 {{ $period === 'daily' ? 'active fw-bold bg-success text-white' : '' }}"
+                                    onclick="submitFilterPeriod('daily')">
+                                <i class="bi bi-sun-fill text-warning me-1"></i> Daily (Today)
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2 {{ $period === 'weekly' ? 'active fw-bold bg-success text-white' : '' }}"
+                                    onclick="submitFilterPeriod('weekly')">
+                                <i class="bi bi-calendar-week-fill text-primary me-1"></i> Weekly (This Week)
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2 {{ $period === 'monthly' ? 'active fw-bold bg-success text-white' : '' }}"
+                                    onclick="submitFilterPeriod('monthly')">
+                                <i class="bi bi-calendar-month-fill text-success me-1"></i> Monthly (This Month)
+                            </button>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li><h6 class="dropdown-header text-uppercase fw-extrabold text-muted" style="font-size:0.68rem;letter-spacing:0.05em;">Annual Reports</h6></li>
                         @for($y = date('Y'); $y >= 2020; $y--)
-                            <option value="year:{{ $y }}" {{ $period === 'yearly' && $year == $y ? 'selected' : '' }}>Year {{ $y }}</option>
+                        <li>
+                            <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2 {{ $period === 'yearly' && $year == $y ? 'active fw-bold bg-success text-white' : '' }}"
+                                    onclick="submitFilterPeriod('yearly', {{ $y }})">
+                                <i class="bi bi-calendar3 text-secondary me-1"></i> Year {{ $y }}
+                            </button>
+                        </li>
                         @endfor
-                    </optgroup>
-                    @if($period === 'custom')
-                    <optgroup label="Custom Range">
-                        <option value="custom" selected>Custom Range</option>
-                    </optgroup>
-                    @endif
-                </select>
+                    </ul>
+                </div>
             </form>
 
             <a href="{{ route('payments.report.export', request()->query()) }}" class="btn btn-sm btn-success shadow-sm fw-bold px-3 py-1-5 rounded-3 d-flex align-items-center gap-1">
