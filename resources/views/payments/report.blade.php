@@ -82,6 +82,58 @@
 
     /* Print styles */
     .gov-print-hdr { display: none; }
+
+    /* ── Quick Period Filter Buttons ── */
+    .pm-period-shortcut {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.3rem 0.8rem;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        color: #475569;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+    }
+    .pm-period-shortcut:hover {
+        background: #f0fdf4;
+        border-color: #059669;
+        color: #047857;
+    }
+    .pm-period-shortcut.active {
+        background: linear-gradient(135deg, #059669, #047857);
+        color: #fff;
+        border-color: #047857;
+        box-shadow: 0 3px 10px rgba(5,150,105,0.25);
+    }
+    .pm-period-shortcut-clear {
+        border-color: #fca5a5;
+        color: #dc2626;
+    }
+    .pm-period-shortcut-clear:hover {
+        background: #fef2f2;
+        border-color: #ef4444;
+        color: #dc2626;
+    }
+</style>
+
+<script>
+function setPeriodFilter(from, to) {
+    var df = document.getElementById('filterDateFrom');
+    var dt = document.getElementById('filterDateTo');
+    if (df) df.value = from;
+    if (dt) dt.value = to;
+    var form = document.getElementById('reconciliationFilterForm');
+    if (form) form.submit();
+}
+</script>
+
+<style>
     @media print {
         .no-print, .sidebar, .sidebar-backdrop, .topbar, .hamburger-btn, form, .pagination, .btn, .tvrs-breadcrumb-nav, nav { display: none !important; }
         body { background: #fff !important; color: #000 !important; font-size: 10pt; margin: 0 !important; padding: 0 !important; }
@@ -422,19 +474,48 @@
             </div>
         </div>
         <div class="card-body p-3.5">
+            {{-- Quick Period Filter Shortcuts --}}
+            @php
+                $today      = now()->toDateString();
+                $weekStart  = now()->startOfWeek()->toDateString();
+                $monthStart = now()->startOfMonth()->toDateString();
+                $yesterdayStart = now()->subDay()->toDateString();
+            @endphp
+            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                <span class="text-muted fw-bold" style="font-size:.7rem;letter-spacing:.05em;">QUICK FILTER:</span>
+                <button type="button" class="pm-period-shortcut {{ request('date_from') === $today && request('date_to') === $today ? 'active' : '' }}"
+                        onclick="setPeriodFilter('{{ $today }}', '{{ $today }}')">
+                    <i class="bi bi-sun-fill me-1"></i>Daily
+                </button>
+                <button type="button" class="pm-period-shortcut {{ request('date_from') === $weekStart && request('date_to') === $today ? 'active' : '' }}"
+                        onclick="setPeriodFilter('{{ $weekStart }}', '{{ $today }}')">
+                    <i class="bi bi-calendar-week-fill me-1"></i>This Week
+                </button>
+                <button type="button" class="pm-period-shortcut {{ request('date_from') === $monthStart && request('date_to') === $today ? 'active' : '' }}"
+                        onclick="setPeriodFilter('{{ $monthStart }}', '{{ $today }}')">
+                    <i class="bi bi-calendar-month-fill me-1"></i>This Month
+                </button>
+                @if(request('date_from') || request('date_to'))
+                <a href="{{ route('payments.report', array_filter(['year' => $year, 'lgu_id' => $selectedLguId, 'method' => request('method'), 'or_number' => request('or_number')])) }}"
+                   class="pm-period-shortcut pm-period-shortcut-clear">
+                    <i class="bi bi-x-circle me-1"></i>Clear
+                </a>
+                @endif
+            </div>
+
             {{-- Filter Form --}}
-            <form method="GET" action="{{ route('payments.report') }}" class="row g-2 mb-3 bg-light p-2.5 rounded-3 border">
+            <form method="GET" action="{{ route('payments.report') }}" class="row g-2 mb-3 bg-light p-2.5 rounded-3 border" id="reconciliationFilterForm">
                 <input type="hidden" name="year" value="{{ $year }}">
                 @if($selectedLguId)
                     <input type="hidden" name="lgu_id" value="{{ $selectedLguId }}">
                 @endif
                 <div class="col-md-3 col-sm-6">
                     <label class="form-label text-muted fw-bold mb-1" style="font-size:0.7rem;letter-spacing:0.04em;">FROM DATE</label>
-                    <input type="date" name="date_from" class="form-control form-control-sm pm-filter-input" value="{{ request('date_from') }}">
+                    <input type="date" name="date_from" id="filterDateFrom" class="form-control form-control-sm pm-filter-input" value="{{ request('date_from') }}">
                 </div>
                 <div class="col-md-3 col-sm-6">
                     <label class="form-label text-muted fw-bold mb-1" style="font-size:0.7rem;letter-spacing:0.04em;">TO DATE</label>
-                    <input type="date" name="date_to" class="form-control form-control-sm pm-filter-input" value="{{ request('date_to') }}">
+                    <input type="date" name="date_to" id="filterDateTo" class="form-control form-control-sm pm-filter-input" value="{{ request('date_to') }}">
                 </div>
                 <div class="col-md-2 col-sm-6">
                     <label class="form-label text-muted fw-bold mb-1" style="font-size:0.7rem;letter-spacing:0.04em;">METHOD</label>
