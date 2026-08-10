@@ -179,7 +179,7 @@ function setPeriodFilter(from, to) {
     </div>
 
     {{-- Header --}}
-    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3 no-print">
         <div class="d-flex align-items-center gap-3">
             <div class="rounded-4 d-flex align-items-center justify-content-center shadow-sm"
                  style="width:54px;height:54px;background:linear-gradient(135deg,#059669,#047857);color:#fff;flex-shrink:0;">
@@ -218,7 +218,7 @@ function setPeriodFilter(from, to) {
     </div>
 
     @if(Auth::user()->lgu_id && !Auth::user()->isSuperAdmin() && !Auth::user()->isProvinceAdmin())
-    <div class="alert alert-emerald border-0 shadow-sm mb-4 d-flex align-items-center justify-content-between" style="background:#ecfdf5;color:#047857;border-radius:12px;font-size:.875rem;">
+    <div class="alert alert-emerald border-0 shadow-sm mb-4 d-flex align-items-center justify-content-between no-print" style="background:#ecfdf5;color:#047857;border-radius:12px;font-size:.875rem;">
         <div>
             <i class="bi bi-shield-check me-2 fs-5 align-middle"></i>
             <span>Showing payment collection records for <strong>{{ Auth::user()->lgu?->name ?? 'assigned municipality' }}</strong> only.</span>
@@ -228,7 +228,7 @@ function setPeriodFilter(from, to) {
     @endif
 
     {{-- KPI Cards --}}
-    <div class="row g-3 mb-4">
+    <div class="row g-3 mb-4 no-print">
         {{-- Revenue Collected --}}
         <div class="col-xl-4 col-md-6">
             <div class="card border-0 shadow-sm pm-card h-100 overflow-hidden" style="background:linear-gradient(135deg,#ffffff 0%,#f0fdf4 100%);border-left:5px solid #10b981 !important;">
@@ -291,7 +291,7 @@ function setPeriodFilter(from, to) {
     </div>
 
     {{-- Interactive Monthly Summary Section --}}
-    <div class="card border-0 shadow-sm pm-card mb-4 overflow-hidden">
+    <div class="card border-0 shadow-sm pm-card mb-4 overflow-hidden no-print">
         <div class="card-header bg-white border-0 pt-3.5 px-3.5 pb-2">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                 <div>
@@ -374,7 +374,7 @@ function setPeriodFilter(from, to) {
     </div>
 
     {{-- Performance & Annual Summaries Row --}}
-    <div class="row g-3 mb-4">
+    <div class="row g-3 mb-4 no-print">
         {{-- Annual Collection History --}}
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm pm-card h-100">
@@ -473,6 +473,19 @@ function setPeriodFilter(from, to) {
                 </button>
             </div>
         </div>
+        
+        {{-- Print Filter Metadata Header --}}
+        <div class="d-none d-print-block px-3.5 pt-2 pb-1 border-bottom bg-light text-muted" style="font-size:0.8rem;">
+            <i class="bi bi-funnel-fill text-success me-1"></i> <strong>Report Filter Context:</strong>
+            Payment Method: <u>{{ request('method') ? ucfirst(request('method')) : 'All Payment Methods' }}</u>
+            @if(request('date_from') || request('date_to'))
+                | Date Range: <u>{{ request('date_from') ?: 'Beginning' }}</u> to <u>{{ request('date_to') ?: 'Present' }}</u>
+            @endif
+            @if(request('or_number'))
+                | Query: <u>"{{ request('or_number') }}"</u>
+            @endif
+            | Printed On: <u>{{ now()->format('F d, Y h:i A') }}</u>
+        </div>
         <div class="card-body p-3.5">
             {{-- Quick Period Filter Shortcuts --}}
             @php
@@ -481,7 +494,7 @@ function setPeriodFilter(from, to) {
                 $monthStart = now()->startOfMonth()->toDateString();
                 $yesterdayStart = now()->subDay()->toDateString();
             @endphp
-            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap no-print">
                 <span class="text-muted fw-bold" style="font-size:.7rem;letter-spacing:.05em;">QUICK FILTER:</span>
                 <button type="button" class="pm-period-shortcut {{ request('date_from') === $today && request('date_to') === $today ? 'active' : '' }}"
                         onclick="setPeriodFilter('{{ $today }}', '{{ $today }}')">
@@ -504,7 +517,7 @@ function setPeriodFilter(from, to) {
             </div>
 
             {{-- Filter Form --}}
-            <form method="GET" action="{{ route('payments.report') }}" class="row g-2 mb-3 bg-light p-2.5 rounded-3 border" id="reconciliationFilterForm">
+            <form method="GET" action="{{ route('payments.report') }}" class="row g-2 mb-3 bg-light p-2.5 rounded-3 border no-print" id="reconciliationFilterForm">
                 <input type="hidden" name="year" value="{{ $year }}">
                 @if($selectedLguId)
                     <input type="hidden" name="lgu_id" value="{{ $selectedLguId }}">
@@ -620,7 +633,7 @@ function setPeriodFilter(from, to) {
                 </table>
             </div>
 
-            <div class="mt-3.5 px-2">
+            <div class="mt-3.5 px-2 no-print">
                 {{ $payments->links('vendor.pagination.bootstrap-5') }}
             </div>
         </div>
