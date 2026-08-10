@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\OnlinePaymentSession;
 use App\Models\Violation;
 use App\Services\PayMongoService;
+use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -95,8 +96,10 @@ class GuestPaymentController extends Controller
 
     /**
      * Polling JSON API endpoint to check if webhook has completed settlement.
+     * If the session is still pending but PayMongo confirms it's paid,
+     * settle the violation directly (webhook-fallback).
      */
-    public function checkSessionStatus(string $token, string $sessionRef)
+    public function checkSessionStatus(string $token, string $sessionRef, PayMongoService $payMongoService, PaymentService $paymentService)
     {
         $violation = Violation::where('public_payment_token', $token)->firstOrFail();
 
@@ -108,7 +111,43 @@ class GuestPaymentController extends Controller
             return response()->json(['error' => 'Session not found'], 404);
         }
 
+        // === WEBHOOK FALLBACK ===
+        // If the session is still pending, ask PayMongo directly whether it's been paid.
+        // This handles cases where the webhook was delayed, dropped, or the signature
+        // check failed, ensuring the motorist is never stuck on "pending" after paying.
+        if (!$session->isPaid()) {
+            try {
+                $secretKey = $session->lgu?->getPayMongoSecretKey()
+                    ?? config('services.paymongo.secret_key')
+                    ?? env('PAYMONGO_SECRET_KEY');
+
+                $pmData = $payMongoService->fetchCheckoutSession($session->checkout_session_id, $secretKey);
+                $pmStatus = $pmData['attributes']['status'] ?? null;
+
+                if ($pmStatus === 'paid') {
+                    // PayMongo confirms paid — settle now before the webhook arrives
+                    $payments      = $pmData['attributes']['payments'] ?? [];
+                    $latestPayment = !empty($payments) ? end($payments) : null;
+                    $gatewayId     = $latestPayment['id'] ?? ('PAYMONGO-FALLBACK-' . time());
+                    $method        = $latestPayment['attributes']['source']['type'] ?? 'gcash';
+
+                    Log::info('GuestPayment: webhook-fallback settlement triggered', [
+                        'violation_id'        => $violation->id,
+                        'checkout_session_id' => $session->checkout_session_id,
+                    ]);
+
+                    $paymentService->settleFromOnlineSession($session, $gatewayId, $method, $pmData);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('GuestPayment: webhook-fallback check failed', [
+                    'error'      => $e->getMessage(),
+                    'session_id' => $session->id,
+                ]);
+            }
+        }
+
         $violation->refresh();
+        $session->refresh();
 
         return response()->json([
             'session_status'   => $session->status,

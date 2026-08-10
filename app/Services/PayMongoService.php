@@ -111,6 +111,32 @@ class PayMongoService
     }
 
     /**
+     * Fetch a PayMongo Checkout Session by ID directly from the PayMongo API.
+     * Used as a webhook-fallback: if the webhook hasn't arrived yet, the polling
+     * endpoint can call this to confirm payment and settle proactively.
+     *
+     * @return array|null  The raw PayMongo session data array, or null on failure.
+     */
+    public function fetchCheckoutSession(string $checkoutSessionId, string $secretKey): ?array
+    {
+        $baseUrl = config('services.paymongo.base_url', 'https://api.paymongo.com/v1');
+
+        $response = Http::withBasicAuth($secretKey, '')
+            ->acceptJson()
+            ->get("{$baseUrl}/checkout_sessions/{$checkoutSessionId}");
+
+        if ($response->failed()) {
+            Log::warning('PayMongo: failed to fetch checkout session', [
+                'checkout_session_id' => $checkoutSessionId,
+                'status'              => $response->status(),
+            ]);
+            return null;
+        }
+
+        return $response->json('data');
+    }
+
+    /**
      * Verify the HMAC SHA256 signature of an incoming PayMongo webhook request.
      * PayMongo signature header format: "t=TIMESTAMP,te=TEST_SIGNATURE,li=LIVE_SIGNATURE"
      */
