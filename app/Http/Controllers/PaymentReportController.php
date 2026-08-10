@@ -34,14 +34,66 @@ class PaymentReportController extends Controller
 
     public function index(Request $request)
     {
+        $period        = $request->input('period');
         $year          = (int) $request->input('year', now()->year);
         $selectedLguId = $this->resolveLguFilter($request);
         $isPgsql       = DB::getDriverName() === 'pgsql';
 
         $lgus = Lgu::orderBy('name')->get();
 
+        // ── Resolve period and date range ───────────────────────────────────
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $start = \Carbon\Carbon::parse($request->input('date_from'))->startOfDay();
+            $end   = \Carbon\Carbon::parse($request->input('date_to'))->endOfDay();
+            if (!$period) {
+                if ($start->toDateString() === now()->toDateString() && $end->toDateString() === now()->toDateString()) {
+                    $period = 'daily';
+                } elseif ($start->toDateString() === now()->startOfWeek()->toDateString() && $end->toDateString() === now()->endOfWeek()->toDateString()) {
+                    $period = 'weekly';
+                } elseif ($start->toDateString() === now()->startOfMonth()->toDateString() && $end->toDateString() === now()->endOfMonth()->toDateString()) {
+                    $period = 'monthly';
+                } else {
+                    $period = 'custom';
+                }
+            }
+        } else {
+            $period = $period ?: 'yearly';
+            switch ($period) {
+                case 'daily':
+                    $start = now()->startOfDay();
+                    $end   = now()->endOfDay();
+                    break;
+                case 'weekly':
+                    $start = now()->startOfWeek();
+                    $end   = now()->endOfWeek();
+                    break;
+                case 'monthly':
+                    $start = now()->startOfMonth();
+                    $end   = now()->endOfMonth();
+                    break;
+                case 'yearly':
+                default:
+                    $period = 'yearly';
+                    $start  = \Carbon\Carbon::create($year)->startOfYear();
+                    $end    = \Carbon\Carbon::create($year)->endOfYear();
+                    break;
+            }
+        }
+
+        $dateFrom = $start->toDateString();
+        $dateTo   = $end->toDateString();
+
+        $periodLabel = match ($period) {
+            'daily'   => 'Daily (' . $start->format('M d, Y') . ')',
+            'weekly'  => 'Weekly (' . $start->format('M d') . ' – ' . $end->format('M d, Y') . ')',
+            'monthly' => 'Monthly (' . $start->format('F Y') . ')',
+            'custom'  => 'Custom (' . $start->format('M d, Y') . ' – ' . $end->format('M d, Y') . ')',
+            default   => 'Year ' . $year,
+        };
+
         // ── Daily collection (last 30 days) ─────────────────────────────────
-        $dailyRaw = Payment::whereBetween('paid_at', [now()->subDays(29)->startOfDay(), now()->endOfDay()])
+        $dailyRaw = Payment::active()
+            ->whereBetween('paid_at', [now()->subDays(29)->startOfDay(), now()->endOfDay()])
             ->when($selectedLguId, fn($q) => $q->whereHas('violation', fn($sq) => $sq->where('lgu_id', $selectedLguId)))
             ->selectRaw('DATE(paid_at) as day, SUM(amount_paid) as total')
             ->groupBy('day')
@@ -55,9 +107,10 @@ class PaymentReportController extends Controller
             $dailyData[]   = (float) ($dailyRaw[$d->toDateString()] ?? 0);
         }
 
-        // ── Monthly collection summary (selected year) ──────────────────────
+        // ── Monthly collection summary (selected period/year) ───────────────
         $monthExpr = $isPgsql ? 'EXTRACT(MONTH FROM paid_at)::int as m' : "CAST(strftime('%m', paid_at) AS INTEGER) as m";
-        $monthlyRaw = Payment::whereYear('paid_at', $year)
+        $monthlyRaw = Payment::active()
+            ->whereBetween('paid_at', [$start, $end])
             ->when($selectedLguId, fn($q) => $q->whereHas('violation', fn($sq) => $sq->where('lgu_id', $selectedLguId)))
             ->selectRaw("$monthExpr, SUM(amount_paid) as total")
             ->groupBy('m')
@@ -76,15 +129,16 @@ class PaymentReportController extends Controller
         $violationTypes = ViolationType::orderBy('name')->get();
 
         $violationsByMonth = Violation::join('violation_types', 'violations.violation_type_id', '=', 'violation_types.id')
-            ->whereYear('violations.date_of_violation', $year)
+            ->whereBetween('violations.date_of_violation', [$dateFrom, $dateTo])
             ->when($selectedLguId, fn($q) => $q->where('violations.lgu_id', $selectedLguId))
             ->selectRaw("$violationDateExpr as m, violations.violation_type_id, COUNT(*) as total, SUM(violation_types.fine_amount) as total_collectible")
             ->groupBy('m', 'violations.violation_type_id')
             ->get()
             ->groupBy('m');
 
-        $revenueByMonth = Payment::join('violations', 'payments.violation_id', '=', 'violations.id')
-            ->whereYear('violations.date_of_violation', $year)
+        $revenueByMonth = Payment::active()
+            ->join('violations', 'payments.violation_id', '=', 'violations.id')
+            ->whereBetween('violations.date_of_violation', [$dateFrom, $dateTo])
             ->when($selectedLguId, fn($q) => $q->where('violations.lgu_id', $selectedLguId))
             ->selectRaw("$paymentDateExpr as m, violations.violation_type_id, SUM(payments.amount_paid) as total_revenue")
             ->groupBy('m', 'violations.violation_type_id')
@@ -120,15 +174,16 @@ class PaymentReportController extends Controller
 
         // ── Annual summary (last 5 years) ────────────────────────────────────
         $yearExpr = $isPgsql ? 'EXTRACT(YEAR FROM paid_at)::int as y' : "CAST(strftime('%Y', paid_at) AS INTEGER) as y";
-        $annualCollection = Payment::when($selectedLguId, fn($q) => $q->whereHas('violation', fn($sq) => $sq->where('lgu_id', $selectedLguId)))
+        $annualCollection = Payment::active()
+            ->when($selectedLguId, fn($q) => $q->whereHas('violation', fn($sq) => $sq->where('lgu_id', $selectedLguId)))
             ->selectRaw("$yearExpr, SUM(amount_paid) as total")
             ->groupBy('y')
             ->orderByDesc('y')
             ->limit(5)
             ->pluck('total', 'y');
 
-        // ── Paid vs unpaid analysis (selected year) ──────────────────────────
-        $baseViolationQuery = Violation::whereYear('date_of_violation', $year)
+        // ── Paid vs unpaid analysis (selected period) ──────────────────────────
+        $baseViolationQuery = Violation::whereBetween('date_of_violation', [$dateFrom, $dateTo])
             ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId));
 
         $statusCounts = (clone $baseViolationQuery)
@@ -136,10 +191,10 @@ class PaymentReportController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $paidAmount = Payment::whereHas('violation', function ($q) use ($year, $selectedLguId) {
-            $q->whereYear('date_of_violation', $year)
-              ->when($selectedLguId, fn($sq) => $sq->where('lgu_id', $selectedLguId));
-        })->sum('amount_paid');
+        $paidAmount = Payment::active()
+            ->whereBetween('paid_at', [$start, $end])
+            ->when($selectedLguId, fn($q) => $q->whereHas('violation', fn($sq) => $sq->where('lgu_id', $selectedLguId)))
+            ->sum('amount_paid');
 
         $dueAmount = (clone $baseViolationQuery)
             ->whereIn('status', ['pending', 'partial'])
@@ -147,18 +202,18 @@ class PaymentReportController extends Controller
             ->selectRaw("COALESCE(SUM(violation_types.fine_amount + CASE WHEN violations.due_date IS NOT NULL AND violations.due_date < CURRENT_DATE THEN COALESCE(violation_types.late_penalty_amount, 0) ELSE 0 END), 0) as total")
             ->value('total');
 
-        $paidTowardOutstanding = Payment::whereHas('violation', function ($q) use ($year, $selectedLguId) {
-            $q->whereYear('date_of_violation', $year)
-              ->whereIn('status', ['pending', 'partial'])
-              ->when($selectedLguId, fn($sq) => $sq->where('lgu_id', $selectedLguId));
-        })->sum('amount_paid');
+        $paidTowardOutstanding = Payment::active()
+            ->whereHas('violation', function ($q) use ($dateFrom, $dateTo, $selectedLguId) {
+                $q->whereBetween('date_of_violation', [$dateFrom, $dateTo])
+                  ->whereIn('status', ['pending', 'partial'])
+                  ->when($selectedLguId, fn($sq) => $sq->where('lgu_id', $selectedLguId));
+            })->sum('amount_paid');
 
         $unpaidAmount = max(0, $dueAmount - $paidTowardOutstanding);
 
         // ── LGU / Barangay collection performance ranking ─────────────────────────
         if ($selectedLguId) {
-            // Grouped counts query
-            $locationCounts = Violation::whereYear('date_of_violation', $year)
+            $locationCounts = Violation::whereBetween('date_of_violation', [$dateFrom, $dateTo])
                 ->where('lgu_id', $selectedLguId)
                 ->whereNotNull('location')
                 ->where('location', '!=', '')
@@ -171,9 +226,8 @@ class PaymentReportController extends Controller
                 ->get()
                 ->keyBy('location');
 
-            // Grouped revenue query
             $locationRevenues = Payment::active()
-                ->whereHas('violation', fn($q) => $q->whereYear('date_of_violation', $year)->where('lgu_id', $selectedLguId))
+                ->whereHas('violation', fn($q) => $q->whereBetween('date_of_violation', [$dateFrom, $dateTo])->where('lgu_id', $selectedLguId))
                 ->join('violations', 'payments.violation_id', '=', 'violations.id')
                 ->select('violations.location', DB::raw('SUM(payments.amount_paid) as revenue'))
                 ->groupBy('violations.location')
@@ -198,7 +252,7 @@ class PaymentReportController extends Controller
         } else {
             $locationPerformance = collect();
 
-            $lguCounts = Violation::whereYear('date_of_violation', $year)
+            $lguCounts = Violation::whereBetween('date_of_violation', [$dateFrom, $dateTo])
                 ->select(
                     'lgu_id',
                     DB::raw('COUNT(*) as total'),
@@ -209,7 +263,7 @@ class PaymentReportController extends Controller
                 ->keyBy('lgu_id');
 
             $lguRevenues = Payment::active()
-                ->whereHas('violation', fn($q) => $q->whereYear('date_of_violation', $year))
+                ->whereHas('violation', fn($q) => $q->whereBetween('date_of_violation', [$dateFrom, $dateTo]))
                 ->join('violations', 'payments.violation_id', '=', 'violations.id')
                 ->select('violations.lgu_id', DB::raw('SUM(payments.amount_paid) as revenue'))
                 ->groupBy('violations.lgu_id')
@@ -235,8 +289,7 @@ class PaymentReportController extends Controller
         // ── Reconciliation table ─────────────────────────────────────────────
         $payments = Payment::with(['violation.violator', 'violation.lgu', 'collector'])
             ->when($selectedLguId, fn($q) => $q->whereHas('violation', fn($sq) => $sq->where('lgu_id', $selectedLguId)))
-            ->when($request->filled('date_from'), fn($q) => $q->whereDate('paid_at', '>=', $request->input('date_from')))
-            ->when($request->filled('date_to'), fn($q) => $q->whereDate('paid_at', '<=', $request->input('date_to')))
+            ->whereBetween('paid_at', [$start, $end])
             ->when($request->filled('method'), fn($q) => $q->where('payment_method', $request->input('method')))
             ->when($request->filled('or_number'), fn($q) => $q->where('or_number', 'like', '%' . str_replace(['%', '_'], ['\%', '\_'], $request->input('or_number')) . '%'))
             ->orderByDesc('paid_at')
@@ -244,6 +297,7 @@ class PaymentReportController extends Controller
             ->withQueryString();
 
         return view('payments.report', compact(
+            'period', 'periodLabel', 'dateFrom', 'dateTo',
             'year', 'lgus', 'selectedLguId',
             'dailyLabels', 'dailyData',
             'monthlyLabels', 'monthlyData',
@@ -257,11 +311,39 @@ class PaymentReportController extends Controller
     public function exportExcel(Request $request)
     {
         $selectedLguId = $this->resolveLguFilter($request);
+        $period        = $request->input('period');
+        $year          = (int) $request->input('year', now()->year);
+
+        $dateFrom = $request->input('date_from');
+        $dateTo   = $request->input('date_to');
+
+        if (!$dateFrom || !$dateTo) {
+            $period = $period ?: 'yearly';
+            switch ($period) {
+                case 'daily':
+                    $dateFrom = now()->startOfDay()->toDateString();
+                    $dateTo   = now()->endOfDay()->toDateString();
+                    break;
+                case 'weekly':
+                    $dateFrom = now()->startOfWeek()->toDateString();
+                    $dateTo   = now()->endOfWeek()->toDateString();
+                    break;
+                case 'monthly':
+                    $dateFrom = now()->startOfMonth()->toDateString();
+                    $dateTo   = now()->endOfMonth()->toDateString();
+                    break;
+                case 'yearly':
+                default:
+                    $dateFrom = \Carbon\Carbon::create($year)->startOfYear()->toDateString();
+                    $dateTo   = \Carbon\Carbon::create($year)->endOfYear()->toDateString();
+                    break;
+            }
+        }
 
         $filters = [
             'lgu_id'    => $selectedLguId,
-            'date_from' => $request->input('date_from'),
-            'date_to'   => $request->input('date_to'),
+            'date_from' => $dateFrom,
+            'date_to'   => $dateTo,
             'method'    => $request->input('method'),
             'or_number' => $request->input('or_number'),
         ];

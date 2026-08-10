@@ -123,6 +123,17 @@
 </style>
 
 <script>
+function toggleYearSelect(val) {
+    var yearSel = document.getElementById('topYearSelect');
+    if (val === 'yearly') {
+        if (yearSel) yearSel.style.display = 'inline-block';
+    } else {
+        if (yearSel) yearSel.style.display = 'none';
+    }
+    var form = document.getElementById('topReportFilterForm');
+    if (form) form.submit();
+}
+
 function setPeriodFilter(from, to) {
     var df = document.getElementById('filterDateFrom');
     var dt = document.getElementById('filterDateTo');
@@ -192,7 +203,7 @@ function setPeriodFilter(from, to) {
         </div>
 
         <div class="d-flex align-items-center gap-2 flex-wrap no-print">
-            <form method="GET" action="{{ route('payments.report') }}" class="d-flex align-items-center gap-2">
+            <form method="GET" action="{{ route('payments.report') }}" class="d-flex align-items-center gap-2 flex-wrap" id="topReportFilterForm">
                 @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin())
                 <select name="lgu_id" class="form-select form-select-sm shadow-sm pm-filter-input fw-semibold" onchange="this.form.submit()">
                     <option value="">All Municipalities / LGUs</option>
@@ -201,7 +212,16 @@ function setPeriodFilter(from, to) {
                     @endforeach
                 </select>
                 @endif
-                <select name="year" class="form-select form-select-sm shadow-sm pm-filter-input fw-semibold" onchange="this.form.submit()">
+                <select name="period" id="topPeriodSelect" class="form-select form-select-sm shadow-sm pm-filter-input fw-semibold" onchange="toggleYearSelect(this.value)">
+                    <option value="daily"   {{ $period === 'daily'   ? 'selected' : '' }}>Daily (Today)</option>
+                    <option value="weekly"  {{ $period === 'weekly'  ? 'selected' : '' }}>Weekly (This Week)</option>
+                    <option value="monthly" {{ $period === 'monthly' ? 'selected' : '' }}>Monthly (This Month)</option>
+                    <option value="yearly"  {{ $period === 'yearly'  ? 'selected' : '' }}>Yearly</option>
+                    @if($period === 'custom')
+                    <option value="custom" selected>Custom Range</option>
+                    @endif
+                </select>
+                <select name="year" id="topYearSelect" class="form-select form-select-sm shadow-sm pm-filter-input fw-semibold" onchange="this.form.submit()" style="{{ $period !== 'yearly' ? 'display:none;' : '' }}">
                     @for($y = date('Y'); $y >= 2020; $y--)
                         <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>Year {{ $y }}</option>
                     @endfor
@@ -221,7 +241,7 @@ function setPeriodFilter(from, to) {
     <div class="alert alert-emerald border-0 shadow-sm mb-4 d-flex align-items-center justify-content-between no-print" style="background:#ecfdf5;color:#047857;border-radius:12px;font-size:.875rem;">
         <div>
             <i class="bi bi-shield-check me-2 fs-5 align-middle"></i>
-            <span>Showing payment collection records for <strong>{{ Auth::user()->lgu?->name ?? 'assigned municipality' }}</strong> only.</span>
+            <span>Showing payment collection records for <strong>{{ Auth::user()->lgu?->name ?? 'assigned municipality' }}</strong> ({{ $periodLabel }}).</span>
         </div>
         <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 text-uppercase fw-bold" style="font-size:0.68rem;">LGU Scoped</span>
     </div>
@@ -240,7 +260,7 @@ function setPeriodFilter(from, to) {
                     <div class="fs-2 fw-extrabold text-dark mb-1">₱{{ number_format($paidAmount, 2) }}</div>
                     <div class="d-flex align-items-center gap-1 text-muted" style="font-size:.75rem;">
                         <i class="bi bi-calendar-check text-success"></i>
-                        <span>Payments settled in {{ $year }}</span>
+                        <span>Payments settled in {{ $periodLabel }}</span>
                     </div>
                 </div>
             </div>
@@ -257,7 +277,7 @@ function setPeriodFilter(from, to) {
                     <div class="fs-2 fw-extrabold text-dark mb-1">₱{{ number_format($unpaidAmount, 2) }}</div>
                     <div class="d-flex align-items-center gap-1 text-muted" style="font-size:.75rem;">
                         <i class="bi bi-exclamation-triangle text-danger"></i>
-                        <span>Pending &amp; partial balances (incl. penalties)</span>
+                        <span>Pending &amp; partial balances ({{ $periodLabel }})</span>
                     </div>
                 </div>
             </div>
