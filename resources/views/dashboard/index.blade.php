@@ -1053,6 +1053,7 @@ setInterval(fetchStats, REFRESH_MS);
             // Update links
             setHref('aLink-violations', data.violationsUrl);
             setHref('aLink-incidents',  data.incidentsUrl);
+            setHref('aLink-amount',     data.amountUrl);
 
             // Charts
             updateViolationsChart(data.chart.labels, data.chart.values);

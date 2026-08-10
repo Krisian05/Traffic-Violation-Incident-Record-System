@@ -359,6 +359,11 @@ class DashboardController extends Controller
             ->whereNull('voided_at')
             ->sum('amount_paid');
 
+        $amountUrl = route('payments.report', array_filter([
+            'year'   => $start->year,
+            'lgu_id' => $lguId,
+        ]));
+
         return [
             'period'           => $period,
             'periodLabel'      => $periodLabel,
@@ -371,6 +376,7 @@ class DashboardController extends Controller
             'incidentsTrend'   => $incidentsTrend,
             'violationsUrl'    => $violationsUrl,
             'incidentsUrl'     => $incidentsUrl,
+            'amountUrl'        => $amountUrl,
             'violationAmount'  => round((float) $violationAmount, 2),
             'chart'            => ['labels' => $labels, 'values' => $values],
             'topBarangays'     => $topBarangays->values()->toArray(),
