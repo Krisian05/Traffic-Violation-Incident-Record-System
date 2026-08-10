@@ -524,25 +524,47 @@ function setPeriodFilter(from, to) {
                 $monthStart = now()->startOfMonth()->toDateString();
                 $yesterdayStart = now()->subDay()->toDateString();
             @endphp
-            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap no-print">
-                <span class="text-muted fw-bold" style="font-size:.7rem;letter-spacing:.05em;">QUICK FILTER:</span>
-                <button type="button" class="pm-period-shortcut {{ request('date_from') === $today && request('date_to') === $today ? 'active' : '' }}"
-                        onclick="setPeriodFilter('{{ $today }}', '{{ $today }}')">
-                    <i class="bi bi-sun-fill me-1"></i>Daily
-                </button>
-                <button type="button" class="pm-period-shortcut {{ request('date_from') === $weekStart && request('date_to') === $today ? 'active' : '' }}"
-                        onclick="setPeriodFilter('{{ $weekStart }}', '{{ $today }}')">
-                    <i class="bi bi-calendar-week-fill me-1"></i>This Week
-                </button>
-                <button type="button" class="pm-period-shortcut {{ request('date_from') === $monthStart && request('date_to') === $today ? 'active' : '' }}"
-                        onclick="setPeriodFilter('{{ $monthStart }}', '{{ $today }}')">
-                    <i class="bi bi-calendar-month-fill me-1"></i>This Month
-                </button>
+            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2 no-print">
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-emerald-subtle border border-emerald-subtle fw-bold text-success shadow-sm dropdown-toggle d-flex align-items-center gap-1.5 px-3 py-1.5 rounded-2"
+                            type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background:#ecfdf5;font-size:0.82rem;">
+                        <i class="bi bi-lightning-charge-fill text-warning"></i>
+                        <span>Quick Access Filter</span>
+                    </button>
+                    <ul class="dropdown-menu shadow-sm border-0 rounded-3 mt-1" style="font-size:0.84rem;">
+                        <li>
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2 {{ request('date_from') === $today && request('date_to') === $today ? 'active fw-bold bg-success text-white' : '' }}"
+                                    type="button" onclick="setPeriodFilter('{{ $today }}', '{{ $today }}')">
+                                <i class="bi bi-sun-fill text-warning"></i> Daily (Today)
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2 {{ request('date_from') === $weekStart && request('date_to') === $today ? 'active fw-bold bg-success text-white' : '' }}"
+                                    type="button" onclick="setPeriodFilter('{{ $weekStart }}', '{{ $today }}')">
+                                <i class="bi bi-calendar-week-fill text-primary"></i> This Week (Mon &ndash; Today)
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item d-flex align-items-center gap-2 py-2 {{ request('date_from') === $monthStart && request('date_to') === $today ? 'active fw-bold bg-success text-white' : '' }}"
+                                    type="button" onclick="setPeriodFilter('{{ $monthStart }}', '{{ $today }}')">
+                                <i class="bi bi-calendar-month-fill text-success"></i> This Month (1st &ndash; Today)
+                            </button>
+                        </li>
+                        @if(request('date_from') || request('date_to'))
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger fw-semibold"
+                               href="{{ route('payments.report', array_filter(['year' => $year, 'lgu_id' => $selectedLguId, 'method' => request('method'), 'or_number' => request('or_number')])) }}">
+                                <i class="bi bi-x-circle text-danger"></i> Clear Date Filters
+                            </a>
+                        </li>
+                        @endif
+                    </ul>
+                </div>
                 @if(request('date_from') || request('date_to'))
-                <a href="{{ route('payments.report', array_filter(['year' => $year, 'lgu_id' => $selectedLguId, 'method' => request('method'), 'or_number' => request('or_number')])) }}"
-                   class="pm-period-shortcut pm-period-shortcut-clear">
-                    <i class="bi bi-x-circle me-1"></i>Clear
-                </a>
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1.5 font-monospace fw-semibold" style="font-size:0.75rem;">
+                    <i class="bi bi-funnel-fill me-1"></i> Active Range: {{ request('date_from') }} to {{ request('date_to') }}
+                </span>
                 @endif
             </div>
 
