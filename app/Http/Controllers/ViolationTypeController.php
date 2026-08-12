@@ -9,22 +9,30 @@ use Illuminate\Validation\Rule;
 
 class ViolationTypeController extends Controller
 {
-    private function checkAccess(ViolationType $violationType): void
+    private function checkManageAccess(?ViolationType $violationType = null): void
     {
         $user = auth()->user();
         if (!$user) {
             abort(401);
         }
 
-        if ($user->isSuperAdmin() || $user->isProvinceAdmin()) {
+        // Provincial Admin is read-only monitoring user
+        if ($user->isProvinceAdmin()) {
+            abort(403, 'Provincial Administrators have read-only monitoring access to violation types.');
+        }
+
+        if ($user->isSuperAdmin()) {
             return;
         }
 
-        if ($user->isLguAdmin() && (int) $violationType->lgu_id === (int) $user->lgu_id) {
+        if ($user->isLguAdmin()) {
+            if ($violationType && (int) $violationType->lgu_id !== (int) $user->lgu_id) {
+                abort(403, 'Forbidden. You may only manage violation types for your assigned LGU.');
+            }
             return;
         }
 
-        abort(403, 'Forbidden. You may only manage violation types for your assigned LGU.');
+        abort(403, 'Forbidden. You are not authorized to manage violation types.');
     }
 
     public function index(Request $request)
@@ -36,13 +44,11 @@ class ViolationTypeController extends Controller
 
         if ($user->isSuperAdmin() || $user->isProvinceAdmin()) {
             $selectedLgu = $request->input('lgu_id');
-            if ($selectedLgu === 'global') {
-                $query->whereNull('lgu_id');
-            } elseif ($selectedLgu && is_numeric($selectedLgu)) {
+            if ($selectedLgu && is_numeric($selectedLgu)) {
                 $query->where('lgu_id', (int) $selectedLgu);
             }
         } else {
-            // LGU Admin: scoped to their LGU (and global fallback types)
+            // LGU Admin: scoped strictly to their assigned LGU
             $query->forLgu($user->lgu_id);
         }
 
@@ -52,22 +58,24 @@ class ViolationTypeController extends Controller
 
     public function create()
     {
+        $this->checkManageAccess();
         $lgus = Lgu::orderBy('name')->get();
         return view('violation-types.create', compact('lgus'));
     }
 
     public function store(Request $request)
     {
+        $this->checkManageAccess();
         $user = auth()->user();
-        $targetLguId = ($user->isSuperAdmin() || $user->isProvinceAdmin())
+
+        $targetLguId = $user->isSuperAdmin()
             ? $request->input('lgu_id')
             : $user->lgu_id;
 
-        if ($targetLguId === '') {
-            $targetLguId = null;
-        }
+        $request->merge(['lgu_id' => $targetLguId]);
 
         $data = $request->validate([
+            'lgu_id'              => ['required', 'exists:lgus,id'],
             'name'                => [
                 'required',
                 'string',
@@ -79,7 +87,6 @@ class ViolationTypeController extends Controller
             'fine_amount'         => ['nullable', 'numeric', 'min:0'],
             'late_penalty_amount' => ['nullable', 'numeric', 'min:0'],
             'points'              => ['nullable', 'integer', 'min:0'],
-            'lgu_id'              => ['nullable', 'exists:lgus,id'],
         ]);
 
         $data['lgu_id'] = $targetLguId;
@@ -92,25 +99,24 @@ class ViolationTypeController extends Controller
 
     public function edit(ViolationType $violationType)
     {
-        $this->checkAccess($violationType);
+        $this->checkManageAccess($violationType);
         $lgus = Lgu::orderBy('name')->get();
         return view('violation-types.edit', compact('violationType', 'lgus'));
     }
 
     public function update(Request $request, ViolationType $violationType)
     {
-        $this->checkAccess($violationType);
+        $this->checkManageAccess($violationType);
         $user = auth()->user();
 
-        $targetLguId = ($user->isSuperAdmin() || $user->isProvinceAdmin())
+        $targetLguId = $user->isSuperAdmin()
             ? $request->input('lgu_id', $violationType->lgu_id)
             : $user->lgu_id;
 
-        if ($targetLguId === '') {
-            $targetLguId = null;
-        }
+        $request->merge(['lgu_id' => $targetLguId]);
 
         $data = $request->validate([
+            'lgu_id'              => ['required', 'exists:lgus,id'],
             'name'                => [
                 'required',
                 'string',
@@ -122,7 +128,6 @@ class ViolationTypeController extends Controller
             'fine_amount'         => ['nullable', 'numeric', 'min:0'],
             'late_penalty_amount' => ['nullable', 'numeric', 'min:0'],
             'points'              => ['nullable', 'integer', 'min:0'],
-            'lgu_id'              => ['nullable', 'exists:lgus,id'],
         ]);
 
         $data['lgu_id'] = $targetLguId;
@@ -135,7 +140,7 @@ class ViolationTypeController extends Controller
 
     public function destroy(ViolationType $violationType)
     {
-        $this->checkAccess($violationType);
+        $this->checkManageAccess($violationType);
 
         if ($violationType->violations()->exists()) {
             return back()->with('error', 'Cannot delete a violation type that has existing violation records.');

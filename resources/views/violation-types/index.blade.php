@@ -25,8 +25,7 @@
             @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin())
             <form method="GET" action="{{ route('violation-types.index') }}" class="d-flex align-items-center gap-2">
                 <select name="lgu_id" class="form-select form-select-sm shadow-none rounded-pill" onchange="this.form.submit()" style="min-width: 180px; font-size: .82rem;">
-                    <option value="">All LGUs & Global</option>
-                    <option value="global" {{ request('lgu_id') === 'global' ? 'selected' : '' }}>Global Defaults Only</option>
+                    <option value="">All LGUs</option>
                     @foreach($lgus as $lguItem)
                         <option value="{{ $lguItem->id }}" {{ request('lgu_id') == $lguItem->id ? 'selected' : '' }}>
                             {{ $lguItem->name }}
@@ -36,7 +35,7 @@
             </form>
             @endif
 
-            @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin() || Auth::user()->isLguAdmin())
+            @if(Auth::user()->isSuperAdmin() || Auth::user()->isLguAdmin())
             <a href="{{ route('violation-types.create') }}" class="vt-add-btn">
                 <i class="bi bi-plus-lg"></i>
                 <span>Add Type</span>
@@ -53,17 +52,17 @@
             <thead>
                 <tr>
                     <th style="padding-left:1.4rem;"><span class="vt-th">Name</span></th>
-                    <th><span class="vt-th">Scope / LGU</span></th>
+                    <th><span class="vt-th">LGU</span></th>
                     <th><span class="vt-th">Description</span></th>
                     <th class="text-end"><span class="vt-th">Fine Amount</span></th>
                     @if(!Auth::user()->isCashier() && !Auth::user()->isTreasurer())<th class="text-center"><span class="vt-th">Usage</span></th>@endif
-                    @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin() || Auth::user()->isLguAdmin())<th class="text-center"><span class="vt-th">Actions</span></th>@endif
+                    @if(Auth::user()->isSuperAdmin() || Auth::user()->isLguAdmin())<th class="text-center"><span class="vt-th">Actions</span></th>@endif
                 </tr>
             </thead>
             <tbody>
                 @forelse($types as $type)
                 @php
-                    $canManage = Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin() || (Auth::user()->isLguAdmin() && (int)$type->lgu_id === (int)Auth::user()->lgu_id);
+                    $canManage = Auth::user()->isSuperAdmin() || (Auth::user()->isLguAdmin() && (int)$type->lgu_id === (int)Auth::user()->lgu_id);
                 @endphp
                 <tr class="vt-row{{ $canManage ? ' vt-row-clickable' : '' }}"
                     @if($canManage) data-href="{{ route('violation-types.edit', $type) }}" @endif>
@@ -79,15 +78,9 @@
                         @endif
                     </td>
                     <td>
-                        @if($type->lgu)
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold px-2 py-1" style="font-size:.72rem;">
-                                <i class="bi bi-building me-1"></i>{{ $type->lgu->name }}
-                            </span>
-                        @else
-                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fw-medium px-2 py-1" style="font-size:.72rem;">
-                                <i class="bi bi-globe me-1"></i>Global Default
-                            </span>
-                        @endif
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold px-2 py-1" style="font-size:.72rem;">
+                            <i class="bi bi-building me-1"></i>{{ $type->lgu?->name ?? 'LGU' }}
+                        </span>
                     </td>
                     <td class="vt-desc">{{ $type->description ?? '—' }}</td>
                     <td class="text-end" style="padding-right:1.4rem;">
@@ -117,7 +110,7 @@
                         @endif
                     </td>
                     @endif
-                    @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin() || Auth::user()->isLguAdmin())
+                    @if(Auth::user()->isSuperAdmin() || Auth::user()->isLguAdmin())
                     <td class="text-center vt-act-cell">
                         @if($canManage)
                         <div class="d-flex justify-content-center gap-2">

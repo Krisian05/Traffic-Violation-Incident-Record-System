@@ -24,15 +24,15 @@
         <form method="POST" action="{{ route('violation-types.update', $violationType) }}">
             @csrf @method('PUT')
 
-            @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin())
+            @if(Auth::user()->isSuperAdmin())
             <div class="mb-3">
-                <label class="vt-label">Assign to LGU / Scope</label>
+                <label class="vt-label">Assign to LGU <span class="text-danger">*</span></label>
                 <div class="input-group">
                     <span class="input-group-text vt-ig-icon" style="background:#f0f9ff;border-color:#bae6fd;">
                         <i class="bi bi-building text-primary"></i>
                     </span>
-                    <select name="lgu_id" class="form-select vt-input @error('lgu_id') is-invalid @enderror">
-                        <option value="">— Global Default Template (All LGUs) —</option>
+                    <select name="lgu_id" class="form-select vt-input @error('lgu_id') is-invalid @enderror" required>
+                        <option value="">— Select Target LGU —</option>
                         @foreach($lgus as $lguItem)
                             <option value="{{ $lguItem->id }}" {{ old('lgu_id', $violationType->lgu_id) == $lguItem->id ? 'selected' : '' }}>
                                 {{ $lguItem->name }} ({{ $lguItem->province }})
