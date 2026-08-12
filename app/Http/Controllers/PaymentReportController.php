@@ -197,7 +197,7 @@ class PaymentReportController extends Controller
             ->sum('amount_paid');
 
         $dueAmount = (clone $baseViolationQuery)
-            ->whereIn('status', ['pending', 'partial'])
+            ->where('status', 'pending')
             ->join('violation_types', 'violations.violation_type_id', '=', 'violation_types.id')
             ->selectRaw("COALESCE(SUM(violation_types.fine_amount + CASE WHEN violations.due_date IS NOT NULL AND violations.due_date < CURRENT_DATE THEN COALESCE(violation_types.late_penalty_amount, 0) ELSE 0 END), 0) as total")
             ->value('total');
@@ -205,7 +205,7 @@ class PaymentReportController extends Controller
         $paidTowardOutstanding = Payment::active()
             ->whereHas('violation', function ($q) use ($dateFrom, $dateTo, $selectedLguId) {
                 $q->whereBetween('date_of_violation', [$dateFrom, $dateTo])
-                  ->whereIn('status', ['pending', 'partial'])
+                  ->where('status', 'pending')
                   ->when($selectedLguId, fn($sq) => $sq->where('lgu_id', $selectedLguId));
             })->sum('amount_paid');
 

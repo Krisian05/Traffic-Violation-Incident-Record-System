@@ -61,7 +61,7 @@ class ViolationController extends Controller
                 if (Schema::hasColumn('violations', 'due_date')) {
                     $query->overdue();
                 } else {
-                    $query->whereIn('status', ['pending', 'partial']);
+                    $query->where('status', 'pending');
                 }
             } else {
                 $query->where('status', $status);
@@ -99,8 +99,7 @@ class ViolationController extends Controller
             $query->orderByRaw("
                 CASE
                     WHEN status = 'pending' AND (due_date IS NULL OR due_date >= '{$today}') THEN 1
-                    WHEN (status IN ('pending', 'partial') AND due_date IS NOT NULL AND due_date < '{$today}') THEN 2
-                    WHEN status = 'partial' AND (due_date IS NULL OR due_date >= '{$today}') THEN 3
+                    WHEN (status = 'pending' AND due_date IS NOT NULL AND due_date < '{$today}') THEN 2
                     WHEN status = 'settled' THEN 4
                     ELSE 5
                 END ASC
@@ -109,7 +108,6 @@ class ViolationController extends Controller
             $query->orderByRaw("
                 CASE
                     WHEN status = 'pending' THEN 1
-                    WHEN status = 'partial' THEN 3
                     WHEN status = 'settled' THEN 4
                     ELSE 5
                 END ASC
@@ -304,17 +302,17 @@ class ViolationController extends Controller
             'ticket_number'           => ['nullable', 'string', 'max:50'],
             'citation_ticket_photo'   => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
             'valid_id_photo'          => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:20480'],
-            'status'       => ['required', 'in:pending,partial,settled,contested'],
+            'status'       => ['required', 'in:pending,settled,contested'],
             'notes'        => ['nullable', 'string', 'max:1000'],
         ]);
 
-        // Settlement state (pending/partial/settled) is payment-driven and can only
+        // Settlement state (pending/settled) is payment-driven and can only
         // change via the Settle action (ViolationController::settle -> PaymentService),
         // which is the only path that keeps the `payments` table in sync. This form
         // may only toggle between pending and contested for records not yet settled;
         // a tampered request can neither un-settle a paid record nor fake one as settled.
-        if (in_array($violation->status, ['settled', 'partial'], true)) {
-            $data['status'] = $violation->status;
+        if ($violation->status === 'settled') {
+            $data['status'] = 'settled';
         } elseif (!in_array($data['status'], ['pending', 'contested'], true)) {
             $data['status'] = 'pending';
         }
@@ -605,7 +603,7 @@ class ViolationController extends Controller
             }
 
             // Prioritize unpaid/pending tickets over already settled ones
-            $query->orderByRaw("CASE WHEN status IN ('pending', 'partial') THEN 0 ELSE 1 END")
+            $query->orderByRaw("CASE WHEN status = 'pending' THEN 0 ELSE 1 END")
                   ->orderBy('date_of_violation', 'desc');
 
             $violation = $query->first();
@@ -648,7 +646,7 @@ class ViolationController extends Controller
 
         $pendingQuery = Violation::with(['violator', 'violationType'])
             ->withSum('activePayments as total_paid', 'amount_paid')
-            ->whereIn('status', ['pending', 'partial'])
+            ->where('status', 'pending')
             ->orderBy('date_of_violation', 'desc');
 
         if ($user->lgu_id) {

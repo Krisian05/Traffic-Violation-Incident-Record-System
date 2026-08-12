@@ -151,8 +151,8 @@ class PaymentService
             return;
         }
 
-        // #4 — Use bccomp for precise financial comparison
-        $status = bccomp((string) $totalPaid, (string) $totalDue, 2) >= 0 ? 'settled' : 'partial';
+        // Financial comparison: full payment marks violation as settled, otherwise pending
+        $status = bccomp((string) $totalPaid, (string) $totalDue, 2) >= 0 ? 'settled' : 'pending';
 
         $updates = ['status' => $status];
         $updates['settled_at'] = $status === 'settled' ? ($violation->settled_at ?? now()) : null;

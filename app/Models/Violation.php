@@ -205,18 +205,18 @@ class Violation extends Model
 
     // ── Scopes ─────────────────────────────────────────────────────────────
 
-    /** Unpaid/partially-paid violations whose due_date has passed. */
+    /** Unpaid violations whose due_date has passed. */
     public function scopeOverdue($query)
     {
-        return $query->whereIn('status', ['pending', 'partial'])
+        return $query->where('status', 'pending')
                      ->whereNotNull('due_date')
                      ->where('due_date', '<', now()->toDateString());
     }
 
-    /** Unpaid/partially-paid violations still within their due date. */
+    /** Unpaid violations still within their due date. */
     public function scopePendingActive($query)
     {
-        return $query->whereIn('status', ['pending', 'partial'])
+        return $query->where('status', 'pending')
                      ->where(function ($q) {
                          $q->whereNull('due_date')->orWhere('due_date', '>=', now()->toDateString());
                      });
@@ -224,10 +224,10 @@ class Violation extends Model
 
     // ── Financial Helpers ───────────────────────────────────────────────────
 
-    /** True if this violation instance is past its due date and still unpaid/partially paid. */
+    /** True if this violation instance is past its due date and still unpaid. */
     public function isOverdue(): bool
     {
-        if (!in_array($this->status, ['pending', 'partial'], true) || empty($this->due_date)) {
+        if ($this->status !== 'pending' || empty($this->due_date)) {
             return false;
         }
 

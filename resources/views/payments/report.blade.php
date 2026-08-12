@@ -320,7 +320,7 @@ function setPeriodFilter(from, to) {
                     <div class="fs-2 fw-extrabold text-dark mb-1">₱{{ number_format($unpaidAmount, 2) }}</div>
                     <div class="d-flex align-items-center gap-1 text-muted" style="font-size:.75rem;">
                         <i class="bi bi-exclamation-triangle text-danger"></i>
-                        <span>Pending &amp; partial balances ({{ $periodLabel }})</span>
+                        <span>Pending balances ({{ $periodLabel }})</span>
                     </div>
                 </div>
             </div>
@@ -340,9 +340,6 @@ function setPeriodFilter(from, to) {
                         </span>
                         <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-bold px-2.5 py-1.5 rounded-2">
                             <i class="bi bi-hourglass-split me-1"></i> Pending: {{ $statusCounts['pending'] ?? 0 }}
-                        </span>
-                        <span class="badge fw-bold px-2.5 py-1.5 rounded-2" style="background:#fff7ed;color:#c2410c;border:1px solid #ffedd5;">
-                            <i class="bi bi-pie-chart me-1"></i> Partial: {{ $statusCounts['partial'] ?? 0 }}
                         </span>
                         <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fw-bold px-2.5 py-1.5 rounded-2">
                             <i class="bi bi-shield-exclamation me-1"></i> Contested: {{ $statusCounts['contested'] ?? 0 }}

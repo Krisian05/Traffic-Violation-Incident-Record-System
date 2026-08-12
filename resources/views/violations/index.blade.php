@@ -83,7 +83,6 @@
                     <select name="status" class="form-select form-select-sm filt-input">
                         <option value="">All Statuses</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="partial" {{ request('status') === 'partial' ? 'selected' : '' }}>Partial</option>
                         <option value="overdue" {{ request('status') === 'overdue' ? 'selected' : '' }}>Overdue</option>
                         <option value="settled" {{ request('status') === 'settled' ? 'selected' : '' }}>Settled</option>
                     </select>

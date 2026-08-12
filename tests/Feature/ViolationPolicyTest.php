@@ -230,6 +230,6 @@ class ViolationPolicyTest extends TestCase
         $vList = $res->viewData('violations');
         $plates = collect($vList->items())->pluck('vehicle_plate')->toArray();
 
-        $this->assertEquals(['PLATE-PENDING', 'PLATE-OVERDUE', 'PLATE-PARTIAL', 'PLATE-SETTLED'], $plates);
+        $this->assertEquals(['PLATE-PENDING', 'PLATE-OVERDUE', 'PLATE-SETTLED', 'PLATE-PARTIAL'], $plates);
     }
 }

@@ -121,7 +121,7 @@ class PaymentMonitoringTest extends TestCase
         ])->assertRedirect();
 
         $violation->refresh();
-        $this->assertSame('partial', $violation->status);
+        $this->assertSame('pending', $violation->status);
         $this->assertNull($violation->settled_at);
         $this->assertEqualsWithDelta(600.0, $violation->balanceRemaining(), 0.001);
 
