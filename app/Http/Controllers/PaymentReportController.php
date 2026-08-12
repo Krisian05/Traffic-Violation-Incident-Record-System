@@ -126,7 +126,10 @@ class PaymentReportController extends Controller
         $violationDateExpr = $isPgsql ? 'EXTRACT(MONTH FROM date_of_violation)::int' : "CAST(strftime('%m', date_of_violation) AS INTEGER)";
         $paymentDateExpr   = $isPgsql ? 'EXTRACT(MONTH FROM violations.date_of_violation)::int' : "CAST(strftime('%m', violations.date_of_violation) AS INTEGER)";
 
-        $violationTypes = ViolationType::orderBy('name')->get();
+        $violationTypes = ViolationType::when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId))
+            ->with(['lgu'])
+            ->orderBy('name')
+            ->get();
 
         $violationsByMonth = Violation::join('violation_types', 'violations.violation_type_id', '=', 'violation_types.id')
             ->whereBetween('violations.date_of_violation', [$dateFrom, $dateTo])

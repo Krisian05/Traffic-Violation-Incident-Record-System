@@ -423,10 +423,14 @@ function setPeriodFilter(from, to) {
                                     <td class="text-center" id="tfootTotalNumber">0</td>
                                     <td class="text-end text-primary font-monospace" style="font-size:0.92rem;" id="tfootTotalCollectible">₱0.00</td>
                                     <td class="text-end text-success font-monospace" style="font-size:0.92rem;" id="tfootTotalRevenue">₱0.00</td>
-                                    <td class="text-end pe-3.5 text-danger font-monospace" style="font-size:0.92rem;" id="tfootTotalBalance">₱0.00</td>
                                 </tr>
                             </tfoot>
                         </table>
+                    </div>
+                    <div id="vtShowAllBtnWrapper" class="text-center py-2.5 bg-light border-top d-none">
+                        <button type="button" id="toggleShowAllBtn" class="btn btn-sm btn-outline-success rounded-pill px-4 fw-bold shadow-sm" onclick="toggleShowAllViolationTypes()">
+                            <i class="bi bi-chevron-down me-1"></i> Show All
+                        </button>
                     </div>
                 </div>
             </div>
@@ -679,6 +683,9 @@ function setPeriodFilter(from, to) {
     const monthlyViolationsData = @json($monthlyViolationsSummary);
     const defaultMonthNum = {{ $defaultMonth }};
 
+    let showAllExpanded = false;
+    let currentVListLength = 0;
+
     function selectSummaryMonth(monthNum, monthName) {
         // 1. Update active month button
         document.querySelectorAll('.pm-month-btn').forEach(btn => btn.classList.remove('active'));
@@ -691,6 +698,7 @@ function setPeriodFilter(from, to) {
         // 3. Render Violations & Revenue Table Body
         const vBody = document.getElementById('violationsSummaryBody');
         const vList = monthlyViolationsData[monthNum] || [];
+        currentVListLength = vList.length;
         let vHtml = '';
         let vTotalCount = 0;
         let vTotalCollectible = 0;
@@ -700,7 +708,7 @@ function setPeriodFilter(from, to) {
         if (vList.length === 0) {
             vHtml = `<tr><td colspan="5" class="text-center py-4 text-muted">No violation records for ${monthName}.</td></tr>`;
         } else {
-            vList.forEach(item => {
+            vList.forEach((item, idx) => {
                 vTotalCount       += item.total;
                 vTotalCollectible += item.collectible;
                 vTotalRevenue     += item.revenue;
@@ -722,8 +730,10 @@ function setPeriodFilter(from, to) {
                     ? 'color:#dc2626;font-weight:700;' 
                     : 'color:#94a3b8;';
 
+                const rowHiddenClass = (idx >= 20 && !showAllExpanded) ? 'vt-extra-row d-none' : 'vt-extra-row';
+
                 vHtml += `
-                    <tr>
+                    <tr class="${rowHiddenClass}">
                         <td class="ps-3.5 fw-semibold text-dark">
                             ${escapeHtml(item.name)}
                             <div style="font-size:.72rem;color:#78716c;font-weight:normal;">Base Fine: ₱${formatMoney(item.fine_amount)}</div>
@@ -748,6 +758,17 @@ function setPeriodFilter(from, to) {
         }
         vBody.innerHTML = vHtml;
 
+        // Show / Hide "Show All" toggle button container if > 20 items
+        const showAllWrapper = document.getElementById('vtShowAllBtnWrapper');
+        if (showAllWrapper) {
+            if (vList.length > 20) {
+                showAllWrapper.classList.remove('d-none');
+                updateShowAllBtnLabel();
+            } else {
+                showAllWrapper.classList.add('d-none');
+            }
+        }
+
         // 4. Update Header Badges & Footer Totals
         document.getElementById('totalViolationsCountBadge').innerText = `${vTotalCount} Total Violations`;
         document.getElementById('totalCollectibleBadge').innerText    = `₱${formatMoney(vTotalCollectible)} Total Collectible`;
@@ -758,6 +779,31 @@ function setPeriodFilter(from, to) {
         document.getElementById('tfootTotalCollectible').innerText = `₱${formatMoney(vTotalCollectible)}`;
         document.getElementById('tfootTotalRevenue').innerText     = `₱${formatMoney(vTotalRevenue)}`;
         document.getElementById('tfootTotalBalance').innerText     = `₱${formatMoney(vTotalBalance)}`;
+    }
+
+    function toggleShowAllViolationTypes() {
+        showAllExpanded = !showAllExpanded;
+        const extraRows = document.querySelectorAll('.vt-extra-row');
+        extraRows.forEach((row, idx) => {
+            if (idx >= 20) {
+                if (showAllExpanded) {
+                    row.classList.remove('d-none');
+                } else {
+                    row.classList.add('d-none');
+                }
+            }
+        });
+        updateShowAllBtnLabel();
+    }
+
+    function updateShowAllBtnLabel() {
+        const btn = document.getElementById('toggleShowAllBtn');
+        if (!btn) return;
+        if (showAllExpanded) {
+            btn.innerHTML = `<i class="bi bi-chevron-up me-1"></i> Show Less (Top 20)`;
+        } else {
+            btn.innerHTML = `<i class="bi bi-chevron-down me-1"></i> Show All (${currentVListLength} Violation Types)`;
+        }
     }
 
     function formatMoney(amount) {
