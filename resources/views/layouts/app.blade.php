@@ -1068,9 +1068,9 @@
             <i class="bi bi-chat-left-text-fill"></i> SMS Gateway
         </a>
         @endif
-        @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin())
+        @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin() || Auth::user()->isLguAdmin())
         <a href="{{ route('lgus.index') }}" class="{{ request()->routeIs('lgus.*') ? 'active' : '' }}">
-            <i class="bi bi-building"></i> LGUs
+            <i class="bi bi-building"></i> {{ (Auth::user()->isLguAdmin() && !Auth::user()->isSuperAdmin() && !Auth::user()->isProvinceAdmin()) ? 'My LGU' : 'LGUs' }}
         </a>
         @endif
         @endif

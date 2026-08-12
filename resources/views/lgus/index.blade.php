@@ -17,13 +17,21 @@
             </div>
             <div>
                 <h5 class="lgu-header-title mb-0">LGUs</h5>
-                <p class="lgu-header-sub mb-0">{{ $lgus->count() }} municipalit{{ $lgus->count() !== 1 ? 'ies' : 'y' }}/cit{{ $lgus->count() !== 1 ? 'ies' : 'y' }} onboarded</p>
+                <p class="lgu-header-sub mb-0">
+                    @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin())
+                        {{ $lgus->count() }} municipalit{{ $lgus->count() !== 1 ? 'ies' : 'y' }}/cit{{ $lgus->count() !== 1 ? 'ies' : 'y' }} onboarded
+                    @else
+                        Assigned Municipality / LGU Information
+                    @endif
+                </p>
             </div>
         </div>
+        @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin())
         <a href="{{ route('lgus.create') }}" class="lgu-add-btn">
             <i class="bi bi-plus-lg"></i>
             <span>Add LGU</span>
         </a>
+        @endif
     </div>
 </div>
 
@@ -64,9 +72,10 @@
                         <div class="d-flex justify-content-center gap-2">
                             <a href="{{ route('lgus.edit', $lgu) }}"
                                class="lgu-act-btn lgu-act-edit"
-                               title="Edit">
+                               title="Edit LGU Settings">
                                 <i class="bi bi-pencil-fill"></i>
                             </a>
+                            @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin())
                             <form method="POST" action="{{ route('lgus.destroy', $lgu) }}"
                                   class="d-inline"
                                   data-confirm="Delete this LGU? This cannot be undone.">
@@ -78,6 +87,7 @@
                                     <i class="bi bi-trash-fill"></i>
                                 </button>
                             </form>
+                            @endif
                         </div>
                     </td>
                 </tr>

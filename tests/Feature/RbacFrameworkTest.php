@@ -91,9 +91,14 @@ class RbacFrameworkTest extends TestCase
             ->get('/users')
             ->assertOk();
 
-        // Cannot manage LGUs
+        // Can view assigned LGU
         $this->actingAs($lguAdmin)
             ->get('/lgus')
+            ->assertOk();
+
+        // Cannot create new LGU or edit other LGUs
+        $this->actingAs($lguAdmin)
+            ->get('/lgus/create')
             ->assertStatus(403);
     }
 

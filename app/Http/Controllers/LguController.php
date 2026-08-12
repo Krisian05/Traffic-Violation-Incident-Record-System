@@ -7,19 +7,55 @@ use Illuminate\Http\Request;
 
 class LguController extends Controller
 {
+    private function checkGlobalAdmin(): void
+    {
+        $user = auth()->user();
+        if (!$user || (!$user->isSuperAdmin() && !$user->isProvinceAdmin())) {
+            abort(403, 'Only Super Administrators or Provincial Administrators can perform this action.');
+        }
+    }
+
+    private function checkLguAccess(Lgu $lgu): void
+    {
+        $user = auth()->user();
+        if (!$user) {
+            abort(401);
+        }
+
+        if ($user->isSuperAdmin() || $user->isProvinceAdmin()) {
+            return;
+        }
+
+        if ($user->isLguAdmin() && (int) $user->lgu_id === (int) $lgu->id) {
+            return;
+        }
+
+        abort(403, 'Forbidden. You may only view or manage your assigned LGU.');
+    }
+
     public function index()
     {
-        $lgus = Lgu::withCount(['users', 'violations', 'incidents'])->orderBy('name')->get();
+        $user = auth()->user();
+        $query = Lgu::withCount(['users', 'violations', 'incidents']);
+
+        if ($user && !$user->isSuperAdmin() && !$user->isProvinceAdmin()) {
+            $query->where('id', $user->lgu_id ?? 0);
+        }
+
+        $lgus = $query->orderBy('name')->get();
         return view('lgus.index', compact('lgus'));
     }
 
     public function create()
     {
+        $this->checkGlobalAdmin();
         return view('lgus.create');
     }
 
     public function store(Request $request)
     {
+        $this->checkGlobalAdmin();
+
         $data = $request->validate([
             'code'                   => ['required', 'string', 'max:10', 'alpha_dash', 'unique:lgus,code'],
             'name'                   => ['required', 'string', 'max:150'],
@@ -51,11 +87,14 @@ class LguController extends Controller
 
     public function edit(Lgu $lgu)
     {
+        $this->checkLguAccess($lgu);
         return view('lgus.edit', compact('lgu'));
     }
 
     public function update(Request $request, Lgu $lgu)
     {
+        $this->checkLguAccess($lgu);
+
         $data = $request->validate([
             'code'                   => ['required', 'string', 'max:10', 'alpha_dash', "unique:lgus,code,{$lgu->id}"],
             'name'                   => ['required', 'string', 'max:150'],
@@ -87,6 +126,8 @@ class LguController extends Controller
 
     public function destroy(Lgu $lgu)
     {
+        $this->checkGlobalAdmin();
+
         if ($lgu->users()->exists() || $lgu->violations()->exists() || $lgu->incidents()->exists()) {
             return back()->with('error', 'Cannot delete an LGU that has linked users or records.');
         }
