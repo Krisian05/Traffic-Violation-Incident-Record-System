@@ -10,7 +10,7 @@
 
 {{-- ── Header card ── --}}
 <div class="vt-page-card mb-4">
-    <div class="vt-page-header d-flex align-items-center justify-content-between">
+    <div class="vt-page-header d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div class="d-flex align-items-center gap-3">
             <div class="vt-header-icon">
                 <i class="bi bi-tags-fill"></i>
@@ -20,12 +20,29 @@
                 <p class="vt-header-sub mb-0">{{ $types->count() }} type{{ $types->count() !== 1 ? 's' : '' }} defined</p>
             </div>
         </div>
-        @if(Auth::user()->isOperator())
-        <a href="{{ route('violation-types.create') }}" class="vt-add-btn">
-            <i class="bi bi-plus-lg"></i>
-            <span>Add Type</span>
-        </a>
-        @endif
+
+        <div class="d-flex align-items-center gap-2">
+            @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin())
+            <form method="GET" action="{{ route('violation-types.index') }}" class="d-flex align-items-center gap-2">
+                <select name="lgu_id" class="form-select form-select-sm shadow-none rounded-pill" onchange="this.form.submit()" style="min-width: 180px; font-size: .82rem;">
+                    <option value="">All LGUs & Global</option>
+                    <option value="global" {{ request('lgu_id') === 'global' ? 'selected' : '' }}>Global Defaults Only</option>
+                    @foreach($lgus as $lguItem)
+                        <option value="{{ $lguItem->id }}" {{ request('lgu_id') == $lguItem->id ? 'selected' : '' }}>
+                            {{ $lguItem->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </form>
+            @endif
+
+            @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin() || Auth::user()->isLguAdmin())
+            <a href="{{ route('violation-types.create') }}" class="vt-add-btn">
+                <i class="bi bi-plus-lg"></i>
+                <span>Add Type</span>
+            </a>
+            @endif
+        </div>
     </div>
 </div>
 
@@ -36,22 +53,40 @@
             <thead>
                 <tr>
                     <th style="padding-left:1.4rem;"><span class="vt-th">Name</span></th>
+                    <th><span class="vt-th">Scope / LGU</span></th>
                     <th><span class="vt-th">Description</span></th>
                     <th class="text-end"><span class="vt-th">Fine Amount</span></th>
                     @if(!Auth::user()->isCashier() && !Auth::user()->isTreasurer())<th class="text-center"><span class="vt-th">Usage</span></th>@endif
-                    @if(Auth::user()->isOperator())<th class="text-center"><span class="vt-th">Actions</span></th>@endif
+                    @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin() || Auth::user()->isLguAdmin())<th class="text-center"><span class="vt-th">Actions</span></th>@endif
                 </tr>
             </thead>
             <tbody>
                 @forelse($types as $type)
-                <tr class="vt-row{{ Auth::user()->isOperator() ? ' vt-row-clickable' : '' }}"
-                    @if(Auth::user()->isOperator()) data-href="{{ route('violation-types.edit', $type) }}" @endif>
+                @php
+                    $canManage = Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin() || (Auth::user()->isLguAdmin() && (int)$type->lgu_id === (int)Auth::user()->lgu_id);
+                @endphp
+                <tr class="vt-row{{ $canManage ? ' vt-row-clickable' : '' }}"
+                    @if($canManage) data-href="{{ route('violation-types.edit', $type) }}" @endif>
                     <td style="padding-left:1.4rem;">
                         <span class="vt-name">{{ $type->name }}</span>
-                        @if(Auth::user()->isOperator())
+                        @if($type->code)
+                            <span class="badge bg-light text-secondary border ms-1" style="font-size:.68rem;">{{ $type->code }}</span>
+                        @endif
+                        @if($canManage)
                         <div style="font-size:.67rem;color:#a8a29e;margin-top:2px;">
                             <i class="bi bi-pencil me-1" style="font-size:.6rem;"></i>Click row to edit
                         </div>
+                        @endif
+                    </td>
+                    <td>
+                        @if($type->lgu)
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold px-2 py-1" style="font-size:.72rem;">
+                                <i class="bi bi-building me-1"></i>{{ $type->lgu->name }}
+                            </span>
+                        @else
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fw-medium px-2 py-1" style="font-size:.72rem;">
+                                <i class="bi bi-globe me-1"></i>Global Default
+                            </span>
                         @endif
                     </td>
                     <td class="vt-desc">{{ $type->description ?? '—' }}</td>
@@ -82,8 +117,9 @@
                         @endif
                     </td>
                     @endif
-                    @if(Auth::user()->isOperator())
+                    @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin() || Auth::user()->isLguAdmin())
                     <td class="text-center vt-act-cell">
+                        @if($canManage)
                         <div class="d-flex justify-content-center gap-2">
                             <a href="{{ route('violation-types.edit', $type) }}"
                                class="vt-act-btn vt-act-edit"
@@ -101,12 +137,15 @@
                                 </button>
                             </form>
                         </div>
+                        @else
+                        <span class="text-muted small">—</span>
+                        @endif
                     </td>
                     @endif
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="{{ (Auth::user()->isOperator() ? 5 : 4) - (Auth::user()->isCashier() || Auth::user()->isTreasurer() ? 1 : 0) }}" class="py-5">
+                    <td colspan="6" class="py-5">
                         <div class="text-center">
                             <i class="bi bi-tags" style="font-size:2rem;color:#d6d3d1;display:block;margin-bottom:.5rem;"></i>
                             <span style="color:#a8a29e;font-size:.88rem;">No violation types defined yet.</span>

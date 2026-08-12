@@ -116,11 +116,8 @@ class ViolationController extends Controller
 
         $violations = $query->orderByDesc('date_of_violation')->paginate(20)->withQueryString();
 
-        try {
-            $violationTypes = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
-        } catch (\Throwable $e) {
-            $violationTypes = ViolationType::orderBy('name')->get();
-        }
+        $lguId = Auth::user()?->lgu_id;
+        $violationTypes = ViolationType::forLgu($lguId)->orderBy('name')->get();
 
         return view('violations.index', compact('violations', 'violationTypes', 'search'));
     }
@@ -130,7 +127,8 @@ class ViolationController extends Controller
         $allVehicles    = Vehicle::with('violator:id,first_name,last_name')
             ->orderBy('plate_number')
             ->get(['id', 'violator_id', 'plate_number', 'make', 'model', 'color', 'vehicle_type']);
-        $violationTypes = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
+        $lguId = Auth::user()?->lgu_id;
+        $violationTypes = ViolationType::forLgu($lguId)->orderBy('name')->get();
 
         return view('violations.create', compact('violator', 'allVehicles', 'violationTypes'));
     }
@@ -273,7 +271,8 @@ class ViolationController extends Controller
         $allVehicles    = Vehicle::with('violator:id,first_name,last_name')
             ->orderBy('plate_number')
             ->get(['id', 'violator_id', 'plate_number', 'make', 'model', 'color', 'vehicle_type']);
-        $violationTypes = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
+        $lguId = Auth::user()?->lgu_id;
+        $violationTypes = ViolationType::forLgu($lguId)->orderBy('name')->get();
 
         return view('violations.edit', compact('violation', 'allVehicles', 'violationTypes'));
     }

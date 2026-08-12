@@ -24,6 +24,26 @@
         <form method="POST" action="{{ route('violation-types.store') }}">
             @csrf
 
+            @if(Auth::user()->isSuperAdmin() || Auth::user()->isProvinceAdmin())
+            <div class="mb-3">
+                <label class="vt-label">Assign to LGU / Scope</label>
+                <div class="input-group">
+                    <span class="input-group-text vt-ig-icon" style="background:#f0f9ff;border-color:#bae6fd;">
+                        <i class="bi bi-building text-primary"></i>
+                    </span>
+                    <select name="lgu_id" class="form-select vt-input @error('lgu_id') is-invalid @enderror">
+                        <option value="">— Global Default Template (All LGUs) —</option>
+                        @foreach($lgus as $lguItem)
+                            <option value="{{ $lguItem->id }}" {{ old('lgu_id') == $lguItem->id ? 'selected' : '' }}>
+                                {{ $lguItem->name }} ({{ $lguItem->province }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('lgu_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+            </div>
+            @endif
+
             <div class="mb-3">
                 <label class="vt-label">Name <span class="text-danger">*</span></label>
                 <div class="input-group">
@@ -52,17 +72,32 @@
                 </div>
             </div>
 
-            <div class="mb-4">
-                <label class="vt-label">Fine Amount (₱)</label>
-                <div class="input-group">
-                    <span class="input-group-text vt-ig-icon" style="background:#f0fdf4;border-color:#86efac;">
-                        <i class="bi bi-cash-coin" style="color:#15803d;"></i>
-                    </span>
-                    <input type="number" name="fine_amount"
-                           class="form-control vt-input @error('fine_amount') is-invalid @enderror"
-                           value="{{ old('fine_amount') }}"
-                           min="0" step="0.01" placeholder="0.00">
-                    @error('fine_amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="vt-label">Fine Amount (₱)</label>
+                    <div class="input-group">
+                        <span class="input-group-text vt-ig-icon" style="background:#f0fdf4;border-color:#86efac;">
+                            <i class="bi bi-cash-coin" style="color:#15803d;"></i>
+                        </span>
+                        <input type="number" name="fine_amount"
+                               class="form-control vt-input @error('fine_amount') is-invalid @enderror"
+                               value="{{ old('fine_amount') }}"
+                               min="0" step="0.01" placeholder="0.00">
+                        @error('fine_amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="vt-label">Late Penalty (₱)</label>
+                    <div class="input-group">
+                        <span class="input-group-text vt-ig-icon" style="background:#fff7ed;border-color:#ffedd5;">
+                            <i class="bi bi-exclamation-triangle text-warning"></i>
+                        </span>
+                        <input type="number" name="late_penalty_amount"
+                               class="form-control vt-input @error('late_penalty_amount') is-invalid @enderror"
+                               value="{{ old('late_penalty_amount') }}"
+                               min="0" step="0.01" placeholder="0.00">
+                        @error('late_penalty_amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
                 </div>
             </div>
 

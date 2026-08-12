@@ -11,6 +11,7 @@ class ViolationType extends Model
     use HasFactory;
 
     protected $fillable = [
+        'lgu_id',
         'name',
         'code',
         'description',
@@ -22,8 +23,35 @@ class ViolationType extends Model
     protected static function boot(): void
     {
         parent::boot();
-        static::saved(fn() => Cache::forget('violation_types'));
-        static::deleted(fn() => Cache::forget('violation_types'));
+        static::saved(function ($model) {
+            Cache::forget('violation_types');
+            if ($model->lgu_id) {
+                Cache::forget("violation_types_lgu_{$model->lgu_id}");
+            }
+        });
+        static::deleted(function ($model) {
+            Cache::forget('violation_types');
+            if ($model->lgu_id) {
+                Cache::forget("violation_types_lgu_{$model->lgu_id}");
+            }
+        });
+    }
+
+    public function lgu()
+    {
+        return $this->belongsTo(Lgu::class);
+    }
+
+    public function scopeForLgu($query, $lguId)
+    {
+        if (!$lguId) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($lguId) {
+            $q->where('lgu_id', $lguId)
+              ->orWhereNull('lgu_id');
+        });
     }
 
     public function violations()

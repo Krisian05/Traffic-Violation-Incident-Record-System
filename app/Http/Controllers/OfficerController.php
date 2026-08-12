@@ -421,7 +421,7 @@ class OfficerController extends Controller
     {
         $lguId = $this->getLguId();
 
-        $violationTypes = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
+        $violationTypes = ViolationType::forLgu($lguId)->orderBy('name')->get();
         $allVehicles = Vehicle::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
             ->with('violator:id,first_name,middle_name,last_name')
             ->orderBy('plate_number')
@@ -437,7 +437,8 @@ class OfficerController extends Controller
 
     public function createOfflineViolation(): View
     {
-        $violationTypes = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
+        $lguId = $this->getLguId();
+        $violationTypes = ViolationType::forLgu($lguId)->orderBy('name')->get();
 
         return view('officer.violations.offline-create', compact('violationTypes'));
     }
@@ -566,7 +567,7 @@ class OfficerController extends Controller
         $this->authorize('update', $violation);
         $lguId = $this->getLguId();
         $violation->load(['violator', 'vehiclePhotos']);
-        $violationTypes = Cache::remember('violation_types', 600, fn() => ViolationType::orderBy('name')->get());
+        $violationTypes = ViolationType::forLgu($lguId)->orderBy('name')->get();
         $allVehicles = Vehicle::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
             ->with('violator:id,first_name,middle_name,last_name')
             ->orderBy('plate_number')

@@ -183,8 +183,8 @@ class PaymentReportController extends Controller
             ->pluck('total', 'y');
 
         // ── Paid vs unpaid analysis (selected period) ──────────────────────────
-        $baseViolationQuery = Violation::whereBetween('date_of_violation', [$dateFrom, $dateTo])
-            ->when($selectedLguId, fn($q) => $q->where('lgu_id', $selectedLguId));
+        $baseViolationQuery = Violation::whereBetween('violations.date_of_violation', [$dateFrom, $dateTo])
+            ->when($selectedLguId, fn($q) => $q->where('violations.lgu_id', $selectedLguId));
 
         $statusCounts = (clone $baseViolationQuery)
             ->select('status', DB::raw('COUNT(*) as total'))
