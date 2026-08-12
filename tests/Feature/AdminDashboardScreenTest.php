@@ -75,4 +75,27 @@ class AdminDashboardScreenTest extends TestCase
         // 12. Audit Logs Screen
         $this->actingAs($admin)->get('/audit-logs')->assertStatus(200);
     }
+
+    public function test_dashboard_analytics_kpi_amount_url_matches_selected_period(): void
+    {
+        $lgu = Lgu::factory()->create();
+        $admin = User::factory()->create(['role' => 'admin', 'lgu_id' => $lgu->id]);
+
+        foreach (['daily', 'weekly', 'monthly', 'yearly'] as $period) {
+            $response = $this->actingAs($admin)->get("/dashboard/analytics?period={$period}");
+            $response->assertStatus(200);
+
+            $amountUrl = $response->json('amountUrl');
+            $this->assertNotNull($amountUrl);
+
+            if ($period === 'yearly') {
+                $this->assertStringContainsString('period=yearly', $amountUrl);
+                $this->assertStringContainsString('year=', $amountUrl);
+            } else {
+                $this->assertStringContainsString("period={$period}", $amountUrl);
+                $this->assertStringContainsString('date_from=', $amountUrl);
+                $this->assertStringContainsString('date_to=', $amountUrl);
+            }
+        }
+    }
 }

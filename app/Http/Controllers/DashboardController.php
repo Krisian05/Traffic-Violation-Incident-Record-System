@@ -259,8 +259,13 @@ class DashboardController extends Controller
 
         // Build chart data using a single GROUP BY query
         if ($period === 'daily') {
+            $hourExpr = match (\DB::getDriverName()) {
+                'pgsql'  => 'EXTRACT(HOUR FROM date_of_violation)::int as h',
+                'sqlite' => "CAST(strftime('%H', date_of_violation) AS INTEGER) as h",
+                default  => 'HOUR(date_of_violation) as h',
+            };
             $rawData = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
-                ->selectRaw('EXTRACT(HOUR FROM date_of_violation)::int as h, COUNT(*) as cnt')
+                ->selectRaw("$hourExpr, COUNT(*) as cnt")
                 ->whereBetween('date_of_violation', [$startDate, $endDate])
                 ->groupBy('h')
                 ->pluck('cnt', 'h')
@@ -286,9 +291,11 @@ class DashboardController extends Controller
                 $values[] = (int) ($rawData[$day->toDateString()] ?? 0);
             }
         } elseif ($period === 'monthly') {
-            $dayExpr = \DB::getDriverName() === 'pgsql'
-                ? 'EXTRACT(DAY FROM date_of_violation)::int as d'
-                : 'DAY(date_of_violation) as d';
+            $dayExpr = match (\DB::getDriverName()) {
+                'pgsql'  => 'EXTRACT(DAY FROM date_of_violation)::int as d',
+                'sqlite' => "CAST(strftime('%d', date_of_violation) AS INTEGER) as d",
+                default  => 'DAY(date_of_violation) as d',
+            };
             $rawData = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
                 ->selectRaw("$dayExpr, COUNT(*) as cnt")
                 ->whereBetween('date_of_violation', [$startDateOnly, $endDateOnly])
@@ -302,9 +309,11 @@ class DashboardController extends Controller
                 $values[] = (int) ($rawData[$i] ?? 0);
             }
         } else { // yearly
-            $monthExpr = \DB::getDriverName() === 'pgsql'
-                ? 'EXTRACT(MONTH FROM date_of_violation)::int as m'
-                : 'MONTH(date_of_violation) as m';
+            $monthExpr = match (\DB::getDriverName()) {
+                'pgsql'  => 'EXTRACT(MONTH FROM date_of_violation)::int as m',
+                'sqlite' => "CAST(strftime('%m', date_of_violation) AS INTEGER) as m",
+                default  => 'MONTH(date_of_violation) as m',
+            };
             $rawData = Violation::when($lguId, fn($q) => $q->where('lgu_id', $lguId))
                 ->selectRaw("$monthExpr, COUNT(*) as cnt")
                 ->whereYear('date_of_violation', now()->year)
@@ -339,16 +348,16 @@ class DashboardController extends Controller
         };
 
         $violationsUrl = match ($period) {
-            'daily'   => route('violations.index', ['date_from' => $startDateOnly, 'date_to' => $endDateOnly]),
-            'monthly' => route('violations.index', ['month' => now()->month, 'year' => now()->year]),
-            'yearly'  => route('violations.index', ['year' => now()->year]),
-            default   => route('violations.index', ['date_from' => $startDateOnly, 'date_to' => $endDateOnly]),
+            'daily'   => route('violations.index', array_filter(['date_from' => $startDateOnly, 'date_to' => $endDateOnly, 'lgu_id' => $lguId])),
+            'monthly' => route('violations.index', array_filter(['month' => now()->month, 'year' => now()->year, 'lgu_id' => $lguId])),
+            'yearly'  => route('violations.index', array_filter(['year' => now()->year, 'lgu_id' => $lguId])),
+            default   => route('violations.index', array_filter(['date_from' => $startDateOnly, 'date_to' => $endDateOnly, 'lgu_id' => $lguId])),
         };
 
         $incidentsUrl = match ($period) {
-            'monthly' => route('incidents.index', ['date_from' => $startDateOnly, 'date_to' => $endDateOnly]),
-            'yearly'  => route('incidents.index', ['date_from' => $startDateOnly, 'date_to' => $endDateOnly]),
-            default   => route('incidents.index', ['date_from' => $startDateOnly, 'date_to' => $endDateOnly]),
+            'monthly' => route('incidents.index', array_filter(['date_from' => $startDateOnly, 'date_to' => $endDateOnly, 'lgu_id' => $lguId])),
+            'yearly'  => route('incidents.index', array_filter(['date_from' => $startDateOnly, 'date_to' => $endDateOnly, 'lgu_id' => $lguId])),
+            default   => route('incidents.index', array_filter(['date_from' => $startDateOnly, 'date_to' => $endDateOnly, 'lgu_id' => $lguId])),
         };
 
         // Total settled fine amount for the period (by LGU)
@@ -359,10 +368,13 @@ class DashboardController extends Controller
             ->whereNull('voided_at')
             ->sum('amount_paid');
 
-        $amountUrl = route('payments.report', array_filter([
-            'year'   => $start->year,
-            'lgu_id' => $lguId,
-        ]));
+        $amountUrl = match ($period) {
+            'daily'   => route('payments.report', array_filter(['period' => 'daily',   'date_from' => $startDateOnly, 'date_to' => $endDateOnly, 'lgu_id' => $lguId])),
+            'weekly'  => route('payments.report', array_filter(['period' => 'weekly',  'date_from' => $startDateOnly, 'date_to' => $endDateOnly, 'lgu_id' => $lguId])),
+            'monthly' => route('payments.report', array_filter(['period' => 'monthly', 'date_from' => $startDateOnly, 'date_to' => $endDateOnly, 'lgu_id' => $lguId])),
+            'yearly'  => route('payments.report', array_filter(['period' => 'yearly',  'year' => $start->year, 'lgu_id' => $lguId])),
+            default   => route('payments.report', array_filter(['period' => 'daily',   'date_from' => $startDateOnly, 'date_to' => $endDateOnly, 'lgu_id' => $lguId])),
+        };
 
         return [
             'period'           => $period,

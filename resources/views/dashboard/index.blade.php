@@ -522,7 +522,7 @@
 
         {{-- Period Violation Amount (Fine Total) --}}
         <div class="col-sm-6 col-xl-3">
-            <a href="{{ route('payments.report', array_filter(['lgu_id' => $lguId])) }}" id="aLink-amount" class="stat-card-link analytics-card-link">
+            <a href="{{ route('payments.report', array_filter(['period' => 'daily', 'date_from' => now()->toDateString(), 'date_to' => now()->toDateString(), 'lgu_id' => $lguId])) }}" id="aLink-amount" class="stat-card-link analytics-card-link">
             <div class="card border-0 shadow-sm h-100 overflow-hidden position-relative analytics-card">
                 <div class="stat-bg-blob" style="background:rgba(16,185,129,.06);"></div>
                 <div class="card-body d-flex align-items-center gap-3 py-4">
