@@ -1,44 +1,39 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use App\Models\Lgu;
-use App\Models\Violation;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use App\Models\ViolationType;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        $globalTypes = ViolationType::whereNull('lgu_id')->get();
-        $firstLguId = Lgu::first()?->id;
+        $tablesToClear = [
+            'payments',
+            'payment_claims',
+            'online_payment_sessions',
+            'violation_vehicle_photos',
+            'violations',
+            'incident_status_histories',
+            'incident_parties',
+            'incident_motorists',
+            'incident_media',
+            'incidents',
+            'vehicle_photos',
+            'vehicles',
+            'violators',
+            'notifications',
+            'activity_log',
+        ];
 
-        foreach ($globalTypes as $gType) {
-            $violations = Violation::where('violation_type_id', $gType->id)->get();
-            foreach ($violations as $viol) {
-                $targetLguId = $viol->lgu_id ?: $firstLguId;
-                if ($targetLguId) {
-                    $lguType = ViolationType::where('lgu_id', $targetLguId)
-                        ->where('name', $gType->name)
-                        ->first();
-
-                    if (!$lguType) {
-                        $lguType = ViolationType::create([
-                            'lgu_id'              => $targetLguId,
-                            'name'                => $gType->name,
-                            'code'                => $gType->code,
-                            'description'         => $gType->description,
-                            'fine_amount'         => $gType->fine_amount,
-                            'late_penalty_amount' => $gType->late_penalty_amount,
-                            'points'              => $gType->points,
-                        ]);
-                    }
-
-                    $viol->update(['violation_type_id' => $lguType->id]);
-                }
+        foreach ($tablesToClear as $table) {
+            if (Schema::hasTable($table)) {
+                DB::table($table)->delete();
             }
         }
 
-        // Delete all global default types now that no violations reference them
+        // Delete all global default types
         ViolationType::whereNull('lgu_id')->delete();
     }
 
