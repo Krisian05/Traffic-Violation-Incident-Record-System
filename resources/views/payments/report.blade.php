@@ -277,9 +277,6 @@ function setPeriodFilter(from, to) {
             <a href="{{ route('payments.report.export', request()->query()) }}" class="btn btn-sm btn-success shadow-sm fw-bold px-3 py-1-5 rounded-3 d-flex align-items-center gap-1">
                 <i class="bi bi-file-earmark-excel-fill"></i> Export Excel
             </a>
-            <button type="button" onclick="window.print()" class="btn btn-sm btn-outline-secondary shadow-sm fw-bold px-3 py-1-5 rounded-3 d-flex align-items-center gap-1 no-print" title="Print Collection Report">
-                <i class="bi bi-printer-fill"></i> Print Report
-            </button>
         </div>
     </div>
 
