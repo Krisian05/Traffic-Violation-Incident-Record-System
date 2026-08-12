@@ -528,11 +528,11 @@ function setPeriodFilter(from, to) {
                 <span class="text-muted" style="font-size:0.75rem;">Verified payments issued with Official Receipts (OR)</span>
             </div>
             <div class="d-flex align-items-center gap-2 no-print">
-                <a href="{{ route('payments.report.export', request()->query()) }}" class="btn btn-sm btn-outline-success fw-bold px-3 rounded-2">
-                    <i class="bi bi-file-earmark-excel me-1"></i> Download Report (Excel)
+                <a href="{{ route('payments.report.export', request()->query()) }}" class="btn btn-sm btn-outline-success fw-bold px-2.5 rounded-2 d-inline-flex align-items-center gap-1" title="Export Excel Report">
+                    <i class="bi bi-file-earmark-excel"></i> Excel
                 </a>
-                <button type="button" onclick="window.print()" class="btn btn-sm btn-outline-primary fw-bold px-3 rounded-2 no-print" title="Print Transaction Log">
-                    <i class="bi bi-printer me-1"></i> Print Log
+                <button type="button" onclick="window.print()" class="btn btn-sm btn-outline-secondary fw-bold px-2.5 rounded-2 no-print d-inline-flex align-items-center gap-1" title="Print Transaction Log">
+                    <i class="bi bi-printer"></i> Print
                 </button>
             </div>
         </div>
