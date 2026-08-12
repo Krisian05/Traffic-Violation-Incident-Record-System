@@ -80,7 +80,21 @@ class LguController extends Controller
             $data['seal_path'] = $request->file('seal')->store('seals', uploads_disk());
         }
 
-        Lgu::create($data);
+        $newLgu = Lgu::create($data);
+
+        // Auto-seed default violation types for newly onboarded LGU
+        $globalTypes = \App\Models\ViolationType::whereNull('lgu_id')->get();
+        foreach ($globalTypes as $type) {
+            \App\Models\ViolationType::create([
+                'lgu_id'              => $newLgu->id,
+                'name'                => $type->name,
+                'code'                => $type->code,
+                'description'         => $type->description,
+                'fine_amount'         => $type->fine_amount,
+                'late_penalty_amount' => $type->late_penalty_amount,
+                'points'              => $type->points,
+            ]);
+        }
 
         return redirect()->route('lgus.index')->with('success', 'LGU added.');
     }

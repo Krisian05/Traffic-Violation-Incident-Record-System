@@ -48,6 +48,11 @@ class ViolationType extends Model
             return $query;
         }
 
+        $hasCustom = static::where('lgu_id', $lguId)->exists();
+        if ($hasCustom) {
+            return $query->where('lgu_id', $lguId);
+        }
+
         return $query->where(function ($q) use ($lguId) {
             $q->where('lgu_id', $lguId)
               ->orWhereNull('lgu_id');

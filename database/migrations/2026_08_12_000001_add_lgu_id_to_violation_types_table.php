@@ -14,11 +14,17 @@ return new class extends Migration
             }
         });
 
-        // Drop legacy unique constraint on name if it exists
+        // Drop legacy unique constraint on name across drivers (PostgreSQL/MySQL/SQLite)
+        $driver = Schema::getConnection()->getDriverName();
         try {
-            Schema::table('violation_types', function (Blueprint $table) {
-                $table->dropUnique('violation_types_name_unique');
-            });
+            if ($driver === 'pgsql') {
+                DB::statement('ALTER TABLE violation_types DROP CONSTRAINT IF EXISTS uq_violation_types_name');
+                DB::statement('ALTER TABLE violation_types DROP CONSTRAINT IF EXISTS violation_types_name_unique');
+            } else {
+                Schema::table('violation_types', function (Blueprint $table) {
+                    $table->dropUnique('violation_types_name_unique');
+                });
+            }
         } catch (\Throwable $e) {}
 
         // Add composite index for lgu_id & name query performance
