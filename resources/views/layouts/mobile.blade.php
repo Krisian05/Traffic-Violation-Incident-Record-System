@@ -1259,6 +1259,15 @@
     data-mobile-offline-version="{{ $mobileOfflineVersion }}"
     data-officer-sw-version="{{ $officerSwVersion }}"
 >
+<script>
+try {
+    localStorage.setItem('tvirs-mobile-auth-user', JSON.stringify({
+        id: {{ Auth::id() }},
+        name: "{{ addslashes(Auth::user()->name) }}",
+        email: "{{ addslashes(Auth::user()->email) }}"
+    }));
+} catch (e) {}
+</script>
 
 <header class="mob-topbar">
     <div class="mob-topbar-left">

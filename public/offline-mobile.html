@@ -3,146 +3,563 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>TVIRS Offline</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1d4ed8">
+    <title>TVIRS Officer Mobile — Offline Mode</title>
+
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" href="/images/app-icon.png">
+    <link rel="manifest" href="/manifest.json">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" rel="stylesheet">
+    <link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" rel="stylesheet">
+    <link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" rel="stylesheet">
+    <link href="/vendor/cropperjs/cropper.min.css" rel="stylesheet">
+
     <style>
+        *, *::before, *::after { box-sizing: border-box; }
         :root {
-            color-scheme: light;
+            --blue: #1d4ed8;
+            --blue-dark: #1e40af;
+            --blue-deep: #1e3a8a;
+            --red: #dc2626;
+            --red-dark: #b91c1c;
+            --text-dark: #0f172a;
+            --text-med: #334155;
+            --text-light: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --surface: #f8fafc;
+            --top-h: 56px;
+            --bot-h: env(safe-area-inset-bottom, 0px);
+            --safe-top: env(safe-area-inset-top, 0px);
+            --nav-h: 60px;
         }
 
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
+        html, body {
+            height: 100%;
             margin: 0;
-            min-height: 100vh;
-            display: grid;
-            place-items: center;
-            padding: 1.25rem;
-            background: linear-gradient(180deg, #eff6ff 0%, #f8fafc 100%);
+            background: var(--surface);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            color: #0f172a;
+            color: var(--text-dark);
+            -webkit-font-smoothing: antialiased;
         }
 
-        .card {
-            width: min(100%, 380px);
-            background: #ffffff;
-            border: 1px solid #dbeafe;
-            border-radius: 22px;
-            padding: 1.4rem 1.25rem;
-            box-shadow: 0 16px 40px rgba(30, 64, 175, .14);
+        .mob-topbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: calc(var(--top-h) + var(--safe-top));
+            padding-top: var(--safe-top);
+            background: var(--blue);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-left: .875rem;
+            padding-right: .875rem;
+            z-index: 100;
+            box-shadow: 0 2px 12px rgba(0,0,0,.2);
         }
 
-        .icon {
-            width: 58px;
-            height: 58px;
-            display: grid;
-            place-items: center;
-            border-radius: 18px;
-            background: linear-gradient(135deg, #1d4ed8, #1e40af);
-            color: #fff;
-            font-size: 1.8rem;
+        .mob-topbar-left {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .mob-topbar-title {
+            font-size: .9rem;
             font-weight: 800;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mob-net-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: .25rem .55rem;
+            border-radius: 999px;
+            font-size: .68rem;
+            font-weight: 800;
+            background: rgba(245, 158, 11, 0.26);
+            color: #fde68a;
+            border: 1px solid rgba(251, 191, 36, 0.55);
+            animation: mobPulseNet 2s infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes mobPulseNet {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .75; }
+        }
+
+        .mob-content {
+            padding-top: calc(var(--top-h) + var(--safe-top) + .875rem);
+            padding-bottom: calc(var(--nav-h) + var(--bot-h) + 1.25rem);
+            min-height: 100vh;
+            padding-left: .875rem;
+            padding-right: .875rem;
+        }
+
+        .mob-bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: #fff;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            padding-top: .55rem;
+            padding-bottom: calc(var(--bot-h) + .25rem);
+            z-index: 95;
+            box-shadow: 0 -2px 16px rgba(0,0,0,.06);
+        }
+
+        .mob-nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .15rem;
+            font-size: .56rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 0;
+        }
+
+        .mob-nav-item i {
+            font-size: 1.25rem;
+        }
+
+        .mob-nav-item.active {
+            color: var(--blue);
+        }
+
+        .mob-card {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0,0,0,.04);
+            margin-bottom: .875rem;
+            overflow: hidden;
+        }
+
+        .mob-card-body {
+            padding: 1rem;
+        }
+
+        .mob-btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .45rem;
+            width: 100%;
+            padding: .75rem 1rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+            color: #fff;
+            font-size: .88rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .mob-btn-danger {
+            background: linear-gradient(135deg, var(--red), var(--red-dark));
+        }
+
+        .mob-btn-outline {
+            background: #fff;
+            color: var(--text-med);
+            border: 1px solid var(--border);
+        }
+
+        .mob-label {
+            font-size: .78rem;
+            font-weight: 700;
+            color: var(--text-med);
+            margin-bottom: .35rem;
+            display: block;
+        }
+
+        .mob-input, .mob-select {
+            width: 100%;
+            padding: .65rem .8rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            font-size: .88rem;
+            outline: none;
+            background: #fff;
+        }
+
+        .mob-input:focus, .mob-select:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(29,78,216,.12);
+        }
+
+        .mob-tab-panel {
+            display: none;
+        }
+
+        .mob-tab-panel.active {
+            display: block;
+        }
+
+        .ocr-banner {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #fff;
+            border-radius: 16px;
+            padding: 1rem;
             margin-bottom: 1rem;
-        }
-
-        h1 {
-            margin: 0 0 .45rem;
-            font-size: 1.08rem;
-        }
-
-        p {
-            margin: 0 0 .8rem;
-            line-height: 1.55;
-            color: #475569;
-            font-size: .92rem;
-        }
-
-        .note {
-            padding: .8rem .9rem;
-            border-radius: 14px;
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            color: #1d4ed8;
-            font-size: .86rem;
-            font-weight: 600;
-        }
-
-        .hint {
-            margin-top: .8rem;
-            font-size: .8rem;
-            color: #64748b;
-            line-height: 1.5;
         }
     </style>
 </head>
-<body>
-    <div class="card">
-        <div class="icon">+</div>
-        <h1>You are offline</h1>
-        <p>TVIRS mobile can keep already opened officer pages available offline, and queued form submissions will sync automatically once the device reconnects.</p>
-        <div class="note" id="offline-note">Checking saved officer pages on this device…</div>
-        <div class="hint" id="offline-hint">If a previously cached page is available, TVIRS will reopen it automatically.</div>
+<body data-auth-user-id="" id="offlineAppBody">
+
+<header class="mob-topbar">
+    <div class="mob-topbar-left">
+        <div style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.85rem;">
+            PNP
+        </div>
+        <span class="mob-topbar-title" id="mobOfficerNameTitle">TVIRS Officer</span>
     </div>
-    <script>
-        (function () {
-            var note = document.getElementById('offline-note');
-            var hint = document.getElementById('offline-hint');
-            var candidates = [
-                '/officer/dashboard',
-                '/officer/motorists',
-                '/officer/incidents',
-                '/officer/motorists/create',
-                '/officer/offline/violations/create',
-                '/officer/offline/vehicles/create'
-            ];
 
-            function showReconnect() {
-                if (note) note.textContent = 'Reconnect to load uncached pages or to finish publishing queued records.';
-                if (hint) hint.textContent = '';
+    <div class="mob-net-badge" id="mobHeaderNetBadge" title="Offline Mode">
+        <i class="ph-bold ph-wifi-slash" id="mobHeaderNetIcon"></i>
+        <span id="mobHeaderNetText">Offline Mode</span>
+    </div>
+</header>
+
+<main class="mob-content">
+
+    {{-- System Status Banner --}}
+    <div class="mob-card" style="border-left: 5px solid #f59e0b; background: #fffbf5;">
+        <div class="mob-card-body d-flex align-items-center gap-3">
+            <div style="width:40px;height:40px;border-radius:12px;background:#fef3c7;color:#d97706;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">
+                <i class="ph-bold ph-wifi-slash"></i>
+            </div>
+            <div>
+                <div style="font-size:.88rem;font-weight:800;color:#92400e;">Offline Mode Active</div>
+                <div style="font-size:.74rem;color:#b45309;line-height:1.4;">Records created now will save on this device & auto-sync when network returns.</div>
+            </div>
+        </div>
+    </div>
+
+    {{-- TAB 1: HOME DASHBOARD --}}
+    <section id="panel-home" class="mob-tab-panel active">
+        <div class="row g-2 mb-3">
+            <div class="col-6">
+                <div class="mob-card mb-0 text-center py-3">
+                    <div style="font-size:1.5rem;font-weight:800;color:var(--blue);" id="homeCountMotorists">0</div>
+                    <div style="font-size:.72rem;color:var(--text-light);font-weight:700;">Queued Motorists</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="mob-card mb-0 text-center py-3">
+                    <div style="font-size:1.5rem;font-weight:800;color:var(--red);" id="homeCountViolations">0</div>
+                    <div style="font-size:.72rem;color:var(--text-light);font-weight:700;">Queued Citations</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mob-card">
+            <div class="mob-card-body">
+                <div style="font-size:.82rem;font-weight:800;color:var(--text-dark);margin-bottom:.75rem;">Quick Field Actions</div>
+                <div class="d-grid gap-2">
+                    <button type="button" class="mob-btn-primary" onclick="switchTab('motorist')">
+                        <i class="ph-bold ph-user-plus"></i> Register Motorist (+ OCR Scan)
+                    </button>
+                    <button type="button" class="mob-btn-primary mob-btn-danger" onclick="switchTab('citation')">
+                        <i class="ph-bold ph-file-plus"></i> Issue Traffic Violation Ticket
+                    </button>
+                    <button type="button" class="mob-btn-primary mob-btn-outline" onclick="switchTab('vehicle')">
+                        <i class="ph-bold ph-car-simple"></i> Register Vehicle
+                    </button>
+                    <button type="button" class="mob-btn-primary mob-btn-outline" onclick="switchTab('incident')">
+                        <i class="ph-bold ph-warning"></i> Report Traffic Incident
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- TAB 2: MOTORIST + OCR SCANNER --}}
+    <section id="panel-motorist" class="mob-tab-panel">
+        <div class="ocr-banner">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="ph-bold ph-scan display-6 text-warning"></i>
+                    <div>
+                        <div style="font-weight:800;font-size:.92rem;">License OCR Scan</div>
+                        <div style="font-size:.74rem;color:#94a3b8;">Offline Tesseract.js WASM Engine</div>
+                    </div>
+                </div>
+            </div>
+            <p style="font-size:.76rem;color:#cbd5e1;margin-bottom:.75rem;">Scan driver's license image to auto-fill motorist details without internet.</p>
+            <div class="d-flex gap-2">
+                <input type="file" id="offOcrFileInput" accept="image/*" class="d-none">
+                <button type="button" class="btn btn-warning btn-sm fw-700 w-100 py-2" onclick="document.getElementById('offOcrFileInput').click()">
+                    <i class="ph-bold ph-camera me-1"></i> Scan Driver's License
+                </button>
+            </div>
+            <div id="offOcrStatus" style="display:none;font-size:.75rem;margin-top:.5rem;color:#fde68a;font-weight:700;">Scanning card...</div>
+        </div>
+
+        <div class="mob-card">
+            <div class="mob-card-body">
+                <div style="font-size:.85rem;font-weight:800;color:var(--text-dark);margin-bottom:.85rem;">Motorist Registration</div>
+                <form method="POST" action="/officer/motorists" enctype="multipart/form-data" id="offMotoristForm" data-offline-sync="true" data-offline-label="Motorist" data-offline-record-type="motorist-create">
+                    <div class="mb-3">
+                        <label class="mob-label">First Name <span class="text-danger">*</span></label>
+                        <input type="text" name="first_name" id="off_first_name" class="mob-input" required placeholder="First Name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="mob-label">Last Name <span class="text-danger">*</span></label>
+                        <input type="text" name="last_name" id="off_last_name" class="mob-input" required placeholder="Last Name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="mob-label">Driver License Number <span class="text-danger">*</span></label>
+                        <input type="text" name="license_number" id="off_license_number" class="mob-input" required placeholder="e.g. G01-12-345678">
+                    </div>
+                    <div class="mb-3">
+                        <label class="mob-label">Contact Number</label>
+                        <input type="text" name="contact_number" id="off_contact_number" class="mob-input" placeholder="09171234567">
+                    </div>
+                    <div class="mb-3">
+                        <label class="mob-label">Complete Address</label>
+                        <input type="text" name="address" id="off_address" class="mob-input" placeholder="Barangay / Street / Municipality">
+                    </div>
+                    <button type="submit" class="mob-btn-primary mt-2">
+                        <i class="ph-bold ph-floppy-disk"></i> Save Motorist Offline
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    {{-- TAB 3: CITATION / VIOLATION --}}
+    <section id="panel-citation" class="mob-tab-panel">
+        <div class="mob-card">
+            <div class="mob-card-body">
+                <div style="font-size:.85rem;font-weight:800;color:var(--text-dark);margin-bottom:.85rem;">Issue Traffic Violation Citation</div>
+                <form method="POST" action="/officer/offline/violations/create" enctype="multipart/form-data" id="offViolationForm" data-offline-sync="true" data-offline-label="Violation" data-offline-record-type="offline-violation-create">
+                    <input type="hidden" name="offline_motorist_key" id="off_violation_motorist_key">
+
+                    <div class="mb-3">
+                        <label class="mob-label">Select Motorist <span class="text-danger">*</span></label>
+                        <select id="offViolationMotoristSelect" class="mob-select" required onchange="document.getElementById('off_violation_motorist_key').value=this.value;">
+                            <option value="">Choose queued or existing motorist...</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="mob-label">Violation Category <span class="text-danger">*</span></label>
+                        <select name="violation_type_id" id="off_violation_type_id" class="mob-select" required>
+                            <option value="1">Driving Without License (₱750.00)</option>
+                            <option value="2">No Helmet / Failure to Wear Helmet (₱500.00)</option>
+                            <option value="3">Reckless Driving (₱1,000.00)</option>
+                            <option value="4">Illegal Parking / Obstruction (₱500.00)</option>
+                            <option value="5">Over-Speeding (₱1,000.00)</option>
+                            <option value="6">Unregistered Motor Vehicle (₱1,500.00)</option>
+                            <option value="7">Disregarding Traffic Sign (₱500.00)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="mob-label">Location / Apprehension Area</label>
+                        <input type="text" name="location" id="off_violation_location" class="mob-input" placeholder="e.g. Highway Nangka, Balamban">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="mob-label">Officer Remarks</label>
+                        <textarea name="remarks" id="off_violation_remarks" class="mob-input" rows="2" placeholder="Apprehension notes..."></textarea>
+                    </div>
+
+                    <button type="submit" class="mob-btn-primary mob-btn-danger mt-2">
+                        <i class="ph-bold ph-file-plus"></i> Save Citation Ticket Offline
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    {{-- TAB 4: VEHICLE --}}
+    <section id="panel-vehicle" class="mob-tab-panel">
+        <div class="mob-card">
+            <div class="mob-card-body">
+                <div style="font-size:.85rem;font-weight:800;color:var(--text-dark);margin-bottom:.85rem;">Register Vehicle</div>
+                <form method="POST" action="/officer/offline/vehicles/create" enctype="multipart/form-data" id="offVehicleForm" data-offline-sync="true" data-offline-label="Vehicle" data-offline-record-type="offline-vehicle-create">
+                    <input type="hidden" name="offline_motorist_key" id="off_vehicle_motorist_key">
+
+                    <div class="mb-3">
+                        <label class="mob-label">Owner / Motorist <span class="text-danger">*</span></label>
+                        <select id="offVehicleMotoristSelect" class="mob-select" required onchange="document.getElementById('off_vehicle_motorist_key').value=this.value;">
+                            <option value="">Choose motorist...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="mob-label">Plate / Conduction Number <span class="text-danger">*</span></label>
+                        <input type="text" name="plate_number" class="mob-input" required placeholder="e.g. ABC-1234">
+                    </div>
+                    <div class="mb-3">
+                        <label class="mob-label">Vehicle Type</label>
+                        <select name="vehicle_type" class="mob-select">
+                            <option value="Motorcycle">Motorcycle</option>
+                            <option value="Tricycle">Tricycle</option>
+                            <option value="Private Car">Private Car / Sedan</option>
+                            <option value="SUV / Van">SUV / Van</option>
+                            <option value="Truck">Truck / Heavy Equipment</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="mob-label">Color / Model</label>
+                        <input type="text" name="color" class="mob-input" placeholder="e.g. Black / Honda Click 125">
+                    </div>
+                    <button type="submit" class="mob-btn-primary mt-2">
+                        <i class="ph-bold ph-floppy-disk"></i> Save Vehicle Offline
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    {{-- TAB 5: INCIDENT --}}
+    <section id="panel-incident" class="mob-tab-panel">
+        <div class="mob-card">
+            <div class="mob-card-body">
+                <div style="font-size:.85rem;font-weight:800;color:var(--text-dark);margin-bottom:.85rem;">Report Traffic Incident</div>
+                <form method="POST" action="/officer/incidents" enctype="multipart/form-data" id="offIncidentForm" data-offline-sync="true" data-offline-label="Incident" data-offline-record-type="incident-create">
+                    <div class="mb-3">
+                        <label class="mob-label">Incident Type <span class="text-danger">*</span></label>
+                        <select name="incident_type" class="mob-select" required>
+                            <option value="Vehicular Collision">Vehicular Collision</option>
+                            <option value="Hit and Run">Hit and Run</option>
+                            <option value="Road Obstruction">Road Obstruction</option>
+                            <option value="Hazard / Oil Spill">Hazard / Oil Spill</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="mob-label">Location <span class="text-danger">*</span></label>
+                        <input type="text" name="location" class="mob-input" required placeholder="Incident location">
+                    </div>
+                    <div class="mb-3">
+                        <label class="mob-label">Description / Details</label>
+                        <textarea name="description" class="mob-input" rows="3" placeholder="Provide incident details..."></textarea>
+                    </div>
+                    <button type="submit" class="mob-btn-primary mob-btn-danger mt-2">
+                        <i class="ph-bold ph-warning"></i> Save Incident Offline
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+{{-- BOTTOM TAB BAR --}}
+<nav class="mob-bottom-nav">
+    <button type="button" class="mob-nav-item active" id="tab-home" onclick="switchTab('home')">
+        <i class="ph-bold ph-house"></i>
+        <span>Home</span>
+    </button>
+    <button type="button" class="mob-nav-item" id="tab-motorist" onclick="switchTab('motorist')">
+        <i class="ph-bold ph-user-plus"></i>
+        <span>Motorist</span>
+    </button>
+    <button type="button" class="mob-nav-item" id="tab-citation" onclick="switchTab('citation')">
+        <i class="ph-bold ph-file-plus"></i>
+        <span>Citation</span>
+    </button>
+    <button type="button" class="mob-nav-item" id="tab-vehicle" onclick="switchTab('vehicle')">
+        <i class="ph-bold ph-car-simple"></i>
+        <span>Vehicle</span>
+    </button>
+    <button type="button" class="mob-nav-item" id="tab-incident" onclick="switchTab('incident')">
+        <i class="ph-bold ph-warning"></i>
+        <span>Incident</span>
+    </button>
+</nav>
+
+<script src="/tvirs-ocr.js"></script>
+<script src="/mobile-offline.js"></script>
+
+<script>
+function switchTab(tabName) {
+    document.querySelectorAll('.mob-tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.mob-nav-item').forEach(n => n.classList.remove('active'));
+
+    var targetPanel = document.getElementById('panel-' + tabName);
+    var targetTab = document.getElementById('tab-' + tabName);
+
+    if (targetPanel) targetPanel.classList.add('active');
+    if (targetTab) targetTab.classList.add('active');
+
+    window.scrollTo(0,0);
+}
+
+// Load Officer Profile from localStorage
+(function () {
+    try {
+        var rawUser = localStorage.getItem('tvirs-mobile-auth-user');
+        if (rawUser) {
+            var user = JSON.parse(rawUser);
+            if (user.name) {
+                document.getElementById('mobOfficerNameTitle').textContent = user.name;
             }
-
-            if (!('caches' in window)) {
-                showReconnect();
-                return;
+            if (user.id) {
+                document.body.dataset.authUserId = user.id;
             }
+        }
+    } catch (e) {}
+})();
 
-            var done = false;
-            var guardTimer = window.setTimeout(function () {
-                if (!done) { done = true; showReconnect(); }
-            }, 2500);
+// Populate Motorist Selectors from IndexedDB
+function populateOfflineMotoristSelectors() {
+    if (!window.TvirsOffline || typeof window.TvirsOffline.listOfflineMotorists !== 'function') return;
 
-            Promise.all(candidates.map(function (path) {
-                return caches.match(path).then(function (match) {
-                    return match ? path : '';
-                }).catch(function () {
-                    return '';
-                });
-            })).then(function (matches) {
-                if (done) return;
-                done = true;
-                clearTimeout(guardTimer);
+    window.TvirsOffline.listOfflineMotorists().then(function (motorists) {
+        var violSelect = document.getElementById('offViolationMotoristSelect');
+        var vehSelect = document.getElementById('offVehicleMotoristSelect');
 
-                var firstAvailable = matches.find(function (path) { return !!path; });
+        if (!violSelect || !vehSelect) return;
 
-                if (firstAvailable) {
-                    if (note) note.textContent = 'Opening the last saved officer page on this device…';
-                    if (hint) hint.textContent = firstAvailable;
-                    window.setTimeout(function () {
-                        window.location.replace(firstAvailable);
-                    }, 220);
-                    return;
-                }
+        var html = '<option value="">Choose queued motorist...</option>';
+        var count = 0;
 
-                showReconnect();
-                if (hint) hint.textContent = 'This device does not have a saved officer page yet. Open the app once while online first.';
-            }).catch(function () {
-                if (done) return;
-                done = true;
-                clearTimeout(guardTimer);
-                showReconnect();
-            });
-        })();
-    </script>
+        (motorists || []).forEach(function (m) {
+            count++;
+            var label = (m.summary.firstName || '') + ' ' + (m.summary.lastName || '') + ' (' + (m.summary.licenseNumber || 'No License') + ')';
+            html += '<option value="' + m.offlineMotoristKey + '">' + label + '</option>';
+        });
+
+        violSelect.innerHTML = html;
+        vehSelect.innerHTML = html;
+
+        var mCountEl = document.getElementById('homeCountMotorists');
+        if (mCountEl) mCountEl.textContent = count;
+    });
+}
+
+window.addEventListener('load', function () {
+    populateOfflineMotoristSelectors();
+});
+window.addEventListener('tvirs-offline-updated', function () {
+    populateOfflineMotoristSelectors();
+});
+</script>
+
 </body>
 </html>

@@ -1,6 +1,6 @@
-var STATIC_CACHE = 'tvirs-mobile-static-v10';
-var PAGE_CACHE = 'tvirs-mobile-pages-v10';
-var EXTERNAL_CACHE = 'tvirs-mobile-external-v10';
+var STATIC_CACHE = 'tvirs-mobile-static-v12';
+var PAGE_CACHE = 'tvirs-mobile-pages-v12';
+var EXTERNAL_CACHE = 'tvirs-mobile-external-v12';
 var OFFLINE_FALLBACK = '/offline-mobile.html';
 var STATIC_URLS = [
     '/manifest.json',
@@ -197,7 +197,16 @@ async function networkFirstPage(request) {
         var fallbackCreate = await pageCache.match('/officer/motorists/create');
         if (fallbackCreate) return fallbackCreate;
 
-        return caches.match(OFFLINE_FALLBACK);
+        var fallbackApp = await staticCache.match(OFFLINE_FALLBACK);
+        if (fallbackApp) return fallbackApp;
+
+        fallbackApp = await caches.match(OFFLINE_FALLBACK);
+        if (fallbackApp) return fallbackApp;
+
+        return new Response('<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=/offline-mobile.html"></head><body>Loading TVIRS Offline Mode...</body></html>', {
+            status: 200,
+            headers: { 'Content-Type': 'text/html; charset=utf-8' }
+        });
     }
 }
 
