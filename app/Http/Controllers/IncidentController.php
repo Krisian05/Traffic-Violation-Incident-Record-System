@@ -44,28 +44,52 @@ class IncidentController extends Controller
         }
 
         if ($search !== '') {
-            $lk = '%' . $search . '%';
-            $searchTerms = array_values(array_filter(
-                preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY) ?: []
+            $rawSearch = mb_strtolower(trim($search));
+            $fullLk = '%' . $rawSearch . '%';
+            $tokens = array_values(array_filter(
+                preg_split('/\s+/', $rawSearch, -1, PREG_SPLIT_NO_EMPTY) ?: []
             ));
 
-            $query->where(function ($q) use ($lk, $searchTerms) {
-                $q->whereLike('location', $lk)
-                  ->orWhereLike('incident_number', $lk)
-                  ->orWhereHas('motorists', function ($mq) use ($lk, $searchTerms) {
-                      $mq->whereLike('motorist_name', $lk)
-                         ->orWhereHas('violator', function ($vq) use ($searchTerms) {
-                             foreach ($searchTerms as $term) {
-                                 $termLike = '%' . $term . '%';
-
-                                 $vq->where(function ($nameQ) use ($termLike) {
-                                     $nameQ->whereLike('first_name', $termLike)
-                                         ->orWhereLike('middle_name', $termLike)
-                                         ->orWhereLike('last_name', $termLike);
-                                 });
-                             }
-                         });
+            $query->where(function ($q) use ($fullLk, $tokens) {
+                $q->whereRaw('LOWER(location) LIKE ?', [$fullLk])
+                  ->orWhereRaw('LOWER(incident_number) LIKE ?', [$fullLk])
+                  ->orWhereRaw('LOWER(description) LIKE ?', [$fullLk])
+                  ->orWhereHas('lgu', function ($lq) use ($fullLk) {
+                      $lq->whereRaw('LOWER(name) LIKE ?', [$fullLk]);
                   });
+
+                if (count($tokens) > 1) {
+                    $q->orWhere(function ($locQ) use ($tokens) {
+                        foreach ($tokens as $t) {
+                            $locQ->whereRaw('LOWER(location) LIKE ?', ['%' . $t . '%']);
+                        }
+                    })->orWhere(function ($descQ) use ($tokens) {
+                        foreach ($tokens as $t) {
+                            $descQ->whereRaw('LOWER(description) LIKE ?', ['%' . $t . '%']);
+                        }
+                    });
+                }
+
+                $q->orWhereHas('motorists', function ($mq) use ($fullLk, $tokens) {
+                    $mq->whereRaw('LOWER(motorist_name) LIKE ?', [$fullLk])
+                       ->orWhereRaw('LOWER(motorist_license) LIKE ?', [$fullLk])
+                       ->orWhereHas('violator', function ($vq) use ($fullLk, $tokens) {
+                           $vq->where(function ($nameQ) use ($fullLk, $tokens) {
+                               $nameQ->whereRaw('LOWER(first_name) LIKE ?', [$fullLk])
+                                     ->orWhereRaw('LOWER(last_name) LIKE ?', [$fullLk])
+                                     ->orWhereRaw('LOWER(middle_name) LIKE ?', [$fullLk])
+                                     ->orWhereRaw("LOWER(CONCAT(first_name, ' ', last_name)) LIKE ?", [$fullLk])
+                                     ->orWhereRaw("LOWER(CONCAT(last_name, ' ', first_name)) LIKE ?", [$fullLk]);
+
+                               foreach ($tokens as $t) {
+                                   $tLk = '%' . $t . '%';
+                                   $nameQ->orWhereRaw('LOWER(first_name) LIKE ?', [$tLk])
+                                         ->orWhereRaw('LOWER(middle_name) LIKE ?', [$tLk])
+                                         ->orWhereRaw('LOWER(last_name) LIKE ?', [$tLk]);
+                               }
+                           });
+                       });
+                });
             });
         }
 

@@ -773,12 +773,36 @@ class OfficerController extends Controller
         $baseQuery = Incident::when($lguId, fn($q) => $q->where('lgu_id', $lguId));
 
         if ($search !== '') {
-            $baseQuery->where(function ($q) use ($search) {
-                $q->where('location', 'like', "%{$search}%")
-                  ->orWhere('incident_number', 'like', "%{$search}%")
-                  ->orWhereHas('motorists', fn($mq) =>
-                      $mq->where('motorist_name', 'like', "%{$search}%")
-                  );
+            $rawSearch = mb_strtolower(trim($search));
+            $fullLk = '%' . $rawSearch . '%';
+            $tokens = array_values(array_filter(
+                preg_split('/\s+/', $rawSearch, -1, PREG_SPLIT_NO_EMPTY) ?: []
+            ));
+
+            $baseQuery->where(function ($q) use ($fullLk, $tokens) {
+                $q->whereRaw('LOWER(location) LIKE ?', [$fullLk])
+                  ->orWhereRaw('LOWER(incident_number) LIKE ?', [$fullLk])
+                  ->orWhereRaw('LOWER(description) LIKE ?', [$fullLk])
+                  ->orWhereHas('lgu', function ($lq) use ($fullLk) {
+                      $lq->whereRaw('LOWER(name) LIKE ?', [$fullLk]);
+                  });
+
+                if (count($tokens) > 1) {
+                    $q->orWhere(function ($locQ) use ($tokens) {
+                        foreach ($tokens as $t) {
+                            $locQ->whereRaw('LOWER(location) LIKE ?', ['%' . $t . '%']);
+                        }
+                    })->orWhere(function ($descQ) use ($tokens) {
+                        foreach ($tokens as $t) {
+                            $descQ->whereRaw('LOWER(description) LIKE ?', ['%' . $t . '%']);
+                        }
+                    });
+                }
+
+                $q->orWhereHas('motorists', fn($mq) =>
+                    $mq->whereRaw('LOWER(motorist_name) LIKE ?', [$fullLk])
+                       ->orWhereRaw('LOWER(motorist_license) LIKE ?', [$fullLk])
+                );
             });
         }
 
