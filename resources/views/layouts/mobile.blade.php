@@ -2333,6 +2333,11 @@ function initPhotoPicker(wrapperId, inputName, options) {
     const wrapper  = document.getElementById(wrapperId);
     if (!wrapper) return;
 
+    // Prevent duplicate photo picker initializations on the exact same wrapper element
+    if (wrapper.dataset.photoPickerInit === 'true') return;
+    wrapper.dataset.photoPickerInit = 'true';
+    wrapper.innerHTML = '';
+
     const accept   = options.accept   || 'image/*';
     const multiple = !!options.multiple;
     const baseName = multiple ? inputName.replace(/\[\]$/, '') : inputName;
