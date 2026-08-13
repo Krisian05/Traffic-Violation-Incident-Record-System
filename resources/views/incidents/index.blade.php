@@ -144,7 +144,7 @@
 <div class="gov-ph-title">Incident Records</div>
 
 {{-- ── Table Card ── --}}
-<div class="inc-table-card">
+<div class="inc-table-card" id="inc-table-card">
 
     {{-- Card header with Record Incident button --}}
     <div class="inc-table-header">
@@ -677,6 +677,26 @@ a.vio-page:hover { background: #fdf8f0; border-color: #dc2626; color: #dc2626; }
                 if (newCard && currentCard) {
                     currentCard.innerHTML = newCard.innerHTML;
                 }
+
+                const newTopbarSub = doc.querySelector('#topbar-sub-container');
+                const currentTopbarSub = document.querySelector('#topbar-sub-container');
+                if (newTopbarSub && currentTopbarSub) {
+                    currentTopbarSub.innerHTML = newTopbarSub.innerHTML;
+                }
+
+                const newClearBtn = doc.querySelector('.filter-clear-btn');
+                const currentClearBtn = document.querySelector('.filter-clear-btn');
+                const header = document.querySelector('.filter-card-header');
+                if (newClearBtn) {
+                    if (currentClearBtn) {
+                        currentClearBtn.outerHTML = newClearBtn.outerHTML;
+                    } else if (header) {
+                        header.appendChild(newClearBtn);
+                    }
+                } else if (currentClearBtn) {
+                    currentClearBtn.remove();
+                }
+
                 history.replaceState(null, '', url);
                 rebindEvents();
             })

@@ -76,7 +76,7 @@
 </div>
 
 {{-- ── Table Card ── --}}
-<div class="vio-table-card">
+<div class="vio-table-card" id="vh-table-card">
     <div class="table-responsive">
         <table class="table align-middle mb-0" id="vehicles-table">
             <thead>
