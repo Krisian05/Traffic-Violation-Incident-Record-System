@@ -1,6 +1,6 @@
-var STATIC_CACHE = 'tvirs-mobile-static-v9';
-var PAGE_CACHE = 'tvirs-mobile-pages-v9';
-var EXTERNAL_CACHE = 'tvirs-mobile-external-v9';
+var STATIC_CACHE = 'tvirs-mobile-static-v10';
+var PAGE_CACHE = 'tvirs-mobile-pages-v10';
+var EXTERNAL_CACHE = 'tvirs-mobile-external-v10';
 var OFFLINE_FALLBACK = '/offline-mobile.html';
 var STATIC_URLS = [
     '/manifest.json',
@@ -8,7 +8,9 @@ var STATIC_URLS = [
     '/images/Balamban.png',
     '/images/PNP.png',
     OFFLINE_FALLBACK,
+    '/mobile-offline.js',
     '/tvirs-ocr.js',
+    '/vendor/cropperjs/cropper.min.css',
     '/vendor/tesseract/tesseract.min.js',
     '/vendor/tesseract/worker.min.js',
     '/vendor/tesseract/tesseract-core-simd-lstm.wasm.js',
@@ -54,7 +56,6 @@ function cacheInternalUrl(cache, url) {
         .then(function (response) {
             var requestPath = new URL(url, self.location.origin).pathname;
             var responsePath = response.url ? new URL(response.url).pathname : null;
-            // Don't cache if the response is an auth redirect (e.g. /login)
             if (response && response.ok && (!responsePath || responsePath === requestPath)) {
                 return cache.put(url, response.clone());
             }
@@ -105,7 +106,7 @@ function isOfficerNavigation(request, url) {
 
 function isStaticAsset(url) {
     if (url.origin !== self.location.origin) return false;
-    return /^\/(manifest\.json|favicon\.ico|offline-mobile\.html|tvirs-ocr\.js)/.test(url.pathname)
+    return /^\/(manifest\.json|favicon\.ico|offline-mobile\.html|tvirs-ocr\.js|mobile-offline\.js)/.test(url.pathname)
         || url.pathname.indexOf('/images/') === 0
         || url.pathname.indexOf('/vendor/') === 0;
 }
@@ -143,21 +144,40 @@ async function staleWhileRevalidate(request, cacheName) {
     }
 }
 
+function fetchWithTimeout(request, timeoutMs) {
+    return new Promise(function (resolve, reject) {
+        var timer = setTimeout(function () {
+            reject(new Error('Network timeout'));
+        }, timeoutMs);
+
+        fetch(request).then(function (response) {
+            clearTimeout(timer);
+            resolve(response);
+        }, function (error) {
+            clearTimeout(timer);
+            reject(error);
+        });
+    });
+}
+
 async function networkFirstPage(request) {
     var pageCache = await caches.open(PAGE_CACHE);
     var staticCache = await caches.open(STATIC_CACHE);
     var pagePath = new URL(request.url).pathname;
 
     try {
-        var response = await fetch(request);
+        // Fast 2.5s network attempt to prevent staying stuck on splash logo when offline/poor connection
+        var response = await fetchWithTimeout(request, 2500);
         var finalUrl = new URL(response.url);
 
         if (response.ok && finalUrl.origin === self.location.origin && finalUrl.pathname.indexOf('/officer') === 0) {
             pageCache.put(request, response.clone());
+            pageCache.put(pagePath, response.clone());
         }
 
         return response;
     } catch (error) {
+        // Try page cache matches
         var cached = await pageCache.match(request);
         if (cached) return cached;
 
@@ -169,6 +189,13 @@ async function networkFirstPage(request) {
 
         cached = await staticCache.match(pagePath);
         if (cached) return cached;
+
+        // Fall back to pre-cached officer dashboard or offline forms if page path is un-cached
+        var fallbackDashboard = await pageCache.match('/officer/dashboard');
+        if (fallbackDashboard) return fallbackDashboard;
+
+        var fallbackCreate = await pageCache.match('/officer/motorists/create');
+        if (fallbackCreate) return fallbackCreate;
 
         return caches.match(OFFLINE_FALLBACK);
     }
@@ -193,3 +220,4 @@ self.addEventListener('fetch', function (event) {
         event.respondWith(staleWhileRevalidate(event.request, EXTERNAL_CACHE));
     }
 });
+

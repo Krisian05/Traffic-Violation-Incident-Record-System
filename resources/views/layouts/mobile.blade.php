@@ -77,6 +77,40 @@
             min-width: 0;
         }
 
+        .mob-net-status {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: .25rem .55rem;
+            border-radius: 999px;
+            font-size: .68rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-right: .35rem;
+            transition: all .2s ease;
+            flex-shrink: 0;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .mob-net-status--online {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6ee7b7;
+            border: 1px solid rgba(52, 211, 153, 0.4);
+        }
+
+        .mob-net-status--offline {
+            background: rgba(245, 158, 11, 0.26);
+            color: #fde68a;
+            border: 1px solid rgba(251, 191, 36, 0.55);
+            animation: mobPulseNet 2s infinite;
+        }
+
+        @keyframes mobPulseNet {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .75; }
+        }
+
         .mob-topbar-title {
             font-size: .9rem;
             font-weight: 700;
@@ -1238,6 +1272,11 @@
             </a>
         @endif
         <span class="mob-topbar-title">@yield('title', 'TVIRS Officer')</span>
+    </div>
+
+    <div class="mob-net-status mob-net-status--online" id="mobHeaderNetBadge" title="Network Connectivity Status">
+        <i class="ph-bold ph-wifi-high" id="mobHeaderNetIcon"></i>
+        <span id="mobHeaderNetText">Online</span>
     </div>
 
     <form method="POST" action="{{ route('logout') }}" id="logout-form" class="d-none">@csrf</form>

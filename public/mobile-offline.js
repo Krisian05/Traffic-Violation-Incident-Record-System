@@ -1637,56 +1637,158 @@
         });
     }
 
+    function updateHeaderNetworkBadge() {
+        var headerBadge = document.getElementById('mobHeaderNetBadge');
+        var headerIcon = document.getElementById('mobHeaderNetIcon');
+        var headerText = document.getElementById('mobHeaderNetText');
+
+        if (!headerBadge || !headerText) return;
+
+        if (navigator.onLine) {
+            headerBadge.className = 'mob-net-status mob-net-status--online';
+            if (headerIcon) headerIcon.className = 'ph-bold ph-wifi-high';
+            headerText.textContent = 'Online';
+            headerBadge.title = 'Online — Central database connection active';
+        } else {
+            headerBadge.className = 'mob-net-status mob-net-status--offline';
+            if (headerIcon) headerIcon.className = 'ph-bold ph-wifi-slash';
+            headerText.textContent = 'Offline Mode';
+            headerBadge.title = 'Offline Mode — New records will save locally on device';
+        }
+    }
+
+    function precacheOfficerPages() {
+        if (!navigator.onLine || typeof caches === 'undefined') return;
+
+        var PAGES_TO_CACHE = [
+            '/officer/dashboard',
+            '/officer/incidents',
+            '/officer/motorists',
+            '/officer/motorists/create',
+            '/officer/offline/violations/create',
+            '/officer/offline/vehicles/create',
+            '/officer/offline/incidents/create',
+            '/officer/vehicles',
+            '/officer/vehicles/create',
+            '/officer/incidents/create'
+        ];
+
+        caches.open('tvirs-mobile-pages-v10').then(function (cache) {
+            PAGES_TO_CACHE.forEach(function (pageUrl) {
+                fetch(pageUrl, { credentials: 'same-origin' }).then(function (response) {
+                    if (response && response.ok) {
+                        cache.put(pageUrl, response.clone());
+                    }
+                }).catch(function () {
+                    return null;
+                });
+            });
+        }).catch(function () {
+            return null;
+        });
+    }
+
+    function attachOfflineLinkGuards() {
+        document.addEventListener('click', function (event) {
+            if (navigator.onLine) return;
+
+            var target = event.target.closest('a');
+            if (!target || !target.href) return;
+
+            var url;
+            try {
+                url = new URL(target.href);
+            } catch (e) {
+                return;
+            }
+
+            if (url.origin !== window.location.origin) return;
+            if (url.pathname.indexOf('/officer') !== 0) return;
+
+            var allowedPaths = [
+                '/officer/dashboard',
+                '/officer/incidents',
+                '/officer/motorists',
+                '/officer/motorists/create',
+                '/officer/offline/violations/create',
+                '/officer/offline/vehicles/create',
+                '/officer/offline/incidents/create',
+                '/officer/vehicles',
+                '/officer/vehicles/create',
+                '/officer/incidents/create'
+            ];
+
+            if (allowedPaths.indexOf(url.pathname) !== -1 || (url.hash && url.hash.indexOf('motorist=') !== -1)) {
+                return;
+            }
+
+            if (/^\/officer\/(motorists|violations|vehicles|incidents)\/\d+/.test(url.pathname)) {
+                event.preventDefault();
+                showToast('Offline Mode: Server record details require network connection. You can still create new records offline.', 'error', 4500);
+            }
+        });
+    }
+
     attachOfflineHandlers();
     attachChipSummary();
     attachLogoutCleanup();
+    attachOfflineLinkGuards();
     reconcileCachedPagesForUser();
     registerServiceWorker();
+    updateHeaderNetworkBadge();
+    precacheOfficerPages();
+
     window.TvirsOffline = {
         listOfflineMotorists: listOfflineMotorists,
         getOfflineMotoristByKey: getOfflineMotoristByKey,
         findOfflineMotoristForForm: findOfflineMotoristForForm,
         getSyncedMotoristId: getSyncedMotoristId,
         buildOfflineViolationHref: buildOfflineViolationHref,
-        buildOfflineVehicleHref: buildOfflineVehicleHref
+        buildOfflineVehicleHref: buildOfflineVehicleHref,
+        updateHeaderNetworkBadge: updateHeaderNetworkBadge
     };
 
     migrateLegacyQueuedRecords().finally(function () {
         dedupeExistingQueuedRecords().finally(function () {
             notifyOfflineDataChanged({ phase: 'ready' });
-            updateOfflineStatus();
+            updateHeaderNetworkBadge();
             refreshQueuedFormStates();
 
             if (navigator.onLine) {
                 syncPendingRecords();
+                precacheOfficerPages();
             }
         });
     });
 
     window.addEventListener('online', function () {
+        updateHeaderNetworkBadge();
         refreshQueuedFormStates();
         showToast('Back online. Syncing queued records now.', 'syncing');
         syncPendingRecords();
+        precacheOfficerPages();
     });
 
     window.addEventListener('offline', function () {
+        updateHeaderNetworkBadge();
         refreshQueuedFormStates();
-        updateOfflineStatus();
         showToast('You are offline. New records will be saved on this device.', 'offline');
     });
 
     document.addEventListener('visibilitychange', function () {
+        updateHeaderNetworkBadge();
         if (!document.hidden && navigator.onLine) {
             refreshQueuedFormStates();
             syncPendingRecords();
+            precacheOfficerPages();
             return;
         }
 
         refreshQueuedFormStates();
-        updateOfflineStatus();
     });
 
     window.setInterval(function () {
+        updateHeaderNetworkBadge();
         if (navigator.onLine) {
             refreshQueuedFormStates();
             syncPendingRecords();
@@ -1694,6 +1796,5 @@
         }
 
         refreshQueuedFormStates();
-        updateOfflineStatus();
     }, SYNC_INTERVAL_MS);
 })();
