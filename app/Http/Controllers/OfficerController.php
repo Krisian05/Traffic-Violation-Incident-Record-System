@@ -790,6 +790,15 @@ class OfficerController extends Controller
                     });
                 }
 
+                $q->orWhereHas('recorder', function ($rq) use ($fullLk) {
+                    $rq->whereRaw('LOWER(name) LIKE ?', [$fullLk]);
+                    if (\Illuminate\Support\Facades\Schema::hasTable('lgus')) {
+                        $rq->orWhereHas('lgu', function ($rlq) use ($fullLk) {
+                            $rlq->whereRaw('LOWER(name) LIKE ?', [$fullLk]);
+                        });
+                    }
+                });
+
                 if (count($tokens) > 1) {
                     $q->orWhere(function ($locQ) use ($tokens) {
                         foreach ($tokens as $t) {

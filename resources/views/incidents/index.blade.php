@@ -24,6 +24,12 @@
     @php
         $activeFilters = [];
         if ($search)   $activeFilters[] = ['label' => 'Search',   'value' => $search];
+        if (request('lgu_id') && isset($lgus) && $lgus->count()) {
+            $selectedLguObj = $lgus->firstWhere('id', (int) request('lgu_id')) ?: $lgus->firstWhere('id', request('lgu_id'));
+            if ($selectedLguObj) {
+                $activeFilters[] = ['label' => 'Municipality', 'value' => $selectedLguObj->name];
+            }
+        }
         if ($dateFrom) $activeFilters[] = ['label' => 'From',     'value' => $dateFrom];
         if ($dateTo)   $activeFilters[] = ['label' => 'To',       'value' => $dateTo];
         if ($status) {
@@ -52,7 +58,7 @@
                 <div style="font-size:.72rem;color:#a8a29e;">Narrow down incident records</div>
             </div>
         </div>
-        @if($search || $dateFrom || $dateTo || $status)
+        @if($search || $dateFrom || $dateTo || $status || request('lgu_id'))
             <a href="{{ route('incidents.index') }}" class="filter-clear-btn ms-auto">
                 <i class="bi bi-x-lg"></i> Clear filters
             </a>
@@ -67,10 +73,24 @@
                     <div class="input-group input-group-sm">
                         <span class="input-group-text filt-icon"><i class="bi bi-search"></i></span>
                         <input type="text" name="search" class="form-control filt-input"
-                            placeholder="Location, incident no., or motorist name"
+                            placeholder="Location, LGU, recorded by, incident no., or motorist..."
                             value="{{ $search }}">
                     </div>
                 </div>
+
+                @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->isProvinceAdmin()) && isset($lgus) && count($lgus) > 0)
+                <div style="flex:1.5;min-width:140px;">
+                    <label class="filter-label"><i class="bi bi-geo-alt-fill me-1"></i>LGU / Municipality</label>
+                    <select name="lgu_id" class="form-select form-select-sm filt-input">
+                        <option value="">All Municipalities</option>
+                        @foreach($lgus as $lguItem)
+                            <option value="{{ $lguItem->id }}" {{ (string)request('lgu_id') === (string)$lguItem->id ? 'selected' : '' }}>
+                                {{ $lguItem->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
 
                 <div style="flex:1.2;min-width:0;">
                     <label class="filter-label"><i class="bi bi-calendar me-1"></i>Date From</label>

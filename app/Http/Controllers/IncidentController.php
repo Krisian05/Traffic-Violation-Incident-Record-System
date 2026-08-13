@@ -61,6 +61,15 @@ class IncidentController extends Controller
                     });
                 }
 
+                $q->orWhereHas('recorder', function ($rq) use ($fullLk) {
+                    $rq->whereRaw('LOWER(name) LIKE ?', [$fullLk]);
+                    if (\Illuminate\Support\Facades\Schema::hasTable('lgus')) {
+                        $rq->orWhereHas('lgu', function ($rlq) use ($fullLk) {
+                            $rlq->whereRaw('LOWER(name) LIKE ?', [$fullLk]);
+                        });
+                    }
+                });
+
                 if (count($tokens) > 1) {
                     $q->orWhere(function ($locQ) use ($tokens) {
                         foreach ($tokens as $t) {
@@ -115,7 +124,11 @@ class IncidentController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('incidents.index', compact('incidents', 'search', 'dateFrom', 'dateTo', 'status'));
+        $isProvinceOrSuperAdmin = $user && ($user->isSuperAdmin() || $user->isProvinceAdmin());
+        $lgus = $isProvinceOrSuperAdmin ? Lgu::orderBy('name')->get() : collect();
+        $selectedLguId = $request->input('lgu_id');
+
+        return view('incidents.index', compact('incidents', 'search', 'dateFrom', 'dateTo', 'status', 'lgus', 'selectedLguId'));
     }
 
     public function create(): View

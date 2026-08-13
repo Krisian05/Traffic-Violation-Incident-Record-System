@@ -139,4 +139,20 @@ class IncidentIndexFiltersTest extends TestCase
         $response->assertOk();
         $response->assertSeeText('Officer Route Test');
     }
+
+    public function test_operator_incidents_index_searches_recorder_name(): void
+    {
+        $operator = $this->makeUser('operator');
+        DB::table('users')->where('id', $operator->id)->update(['name' => 'LGU Administrator (Balamban)']);
+        $this->makeIncident($operator->id, [
+            'incident_number' => 'INC-2026-0004',
+            'location'        => 'Subangdaku Flyover',
+        ]);
+
+        $response = $this->actingAs($operator)
+            ->get(route('incidents.index') . '?search=Balamban');
+
+        $response->assertOk();
+        $response->assertSeeText('Subangdaku Flyover');
+    }
 }
