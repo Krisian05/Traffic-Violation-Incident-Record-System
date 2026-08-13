@@ -25,11 +25,13 @@ class ViolationController extends Controller
         $query = Violation::with(['violator', 'violationType', 'vehicle', 'lgu']);
 
         $user = Auth::user();
+        $selectedLguId = $request->input('lgu_id');
+
         if (Schema::hasColumn('violations', 'lgu_id')) {
             if ($user && $user->lgu_id && !$user->isSuperAdmin() && !$user->isProvinceAdmin()) {
                 $query->where('lgu_id', $user->lgu_id);
-            } elseif ($lguId = $request->input('lgu_id')) {
-                $query->where('lgu_id', $lguId);
+            } elseif ($selectedLguId) {
+                $query->where('lgu_id', $selectedLguId);
             }
         }
 
@@ -116,10 +118,12 @@ class ViolationController extends Controller
 
         $violations = $query->orderByDesc('date_of_violation')->paginate(20)->withQueryString();
 
-        $lguId = Auth::user()?->lgu_id;
-        $violationTypes = ViolationType::forLgu($lguId)->orderBy('name')->get();
+        $isProvinceOrSuperAdmin = $user && ($user->isSuperAdmin() || $user->isProvinceAdmin());
+        $lgus = $isProvinceOrSuperAdmin ? Lgu::orderBy('name')->get() : collect();
+        $effectiveLguId = $isProvinceOrSuperAdmin ? $selectedLguId : $user?->lgu_id;
+        $violationTypes = ViolationType::forLgu($effectiveLguId)->orderBy('name')->get();
 
-        return view('violations.index', compact('violations', 'violationTypes', 'search'));
+        return view('violations.index', compact('violations', 'violationTypes', 'search', 'lgus', 'selectedLguId'));
     }
 
     public function create(Violator $violator)

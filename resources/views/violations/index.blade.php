@@ -13,6 +13,12 @@
     @php
         $activeFilters = [];
         if (request('search') || request('plate')) $activeFilters[] = ['label' => 'Search', 'value' => request('search') ?: request('plate')];
+        if (request('lgu_id') && isset($lgus) && $lgus->count()) {
+            $selectedLguObj = $lgus->firstWhere('id', (int) request('lgu_id')) ?: $lgus->firstWhere('id', request('lgu_id'));
+            if ($selectedLguObj) {
+                $activeFilters[] = ['label' => 'Municipality', 'value' => $selectedLguObj->name];
+            }
+        }
         if (request('type'))      $activeFilters[] = ['label' => 'Type',   'value' => ucfirst(request('type'))];
         if (request('status'))    $activeFilters[] = ['label' => 'Status', 'value' => ucfirst(request('status'))];
         if (request('month') && is_numeric(request('month')) && (int) request('month') >= 1 && (int) request('month') <= 12) {
@@ -48,7 +54,7 @@
                 <div style="font-size:.72rem;color:#a8a29e;">Narrow down violation records</div>
             </div>
         </div>
-        @if(request()->hasAny(['search','plate','type','status','month','year','date_from','date_to']))
+        @if(request()->hasAny(['search','plate','type','status','month','year','date_from','date_to','lgu_id']))
             <a href="{{ route('violations.index') }}" class="filter-clear-btn ms-auto">
                 <i class="bi bi-x-lg"></i> Clear filters
             </a>
@@ -67,6 +73,20 @@
                             value="{{ request('search') ?: request('plate') }}">
                     </div>
                 </div>
+
+                @if(auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->isProvinceAdmin()) && isset($lgus) && count($lgus) > 0)
+                <div style="flex:1.5;min-width:140px;">
+                    <label class="filter-label"><i class="bi bi-geo-alt-fill me-1"></i>LGU / Municipality</label>
+                    <select name="lgu_id" class="form-select form-select-sm filt-input">
+                        <option value="">All Municipalities</option>
+                        @foreach($lgus as $lguItem)
+                            <option value="{{ $lguItem->id }}" {{ (string)request('lgu_id') === (string)$lguItem->id ? 'selected' : '' }}>
+                                {{ $lguItem->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
 
                 <div style="flex:1.5;min-width:130px;">
                     <label class="filter-label"><i class="bi bi-tag me-1"></i>Violation Type</label>
