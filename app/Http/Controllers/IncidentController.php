@@ -53,10 +53,13 @@ class IncidentController extends Controller
             $query->where(function ($q) use ($fullLk, $tokens) {
                 $q->whereRaw('LOWER(location) LIKE ?', [$fullLk])
                   ->orWhereRaw('LOWER(incident_number) LIKE ?', [$fullLk])
-                  ->orWhereRaw('LOWER(description) LIKE ?', [$fullLk])
-                  ->orWhereHas('lgu', function ($lq) use ($fullLk) {
-                      $lq->whereRaw('LOWER(name) LIKE ?', [$fullLk]);
-                  });
+                  ->orWhereRaw('LOWER(description) LIKE ?', [$fullLk]);
+
+                if (\Illuminate\Support\Facades\Schema::hasTable('lgus')) {
+                    $q->orWhereHas('lgu', function ($lq) use ($fullLk) {
+                        $lq->whereRaw('LOWER(name) LIKE ?', [$fullLk]);
+                    });
+                }
 
                 if (count($tokens) > 1) {
                     $q->orWhere(function ($locQ) use ($tokens) {
@@ -71,8 +74,12 @@ class IncidentController extends Controller
                 }
 
                 $q->orWhereHas('motorists', function ($mq) use ($fullLk, $tokens) {
-                    $mq->whereRaw('LOWER(motorist_name) LIKE ?', [$fullLk])
-                       ->orWhereRaw('LOWER(motorist_license) LIKE ?', [$fullLk])
+                    $mq->where(function ($smq) use ($fullLk) {
+                        $smq->whereRaw('LOWER(motorist_name) LIKE ?', [$fullLk]);
+                        if (\Illuminate\Support\Facades\Schema::hasColumn('incident_motorists', 'motorist_license')) {
+                            $smq->orWhereRaw('LOWER(motorist_license) LIKE ?', [$fullLk]);
+                        }
+                    })
                        ->orWhereHas('violator', function ($vq) use ($fullLk, $tokens) {
                            $vq->where(function ($nameQ) use ($fullLk, $tokens) {
                                $nameQ->whereRaw('LOWER(first_name) LIKE ?', [$fullLk])
