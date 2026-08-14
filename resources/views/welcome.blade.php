@@ -442,8 +442,8 @@
     {{-- TOP NAVIGATION --}}
     <nav class="top-nav">
         <a href="{{ url('/') }}" class="nav-brand">
-            <img src="{{ asset('images/Balamban.png') }}" alt="PNP Logo"
-                 style="width:60px;height:60px;object-fit:contain;flex-shrink:0;margin:-8px 0;">
+            <img src="{{ asset('images/app-logo.png') }}" alt="TVIRS Logo"
+                 style="width:54px;height:54px;object-fit:contain;flex-shrink:0;margin:-5px 0;">
             <div class="nav-brand-text">
                 <span class="d-none d-sm-block">Traffic Violation Incident Record System</span>
                 <span class="d-sm-none">TVIRS</span>
@@ -468,9 +468,9 @@
     {{-- HERO --}}
     <section class="hero">
 
-        {{-- PNP Logo --}}
+        {{-- App Shield Logo --}}
         <div class="badge-shield">
-            <img src="{{ asset('images/PNP.png') }}" alt="PNP Logo"
+            <img src="{{ asset('images/app-logo.png') }}" alt="TVIRS Logo"
                  style="width:240px;height:240px;object-fit:contain;margin:-20px;filter:drop-shadow(0 0 28px rgba(96,165,250,0.7));">
         </div>
 
@@ -1141,8 +1141,8 @@ document.querySelectorAll('.about-tab').forEach(function(tab) {
             {{-- Modal Header --}}
             <div class="modal-header border-0 pb-0" style="background:#fff;">
                 <div class="w-100 text-center pt-3">
-                    <img src="{{ asset('images/Balamban.png') }}" alt="PNP Logo"
-                         style="width:80px;height:80px;object-fit:contain;margin-bottom:.5rem;">
+                    <img src="{{ asset('images/app-logo.png') }}" alt="TVIRS Shield Logo"
+                         style="width:85px;height:85px;object-fit:contain;margin-bottom:.5rem;">
                     <h5 class="fw-bold mb-0" style="color:#1e293b;">Traffic Violation Incident Record System</h5>
                 </div>
                 <button type="button" class="btn-close position-absolute top-0 end-0 m-3"

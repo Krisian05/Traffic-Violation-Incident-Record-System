@@ -647,6 +647,34 @@
             border-color: #ddd0be;
         }
 
+        /* ── BRANDED LOGO LOADER ── */
+        .app-logo-loader {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            position: relative;
+        }
+        .app-logo-loader .shield-spinner-img {
+            width: 44px;
+            height: 44px;
+            object-fit: contain;
+            animation: shieldPulseGlow 1.2s ease-in-out infinite alternate;
+            filter: drop-shadow(0 0 10px rgba(37,99,235,0.5));
+        }
+        .app-logo-loader-sm .shield-spinner-img {
+            width: 20px;
+            height: 20px;
+            margin-right: 6px;
+            vertical-align: middle;
+            animation: shieldPulseGlow 1.2s ease-in-out infinite alternate;
+        }
+        @keyframes shieldPulseGlow {
+            0% { transform: scale(0.92); opacity: 0.85; filter: drop-shadow(0 0 4px rgba(37,99,235,0.4)); }
+            100% { transform: scale(1.08); opacity: 1; filter: drop-shadow(0 0 16px rgba(37,99,235,0.9)); }
+        }
+
         /* ── MISC ── */
         .text-muted { color: #78716c !important; }
         .border-bottom { border-color: #ddd0be !important; }
@@ -992,7 +1020,7 @@
 @auth
 <div class="sidebar" id="appSidebar">
     <div class="sidebar-brand">
-        <img src="{{ asset('images/PNP.png') }}" alt="PNP Logo" class="sidebar-logo">
+        <img src="{{ asset('images/app-logo.png') }}" alt="TVIRS Logo" class="sidebar-logo">
         <div>
             <h6>Traffic Violation Incident Record System</h6>
         </div>
@@ -1107,7 +1135,7 @@
                 <i class="bi bi-list" style="font-size:1.25rem;"></i>
             </button>
             @endauth
-            <img src="{{ asset('images/PNP.png') }}" alt="PNP" style="width:24px;height:24px;object-fit:contain;">
+            <img src="{{ asset('images/app-logo.png') }}" alt="TVIRS Logo" style="width:26px;height:26px;object-fit:contain;">
             <div>
                 <div class="topbar-title">@yield('title', 'Dashboard')</div>
                 @hasSection('topbar-sub')
@@ -1317,7 +1345,7 @@ function applyDateMask(el) {
         // Snapshot original content
         const originalHTML = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Please wait…';
+        btn.innerHTML = '<span class="app-logo-loader-sm"><img src="{{ asset('images/app-logo.png') }}" class="shield-spinner-img" alt="Loading"></span> Please wait…';
 
         // Re-enable after 8 s as a safety net (e.g. server error)
         setTimeout(function () {

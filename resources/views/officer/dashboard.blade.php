@@ -259,7 +259,7 @@
     {{-- Top bar: PNP logo · name · On Duty --}}
     <div class="d-flex align-items-center gap-3 mb-3" style="position:relative;z-index:1;">
         <div style="width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
-            <img src="{{ asset('images/PNP.png') }}" alt="PNP" style="width:34px;height:34px;object-fit:contain;">
+            <img src="{{ asset('images/app-logo.png') }}" alt="TVIRS Logo" style="width:34px;height:34px;object-fit:contain;">
         </div>
         <div style="flex:1;min-width:0;">
             <div style="font-size:.58rem;font-weight:700;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.1rem;">Traffic Officer</div>

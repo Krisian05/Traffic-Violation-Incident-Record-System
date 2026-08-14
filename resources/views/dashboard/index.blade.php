@@ -559,7 +559,9 @@
                 </div>
                 <div class="card-body position-relative" style="min-height:240px;">
                     <div id="aChartLoading-violations" class="analytics-loading-overlay" style="display:flex;">
-                        <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
+                        <div class="app-logo-loader">
+                            <img src="{{ asset('images/app-logo.png') }}" class="shield-spinner-img" alt="Loading">
+                        </div>
                     </div>
                     <canvas id="analyticsViolationsChart" height="220"></canvas>
                 </div>
@@ -578,8 +580,10 @@
                 </div>
                 <div class="card-body" id="aBarangayBody" style="overflow-y:auto;max-height:290px;">
                     <div class="analytics-loading-inline">
-                        <div class="spinner-border spinner-border-sm text-info" role="status"></div>
-                        <span class="ms-2 text-muted" style="font-size:.85rem;">Loading…</span>
+                        <div class="app-logo-loader app-logo-loader-sm d-flex align-items-center">
+                            <img src="{{ asset('images/app-logo.png') }}" class="shield-spinner-img" alt="Loading">
+                            <span class="ms-1 text-muted" style="font-size:.85rem;">Loading…</span>
+                        </div>
                     </div>
                 </div>
             </div>
