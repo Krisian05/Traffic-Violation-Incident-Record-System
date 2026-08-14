@@ -748,7 +748,6 @@
             '  </div>',
             '  <div class="qr-container" style="display:flex;flex-direction:column;align-items:center;margin:20px 0;">',
             '    <img id="offlineThermalTicketQrImg" alt="Citation QR Code" style="width:180px;height:180px;image-rendering:pixelated;margin-bottom:8px;display:block;" />',
-            '    <canvas id="offlineThermalTicketQr" style="display:none;"></canvas>',
             '    <div style="font-size:14px;font-weight:700;margin-top:5px;text-align:center;">SCAN TO VIEW &amp; PAY CITATION</div>',
             '  </div>',
             '  <div style="height:40px;"></div>',
@@ -959,14 +958,10 @@
         // Generate QR code using built-in self-contained offline QR generator
         setTimeout(function () {
             var qrImg = document.getElementById('offlineThermalTicketQrImg');
-            var qrCanvas = document.getElementById('offlineThermalTicketQr');
             var qrText = data.qrUrl || data.ticketNumber;
 
             if (qrImg) {
                 drawOfflineQr(qrImg, qrText, 180);
-            }
-            if (qrCanvas) {
-                drawOfflineQr(qrCanvas, qrText, 180);
             }
         }, 30);
     }
