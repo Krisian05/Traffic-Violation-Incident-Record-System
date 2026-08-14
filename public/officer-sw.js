@@ -1,6 +1,6 @@
-var STATIC_CACHE = 'tvirs-mobile-static-v13';
-var PAGE_CACHE = 'tvirs-mobile-pages-v13';
-var EXTERNAL_CACHE = 'tvirs-mobile-external-v13';
+var STATIC_CACHE = 'tvirs-mobile-static-v14';
+var PAGE_CACHE = 'tvirs-mobile-pages-v14';
+var EXTERNAL_CACHE = 'tvirs-mobile-external-v14';
 var OFFLINE_FALLBACK = '/offline-mobile.html';
 var STATIC_URLS = [
     '/manifest.json',
@@ -37,7 +37,8 @@ var EXTERNAL_URLS = [
     'https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css',
     'https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css',
     'https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css',
-    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+    'https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js'
 ];
 
 function cacheExternalUrl(cache, url) {

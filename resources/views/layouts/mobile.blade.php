@@ -2450,6 +2450,7 @@ function initPhotoPicker(wrapperId, inputName, options) {
     galInput.addEventListener('change', () => handleFiles(galInput));
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="{{ asset('tvirs-offline-ticket.js') }}?v={{ $tvirsOfflineTicketVersion }}"></script>
 <script src="{{ asset('tvirs-ocr.js') }}?v={{ $tvirsOcrVersion }}"></script>

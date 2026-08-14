@@ -542,14 +542,18 @@
     function buildViolationSummary(form, entries) {
         var violationTypeField = form ? form.querySelector('[name="violation_type_id"]') : null;
         var violationTypeName = '';
+        var fineAmount = '';
 
         if (violationTypeField && violationTypeField.selectedIndex >= 0) {
-            violationTypeName = cleanedString(violationTypeField.options[violationTypeField.selectedIndex].textContent || '');
+            var selectedOpt = violationTypeField.options[violationTypeField.selectedIndex];
+            violationTypeName = cleanedString(selectedOpt.textContent || '');
+            fineAmount = selectedOpt.dataset.fine || '';
         }
 
         return {
             violationTypeId: getLastEntryValue(entries, 'violation_type_id'),
             violationTypeName: violationTypeName,
+            fineAmount: fineAmount,
             dateOfViolation: getLastEntryValue(entries, 'date_of_violation'),
             ticketNumber: getLastEntryValue(entries, 'ticket_number'),
             location: getLastEntryValue(entries, 'location'),

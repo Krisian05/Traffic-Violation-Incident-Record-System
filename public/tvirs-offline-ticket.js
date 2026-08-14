@@ -1,7 +1,6 @@
 /**
  * TVIRS Mobile — Offline Citation Ticket Generator & Printer
- * Allows traffic officers to render, preview, and print 58mm/80mm thermal citation slips
- * directly from IndexedDB queued records without internet connection.
+ * Exactly matches the online /violations/{id}/print-thermal layout, styling, and typography.
  */
 (function () {
     'use strict';
@@ -9,6 +8,16 @@
     var MODAL_ID = 'tvirs-offline-ticket-modal';
     var PRINT_STYLE_ID = 'tvirs-offline-ticket-print-style';
     var activeData = null;
+
+    var VIOLATION_TYPE_MAP = {
+        '1': { name: 'DRIVING WITHOUT LICENSE', fine: '750.00' },
+        '2': { name: 'NO HELMET / FAILURE TO WEAR HELMET', fine: '500.00' },
+        '3': { name: 'RECKLESS DRIVING', fine: '1,000.00' },
+        '4': { name: 'ILLEGAL PARKING / OBSTRUCTION', fine: '500.00' },
+        '5': { name: 'OVER-SPEEDING', fine: '1,000.00' },
+        '6': { name: 'UNREGISTERED MOTOR VEHICLE', fine: '1,500.00' },
+        '7': { name: 'DISREGARDING TRAFFIC SIGN', fine: '500.00' }
+    };
 
     function getAuthOfficer() {
         try {
@@ -24,7 +33,7 @@
         var bodyUserId = document.body ? document.body.dataset.authUserId : '';
         return {
             id: bodyUserId || '',
-            name: 'TRAFFIC OFFICER'
+            name: 'PATROL OFFICER'
         };
     }
 
@@ -78,8 +87,9 @@
             '  #' + MODAL_ID + ' .off-ticket-backdrop { display: none !important; }',
             '  #' + MODAL_ID + ' .off-ticket-actions { display: none !important; }',
             '  #' + MODAL_ID + ' .off-ticket-header { display: none !important; }',
+            '  #' + MODAL_ID + ' #off-ticket-status-bar { display: none !important; }',
             '  #' + MODAL_ID + ' .off-ticket-container { box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: 384px !important; background: #fff !important; }',
-            '  #' + MODAL_ID + ' .off-ticket-slip { box-shadow: none !important; border: none !important; margin: 0 !important; width: 100% !important; max-width: 384px !important; padding: 10px 0 !important; font-size: 14px !important; }',
+            '  #' + MODAL_ID + ' .slip { box-shadow: none !important; border: none !important; margin: 0 auto !important; width: 384px !important; max-width: 384px !important; padding: 10px 5px !important; font-size: 18px !important; }',
             '  @page { margin: 2mm; size: 58mm auto; }',
             '}'
         ].join('\n');
@@ -91,7 +101,11 @@
 
         var officer = getAuthOfficer();
         var data = {
-            officerName: officer.name || 'TRAFFIC OFFICER',
+            stationName: 'BALAMBAN MUNICIPAL POLICE STATION',
+            lguName: 'Balamban',
+            provinceName: 'Cebu',
+            ordinanceRef: 'Ordinance No. 2005-09',
+            officerName: officer.name || 'PATROL OFFICER',
             officerId: officer.id || '',
             date: formatTicketDate(),
             time: formatTicketTime().time,
@@ -106,7 +120,7 @@
             fineAmount: '',
             location: 'BALAMBAN PATROL SECTOR',
             ticketNumber: '',
-            isOffline: true
+            qrUrl: ''
         };
 
         var entries = recordOrData.entries || [];
@@ -115,11 +129,14 @@
             return found.length ? cleaned(found[found.length - 1].value) : '';
         }
 
-        // Check if raw record from IndexedDB
         if (recordOrData.entries) {
-            data.ticketNumber = getVal('ticket_number') || ('OFF-' + String(recordOrData.id || Date.now()).slice(-6));
+            var typeId = getVal('violation_type_id');
+            var mapped = VIOLATION_TYPE_MAP[typeId] || null;
+
+            data.ticketNumber = getVal('ticket_number') || ('TVIRS-CEB-BAL-' + new Date().getFullYear() + '-' + String(recordOrData.id || Date.now()).slice(-6));
             data.location = getVal('location') || getVal('place_of_violation') || 'BALAMBAN, CEBU';
-            data.violationType = (recordOrData.summary && recordOrData.summary.violationTypeName) || getVal('violation_type_name') || 'TRAFFIC VIOLATION';
+            data.violationType = (recordOrData.summary && recordOrData.summary.violationTypeName) || (mapped ? mapped.name : '') || getVal('violation_type_name') || 'DRIVING WITHOUT LICENSE';
+            data.fineAmount = (mapped ? mapped.fine : '') || (recordOrData.summary && recordOrData.summary.fineAmount) || '750.00';
             data.plateNumber = getVal('vehicle_plate') || getVal('plate_number') || 'N/A';
             data.make = getVal('vehicle_make') || getVal('make') || '';
             data.color = getVal('vehicle_color') || getVal('color') || '';
@@ -132,7 +149,6 @@
                 data.ampm = t.ampm;
             }
 
-            // Motorist details
             var parentKey = recordOrData.parentOfflineMotoristKey || getVal('offline_motorist_key');
             if (parentKey && window.TvirsOffline && typeof window.TvirsOffline.getOfflineMotoristByKey === 'function') {
                 try {
@@ -140,7 +156,7 @@
                     if (motorist && motorist.summary) {
                         data.motoristName = motorist.summary.displayName || (motorist.summary.firstName + ' ' + motorist.summary.lastName);
                         data.motoristAddress = motorist.summary.address || '';
-                        data.motoristLicense = motorist.summary.licenseNumber || 'NO LICENSE ON FILE';
+                        data.motoristLicense = motorist.summary.licenseNumber || '';
                     }
                 } catch (e) {}
             }
@@ -149,103 +165,119 @@
                 data.motoristName = recordOrData.summary.motoristName || recordOrData.summary.displayName || '';
             }
         } else {
-            // Direct object passed
             data.motoristName = recordOrData.motoristName || 'UNNAMED MOTORIST';
             data.motoristAddress = recordOrData.motoristAddress || '';
-            data.motoristLicense = recordOrData.motoristLicense || 'N/A';
+            data.motoristLicense = recordOrData.motoristLicense || '';
             data.plateNumber = recordOrData.plateNumber || 'N/A';
             data.make = recordOrData.make || '';
             data.color = recordOrData.color || '';
             data.violationType = recordOrData.violationType || 'TRAFFIC CITATION';
-            data.fineAmount = recordOrData.fineAmount || '';
+            data.fineAmount = recordOrData.fineAmount || '750.00';
             data.location = recordOrData.location || 'BALAMBAN, CEBU';
-            data.ticketNumber = recordOrData.ticketNumber || ('OFF-' + String(Date.now()).slice(-6));
+            data.ticketNumber = recordOrData.ticketNumber || ('TVIRS-CEB-BAL-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random() * 900000));
             if (recordOrData.date) data.date = recordOrData.date;
         }
 
-        if (!data.motoristName) data.motoristName = 'MOTORIST (OFFLINE)';
-        if (!data.ticketNumber) data.ticketNumber = 'OFF-' + Math.floor(100000 + Math.random() * 900000);
+        if (!data.motoristName) data.motoristName = 'MOTORIST (FIELD ISSUED)';
+        data.qrUrl = window.location.origin + '/pay?ref=' + encodeURIComponent(data.ticketNumber);
 
         return data;
     }
 
     function buildSlipHtml(d) {
+        var ticketLen = d.ticketNumber.length;
+        var ticketFontSize = ticketLen > 26 ? '13px' : (ticketLen > 22 ? '15px' : (ticketLen > 18 ? '17px' : '20px'));
+
         return [
-            '<div class="off-ticket-slip" id="off-print-slip" style="width:100%;max-width:384px;margin:0 auto;background:#fff;padding:15px;color:#000;font-family:\'Courier New\',Courier,monospace;font-size:15px;font-weight:900;line-height:1.4;box-sizing:border-box;text-align:left;">',
-            '  <div style="text-align:center;font-size:14px;font-weight:900;margin-bottom:10px;">',
+            '<div class="slip" id="print-area" style="width:384px;margin:10px auto;padding:15px;background:#fff;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);font-family:\'Courier New\',Courier,monospace;color:#000;font-size:18px;font-weight:900;line-height:1.4;box-sizing:border-box;text-align:left;">',
+            '  <div class="text-center header-text" style="text-align:center;font-size:16px;font-weight:900;">',
             '    <div>Republic of the Philippines</div>',
-            '    <div>Province of Cebu</div>',
-            '    <div>Municipality of Balamban</div>',
-            '    <div style="margin-top:6px;font-size:16px;font-weight:900;">BALAMBAN POLICE STATION</div>',
-            '    <div style="font-size:11px;font-weight:700;color:#555;margin-top:2px;">OFFICE OF THE TRAFFIC SECTION (TVIRS)</div>',
+            '    <div>Province of ' + escapeHtml(d.provinceName) + '</div>',
+            '    <div>Municipality of ' + escapeHtml(d.lguName) + '</div>',
+            '    <div style="margin-top:10px;font-size:18px;font-weight:900;">' + escapeHtml(d.stationName.toUpperCase()) + '</div>',
             '  </div>',
-            '  <div style="text-align:center;font-size:18px;font-weight:900;margin:12px 0 10px;letter-spacing:-0.5px;border-top:2px solid #000;border-bottom:2px solid #000;padding:4px 0;">',
+            '  <div class="text-center title-text" style="text-align:center;font-size:22px;font-weight:900;margin:15px 0;letter-spacing:-0.5px;">',
             '    TRAFFIC CITATION TICKET',
             '  </div>',
-            '  <div style="display:flex;margin-bottom:8px;align-items:flex-end;">',
-            '    <span style="font-size:13px;font-weight:900;margin-right:6px;white-space:nowrap;">DATE:</span>',
-            '    <span style="border-bottom:1.5px solid #000;flex-grow:1;padding-bottom:1px;font-size:13px;font-weight:900;">' + escapeHtml(d.date) + '</span>',
+            '  <div class="field-row" style="display:flex;align-items:flex-end;margin-bottom:10px;width:100%;">',
+            '    <div class="field-label" style="font-size:14px;font-weight:900;white-space:nowrap;flex-shrink:0;margin-right:6px;">DATE:</div>',
+            '    <div class="field-value" style="border-bottom:2px solid #000;min-height:24px;display:block;padding-bottom:2px;flex-grow:1;font-size:14px;font-weight:900;word-break:break-word;line-height:1.3;">' + escapeHtml(d.date) + '</div>',
             '  </div>',
-            '  <div style="display:flex;margin-bottom:8px;align-items:flex-end;">',
-            '    <span style="font-size:13px;font-weight:900;margin-right:6px;white-space:nowrap;">TO:</span>',
-            '    <span style="border-bottom:1.5px solid #000;flex-grow:1;padding-bottom:1px;font-size:13px;font-weight:900;">' + escapeHtml(d.motoristName.toUpperCase()) + '</span>',
+            '  <div class="field-row" style="display:flex;align-items:flex-end;margin-bottom:10px;width:100%;">',
+            '    <div class="field-label" style="font-size:14px;font-weight:900;white-space:nowrap;flex-shrink:0;margin-right:6px;">TO:</div>',
+            '    <div class="field-value" style="border-bottom:2px solid #000;min-height:24px;display:block;padding-bottom:2px;flex-grow:1;font-size:14px;font-weight:900;word-break:break-word;line-height:1.3;">' + escapeHtml(d.motoristName.toUpperCase()) + '</div>',
             '  </div>',
-            d.motoristLicense ? (
-                '  <div style="display:flex;margin-bottom:8px;align-items:flex-end;">' +
-                '    <span style="font-size:13px;font-weight:900;margin-right:6px;white-space:nowrap;">LICENSE NO.:</span>' +
-                '    <span style="border-bottom:1.5px solid #000;flex-grow:1;padding-bottom:1px;font-size:13px;font-weight:900;">' + escapeHtml(d.motoristLicense.toUpperCase()) + '</span>' +
-                '  </div>'
-            ) : '',
-            d.motoristAddress ? (
-                '  <div style="display:flex;margin-bottom:8px;align-items:flex-end;">' +
-                '    <span style="font-size:13px;font-weight:900;margin-right:6px;white-space:nowrap;">ADDRESS:</span>' +
-                '    <span style="border-bottom:1.5px solid #000;flex-grow:1;padding-bottom:1px;font-size:12px;font-weight:900;">' + escapeHtml(d.motoristAddress.toUpperCase()) + '</span>' +
-                '  </div>'
-            ) : '',
-            '  <div style="display:flex;margin-bottom:8px;align-items:flex-end;">',
-            '    <span style="font-size:13px;font-weight:900;margin-right:6px;white-space:nowrap;">PLATE NO.:</span>',
-            '    <span style="border-bottom:1.5px solid #000;flex-grow:1;padding-bottom:1px;font-size:13px;font-weight:900;">' + escapeHtml(d.plateNumber.toUpperCase()) + '</span>',
+            '  <div class="field-row" style="display:flex;align-items:flex-end;margin-bottom:10px;width:100%;">',
+            '    <div class="field-label" style="font-size:14px;font-weight:900;white-space:nowrap;flex-shrink:0;margin-right:6px;">ADDRESS:</div>',
+            '    <div class="field-value" style="border-bottom:2px solid #000;min-height:24px;display:block;padding-bottom:2px;flex-grow:1;font-size:14px;font-weight:900;word-break:break-word;line-height:1.3;">' + escapeHtml((d.motoristAddress || 'BALAMBAN, CEBU').toUpperCase()) + '</div>',
             '  </div>',
-            (d.make || d.color) ? (
-                '  <div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-end;">' +
-                '    <div style="flex:1;display:flex;align-items:flex-end;"><span style="font-size:12px;font-weight:900;margin-right:4px;">MAKE:</span><span style="border-bottom:1.5px solid #000;flex-grow:1;font-size:12px;font-weight:900;">' + escapeHtml((d.make || 'N/A').toUpperCase()) + '</span></div>' +
-                '    <div style="flex:1;display:flex;align-items:flex-end;"><span style="font-size:12px;font-weight:900;margin-right:4px;">COLOR:</span><span style="border-bottom:1.5px solid #000;flex-grow:1;font-size:12px;font-weight:900;">' + escapeHtml((d.color || 'N/A').toUpperCase()) + '</span></div>' +
-                '  </div>'
-            ) : '',
-            '  <div style="text-align:center;font-size:15px;font-weight:900;margin:18px 0 10px;border-top:1.5px dashed #000;padding-top:8px;">VIOLATION(S)</div>',
-            '  <div style="margin-bottom:12px;">',
-            '    <div style="display:flex;align-items:flex-start;">',
-            '      <span style="margin-right:8px;font-size:16px;font-weight:900;">[X]</span>',
-            '      <span style="font-size:15px;font-weight:900;">' + escapeHtml(d.violationType.toUpperCase()) + '</span>',
+            '  <div class="field-row" style="display:flex;align-items:flex-end;margin-bottom:10px;width:100%;">',
+            '    <div class="field-label" style="font-size:14px;font-weight:900;white-space:nowrap;flex-shrink:0;margin-right:6px;">VEHICLE PLATE NO.:</div>',
+            '    <div class="field-value" style="border-bottom:2px solid #000;min-height:24px;display:block;padding-bottom:2px;flex-grow:1;font-size:14px;font-weight:900;word-break:break-word;line-height:1.3;">' + escapeHtml(d.plateNumber.toUpperCase()) + '</div>',
+            '  </div>',
+            '  <div class="flex-row" style="display:flex;gap:8px;margin-bottom:10px;align-items:flex-end;width:100%;">',
+            '    <div class="flex-col" style="flex:1;display:flex;align-items:flex-end;overflow:hidden;">',
+            '      <div class="field-label" style="font-size:14px;font-weight:900;white-space:nowrap;flex-shrink:0;margin-right:6px;">MAKE:</div>',
+            '      <div class="field-value" style="border-bottom:2px solid #000;min-height:24px;display:block;padding-bottom:2px;flex-grow:1;font-size:14px;font-weight:900;word-break:break-word;line-height:1.3;">' + escapeHtml((d.make || 'N/A').toUpperCase()) + '</div>',
+            '    </div>',
+            '    <div class="flex-col" style="flex:1;display:flex;align-items:flex-end;overflow:hidden;">',
+            '      <div class="field-label" style="font-size:14px;font-weight:900;white-space:nowrap;flex-shrink:0;margin-right:6px;">COLOR:</div>',
+            '      <div class="field-value" style="border-bottom:2px solid #000;min-height:24px;display:block;padding-bottom:2px;flex-grow:1;font-size:14px;font-weight:900;word-break:break-word;line-height:1.3;">' + escapeHtml((d.color || 'N/A').toUpperCase()) + '</div>',
             '    </div>',
             '  </div>',
-            '  <div style="margin-bottom:8px;">',
-            '    <div style="font-size:12px;font-weight:900;margin-bottom:2px;">PLACE OF APPREHENSION:</div>',
-            '    <div style="border-bottom:1.5px solid #000;width:100%;font-size:13px;font-weight:900;padding-bottom:1px;">' + escapeHtml(d.location.toUpperCase()) + '</div>',
+            '  <div class="text-center title-text" style="text-align:center;font-size:22px;font-weight:900;margin:25px 0 15px;letter-spacing:-0.5px;">VIOLATION(S)</div>',
+            '  <div style="margin-bottom:20px;">',
+            '    <div style="display:flex;align-items:flex-start;">',
+            '      <span style="margin-right:12px;font-size:20px;font-weight:900;">[X]</span>',
+            '      <span style="font-size:20px;font-weight:900;">' + escapeHtml(d.violationType.toUpperCase()) + '</span>',
+            '    </div>',
             '  </div>',
-            '  <div style="display:flex;gap:8px;margin-bottom:12px;align-items:flex-end;">',
-            '    <div style="flex:2;display:flex;align-items:flex-end;"><span style="font-size:12px;font-weight:900;margin-right:4px;">TIME:</span><span style="border-bottom:1.5px solid #000;flex-grow:1;font-size:13px;font-weight:900;">' + escapeHtml(d.time) + '</span></div>',
-            '    <div style="flex:1;display:flex;align-items:flex-end;"><span style="border-bottom:1.5px solid #000;flex-grow:1;font-size:13px;font-weight:900;text-align:center;">' + escapeHtml(d.ampm) + '</span></div>',
+            '  <div style="margin-bottom:12px;">',
+            '    <div class="field-label" style="display:block;margin-bottom:3px;font-size:14px;font-weight:900;">PLACE OF VIOLATION:</div>',
+            '    <div class="field-value" style="border-bottom:2px solid #000;min-height:24px;display:block;padding-bottom:2px;width:100%;font-size:14px;font-weight:900;word-break:break-word;line-height:1.3;">' + escapeHtml(d.location.toUpperCase()) + '</div>',
             '  </div>',
-            '  <div style="margin:16px 0;border:2px solid #000;padding:8px;border-radius:4px;background:#fafafa;">',
-            '    <div style="font-size:11px;font-weight:900;letter-spacing:0.04em;margin-bottom:2px;">CITATION REF NO. (OFFLINE QUEUED):</div>',
-            '    <div style="font-size:16px;font-weight:900;font-family:Arial Black,sans-serif;letter-spacing:0.04em;">' + escapeHtml(d.ticketNumber) + '</div>',
-            d.fineAmount ? ('    <div style="border-top:1.5px dashed #000;margin-top:6px;padding-top:4px;display:flex;justify-content:space-between;"><span style="font-size:12px;font-weight:900;">FINE AMOUNT:</span><span style="font-size:15px;font-weight:900;">PHP ' + escapeHtml(d.fineAmount) + '</span></div>') : '',
+            '  <div class="flex-row" style="display:flex;gap:8px;margin-bottom:10px;align-items:flex-end;width:100%;">',
+            '    <div class="flex-col" style="flex:2;display:flex;align-items:flex-end;overflow:hidden;">',
+            '      <div class="field-label" style="font-size:14px;font-weight:900;white-space:nowrap;flex-shrink:0;margin-right:6px;">TIME OF VIOLATION:</div>',
+            '      <div class="field-value" style="border-bottom:2px solid #000;min-height:24px;display:block;padding-bottom:2px;flex-grow:1;font-size:14px;font-weight:900;word-break:break-word;line-height:1.3;">' + escapeHtml(d.time) + '</div>',
+            '    </div>',
+            '    <div class="flex-col" style="flex:1;display:flex;align-items:flex-end;overflow:hidden;">',
+            '      <div class="field-label" style="font-size:14px;font-weight:900;white-space:nowrap;flex-shrink:0;margin-right:6px;">(AM/PM)</div>',
+            '      <div class="field-value" style="border-bottom:2px solid #000;min-height:24px;display:flex;justify-content:center;padding-bottom:2px;flex-grow:1;font-size:14px;font-weight:900;line-height:1.3;">' + escapeHtml(d.ampm) + '</div>',
+            '    </div>',
             '  </div>',
-            '  <div style="text-align:center;margin-top:24px;">',
-            '    <div style="border-bottom:1.5px solid #000;width:75%;margin:0 auto;height:24px;"></div>',
-            '    <div style="font-size:11px;font-weight:700;margin-top:4px;">Driver / Violator Signature</div>',
+            '  <div class="text-center" style="text-align:center;margin-top:40px;">',
+            '    <div style="border-bottom:2px solid #000;width:80%;margin:0 auto;height:30px;"></div>',
+            '    <div style="margin-top:5px;font-size:14px;font-weight:900;">Driver\'s Signature</div>',
             '  </div>',
-            '  <div style="margin-top:20px;text-align:center;">',
-            '    <div style="font-size:11px;font-weight:700;margin-bottom:2px;">Apprehending Traffic Officer:</div>',
-            '    <div style="border-bottom:1.5px solid #000;width:85%;margin:0 auto;font-size:13px;font-weight:900;padding:4px 0;">' + escapeHtml(d.officerName.toUpperCase()) + '</div>',
+            '  <div class="footer-text" style="font-size:15px;text-align:justify;margin-top:15px;line-height:1.3;">',
+            '    You are directed to settle this within 72 hours to the ' + escapeHtml(d.lguName) + ' Traffic Operation Management Office from the date hereof for disposition appropriation in the citation.',
+            '    <br><br>',
+            '    Failure to settle within the period stipulated will mean a waiver and criminal complaint against you will be filed in pursuant to the provisions of ' + escapeHtml(d.ordinanceRef) + ' otherwise known as the Municipal Traffic Enforcement Code 2005.',
             '  </div>',
-            '  <div style="font-size:11px;text-align:justify;margin-top:16px;line-height:1.35;border-top:1px dashed #000;padding-top:8px;">',
-            '    You are directed to settle this citation within 72 hours at the Traffic Operation Management Office. Failure to settle within the stipulated period will result in criminal charges pursuant to the Municipal Traffic Enforcement Code.',
+            '  <div style="margin:20px 0;border:2px solid #000;padding:10px;border-radius:4px;text-align:left;">',
+            '    <div style="font-size:13px;font-weight:900;letter-spacing:0.05em;margin-bottom:4px;">CITATION / O.R. REF NO.:</div>',
+            '    <div style="font-size:' + ticketFontSize + ';font-weight:900;font-family:\'Arial Black\',\'Segoe UI Black\',Arial,sans-serif;-webkit-text-stroke:0.5px #000;letter-spacing:0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;margin-bottom:8px;">',
+            '      <strong>' + escapeHtml(d.ticketNumber) + '</strong>',
+            '    </div>',
+            d.fineAmount ? (
+                '    <div style="border-top:2px dashed #000;padding-top:6px;display:flex;justify-content:space-between;align-items:center;">' +
+                '      <span style="font-size:14px;font-weight:800;">AMOUNT DUE:</span>' +
+                '      <span style="font-size:20px;font-weight:900;">PHP ' + escapeHtml(d.fineAmount) + '</span>' +
+                '    </div>'
+            ) : '',
             '  </div>',
-            '  <div style="text-align:center;margin-top:14px;font-size:10px;color:#444;font-weight:700;">',
-            '    *** TVIRS OFFLINE FIELD COPY ***',
+            '  <div style="margin-top:35px;margin-bottom:30px;">',
+            '    <div style="font-size:14px;font-weight:900;">Apprehending Traffic Officer:</div>',
+            '    <div style="border-bottom:2px solid #000;min-height:40px;margin-top:15px;text-align:center;display:flex;align-items:flex-end;justify-content:center;padding-bottom:5px;font-size:16px;font-weight:900;">',
+            '      ' + escapeHtml(d.officerName.toUpperCase()),
+            '    </div>',
             '  </div>',
+            '  <div class="qr-container" style="display:flex;flex-direction:column;align-items:center;margin:20px 0;">',
+            '    <canvas id="offlineThermalTicketQr" style="width:180px;height:180px;image-rendering:pixelated;margin-bottom:8px;"></canvas>',
+            '    <div style="font-size:14px;font-weight:700;margin-top:5px;text-align:center;">SCAN TO VIEW &amp; PAY CITATION</div>',
+            '  </div>',
+            '  <div style="height:40px;"></div>',
             '</div>'
         ].join('\n');
     }
@@ -265,7 +297,7 @@
             '      <i class="ph-bold ph-printer" style="font-size:1.25rem;"></i>',
             '      <div>',
             '        <div style="font-weight:800;font-size:.92rem;line-height:1.2;">Citation Ticket Print</div>',
-            '        <div style="font-size:.7rem;opacity:.9;">Pocket Printer / 58mm Thermal Slip</div>',
+            '        <div style="font-size:.7rem;opacity:.9;">Official Thermal Citation Slip</div>',
             '      </div>',
             '    </div>',
             '    <button type="button" id="off-ticket-close-btn" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.1rem;">',
@@ -278,10 +310,10 @@
             '  </div>',
             '  <div class="off-ticket-actions" style="background:#fff;border-top:1px solid #e2e8f0;padding:10px 14px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;">',
             '    <div style="display:flex;gap:8px;">',
-            '      <button type="button" id="off-btn-print-bt" style="flex:1;background:#2563eb;color:#fff;border:none;padding:10px 12px;border-radius:10px;font-size:.84rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">',
-            '        <i class="ph-bold ph-bluetooth"></i> Bluetooth Print',
+            '      <button type="button" id="off-btn-print-bt" style="flex:1;background:#2563eb;color:#fff;border:none;padding:12px 14px;border-radius:10px;font-size:.88rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">',
+            '        <i class="ph-bold ph-bluetooth"></i> Connect & Print',
             '      </button>',
-            '      <button type="button" id="off-btn-print-sys" style="flex:1;background:#0f172a;color:#fff;border:none;padding:10px 12px;border-radius:10px;font-size:.84rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">',
+            '      <button type="button" id="off-btn-print-sys" style="flex:1;background:#0f172a;color:#fff;border:none;padding:12px 14px;border-radius:10px;font-size:.88rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">',
             '        <i class="ph-bold ph-printer"></i> System Print / PDF',
             '      </button>',
             '    </div>',
@@ -329,7 +361,6 @@
         var bytesWidth = Math.ceil(width / 8);
         var buffer = new Uint8Array(8 + (bytesWidth * height));
 
-        // ESC/POS raster bit image: GS v 0 m xL xH yL yH
         buffer[0] = 0x1D; buffer[1] = 0x76; buffer[2] = 0x30; buffer[3] = 0x00;
         buffer[4] = bytesWidth & 0xFF; buffer[5] = (bytesWidth >> 8) & 0xFF;
         buffer[6] = height & 0xFF; buffer[7] = (height >> 8) & 0xFF;
@@ -358,34 +389,35 @@
         var CHUNK_SIZE = 100;
         for (var i = 0; i < data.length; i += CHUNK_SIZE) {
             await characteristic.writeValue(data.slice(i, i + CHUNK_SIZE));
-            await new Promise(function (r) { setTimeout(r, 25); });
+            await new Promise(function (r) { setTimeout(r, 20); });
         }
     }
 
     async function printViaWebBluetooth() {
         var btn = document.getElementById('off-btn-print-bt');
         if (!navigator.bluetooth) {
-            alert('Web Bluetooth is only supported in Google Chrome on Android or Bluetooth-enabled browsers. Please use "System Print / PDF" instead.');
+            alert('Web Bluetooth is not supported in this browser. Please use Google Chrome for Android or tap "System Print / PDF".');
             return;
         }
 
         try {
             if (btn) btn.disabled = true;
-            setStatusBar('Preparing thermal print canvas...');
+            setStatusBar('Rendering receipt image...');
 
-            var slip = document.getElementById('off-print-slip');
+            var slip = document.getElementById('print-area');
             if (!slip) throw new Error('Ticket slip not found.');
 
             var canvas = null;
             if (window.html2canvas) {
-                canvas = await window.html2canvas(slip, { scale: 1, backgroundColor: '#ffffff', logging: false });
+                canvas = await window.html2canvas(slip, { scale: 1, backgroundColor: '#ffffff', logging: false, useCORS: true, allowTaint: true });
             } else {
                 throw new Error('Canvas renderer library not loaded yet. Use System Print.');
             }
 
-            setStatusBar('Select your Bluetooth Pocket Printer...');
+            setStatusBar('Encoding print data...');
             var printData = convertCanvasToEscPos(canvas);
 
+            setStatusBar('Select your printer...');
             var device = await navigator.bluetooth.requestDevice({
                 acceptAllDevices: true,
                 optionalServices: [
@@ -400,7 +432,7 @@
             setStatusBar('Connecting to ' + (device.name || 'printer') + '...');
             var server = await device.gatt.connect();
 
-            setStatusBar('Finding ESC/POS printer service...');
+            setStatusBar('Searching for Print Service...');
             var services = await server.getPrimaryServices();
             var printChar = null;
 
@@ -415,22 +447,22 @@
                 if (printChar) break;
             }
 
-            if (!printChar) throw new Error('No writable ESC/POS characteristic found on device.');
+            if (!printChar) throw new Error('No writable print characteristic found.');
 
-            setStatusBar('Printing citation slip...');
-            await printChar.writeValue(new Uint8Array([0x1B, 0x40])); // Init printer
+            setStatusBar('Printing...');
+            await printChar.writeValue(new Uint8Array([0x1B, 0x40]));
             await sendChunks(printChar, printData);
-            await printChar.writeValue(new Uint8Array([0x0A, 0x0A, 0x0A, 0x0A])); // Feed lines
+            await printChar.writeValue(new Uint8Array([0x0A, 0x0A, 0x0A, 0x0A]));
 
-            setStatusBar('✅ Citation Ticket Printed Successfully!');
+            setStatusBar('✅ Print Complete!');
             setTimeout(function () {
                 if (device.gatt && device.gatt.connected) device.gatt.disconnect();
                 if (btn) btn.disabled = false;
-            }, 2500);
+            }, 2000);
 
         } catch (error) {
-            console.error('[OfflineTicket Print Error]', error);
-            setStatusBar('❌ ' + (error.message || 'Print error'), true);
+            console.error(error);
+            setStatusBar('❌ Error: ' + (error.message || 'Print error'), true);
             if (btn) btn.disabled = false;
         }
     }
@@ -449,6 +481,19 @@
 
         body.innerHTML = buildSlipHtml(data);
         setStatusBar('');
+
+        // Generate QR code
+        setTimeout(function () {
+            var qrCanvas = document.getElementById('offlineThermalTicketQr');
+            if (qrCanvas && window.QRCode && typeof window.QRCode.toCanvas === 'function') {
+                window.QRCode.toCanvas(qrCanvas, data.qrUrl || data.ticketNumber, {
+                    width: 180,
+                    margin: 1
+                }, function (err) {
+                    if (err) console.warn('[QR Code Error]', err);
+                });
+            }
+        }, 50);
     }
 
     function closeModal() {
