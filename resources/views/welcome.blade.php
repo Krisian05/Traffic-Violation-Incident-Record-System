@@ -476,8 +476,8 @@
 
         <div class="hero-tag">
             <i class="bi bi-shield-lock-fill"></i>
-            <span class="d-none d-sm-inline">Balamban Municipal Police Station — Official Records System</span>
-            <span class="d-sm-none">Balamban MPS · Official Records</span>
+            <span class="d-none d-sm-inline">Philippine National Police &amp; LGUs — Official Records System</span>
+            <span class="d-sm-none">PNP &amp; LGUs · Official Records</span>
         </div>
 
         <h1 class="hero-title">
@@ -487,8 +487,9 @@
 
         <p class="hero-subtitle">
             A centralized digital platform for recording and managing traffic violations,
-            road incidents, and motorist profiles — empowering the Balamban Municipal Police Station
-            with accurate, searchable, and auditable enforcement records.
+            road incidents, and motorist profiles — empowering police stations, traffic
+            enforcement units, and local government units with accurate, searchable, and
+            auditable enforcement records.
         </p>
 
         <div class="divider"></div>
@@ -549,7 +550,7 @@
         @guest
         <div class="mt-4" style="font-size:.82rem; color:#bfdbfe; text-shadow:0 1px 5px rgba(0,0,0,.7); font-weight:500;">
             <i class="bi bi-lock-fill me-1"></i>
-            Restricted to authorized Balamban MPS personnel only. Contact your administrator to request access.
+            Restricted to authorized law enforcement and police personnel only. Contact your administrator to request access.
         </div>
         @endguest
 
@@ -915,12 +916,12 @@
                     </div>
                     <div class="about-hero-sep"></div>
                     <div class="about-hero-logo-wrap">
-                        <img src="{{ asset('images/Balamban.png') }}" alt="Balamban Seal">
+                        <img src="{{ asset('images/app-icon.png') }}" alt="TVIRS Logo">
                     </div>
                 </div>
                 <div class="about-hero-title">Traffic Violation Incident Record System</div>
                 <div class="about-hero-sub">
-                    Balamban Municipal Police Station &nbsp;·&nbsp; Cebu Police Provincial Office &nbsp;·&nbsp; PRO-7
+                    Philippine National Police &nbsp;·&nbsp; Police Provincial Office &nbsp;·&nbsp; PRO-7
                 </div>
                 <div class="about-hero-badge">
                     <i class="bi bi-patch-check-fill" style="color:#60a5fa;"></i>
@@ -946,7 +947,7 @@
 
                     <p class="about-intro mb-0">
                         The <strong>Traffic Violation Incident Record System (TVIRS)</strong> is a secure,
-                        web-based platform developed for the <strong>Balamban Municipal Police Station</strong> —
+                        web-based platform developed for <strong>police stations, traffic enforcement units, and local government units</strong> —
                         digitizing traffic violations and road incidents, replacing manual logbooks with a
                         reliable, searchable, and auditable digital system.
                     </p>
@@ -991,12 +992,12 @@
                         </div>
                     </div>
 
-                    <div class="about-section-label">Unit &amp; Platform</div>
+                    <div class="about-section-label">Deployment &amp; Platform</div>
                     <div class="about-platform-row">
                         <div class="about-platform-cell">
-                            <span class="about-platform-icon" style="color:#3b82f6;"><i class="bi bi-building"></i></span>
-                            <div class="about-platform-label">Unit</div>
-                            <div class="about-platform-value">Balamban MPS</div>
+                            <span class="about-platform-icon" style="color:#3b82f6;"><i class="bi bi-buildings"></i></span>
+                            <div class="about-platform-label">Deployment</div>
+                            <div class="about-platform-value">Multi-Station / LGU</div>
                         </div>
                         <div class="about-platform-cell">
                             <span class="about-platform-icon" style="color:#f59e0b;"><i class="bi bi-geo-alt-fill"></i></span>
@@ -1028,7 +1029,7 @@
                             <p class="dev-lead-desc">
                                 Designed and built TVIRS end-to-end — crafting the UI/UX, frontend interfaces,
                                 backend logic, and database architecture — delivering a complete, production-ready
-                                system for the Balamban Municipal Police Station.
+                                system for police stations, traffic enforcement units, and local government units.
                             </p>
                             <div class="dev-stack">
                                 @foreach(['Laravel 12','PHP 8.2','PostgreSQL','Bootstrap 5','JavaScript','Flatpickr','Appwrite','DigitalOcean'] as $tech)
