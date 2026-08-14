@@ -1243,7 +1243,7 @@ document.querySelectorAll('.about-tab').forEach(function(tab) {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    document.getElementById('bgHero').style.backgroundImage = "url('{{ asset('images/hero-bg.jpg') }}?v=1')";
+    document.getElementById('bgHero').style.backgroundImage = "url('{{ asset('images/hero-bg.jpg') }}?v=2')";
 
     // Show/hide password toggle in modal
     document.getElementById('modalTogglePassword').addEventListener('click', function () {
