@@ -751,7 +751,7 @@
 
 /* Contributors grid */
 .dev-contrib-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: .6rem;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .6rem;
     margin-bottom: .85rem;
 }
 .dev-contrib-card {
@@ -1044,8 +1044,19 @@
                     <div class="about-section-label">Contributors</div>
                     <div class="dev-contrib-grid">
                         <div class="dev-contrib-card">
+                            <img src="{{ asset('images/team-ervin.jpg') }}" alt="Ervin Bryan Librado"
+                                 class="dev-contrib-photo" style="object-position:center 15%;cursor:pointer;"
+                                 data-lightbox="{{ asset('images/team-ervin.jpg') }}"
+                                 data-lightbox-name="Ervin Bryan Librado">
+                            <div style="min-width:0;">
+                                <div class="dev-contrib-name">Ervin Bryan Librado</div>
+                                <div class="dev-contrib-role">Backend &amp; UI/UX</div>
+                                <p class="dev-contrib-desc">Focused on polishing system design, refining UI/UX components, and building backend features.</p>
+                            </div>
+                        </div>
+                        <div class="dev-contrib-card">
                             <img src="{{ asset('images/team-alexies.jpg') }}" alt="Alexies Marie Ricafort"
-                                 class="dev-contrib-photo" style="object-position:center 25%;"
+                                 class="dev-contrib-photo" style="object-position:center 25%;cursor:pointer;"
                                  data-lightbox="{{ asset('images/team-alexies.jpg') }}"
                                  data-lightbox-name="Alexies Marie Ricafort">
                             <div style="min-width:0;">
@@ -1056,7 +1067,7 @@
                         </div>
                         <div class="dev-contrib-card">
                             <img src="{{ asset('images/team-mariz.jpg') }}" alt="Mariz Stela Tagalog"
-                                 class="dev-contrib-photo" style="object-position:center 15%;"
+                                 class="dev-contrib-photo" style="object-position:center 15%;cursor:pointer;"
                                  data-lightbox="{{ asset('images/team-mariz.jpg') }}"
                                  data-lightbox-name="Mariz Stela Tagalog">
                             <div style="min-width:0;">
