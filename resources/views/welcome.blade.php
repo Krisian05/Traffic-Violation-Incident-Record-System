@@ -468,9 +468,9 @@
     {{-- HERO --}}
     <section class="hero">
 
-        {{-- App Shield Logo --}}
+        {{-- PNP Logo --}}
         <div class="badge-shield">
-            <img src="{{ asset('images/app-logo.png') }}" alt="TVIRS Logo"
+            <img src="{{ asset('images/PNP.png') }}" alt="PNP Logo"
                  style="width:240px;height:240px;object-fit:contain;margin:-20px;filter:drop-shadow(0 0 28px rgba(96,165,250,0.7));">
         </div>
 
