@@ -42,7 +42,7 @@
             top: 0; left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(5, 18, 50, 0.28);
+            background: linear-gradient(180deg, rgba(5, 13, 26, 0.25) 0%, rgba(5, 13, 26, 0.1) 100%);
             z-index: 1;
         }
 
@@ -1243,7 +1243,7 @@ document.querySelectorAll('.about-tab').forEach(function(tab) {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    document.getElementById('bgHero').style.backgroundImage = "url('{{ asset('images/police-station.jpeg') }}')";
+    document.getElementById('bgHero').style.backgroundImage = "url('{{ asset('images/hero-bg.jpg') }}?v=1')";
 
     // Show/hide password toggle in modal
     document.getElementById('modalTogglePassword').addEventListener('click', function () {
