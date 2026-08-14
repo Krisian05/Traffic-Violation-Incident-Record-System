@@ -192,7 +192,6 @@ EOT;
             ];
         } elseif ($user?->isTrafficOfficer()) {
             $roleOrder = [
-                'faq_ocr_scanner',
                 'faq_thermal_printer',
                 'faq_motorist_setup',
                 'faq_incidents_info',
@@ -304,13 +303,6 @@ EOT;
                 'question' => 'How to check or log road incidents?',
                 'keywords' => ['incidents', 'incident stats', 'log incident', 'traffic accident', 'road incident', 'many incidents', 'see incident'],
                 'answer' => "🚩 **Checking & Logging Road Incidents**\n\n1. Go to **Incidents** (`/incidents`) to view the list of all reported accidents and hit-and-run incidents.\n2. To log a new incident, click **+ Report Incident**, select Charge Type, attach photo/video evidence, and drop the location pin.\n3. Go to **Reports** (`/reports`) to view statistical breakdowns and peak incident hours."
-            ],
-            [
-                'id' => 'faq_ocr_scanner',
-                'pill_label' => '📷 Driver License OCR',
-                'question' => 'How does the Officer License OCR Scanner work?',
-                'keywords' => ['ocr', 'scan license', 'scanner', 'license photo', 'enforcer camera'],
-                'answer' => "📷 **Driver's License OCR Camera Scanner**\n\n1. On the Enforcer Mobile Dashboard, open **Issue New Citation**.\n2. Tap **Scan Driver's License** to open camera.\n3. Capture a clear, well-lit photo of the driver's license card.\n4. The built-in AI OCR engine reads the license number, driver name, address, and birth date automatically.\n5. Confirm or adjust the auto-filled details before proceeding to select violation types."
             ],
             [
                 'id' => 'faq_thermal_printer',

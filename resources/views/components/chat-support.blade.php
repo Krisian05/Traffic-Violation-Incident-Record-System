@@ -342,7 +342,6 @@ function sendFaq(faqId) {
         'faq_settle_ticket': 'How to settle a violation ticket at Cashier counter?',
         'faq_motorist_setup': 'How to add or search motorists?',
         'faq_incidents_info': 'How to check or log road incidents?',
-        'faq_ocr_scanner': 'How does the Officer License OCR Scanner work?',
         'faq_thermal_printer': 'How to print on Bluetooth thermal printer?',
         'faq_collection_report': 'How to generate Treasury Collection Reports?'
     };

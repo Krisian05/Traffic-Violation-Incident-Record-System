@@ -39,10 +39,6 @@ return [
         'key' => env('GEMINI_API_KEY'),
     ],
 
-    'ocrspace' => [
-        'key' => env('OCR_SPACE_API_KEY', 'K88828882888957'),
-    ],
-
     'paymongo' => [
         'public_key'     => env('PAYMONGO_PUBLIC_KEY'),
         'secret_key'     => env('PAYMONGO_SECRET_KEY'),

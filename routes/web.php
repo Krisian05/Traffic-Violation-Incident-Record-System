@@ -9,7 +9,6 @@ use App\Http\Controllers\HealthCheckController;
 use App\Http\Controllers\IncidentChargeTypeController;
 use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\LguController;
-use App\Http\Controllers\OcrController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OfficerController;
 use App\Http\Controllers\PaymentController;
@@ -83,9 +82,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifications/feed', [NotificationController::class, 'feed'])->name('notifications.feed');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
-
-    // ── OCR (Smart Fallback: Gemini -> OCR.Space) ───────────────────────────────
-    Route::post('/api/ocr/scan', [OcrController::class, 'scanId'])->name('ocr.scan')->middleware('throttle:30,1');
 
     // ── SECURITY: TWO-FACTOR AUTHENTICATION (any authenticated user) ───────────
     Route::prefix('security/two-factor')->name('security.two-factor.')->group(function () {
