@@ -444,7 +444,7 @@
     <nav class="top-nav">
         <a href="{{ url('/') }}" class="nav-brand">
             <img src="{{ asset('images/app-logo.png') }}?v=4" alt="TVIRS Logo"
-                 style="width:54px;height:54px;object-fit:contain;flex-shrink:0;margin:-5px 0;">
+                 style="width:60px;height:60px;object-fit:contain;flex-shrink:0;margin:-5px 0;">
             <div class="nav-brand-text">
                 <span class="d-none d-sm-block">Traffic Violation Incident Record System</span>
                 <span class="d-sm-none">TVIRS</span>

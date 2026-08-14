@@ -146,13 +146,10 @@
         }
 
         .sidebar-logo {
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             object-fit: contain;
             flex-shrink: 0;
-            /* scale up the badge beyond its internal whitespace */
-            transform: scale(1.45);
-            transform-origin: center;
             filter: drop-shadow(0 2px 8px rgba(0,0,0,0.35));
         }
 
