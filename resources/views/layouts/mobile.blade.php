@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="TVIRS Officer">
-    <meta name="theme-color" content="#1d4ed8">
+    <meta name="theme-color" content="#050d1a">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=4">
@@ -27,9 +27,12 @@
         *, *::before, *::after { box-sizing: border-box; }
 
         :root {
-            --blue: #1d4ed8;
-            --blue-dark: #1e40af;
-            --blue-deep: #1e3a8a;
+            --blue: #050d1a;
+            --blue-card: #0a1946;
+            --blue-dark: #030812;
+            --blue-deep: #02050b;
+            --blue-accent: #2563eb;
+            --blue-gradient: linear-gradient(135deg, #1e4fb5, #2563eb);
             --red: #dc2626;
             --red-dark: #b91c1c;
             --text-dark: #0f172a;
@@ -60,14 +63,15 @@
             right: 0;
             height: calc(var(--top-h) + var(--safe-top));
             padding-top: var(--safe-top);
-            background: var(--blue);
+            background: #050d1a;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding-left: .875rem;
             padding-right: .875rem;
             z-index: 100;
-            box-shadow: 0 2px 12px rgba(0,0,0,.2);
+            box-shadow: 0 2px 12px rgba(0,0,0,.35);
         }
 
         .mob-topbar-left {
