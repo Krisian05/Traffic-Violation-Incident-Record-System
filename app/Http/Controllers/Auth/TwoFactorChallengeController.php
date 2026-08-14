@@ -88,21 +88,22 @@ class TwoFactorChallengeController extends Controller
 
         $path = parse_url($intended, PHP_URL_PATH) ?? '';
 
+        // Mobile traffic officer routes should NEVER be opened by non-officers (including Super Admin)
+        if (str_starts_with($path, '/officer') && ! $user->isTrafficOfficer()) {
+            session()->forget('url.intended');
+            return;
+        }
+
         if ($user->isSuperAdmin()) {
             return;
         }
 
-        if (str_starts_with($path, '/lgus')) {
+        if (str_starts_with($path, '/lgus') && ! $user->isLguAdmin()) {
             session()->forget('url.intended');
             return;
         }
 
         if (str_starts_with($path, '/province') && ! $user->isProvinceAdmin()) {
-            session()->forget('url.intended');
-            return;
-        }
-
-        if (str_starts_with($path, '/officer') && ! $user->isTrafficOfficer()) {
             session()->forget('url.intended');
             return;
         }
