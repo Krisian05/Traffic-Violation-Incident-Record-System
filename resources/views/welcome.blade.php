@@ -42,7 +42,7 @@
             top: 0; left: 0;
             width: 100vw;
             height: 100vh;
-            background: linear-gradient(180deg, rgba(5, 13, 26, 0.25) 0%, rgba(5, 13, 26, 0.1) 100%);
+            background: linear-gradient(180deg, rgba(5, 15, 35, 0.62) 0%, rgba(3, 10, 25, 0.72) 100%);
             z-index: 1;
         }
 
@@ -183,29 +183,28 @@
 
         .hero-title {
             font-size: clamp(2rem, 5vw, 3.25rem);
-            font-weight: 700;
-            color: #fff;
+            font-weight: 800;
+            color: #ffffff;
             line-height: 1.15;
             margin-bottom: .75rem;
             letter-spacing: -.02em;
-            text-shadow: 0 2px 12px rgba(0,0,0,.7);
+            text-shadow: 0 2px 16px rgba(0,0,0,0.9), 0 1px 4px rgba(0,0,0,0.8);
         }
 
         .hero-title span {
-            background: linear-gradient(90deg, #93c5fd, #bfdbfe);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 2px 6px rgba(96,165,250,0.4));
+            color: #93c5fd;
+            background: none;
+            -webkit-text-fill-color: #93c5fd;
+            text-shadow: 0 2px 16px rgba(0,0,0,0.9), 0 0 12px rgba(59,130,246,0.6);
         }
 
         .hero-subtitle {
             font-size: 1rem;
-            color: #e2e8f0;
-            max-width: 520px;
+            color: #f1f5f9;
+            max-width: 540px;
             margin: 0 auto 2.5rem;
             line-height: 1.6;
-            text-shadow: 0 1px 6px rgba(0,0,0,.65);
+            text-shadow: 0 2px 10px rgba(0,0,0,0.95);
             font-weight: 500;
         }
 
