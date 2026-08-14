@@ -127,8 +127,8 @@
             width: 270px;
             height: 100vh;
             overflow-y: auto;
-            background: linear-gradient(180deg, #050d1a 0%, #081636 55%, #0a1946 100%);
-            border-right: 1px solid rgba(255,255,255,0.08);
+            background: #1d4ed8;
+            border-right: 1px solid rgba(0,0,0,0.08);
             position: fixed;
             top: 0; left: 0;
             display: flex;
@@ -137,13 +137,12 @@
         }
 
         .sidebar-brand {
-            padding: 0.85rem 1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
             display: flex;
             flex-direction: row;
             align-items: center;
             gap: .5rem;
-            background: rgba(5,13,26,0.4);
         }
 
         .sidebar-logo {
@@ -151,7 +150,7 @@
             height: 60px;
             object-fit: contain;
             flex-shrink: 0;
-            filter: drop-shadow(0 2px 10px rgba(37,99,235,0.45));
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.35));
         }
 
         .sidebar-brand h6 {
@@ -198,27 +197,26 @@
         }
 
         .sidebar-nav a:hover {
-            background: rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.15);
             color: #fff;
         }
 
         .sidebar-nav a.active {
-            background: linear-gradient(90deg, rgba(37,99,235,0.32), rgba(30,79,181,0.18));
+            background: rgba(255,255,255,0.2);
             color: #fff;
-            border-left: 3px solid #60a5fa;
+            border-left: 3px solid #fff;
             padding-left: calc(1.25rem - 3px);
             font-weight: 600;
-            box-shadow: inset 0 0 12px rgba(37,99,235,0.15);
         }
 
         .sidebar-nav a i { font-size: 1rem; width: 1.2rem; }
 
         .sidebar-footer {
             padding: 1rem 1.25rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(255,255,255,0.15);
             position: sticky;
             bottom: 0;
-            background: linear-gradient(180deg, rgba(5,13,26,0.92), rgba(10,25,70,0.96));
+            background: linear-gradient(180deg, rgba(29,78,216,0.90), rgba(29,78,216,0.95));
             backdrop-filter: blur(6px);
             z-index: 50;
             display: none;
@@ -368,15 +366,14 @@
             border-radius: 50%;
             border: 1.5px solid #ddd0be;
             background: #fdf8f0;
-            color: #050d1a;
+            color: #1d4ed8;
             font-size: 1.1rem;
             cursor: pointer;
-            transition: background 0.15s, border-color 0.15s, color 0.15s;
+            transition: background 0.15s, border-color 0.15s;
         }
         .topbar-profile-btn:hover {
             background: #f5f0e8;
-            border-color: #2563eb;
-            color: #2563eb;
+            border-color: #1d4ed8;
         }
 
         /* Desktop dropdown */
@@ -423,8 +420,8 @@
             padding: 0.22rem 0.5rem;
             border-radius: 0.25rem;
         }
-        .profile-sheet-role-badge.role-operator { background: linear-gradient(135deg, #1e4fb5, #2563eb); color: #fff; }
-        .profile-sheet-role-badge.role-viewer   { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+        .profile-sheet-role-badge.role-operator { background: #1d4ed8; color: #fff; }
+        .profile-sheet-role-badge.role-viewer   { background: #dbeafe; color: #1e40af; }
 
         /* Desktop: logout section */
         .profile-sheet-actions { padding: 0.75rem 1rem; }
