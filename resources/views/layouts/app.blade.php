@@ -1021,7 +1021,7 @@
 @auth
 <div class="sidebar" id="appSidebar">
     <div class="sidebar-brand">
-        <img src="{{ asset('images/app-logo.png') }}" alt="TVIRS Logo" class="sidebar-logo">
+        <img src="{{ asset('images/app-logo.png') }}?v=4" alt="TVIRS Logo" class="sidebar-logo">
         <div>
             <h6>Traffic Violation Incident Record System</h6>
         </div>
@@ -1136,7 +1136,7 @@
                 <i class="bi bi-list" style="font-size:1.25rem;"></i>
             </button>
             @endauth
-            <img src="{{ asset('images/app-logo.png') }}" alt="TVIRS Logo" style="width:26px;height:26px;object-fit:contain;">
+            <img src="{{ asset('images/app-logo.png') }}?v=4" alt="TVIRS Logo" style="width:26px;height:26px;object-fit:contain;">
             <div>
                 <div class="topbar-title">@yield('title', 'Dashboard')</div>
                 @hasSection('topbar-sub')
@@ -1346,7 +1346,7 @@ function applyDateMask(el) {
         // Snapshot original content
         const originalHTML = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = '<span class="app-logo-loader-sm"><img src="{{ asset('images/app-logo.png') }}" class="shield-spinner-img" alt="Loading"></span> Please wait…';
+        btn.innerHTML = '<span class="app-logo-loader-sm"><img src="{{ asset('images/app-logo.png') }}?v=4" class="shield-spinner-img" alt="Loading"></span> Please wait…';
 
         // Re-enable after 8 s as a safety net (e.g. server error)
         setTimeout(function () {

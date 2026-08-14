@@ -443,7 +443,7 @@
     {{-- TOP NAVIGATION --}}
     <nav class="top-nav">
         <a href="{{ url('/') }}" class="nav-brand">
-            <img src="{{ asset('images/app-logo.png') }}" alt="TVIRS Logo"
+            <img src="{{ asset('images/app-logo.png') }}?v=4" alt="TVIRS Logo"
                  style="width:54px;height:54px;object-fit:contain;flex-shrink:0;margin:-5px 0;">
             <div class="nav-brand-text">
                 <span class="d-none d-sm-block">Traffic Violation Incident Record System</span>
@@ -1154,7 +1154,7 @@ document.querySelectorAll('.about-tab').forEach(function(tab) {
             {{-- Modal Header --}}
             <div class="modal-header border-0 pb-0" style="background:#fff;">
                 <div class="w-100 text-center pt-3">
-                    <img src="{{ asset('images/app-logo.png') }}" alt="TVIRS Shield Logo"
+                    <img src="{{ asset('images/app-logo.png') }}?v=4" alt="TVIRS Shield Logo"
                          style="width:85px;height:85px;object-fit:contain;margin-bottom:.5rem;">
                     <h5 class="fw-bold mb-0" style="color:#1e293b;">Traffic Violation Incident Record System</h5>
                 </div>
