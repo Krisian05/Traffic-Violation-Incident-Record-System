@@ -1,6 +1,6 @@
-var STATIC_CACHE = 'tvirs-mobile-static-v12';
-var PAGE_CACHE = 'tvirs-mobile-pages-v12';
-var EXTERNAL_CACHE = 'tvirs-mobile-external-v12';
+var STATIC_CACHE = 'tvirs-mobile-static-v13';
+var PAGE_CACHE = 'tvirs-mobile-pages-v13';
+var EXTERNAL_CACHE = 'tvirs-mobile-external-v13';
 var OFFLINE_FALLBACK = '/offline-mobile.html';
 var STATIC_URLS = [
     '/manifest.json',
@@ -9,6 +9,7 @@ var STATIC_URLS = [
     '/images/PNP.png',
     OFFLINE_FALLBACK,
     '/mobile-offline.js',
+    '/tvirs-offline-ticket.js',
     '/tvirs-ocr.js',
     '/vendor/cropperjs/cropper.min.css',
     '/vendor/tesseract/tesseract.min.js',
@@ -35,7 +36,8 @@ var EXTERNAL_URLS = [
     'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css',
     'https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css',
     'https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css',
-    'https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css'
+    'https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css',
+    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
 ];
 
 function cacheExternalUrl(cache, url) {
@@ -106,7 +108,7 @@ function isOfficerNavigation(request, url) {
 
 function isStaticAsset(url) {
     if (url.origin !== self.location.origin) return false;
-    return /^\/(manifest\.json|favicon\.ico|offline-mobile\.html|tvirs-ocr\.js|mobile-offline\.js)/.test(url.pathname)
+    return /^\/(manifest\.json|favicon\.ico|offline-mobile\.html|tvirs-ocr\.js|tvirs-offline-ticket\.js|mobile-offline\.js)/.test(url.pathname)
         || url.pathname.indexOf('/images/') === 0
         || url.pathname.indexOf('/vendor/') === 0;
 }
@@ -114,6 +116,7 @@ function isStaticAsset(url) {
 function isExternalCacheable(url) {
     return url.origin === 'https://cdn.jsdelivr.net'
         || url.origin === 'https://unpkg.com'
+        || url.origin === 'https://cdnjs.cloudflare.com'
         || url.origin === 'https://psgc.gitlab.io';
 }
 

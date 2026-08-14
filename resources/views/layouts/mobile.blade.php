@@ -1252,6 +1252,7 @@
 </head>
 @php
     $mobileOfflineVersion = file_exists(public_path('mobile-offline.js')) ? filemtime(public_path('mobile-offline.js')) : time();
+    $tvirsOfflineTicketVersion = file_exists(public_path('tvirs-offline-ticket.js')) ? filemtime(public_path('tvirs-offline-ticket.js')) : time();
     $officerSwVersion = file_exists(public_path('officer-sw.js')) ? filemtime(public_path('officer-sw.js')) : time();
     $tvirsOcrVersion = file_exists(public_path('tvirs-ocr.js')) ? filemtime(public_path('tvirs-ocr.js')) : time();
 @endphp
@@ -2449,6 +2450,8 @@ function initPhotoPicker(wrapperId, inputName, options) {
     galInput.addEventListener('change', () => handleFiles(galInput));
 }
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="{{ asset('tvirs-offline-ticket.js') }}?v={{ $tvirsOfflineTicketVersion }}"></script>
 <script src="{{ asset('tvirs-ocr.js') }}?v={{ $tvirsOcrVersion }}"></script>
 <script src="{{ asset('mobile-offline.js') }}?v={{ $mobileOfflineVersion }}"></script>
 <script>

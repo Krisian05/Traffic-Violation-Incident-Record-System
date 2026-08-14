@@ -965,11 +965,15 @@
             metaParts.push('Officer mobile record');
         }
 
+        var isViolation = (type === 'offline-violation-create' || type === 'violation-create');
+
         return {
+            id: record.id,
             badge: badge,
             title: title,
             meta: metaParts.join(' - '),
             initials: initials,
+            isViolation: isViolation,
             lastError: cleanedString(record.lastError)
         };
     }
@@ -1014,6 +1018,9 @@
                             '<div class="mob-sync-sheet-item-meta">' + escapeHtml(item.meta) + '</div>' +
                             (item.lastError
                                 ? '<div class="mob-sync-sheet-item-error">' + escapeHtml(item.lastError) + '</div>'
+                                : '') +
+                            (item.isViolation
+                                ? '<div style="margin-top:6px;"><button type="button" class="btn-offline-print-ticket" data-record-id="' + escapeHtml(record.id) + '" style="background:#f0fdf4;border:1px solid #86efac;color:#166534;border-radius:6px;padding:4px 9px;font-size:.72rem;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:4px;"><i class="ph-bold ph-printer"></i> Print Ticket</button></div>'
                                 : '') +
                         '</div>' +
                         '<div class="' + item.badge.className + '">' + escapeHtml(item.badge.text) + '</div>' +
@@ -1143,8 +1150,13 @@
                 if (record.recordType === 'motorist-create') {
                     bindQueuedMotoristToForm(form, record.offlineMotoristKey, duplicateLookupKey);
                     showToast('Motorist saved offline. You can record a linked violation now on this page.', 'pending');
-                } else if (record.recordType === 'offline-violation-create') {
-                    showToast('Violation queued for this offline motorist. It will sync after the motorist record.', 'pending');
+                } else if (record.recordType === 'offline-violation-create' || record.recordType === 'violation-create') {
+                    showToast('Violation queued offline. Opening print preview...', 'pending');
+                    if (window.TvirsOfflineTicket && typeof window.TvirsOfflineTicket.openPreview === 'function') {
+                        setTimeout(function () {
+                            window.TvirsOfflineTicket.openPreview(record);
+                        }, 350);
+                    }
                 } else {
                     showToast(record.label + ' saved offline. It will sync automatically when internet is back.', 'pending');
                 }
@@ -1554,6 +1566,21 @@
         if (syncSheet) {
             syncSheet.querySelectorAll('[data-sync-sheet-close]').forEach(function (element) {
                 element.addEventListener('click', closeChipSummary);
+            });
+        }
+
+        if (syncSheetBody) {
+            syncSheetBody.addEventListener('click', function (event) {
+                var btn = event.target.closest('.btn-offline-print-ticket');
+                if (!btn || !btn.dataset.recordId) return;
+
+                var recordId = Number(btn.dataset.recordId);
+                getRecordsForCurrentUser().then(function (records) {
+                    var target = (records || []).find(function (r) { return r.id === recordId; });
+                    if (target && window.TvirsOfflineTicket && typeof window.TvirsOfflineTicket.openPreview === 'function') {
+                        window.TvirsOfflineTicket.openPreview(target);
+                    }
+                });
             });
         }
 
