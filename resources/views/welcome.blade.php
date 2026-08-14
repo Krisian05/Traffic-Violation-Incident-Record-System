@@ -917,7 +917,7 @@
                     </div>
                     <div class="about-hero-sep"></div>
                     <div class="about-hero-logo-wrap">
-                        <img src="{{ asset('images/app-icon.png') }}" alt="TVIRS Logo">
+                        <img src="{{ asset('images/app-logo.png') }}?v=4" alt="TVIRS Logo">
                     </div>
                 </div>
                 <div class="about-hero-title">Traffic Violation Incident Record System</div>
