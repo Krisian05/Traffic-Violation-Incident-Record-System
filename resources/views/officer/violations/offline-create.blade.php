@@ -89,6 +89,23 @@
 </style>
 @endpush
 
+@php
+    // Static barangay lists (PSGC) per supported LGU so the offline violation
+    // form can populate a dropdown without needing a live PSGC API call.
+    $offlineBarangaysByLgu = [
+        'BAL' => ['Abucayan','Aliwanay','Arpili','Bayong','Biasong','Buanoy','Cabagdalan','Cabasiangan','Cambuhawe','Cansomoroy','Cantibas','Cantuod','Duangan','Gaas','Ginatilan','Hingatmonan','Lamesa','Liki','Luca','Matun-og','Nangka','Pondol','Prenza','Singsing','Sunog','Vito','Baliwagan (Pob.)','Santa Cruz-Santo Niño (Pob.)'],
+        'CEB' => ['Adlaon','Agsungot','Apas','Babag','Bacayan','Banilad','Basak Pardo','Basak San Nicolas','Binaliw','Bonbon','Budla-an (Pob.)','Buhisan','Bulacao','Buot-Taup Pardo','Busay (Pob.)','Calamba','Cambinocot','Camputhaw (Pob.)','Capitol Site (Pob.)','Carreta','Central (Pob.)','Cogon Pardo','Cogon Ramos (Pob.)','Day-as','Duljo (Pob.)','Ermita (Pob.)','Guadalupe','Guba','Hippodromo','Inayawan','Kalubihan (Pob.)','Kalunasan','Kamagayan (Pob.)','Kasambagan','Kinasang-an Pardo','Labangon','Lahug (Pob.)','Lorega','Lusaran','Luz','Mabini','Mabolo','Malubog','Mambaling','Pahina Central (Pob.)','Pahina San Nicolas','Pamutan','Pardo (Pob.)','Pari-an','Paril','Pasil','Pit-os','Pulangbato','Pung-ol-Sibugay','Punta Princesa','Quiot Pardo','Sambag I (Pob.)','Sambag II (Pob.)','San Antonio (Pob.)','San Jose','San Nicolas Central','San Roque','Santa Cruz (Pob.)','Sapangdaku','Sawang Calero (Pob.)','Sinsin','Sirao','Suba Pob.','Sudlon I','Sudlon II','T. Padilla','Tabunan','Tagbao','Talamban','Taptap','Tejero','Tinago','Tisa','To-ong Pardo','Zapatera'],
+        'MAN' => ['Alang-alang','Bakilid','Banilad','Basak','Cabancalan','Cambaro','Canduman','Casili','Casuntingan','Centro (Pob.)','Cubacub','Guizo','Ibabao-Estancia','Jagobiao','Labogon','Looc','Maguikay','Mantuyong','Opao','Pagsabungan','Pakna-an','Subangdaku','Tabok','Tawason','Tingub','Tipolo','Umapad'],
+        'DAN' => ['Baliang','Bayabas','Binaliw','Cabungahan','Cagat-Lamac','Cahumayan','Cambanay','Cambubho','Cogon-Cruz','Danasan','Dungga','Dunggoan','Guinacot','Guinsay','Ibo','Langosig','Lawaan','Licos','Looc','Magtagobtob','Malapoc','Manlayag','Mantija','Masaba','Maslog','Nangka','Oguis','Pili','Poblacion','Quisol','Sabang','Sacsac','Sandayong Norte','Sandayong Sur','Santa Rosa','Santican','Sibacan','Suba','Taboc','Taytay','Togonon','Tuburan Sur'],
+        'CAR' => ['Bolinawan','Buenavista','Calidngan','Can-asujan','Guadalupe','Liburon','Napo','Ocana','Perrelos','Poblacion I','Poblacion II','Poblacion III','Tuyom','Valencia','Valladolid'],
+        'TAL' => ['Biasong','Bulacao','Cadulawan','Camp IV','Cansojong','Dumlog','Jaclupan','Lagtang','Lawaan I','Lawaan II','Lawaan III','Linao','Maghaway','Manipis','Mohon','Poblacion','Pooc','San Isidro','San Roque','Tabunoc','Tangke','Tapul'],
+        'TOL' => ['Alegria','Amatugan','Antipolo','Apalan','Bagasawe','Bakyawan','Bangkito','Barangay I (Pob.)','Barangay II (Pob.)','Barangay III (Pob.)','Barangay IV (Pob.)','Barangay V (Pob.)','Barangay VI (Pob.)','Barangay VII (Pob.)','Barangay VIII (Pob.)','Bulwang','Caridad','Carmelo','Cogon','Colonia','Daan Lungsod','Fortaliza','Ga-ang','Gimama-a','Jagbuaya','Kabangkalan','Kabkaban','Kagba-o','Kalangahan','Kamansi','Kampoot','Kan-an','Kanlunsing','Kansi','Kaorasan','Libo','Lusong','Macupa','Mag-alwa','Mag-antoy','Mag-atubang','Maghan-ay','Mangga','Marmol','Molobolo','Montealegre','Putat','San Juan','Sandayong','Santo Niño','Siotes','Sumon','Tominjao','Tomugpa'],
+    ];
+
+    $offlineLguCode = Auth::user()?->lgu?->code ?? 'BAL';
+    $offlineBarangayOptions = $offlineBarangaysByLgu[$offlineLguCode] ?? $offlineBarangaysByLgu['BAL'];
+@endphp
+
 @section('content')
 
 <div class="mob-card" style="border-left:4px solid #1d4ed8;">
@@ -174,8 +191,12 @@
                                placeholder="Street / specific spot (optional)">
                     </div>
                     <div class="col-6">
-                        <input type="text" id="offline_loc_barangay" class="form-control mob-input"
-                               placeholder="Barangay" autocomplete="off">
+                        <select id="offline_loc_barangay" class="form-select mob-select">
+                            <option value="">Select Barangay</option>
+                            @foreach($offlineBarangayOptions as $offlineBrgy)
+                            <option value="{{ $offlineBrgy }}">{{ $offlineBrgy }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="col-6">
                         <input type="text" id="offline_loc_municipality" class="form-control mob-input"
@@ -380,6 +401,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     [locStreet, locBarangay, locMunicipality].forEach(function (el) {
         el.addEventListener('input', syncLocation);
+        el.addEventListener('change', syncLocation);
     });
     syncLocation();
 
