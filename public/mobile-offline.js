@@ -1699,12 +1699,10 @@
             '/officer/offline/violations/create',
             '/officer/offline/vehicles/create',
             '/officer/offline/incidents/create',
-            '/officer/vehicles',
-            '/officer/vehicles/create',
             '/officer/incidents/create'
         ];
 
-        caches.open('tvirs-mobile-pages-v10').then(function (cache) {
+        caches.open('tvirs-mobile-pages-v16').then(function (cache) {
             PAGES_TO_CACHE.forEach(function (pageUrl) {
                 fetch(pageUrl, { credentials: 'same-origin' }).then(function (response) {
                     if (response && response.ok) {
@@ -1744,8 +1742,6 @@
                 '/officer/offline/violations/create',
                 '/officer/offline/vehicles/create',
                 '/officer/offline/incidents/create',
-                '/officer/vehicles',
-                '/officer/vehicles/create',
                 '/officer/incidents/create'
             ];
 

@@ -257,32 +257,32 @@ Route::middleware('auth')->group(function () {
         Route::get('/motorists/suggestions', [OfficerController::class, 'motoristSuggestions'])->name('motorists.suggestions');
         Route::get('/motorists/create', [OfficerController::class, 'createMotorist'])->name('motorists.create');
         Route::post('/motorists', [OfficerController::class, 'storeMotorist'])->name('motorists.store');
-        Route::get('/motorists/{violator}', [OfficerController::class, 'showMotorist'])->name('motorists.show');
-        Route::get('/motorists/{violator}/edit', [OfficerController::class, 'editMotorist'])->name('motorists.edit');
-        Route::put('/motorists/{violator}', [OfficerController::class, 'updateMotorist'])->name('motorists.update');
+        Route::get('/motorists/{violator}', [OfficerController::class, 'showMotorist'])->name('motorists.show')->whereNumber('violator');
+        Route::get('/motorists/{violator}/edit', [OfficerController::class, 'editMotorist'])->name('motorists.edit')->whereNumber('violator');
+        Route::put('/motorists/{violator}', [OfficerController::class, 'updateMotorist'])->name('motorists.update')->whereNumber('violator');
 
-        // Vehicles (from motorist context)
-        Route::get('/motorists/{violator}/vehicles/create', [OfficerController::class, 'createVehicle'])->name('motorists.vehicles.create');
-        Route::post('/motorists/{violator}/vehicles', [OfficerController::class, 'storeVehicle'])->name('motorists.vehicles.store');
-
-        // Vehicles (detail view)
-        Route::get('/vehicles/{vehicle}', [OfficerController::class, 'showVehicle'])->name('vehicles.show');
+        // Vehicles
+        Route::get('/vehicles', fn () => redirect()->route('officer.motorists.index'))->name('vehicles.index');
+        Route::get('/vehicles/create', fn () => redirect()->route('officer.offline.vehicles.create'))->name('vehicles.create');
+        Route::get('/motorists/{violator}/vehicles/create', [OfficerController::class, 'createVehicle'])->name('motorists.vehicles.create')->whereNumber('violator');
+        Route::post('/motorists/{violator}/vehicles', [OfficerController::class, 'storeVehicle'])->name('motorists.vehicles.store')->whereNumber('violator');
+        Route::get('/vehicles/{vehicle}', [OfficerController::class, 'showVehicle'])->name('vehicles.show')->whereNumber('vehicle');
 
         // Violations (from motorist context)
         Route::get('/violations', [OfficerController::class, 'violations'])->name('violations.index');
-        Route::get('/motorists/{violator}/violations/create', [OfficerController::class, 'createViolation'])->name('violations.create');
-        Route::post('/motorists/{violator}/violations', [OfficerController::class, 'storeViolation'])->name('violations.store');
-        Route::get('/violations/{violation}', [OfficerController::class, 'showViolation'])->name('violations.show');
-        Route::get('/violations/{violation}/edit', [OfficerController::class, 'editViolation'])->name('violations.edit');
-        Route::put('/violations/{violation}', [OfficerController::class, 'updateViolation'])->name('violations.update');
+        Route::get('/motorists/{violator}/violations/create', [OfficerController::class, 'createViolation'])->name('violations.create')->whereNumber('violator');
+        Route::post('/motorists/{violator}/violations', [OfficerController::class, 'storeViolation'])->name('violations.store')->whereNumber('violator');
+        Route::get('/violations/{violation}', [OfficerController::class, 'showViolation'])->name('violations.show')->whereNumber('violation');
+        Route::get('/violations/{violation}/edit', [OfficerController::class, 'editViolation'])->name('violations.edit')->whereNumber('violation');
+        Route::put('/violations/{violation}', [OfficerController::class, 'updateViolation'])->name('violations.update')->whereNumber('violation');
 
         // Incidents
         Route::get('/incidents', [OfficerController::class, 'incidents'])->name('incidents.index');
         Route::get('/incidents/create', [OfficerController::class, 'createIncident'])->name('incidents.create');
         Route::post('/incidents', [OfficerController::class, 'storeIncident'])->name('incidents.store');
-        Route::get('/incidents/{incident}', [OfficerController::class, 'showIncident'])->name('incidents.show');
-        Route::get('/incidents/{incident}/edit', [OfficerController::class, 'editIncident'])->name('incidents.edit');
-        Route::put('/incidents/{incident}', [OfficerController::class, 'updateIncident'])->name('incidents.update');
+        Route::get('/incidents/{incident}', [OfficerController::class, 'showIncident'])->name('incidents.show')->whereNumber('incident');
+        Route::get('/incidents/{incident}/edit', [OfficerController::class, 'editIncident'])->name('incidents.edit')->whereNumber('incident');
+        Route::put('/incidents/{incident}', [OfficerController::class, 'updateIncident'])->name('incidents.update')->whereNumber('incident');
     });
 
     // ── AI CHAT SUPPORT ───────────────────────────────────────────────────────
