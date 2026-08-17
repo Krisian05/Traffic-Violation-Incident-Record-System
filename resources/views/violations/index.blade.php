@@ -218,9 +218,9 @@
 
                     {{-- Violation Type --}}
                     <td class="text-center">
-                        <span class="vtype-pill">
-                            <i class="bi bi-exclamation-octagon-fill me-1" style="font-size:.65rem;"></i>
-                            {{ $v->violationType?->name ?? '—' }}
+                        <span class="vtype-pill" title="{{ $v->violationType?->name ?? '—' }}">
+                            <i class="bi bi-exclamation-octagon-fill" style="font-size:.65rem;flex-shrink:0;"></i>
+                            <span>{{ $v->violationType?->name ?? '—' }}</span>
                         </span>
                         @if($v->lgu)
                             <div style="margin-top:2px;">
@@ -566,18 +566,24 @@
 .vtype-pill {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    gap: 4px;
     background: #fff1f2;
     color: #be123c;
-    font-size: .71rem;
+    font-size: .72rem;
     font-weight: 700;
-    padding: .28rem .7rem;
+    padding: .25rem .7rem;
     border-radius: 20px;
     border: 1px solid #fecdd3;
-    box-shadow: 0 1px 4px rgba(190,18,60,.12);
-    max-width: 180px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    box-shadow: 0 1px 4px rgba(190,18,60,.10);
+    max-width: 270px;
+    white-space: normal;
+    line-height: 1.3;
+    text-align: center;
+    word-break: break-word;
+}
+.vtype-pill i {
+    flex-shrink: 0;
 }
 
 /* ── Date chip ── */
