@@ -187,7 +187,18 @@ function setPeriodFilter(from, to) {
             </div>
             <div class="gov-ph-address fst-italic text-muted" style="font-size:0.75rem;">Payment Reconciliation &amp; Transaction Audit Log Report</div>
         </div>
-        <img src="{{ asset('images/cebu.png') }}" class="gov-ph-seal" alt="Cebu Seal" style="height:55px;">
+        @php
+            $reportLgu = null;
+            if (!empty($selectedLguId) && isset($lgus)) {
+                $reportLgu = $lgus->firstWhere('id', $selectedLguId);
+            }
+            if (!$reportLgu) {
+                $reportLgu = Auth::user()->lgu;
+            }
+            $lguSealUrl = $reportLgu?->seal_url ?? asset('images/Balamban.png');
+            $lguSealAlt = ($reportLgu?->name ?? 'LGU') . ' Seal';
+        @endphp
+        <img src="{{ $lguSealUrl }}" class="gov-ph-seal" alt="{{ $lguSealAlt }}" style="height:55px;">
     </div>
 
     {{-- Header --}}
