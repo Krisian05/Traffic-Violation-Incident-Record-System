@@ -9,14 +9,16 @@
 @section('content')
 <div class="container-fluid py-4" style="max-width: 1100px; margin: 0 auto;">
 
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div>
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+        <div style="flex: 1 1 auto; max-width: 760px; min-width: 0;">
             <h4 class="fw-800 text-stone-900 mb-1" style="color: #1c1917; font-family: 'Instrument Sans', sans-serif;">Online GCash Payment Claims</h4>
-            <p class="text-muted mb-0" style="font-size: .85rem;">Violators scan their ticket's QR code and submit a GCash reference number after paying. Cross-check each claim against the LGU's actual GCash transaction history before verifying — verifying settles the citation.</p>
+            <p class="text-muted mb-0" style="font-size: .85rem; line-height: 1.5;">Violators scan their ticket's QR code and submit a GCash reference number after paying. Cross-check each claim against the LGU's actual GCash transaction history before verifying — verifying settles the citation.</p>
         </div>
-        <span class="badge" style="background-color: #fffbeb; color: #b45309; font-size: .85rem; font-weight: 700; padding: .5rem 1rem; border-radius: 9999px;">
-            <i class="bi bi-hourglass-split me-1"></i> {{ $claims->total() }} Awaiting Review
-        </span>
+        <div class="flex-shrink-0">
+            <span class="badge d-inline-flex align-items-center gap-1.5 shadow-sm" style="background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: .85rem; font-weight: 700; padding: .55rem 1.1rem; border-radius: 9999px; white-space: nowrap;">
+                <i class="bi bi-hourglass-split"></i> <span>{{ $claims->total() }} Awaiting Review</span>
+            </span>
+        </div>
     </div>
 
     @if(session('success'))

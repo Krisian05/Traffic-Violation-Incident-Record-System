@@ -10,13 +10,15 @@
 <div class="container-fluid py-4" style="max-width: 1000px; margin: 0 auto;">
     
     {{-- Header --}}
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div>
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+        <div style="flex: 1 1 auto; max-width: 760px; min-width: 0;">
             <h4 class="fw-800 text-stone-900 mb-1" style="color: #1c1917; font-family: 'Instrument Sans', sans-serif;">Cashier Payment</h4>
-            <p class="text-muted mb-0" style="font-size: .85rem;">Enter citation ticket number, violator name, license, or plate number to collect payment.</p>
+            <p class="text-muted mb-0" style="font-size: .85rem; line-height: 1.5;">Enter citation ticket number, violator name, license, or plate number to collect payment.</p>
         </div>
-        <div class="badge" style="background-color: #dcfce7; color: #15803d; font-size: .85rem; font-weight: 700; padding: .5rem 1rem; border-radius: 9999px;">
-            <i class="bi bi-wallet2 me-1"></i> Cashier Session Active
+        <div class="flex-shrink-0">
+            <span class="badge d-inline-flex align-items-center gap-1.5 shadow-sm" style="background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; font-size: .85rem; font-weight: 700; padding: .55rem 1.1rem; border-radius: 9999px; white-space: nowrap;">
+                <i class="bi bi-wallet2"></i> <span>Cashier Session Active</span>
+            </span>
         </div>
     </div>
 
