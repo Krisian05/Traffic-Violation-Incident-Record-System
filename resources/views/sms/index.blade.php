@@ -8,6 +8,26 @@
 @endsection
 
 @section('content')
+<style>
+.sms-guide-tab {
+    border: none;
+    border-radius: 6px;
+    color: #64748b;
+    padding: .35rem .5rem;
+    font-size: .75rem;
+    transition: all .15s ease;
+}
+.sms-guide-tab:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+.sms-guide-tab.active {
+    background: #1e293b;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+</style>
+
 <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
     <div class="d-flex align-items-center gap-3">
         <div class="rounded-circle d-flex align-items-center justify-content-center"
@@ -168,6 +188,27 @@
         @php
             $currentProvider = old('sms_provider', $lgu?->sms_provider ?? 'textbee');
         @endphp
+
+        {{-- ── Guide Tab Navigation ── --}}
+        <div class="mb-3">
+            <div class="d-flex align-items-center justify-content-between mb-1-5">
+                <span class="fw-700 text-dark" style="font-size:.82rem;">
+                    <i class="bi bi-book-half me-1 text-primary"></i> Gateway Setup Guides
+                </span>
+                <span class="text-muted" style="font-size:.72rem;">Click tab to switch guide</span>
+            </div>
+            <div class="d-flex align-items-center gap-1 p-1 bg-white rounded-3 border shadow-xs mb-3">
+                <button type="button" class="btn btn-sm flex-fill fw-700 sms-guide-tab {{ $currentProvider === 'textbee' ? 'active' : '' }}" id="tab_btn_textbee" onclick="switchGuideTab('textbee')">
+                    📱 Textbee (Free)
+                </button>
+                <button type="button" class="btn btn-sm flex-fill fw-700 sms-guide-tab {{ $currentProvider === 'semaphore' ? 'active' : '' }}" id="tab_btn_semaphore" onclick="switchGuideTab('semaphore')">
+                    ☁️ Semaphore API
+                </button>
+                <button type="button" class="btn btn-sm flex-fill fw-700 sms-guide-tab {{ $currentProvider === 'local' ? 'active' : '' }}" id="tab_btn_local" onclick="switchGuideTab('local')">
+                    💻 Local Test Log
+                </button>
+            </div>
+        </div>
 
         {{-- 📱 Android SIM Setup Guide Card --}}
         <div id="textbee_guide_card" class="card border-0 shadow-sm p-3 mb-4" style="background:#f0fdf4;border:1px solid #bbf7d0!important;border-radius:12px;{{ $currentProvider === 'textbee' ? '' : 'display:none;' }}">
@@ -405,32 +446,40 @@
 
 @push('scripts')
 <script>
-function toggleProviderFields(provider) {
-    const textbeeGroup = document.getElementById('textbee_fields_group');
-    const semaphoreGroup = document.getElementById('semaphore_fields_group');
+function switchGuideTab(provider) {
     const textbeeGuide = document.getElementById('textbee_guide_card');
     const semaphoreGuide = document.getElementById('semaphore_guide_card');
     const localGuide = document.getElementById('local_guide_card');
 
+    const tabTextbee = document.getElementById('tab_btn_textbee');
+    const tabSemaphore = document.getElementById('tab_btn_semaphore');
+    const tabLocal = document.getElementById('tab_btn_local');
+
+    if (textbeeGuide) textbeeGuide.style.display = (provider === 'textbee') ? '' : 'none';
+    if (semaphoreGuide) semaphoreGuide.style.display = (provider === 'semaphore') ? '' : 'none';
+    if (localGuide) localGuide.style.display = (provider === 'local') ? '' : 'none';
+
+    if (tabTextbee) tabTextbee.classList.toggle('active', provider === 'textbee');
+    if (tabSemaphore) tabSemaphore.classList.toggle('active', provider === 'semaphore');
+    if (tabLocal) tabLocal.classList.toggle('active', provider === 'local');
+}
+
+function toggleProviderFields(provider) {
+    const textbeeGroup = document.getElementById('textbee_fields_group');
+    const semaphoreGroup = document.getElementById('semaphore_fields_group');
+
     if (provider === 'textbee') {
         textbeeGroup.style.display = '';
         semaphoreGroup.style.display = 'none';
-        if (textbeeGuide) textbeeGuide.style.display = '';
-        if (semaphoreGuide) semaphoreGuide.style.display = 'none';
-        if (localGuide) localGuide.style.display = 'none';
     } else if (provider === 'semaphore') {
         textbeeGroup.style.display = 'none';
         semaphoreGroup.style.display = '';
-        if (textbeeGuide) textbeeGuide.style.display = 'none';
-        if (semaphoreGuide) semaphoreGuide.style.display = '';
-        if (localGuide) localGuide.style.display = 'none';
     } else {
         textbeeGroup.style.display = 'none';
         semaphoreGroup.style.display = 'none';
-        if (textbeeGuide) textbeeGuide.style.display = 'none';
-        if (semaphoreGuide) semaphoreGuide.style.display = 'none';
-        if (localGuide) localGuide.style.display = '';
     }
+
+    switchGuideTab(provider);
 }
 </script>
 @endpush
