@@ -165,8 +165,12 @@
             </div>
         </div>
 
+        @php
+            $currentProvider = old('sms_provider', $lgu?->sms_provider ?? 'textbee');
+        @endphp
+
         {{-- 📱 Android SIM Setup Guide Card --}}
-        <div class="card border-0 shadow-sm p-3" style="background:#f0fdf4;border:1px solid #bbf7d0!important;border-radius:12px;">
+        <div id="textbee_guide_card" class="card border-0 shadow-sm p-3 mb-4" style="background:#f0fdf4;border:1px solid #bbf7d0!important;border-radius:12px;{{ $currentProvider === 'textbee' ? '' : 'display:none;' }}">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <h6 class="fw-700 m-0" style="color:#15803d;font-size:.88rem;">
                     <i class="bi bi-phone-vibrate me-2"></i>How to Setup Free Android SIM Gateway (Textbee.dev)
@@ -213,6 +217,99 @@
                     <li>Keep the gateway phone connected to a charger and active Wi-Fi/data.</li>
                     <li>Turn off <em>Battery Saver / App Optimization</em> for Textbee in Android Settings so background dispatching is never paused.</li>
                 </ul>
+            </div>
+        </div>
+
+        {{-- ☁️ Semaphore API Setup Guide Card --}}
+        <div id="semaphore_guide_card" class="card border-0 shadow-sm p-3 mb-4" style="background:#eff6ff;border:1px solid #bfdbfe!important;border-radius:12px;{{ $currentProvider === 'semaphore' ? '' : 'display:none;' }}">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <h6 class="fw-700 m-0" style="color:#1d4ed8;font-size:.88rem;">
+                    <i class="bi bi-cloud-arrow-up-fill me-2"></i>How to Setup Semaphore SMS API
+                </h6>
+                <span class="badge bg-primary text-white" style="font-size:.68rem;">Direct Telco Cloud</span>
+            </div>
+            <p class="mb-3" style="font-size:.76rem;color:#1e40af;line-height:1.4;">
+                Send high-speed, carrier-grade SMS notifications directly through Philippine cellular networks (Globe, Smart, DITO) without needing a dedicated phone.
+            </p>
+            
+            <div class="d-flex flex-column gap-2 mb-3" style="font-size:.76rem;color:#1e3a8a;">
+                <div class="d-flex align-items-start gap-2">
+                    <span class="badge rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:20px;height:20px;font-size:.68rem;">1</span>
+                    <div>
+                        <strong>Create Semaphore Account:</strong> Sign up at <a href="https://semaphore.co" target="_blank" class="fw-700 text-decoration-underline" style="color:#1d4ed8;">semaphore.co</a> and verify your email and Philippine mobile number.
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-start gap-2">
+                    <span class="badge rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:20px;height:20px;font-size:.68rem;">2</span>
+                    <div>
+                        <strong>Purchase SMS Credits:</strong> Top up prepaid credits on Semaphore (approx. ₱0.50 per SMS) via GCash, credit card, or bank transfer.
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-start gap-2">
+                    <span class="badge rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:20px;height:20px;font-size:.68rem;">3</span>
+                    <div>
+                        <strong>Copy API Key:</strong> Navigate to <em>Account Settings ➔ API Key</em> inside your Semaphore dashboard and copy your secret key.
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-start gap-2">
+                    <span class="badge rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:20px;height:20px;font-size:.68rem;">4</span>
+                    <div>
+                        <strong>Configure in TVIRS:</strong> Paste your <strong>Semaphore API Key</strong> and optional registered <strong>Sender Name</strong> (e.g. <code>TVIRS</code>) into the form above, then click <strong>Save Gateway Configuration</strong>.
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-2.5 rounded border" style="background:#dbeafe;border-color:#93c5fd!important;font-size:.74rem;color:#1e3a8a;">
+                <div class="fw-700 mb-1"><i class="bi bi-info-circle-fill text-primary me-1"></i>Sender ID Information:</div>
+                <div style="line-height:1.45;">
+                    Custom sender names (e.g. <code>BALAMBAN-LGU</code>) require prior NTC registration through Semaphore. Leave blank or use <code>TVIRS</code> for instant default delivery.
+                </div>
+            </div>
+        </div>
+
+        {{-- 💻 Local Test Log Gateway Guide Card --}}
+        <div id="local_guide_card" class="card border-0 shadow-sm p-3 mb-4" style="background:#f8fafc;border:1px solid #cbd5e1!important;border-radius:12px;{{ $currentProvider === 'local' ? '' : 'display:none;' }}">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <h6 class="fw-700 m-0" style="color:#334155;font-size:.88rem;">
+                    <i class="bi bi-terminal-fill me-2"></i>How Local Test Log Gateway Works
+                </h6>
+                <span class="badge bg-secondary text-white" style="font-size:.68rem;">Testing / Demo Mode</span>
+            </div>
+            <p class="mb-3" style="font-size:.76rem;color:#475569;line-height:1.4;">
+                Simulate outbound SMS dispatching safely without connecting to external carrier APIs or sending real text messages to motorists.
+            </p>
+            
+            <div class="d-flex flex-column gap-2 mb-3" style="font-size:.76rem;color:#334155;">
+                <div class="d-flex align-items-start gap-2">
+                    <span class="badge rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:20px;height:20px;font-size:.68rem;">1</span>
+                    <div>
+                        <strong>No API Keys Needed:</strong> Simply select <em>Local Test Log Gateway</em> in the dropdown above and click <strong>Save Gateway Configuration</strong>.
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-start gap-2">
+                    <span class="badge rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:20px;height:20px;font-size:.68rem;">2</span>
+                    <div>
+                        <strong>Automatic Simulation:</strong> When enforcers issue tickets, send 72h reminders, or cashiers confirm GCash payments, TVIRS will mark citations as <em>SMS Sent</em>.
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-start gap-2">
+                    <span class="badge rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:20px;height:20px;font-size:.68rem;">3</span>
+                    <div>
+                        <strong>Inspect Logged Messages:</strong> Open your server terminal or view <code>storage/logs/laravel.log</code> to inspect formatted SMS text, recipient phone numbers, and timestamps.
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-2.5 rounded border" style="background:#f1f5f9;border-color:#cbd5e1!important;font-size:.74rem;color:#334155;">
+                <div class="fw-700 mb-1"><i class="bi bi-lightbulb-fill text-warning me-1"></i>Ideal For:</div>
+                <div style="line-height:1.45;">
+                    Capstone project defense, system demonstrations, unit testing, and offline staging servers where no real phone or internet gateway is attached.
+                </div>
             </div>
         </div>
     </div>
@@ -311,15 +408,28 @@
 function toggleProviderFields(provider) {
     const textbeeGroup = document.getElementById('textbee_fields_group');
     const semaphoreGroup = document.getElementById('semaphore_fields_group');
+    const textbeeGuide = document.getElementById('textbee_guide_card');
+    const semaphoreGuide = document.getElementById('semaphore_guide_card');
+    const localGuide = document.getElementById('local_guide_card');
+
     if (provider === 'textbee') {
         textbeeGroup.style.display = '';
         semaphoreGroup.style.display = 'none';
+        if (textbeeGuide) textbeeGuide.style.display = '';
+        if (semaphoreGuide) semaphoreGuide.style.display = 'none';
+        if (localGuide) localGuide.style.display = 'none';
     } else if (provider === 'semaphore') {
         textbeeGroup.style.display = 'none';
         semaphoreGroup.style.display = '';
+        if (textbeeGuide) textbeeGuide.style.display = 'none';
+        if (semaphoreGuide) semaphoreGuide.style.display = '';
+        if (localGuide) localGuide.style.display = 'none';
     } else {
         textbeeGroup.style.display = 'none';
         semaphoreGroup.style.display = 'none';
+        if (textbeeGuide) textbeeGuide.style.display = 'none';
+        if (semaphoreGuide) semaphoreGuide.style.display = 'none';
+        if (localGuide) localGuide.style.display = '';
     }
 }
 </script>
