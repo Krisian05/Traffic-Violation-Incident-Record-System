@@ -100,10 +100,10 @@
     </div>
     <div class="filter-card-body">
         <form method="GET" action="{{ route('audit-logs.index') }}" id="aud-filter-form">
-            <div class="d-flex flex-wrap align-items-end gap-2">
+            <div class="d-flex flex-wrap align-items-end" style="gap: .65rem; row-gap: .85rem;">
 
                 {{-- Search text --}}
-                <div style="flex:3;min-width:210px;">
+                <div style="flex: 2.5 1 230px; min-width: 220px;">
                     <label class="filter-label"><i class="bi bi-search me-1"></i>Search Description / User / Action</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text filt-icon"><i class="bi bi-search"></i></span>
@@ -115,7 +115,7 @@
 
                 {{-- LGU Selector (Super Admin & Province Admin only) --}}
                 @if(!$isLguScoped && $lgus->count() > 0)
-                <div style="flex:2;min-width:160px;">
+                <div style="flex: 2 1 210px; min-width: 205px;">
                     <label class="filter-label"><i class="bi bi-building me-1"></i>Filter by LGU</label>
                     <select name="lgu_id" class="form-select form-select-sm filt-input">
                         <option value="">All LGUs (Province-wide)</option>
@@ -129,7 +129,7 @@
                 @endif
 
                 {{-- Log Category --}}
-                <div style="flex:1.6;min-width:140px;">
+                <div style="flex: 1.5 1 160px; min-width: 155px;">
                     <label class="filter-label"><i class="bi bi-tags me-1"></i>Record Category</label>
                     <select name="category" class="form-select form-select-sm filt-input">
                         <option value="">All Categories</option>
@@ -142,7 +142,7 @@
                 </div>
 
                 {{-- Event Type --}}
-                <div style="flex:1.5;min-width:130px;">
+                <div style="flex: 1.5 1 140px; min-width: 135px;">
                     <label class="filter-label"><i class="bi bi-lightning-charge me-1"></i>Event Type</label>
                     <select name="event" class="form-select form-select-sm filt-input">
                         <option value="">All Events</option>
@@ -153,20 +153,20 @@
                 </div>
 
                 {{-- Date From --}}
-                <div style="flex:1.3;min-width:120px;">
+                <div style="flex: 1 1 130px; min-width: 125px;">
                     <label class="filter-label"><i class="bi bi-calendar-event me-1"></i>Date From</label>
                     <input type="date" name="date_from" class="form-control form-control-sm filt-input"
                         value="{{ $dateFrom }}">
                 </div>
 
                 {{-- Date To --}}
-                <div style="flex:1.3;min-width:120px;">
+                <div style="flex: 1 1 130px; min-width: 125px;">
                     <label class="filter-label"><i class="bi bi-calendar-event me-1"></i>Date To</label>
                     <input type="date" name="date_to" class="form-control form-control-sm filt-input"
                         value="{{ $dateTo }}">
                 </div>
 
-                <div style="flex-shrink:0;display:flex;gap:6px;">
+                <div class="d-flex align-items-end gap-1.5 ms-auto" style="flex-shrink:0;">
                     <button type="submit" class="btn-filter-submit">
                         <i class="bi bi-funnel-fill"></i> Filter
                     </button>
