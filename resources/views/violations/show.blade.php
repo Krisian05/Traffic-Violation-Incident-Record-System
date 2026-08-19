@@ -173,14 +173,35 @@
                         <div class="fw-700" style="color:#1c1917;font-size:.95rem;">{{ $violation->violationType?->name ?? '—' }}</div>
                     </div>
 
+                    {{-- Offense Attempt --}}
+                    <div class="d-flex align-items-start gap-3 px-4 py-3" style="border-bottom:1px solid #f5f0e8;">
+                        <div style="width:120px;flex-shrink:0;font-size:.8rem;color:#a8a29e;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">Offense Level</div>
+                        <div>
+                            <span class="badge {{ $violation->offenseBadgeClass() }} px-2 py-1 fw-bold" style="font-size:.8rem;">
+                                {{ $violation->offenseLabel() }}
+                            </span>
+                            @if($violation->offense_count > 1)
+                                <span class="ms-2 small text-warning-emphasis fw-medium">
+                                    <i class="bi bi-arrow-repeat me-1"></i>Repeat offense (Attempt #{{ $violation->offense_count }})
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
                     {{-- Fine Amount --}}
                     <div class="d-flex align-items-start gap-3 px-4 py-3" style="border-bottom:1px solid #f5f0e8;">
                         <div style="width:120px;flex-shrink:0;font-size:.8rem;color:#a8a29e;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:2px;">Fine Amount</div>
                         <div>
-                            @if($violation->violationType?->fine_amount)
+                            @php
+                                $baseFine = !is_null($violation->fine_amount) ? (float)$violation->fine_amount : ($violation->violationType?->getFineForOffense($violation->offense_count ?? 1) ?? 0);
+                            @endphp
+                            @if($baseFine > 0 || !is_null($violation->fine_amount))
                                 <span class="fw-700" style="color:#1c1917;font-size:.95rem;">
-                                    ₱{{ number_format($violation->violationType->fine_amount, 2) }}
+                                    ₱{{ number_format($baseFine, 2) }}
                                 </span>
+                                @if($violation->offense_count > 1)
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle ms-1" style="font-size:.72rem;">{{ $violation->offenseLabel() }} Rate</span>
+                                @endif
                                 @if($isOverdue && $violation->latePenaltyAmount() > 0)
                                     <span style="color:#b91c1c;font-size:.82rem;"> + ₱{{ number_format($violation->latePenaltyAmount(), 2) }} late penalty</span>
                                 @endif

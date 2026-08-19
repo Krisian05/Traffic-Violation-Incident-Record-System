@@ -84,7 +84,17 @@
                     </td>
                     <td class="vt-desc">{{ $type->description ?? '—' }}</td>
                     <td class="text-end" style="padding-right:1.4rem;">
-                        @if($type->fine_amount)
+                        @if($type->hasTieredFines())
+                            <div class="d-inline-flex flex-column align-items-end gap-1">
+                                <span class="vt-fine-pill" title="1st Offense">1st: ₱ {{ number_format($type->fine_amount ?? 0, 2) }}</span>
+                                @if(!is_null($type->fine_amount_2nd))
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-semibold px-2 py-1" style="font-size:.72rem;" title="2nd Offense">2nd: ₱ {{ number_format($type->fine_amount_2nd, 2) }}</span>
+                                @endif
+                                @if(!is_null($type->fine_amount_3rd))
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-2 py-1" style="font-size:.72rem;" title="3rd+ Offense">3rd: ₱ {{ number_format($type->fine_amount_3rd, 2) }}</span>
+                                @endif
+                            </div>
+                        @elseif(!is_null($type->fine_amount))
                             <span class="vt-fine-pill">₱ {{ number_format($type->fine_amount, 2) }}</span>
                         @else
                             <span class="vt-no-data">—</span>

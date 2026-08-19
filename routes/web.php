@@ -153,6 +153,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/sms-gateway/settings', [\App\Http\Controllers\SmsController::class, 'updateSettings'])->name('sms.settings');
 
     Route::middleware('role:operator,records_officer,traffic_supervisor')->group(function () {
+        Route::get('/violators/{violator}/check-offense', [ViolationController::class, 'checkOffense'])->name('violations.check-offense');
         Route::get('/violators/{violator}/violations/create', [ViolationController::class, 'create'])->name('violations.create');
         Route::post('/violators/{violator}/violations', [ViolationController::class, 'store'])->name('violations.store');
         Route::get('/violations/{violation}/edit', [ViolationController::class, 'edit'])->name('violations.edit');
@@ -270,6 +271,7 @@ Route::middleware('auth')->group(function () {
 
         // Violations (from motorist context)
         Route::get('/violations', [OfficerController::class, 'violations'])->name('violations.index');
+        Route::get('/motorists/{violator}/violations/check-offense', [OfficerController::class, 'checkOffense'])->name('violations.check-offense')->whereNumber('violator');
         Route::get('/motorists/{violator}/violations/create', [OfficerController::class, 'createViolation'])->name('violations.create')->whereNumber('violator');
         Route::post('/motorists/{violator}/violations', [OfficerController::class, 'storeViolation'])->name('violations.store')->whereNumber('violator');
         Route::get('/violations/{violation}', [OfficerController::class, 'showViolation'])->name('violations.show')->whereNumber('violation');

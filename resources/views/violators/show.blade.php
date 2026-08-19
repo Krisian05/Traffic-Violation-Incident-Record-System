@@ -426,6 +426,14 @@
                                             <i class="bi bi-exclamation-octagon-fill me-1" style="font-size:.6rem;"></i>
                                             {{ $viol->violationType?->name ?? '—' }}
                                         </span>
+                                        <span class="badge {{ $viol->offenseBadgeClass() }} rounded-pill" style="font-size:.68rem;font-weight:600;">
+                                            {{ $viol->offenseLabel() }}
+                                        </span>
+                                        @if(!is_null($viol->fine_amount))
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill" style="font-size:.68rem;font-weight:700;">
+                                                ₱{{ number_format($viol->fine_amount, 2) }}
+                                            </span>
+                                        @endif
                                         @if($viol->lgu)
                                             <span class="badge rounded-pill bg-light text-secondary border" style="font-size:.65rem;font-weight:600;" title="Encoded by {{ $viol->lgu->name }}">
                                                 <i class="bi bi-building me-1"></i>{{ $viol->lgu->code ?? $viol->lgu->name }}

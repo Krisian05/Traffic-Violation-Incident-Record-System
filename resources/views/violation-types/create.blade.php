@@ -72,9 +72,9 @@
                 </div>
             </div>
 
-            <div class="row g-3 mb-4">
-                <div class="col-md-6">
-                    <label class="vt-label">Fine Amount (₱)</label>
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="vt-label">1st Offense Fine (₱) <span class="text-danger">*</span></label>
                     <div class="input-group">
                         <span class="input-group-text vt-ig-icon" style="background:#f0fdf4;border-color:#86efac;">
                             <i class="bi bi-cash-coin" style="color:#15803d;"></i>
@@ -86,6 +86,35 @@
                         @error('fine_amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                 </div>
+                <div class="col-md-4">
+                    <label class="vt-label">2nd Offense Fine (₱) <span class="text-muted fw-normal" style="font-size:.72rem;">(Optional)</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text vt-ig-icon" style="background:#fef3c7;border-color:#fde047;">
+                            <i class="bi bi-arrow-repeat" style="color:#b45309;"></i>
+                        </span>
+                        <input type="number" name="fine_amount_2nd"
+                               class="form-control vt-input @error('fine_amount_2nd') is-invalid @enderror"
+                               value="{{ old('fine_amount_2nd') }}"
+                               min="0" step="0.01" placeholder="Leave blank if flat">
+                        @error('fine_amount_2nd')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="vt-label">3rd Offense Fine (₱) <span class="text-muted fw-normal" style="font-size:.72rem;">(Optional)</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text vt-ig-icon" style="background:#fee2e2;border-color:#fca5a5;">
+                            <i class="bi bi-exclamation-octagon text-danger"></i>
+                        </span>
+                        <input type="number" name="fine_amount_3rd"
+                               class="form-control vt-input @error('fine_amount_3rd') is-invalid @enderror"
+                               value="{{ old('fine_amount_3rd') }}"
+                               min="0" step="0.01" placeholder="Leave blank if flat">
+                        @error('fine_amount_3rd')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <label class="vt-label">Late Penalty (₱)</label>
                     <div class="input-group">

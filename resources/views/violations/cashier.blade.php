@@ -95,7 +95,13 @@
                                     <i class="bi bi-cash-coin text-danger fs-1"></i>
                                 </div>
                                 <div class="mt-2 pt-2" style="border-top: 1px dashed #fca5a5; font-size: .78rem; color: #7f1d1d;">
-                                    Base fine: ₱{{ number_format($violation->violationType->fine_amount, 2) }}
+                                    @php
+                                        $cashierBaseFine = !is_null($violation->fine_amount) ? (float)$violation->fine_amount : ($violation->violationType?->getFineForOffense($violation->offense_count ?? 1) ?? 0);
+                                    @endphp
+                                    Base fine: ₱{{ number_format($cashierBaseFine, 2) }}
+                                    @if($violation->offense_count > 1)
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle ms-1" style="font-size: .7rem;">{{ $violation->offenseLabel() }}</span>
+                                    @endif
                                     @if($violation->isOverdue() && $violation->latePenaltyAmount() > 0)
                                         <span class="ms-1">+ Late penalty: ₱{{ number_format($violation->latePenaltyAmount(), 2) }}</span>
                                     @endif
@@ -255,8 +261,8 @@
                                 <div class="p-3 mb-3 bg-light rounded-3 border" style="font-size: 0.82rem;">
                                     <div class="fw-700 text-muted mb-2 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.05em;">Payment Breakdown</div>
                                     <div class="d-flex justify-content-between mb-1">
-                                        <span>Base Fine:</span>
-                                        <strong>₱{{ number_format($violation->violationType->fine_amount, 2) }}</strong>
+                                        <span>Base Fine ({{ $violation->offenseLabel() }}):</span>
+                                        <strong>₱{{ number_format($cashierBaseFine, 2) }}</strong>
                                     </div>
                                     @if($violation->isOverdue() && $violation->latePenaltyAmount() > 0)
                                         <div class="d-flex justify-content-between mb-1 text-danger">

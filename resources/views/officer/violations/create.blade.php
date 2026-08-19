@@ -40,20 +40,44 @@
             </div>
 
             <div class="mb-3">
-                <label class="mob-label">Violation Type <span class="text-danger">*</span></label>
+                <label class="mob-label d-flex align-items-center justify-content-between">
+                    <span>Violation Type <span class="text-danger">*</span></span>
+                    <span id="mob-offense-check-status" class="badge bg-secondary-subtle text-secondary" style="display:none;font-size:.65rem;">
+                        <i class="ph-bold ph-shield-check me-1"></i>Checked
+                    </span>
+                </label>
                 <select name="violation_type_id" id="violation_type_id"
                         class="form-select mob-select @error('violation_type_id') is-invalid @enderror" required>
                     <option value="">— Select violation —</option>
                     @foreach($violationTypes as $vt)
-                    <option value="{{ $vt->id }}" data-fine="{{ $vt->fine_amount }}"
+                    <option value="{{ $vt->id }}"
+                            data-fine-1st="{{ $vt->fine_amount }}"
+                            data-fine-2nd="{{ $vt->fine_amount_2nd }}"
+                            data-fine-3rd="{{ $vt->fine_amount_3rd }}"
+                            data-has-tiered="{{ $vt->hasTieredFines() ? '1' : '0' }}"
                             {{ old('violation_type_id') == $vt->id ? 'selected' : '' }}>
                         {{ $vt->name }}
+                        @if($vt->hasTieredFines())
+                            (1st: ₱{{ number_format($vt->fine_amount ?? 0, 2) }} | 2nd: ₱{{ number_format($vt->fine_amount_2nd ?? 0, 2) }} | 3rd: ₱{{ number_format($vt->fine_amount_3rd ?? 0, 2) }})
+                        @elseif($vt->fine_amount)
+                            — ₱{{ number_format($vt->fine_amount, 2) }}
+                        @endif
                     </option>
                     @endforeach
                 </select>
                 @error('violation_type_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                <div id="fine-preview" style="display:none;margin-top:.45rem;padding:.45rem .75rem;background:#fef2f2;border-radius:8px;font-size:.8rem;font-weight:700;color:#b91c1c;border:1px solid #fca5a5;">
-                    <i class="ph-fill ph-money me-1"></i>Fine: ₱<span id="fine-amount">0.00</span>
+
+                {{-- Live Mobile Offense & Tiered Fine Detector --}}
+                <div id="mob-offense-preview" style="display:none;margin-top:.5rem;padding:.6rem .85rem;background:#fffdf9;border-radius:10px;border:1.5px solid #fde68a;">
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                        <span id="mob-offense-badge" class="badge rounded-pill fw-bold" style="font-size:.72rem;">1st Offense</span>
+                        <div class="fw-800" style="color:#b91c1c;font-size:.92rem;">
+                            Fine: ₱<span id="mob-fine-amount">0.00</span>
+                        </div>
+                    </div>
+                    <div id="mob-offense-status" style="font-size:.75rem;font-weight:600;color:#334155;"></div>
+                    <div id="mob-offense-ladder" class="d-flex align-items-center gap-1 flex-wrap pt-1 mt-1 border-top" style="border-color:#fef3c7 !important;font-size:.7rem;"></div>
+                    <div id="mob-offense-alert" style="display:none;margin-top:.4rem;padding:.4rem .6rem;background:#fef2f2;border:1px solid #fecdd3;border-radius:6px;font-size:.72rem;color:#991b1b;font-weight:500;"></div>
                 </div>
             </div>
 
@@ -270,18 +294,89 @@ document.addEventListener('DOMContentLoaded', function () {
     initPhotoPicker('picker-veh-photos', 'photos',                { multiple: true  });
 });
 
-document.getElementById('violation_type_id').addEventListener('change', function () {
-    var opt = this.options[this.selectedIndex];
-    var fine = opt.dataset.fine;
-    var preview = document.getElementById('fine-preview');
-    if (fine && parseFloat(fine) > 0) {
-        document.getElementById('fine-amount').textContent = parseFloat(fine).toLocaleString('en-PH', {minimumFractionDigits: 2});
-        preview.style.display = 'block';
-    } else {
-        preview.style.display = 'none';
+// Dynamic Offense Detector for Mobile Officer Portal
+(function () {
+    var vTypeSelect = document.getElementById('violation_type_id');
+    var preview = document.getElementById('mob-offense-preview');
+    var badge = document.getElementById('mob-offense-badge');
+    var statusText = document.getElementById('mob-offense-status');
+    var fineDisplay = document.getElementById('mob-fine-amount');
+    var ladder = document.getElementById('mob-offense-ladder');
+    var alertBox = document.getElementById('mob-offense-alert');
+    var checkStatus = document.getElementById('mob-offense-check-status');
+
+    async function checkOffense() {
+        var selectedId = vTypeSelect.value;
+        if (!selectedId) {
+            preview.style.display = 'none';
+            if (checkStatus) checkStatus.style.display = 'none';
+            return;
+        }
+
+        try {
+            var res = await fetch('{{ route('officer.violations.check-offense', $violator) }}?violation_type_id=' + selectedId);
+            if (!res.ok) throw new Error('Check error');
+            var data = await res.json();
+
+            preview.style.display = 'block';
+            if (checkStatus) checkStatus.style.display = 'inline-block';
+            fineDisplay.textContent = Number(data.fine_amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            badge.textContent = data.attempt_label;
+
+            if (data.attempt_number === 1) {
+                badge.className = 'badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle fw-bold';
+                statusText.textContent = 'Standard 1st Offense';
+                statusText.style.color = '#334155';
+                alertBox.style.display = 'none';
+            } else if (data.attempt_number === 2) {
+                badge.className = 'badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-bold';
+                statusText.textContent = '⚠️ 2nd Repeat Offense Detected';
+                statusText.style.color = '#b45309';
+            } else {
+                badge.className = 'badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle fw-bold';
+                statusText.textContent = '🚨 Habitual / 3rd+ Repeat Offense Detected';
+                statusText.style.color = '#b91c1c';
+            }
+
+            if (data.is_repeat && data.prior_violations && data.prior_violations.length > 0) {
+                var priors = data.prior_violations.map(function(pv) {
+                    return '<div>• Ticket <strong>' + (pv.ticket_number || ('#' + pv.id)) + '</strong> on ' + (pv.date_of_violation || 'N/A') + '</div>';
+                }).join('');
+                alertBox.innerHTML = '<div class="fw-bold mb-1"><i class="ph-fill ph-warning me-1"></i>Prior Violations (' + data.prior_count + ' previous):</div>' + priors;
+                alertBox.style.display = 'block';
+            } else {
+                alertBox.style.display = 'none';
+            }
+
+            if (data.has_tiered_fines && data.tiers) {
+                var ladderHtml = '<span class="text-muted fw-bold me-1">Tiers:</span>';
+                if (data.tiers['1st'] !== null && data.tiers['1st'] !== undefined) {
+                    var act1 = data.attempt_number === 1 ? 'badge bg-secondary-subtle text-dark border px-1.5' : 'text-muted';
+                    ladderHtml += '<span class="' + act1 + '">1st: ₱' + Number(data.tiers['1st']).toFixed(2) + '</span>';
+                }
+                if (data.tiers['2nd'] !== null && data.tiers['2nd'] !== undefined) {
+                    var act2 = data.attempt_number === 2 ? 'badge bg-warning-subtle text-warning-emphasis border border-warning px-1.5' : 'text-muted';
+                    ladderHtml += '<span class="text-muted mx-1">→</span><span class="' + act2 + '">2nd: ₱' + Number(data.tiers['2nd']).toFixed(2) + '</span>';
+                }
+                if (data.tiers['3rd'] !== null && data.tiers['3rd'] !== undefined) {
+                    var act3 = data.attempt_number >= 3 ? 'badge bg-danger-subtle text-danger border border-danger px-1.5' : 'text-muted';
+                    ladderHtml += '<span class="text-muted mx-1">→</span><span class="' + act3 + '">3rd+: ₱' + Number(data.tiers['3rd']).toFixed(2) + '</span>';
+                }
+                ladder.innerHTML = ladderHtml;
+                ladder.style.display = 'flex';
+            } else {
+                ladder.style.display = 'none';
+            }
+        } catch (e) {
+            console.error('Mobile offense check error:', e);
+        }
     }
-});
-document.getElementById('violation_type_id').dispatchEvent(new Event('change'));
+
+    vTypeSelect.addEventListener('change', checkOffense);
+    if (vTypeSelect.value) {
+        checkOffense();
+    }
+})();
 
 var vehicleSelect = document.getElementById('vehicle_id');
 var vehicleManual = document.getElementById('vehicle-manual');

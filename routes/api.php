@@ -24,6 +24,7 @@ Route::prefix('v1')->group(function () {
         Route::middleware('role:traffic_officer,admin')->prefix('officer')->group(function () {
             Route::get('/dashboard', [OfficerApiController::class, 'dashboard']);
             Route::get('/motorists', [OfficerApiController::class, 'motorists']);
+            Route::get('/motorists/{violator}/check-offense', [OfficerApiController::class, 'checkOffense']);
             Route::post('/motorists', [OfficerApiController::class, 'storeMotorist']);
             Route::post('/vehicles', [OfficerApiController::class, 'storeVehicle']);
             Route::post('/violations', [OfficerApiController::class, 'storeViolation']);

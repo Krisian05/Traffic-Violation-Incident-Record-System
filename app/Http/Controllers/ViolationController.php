@@ -212,6 +212,11 @@ class ViolationController extends Controller
         $data['recorded_by'] = Auth::id();
         $data['lgu_id']      = Lgu::findByPsgcCityCode($request->input('_loc_city_code'))?->id ?? Auth::user()->lgu_id ?? $violator->lgu_id;
 
+        // Auto-compute offense attempt & tiered fine
+        $attempt = Violation::calculateOffenseAttempt($violator->id, (int) $data['violation_type_id']);
+        $data['offense_count'] = $attempt['attempt_number'];
+        $data['fine_amount']   = $attempt['fine_amount'];
+
         $violation = Violation::create($data);
 
         app(NotificationService::class)->notifyNewViolation($violation);
@@ -224,8 +229,25 @@ class ViolationController extends Controller
             }
         }
 
+        $offenseMsg = $violation->offense_count > 1 ? " ({$violation->offenseLabel()})" : '';
         return redirect()->route('violators.show', $violator)
-            ->with('success', 'Violation recorded successfully.');
+            ->with('success', "Violation recorded successfully{$offenseMsg}. Fine: ₱" . number_format($violation->fine_amount, 2));
+    }
+
+    /**
+     * Real-time API check for motorist's previous offense attempts and tiered fine.
+     */
+    public function checkOffense(Request $request, Violator $violator)
+    {
+        $typeId = (int) $request->input('violation_type_id');
+        if (!$typeId) {
+            return response()->json(['error' => 'Violation type required.'], 422);
+        }
+
+        $excludeId = $request->filled('exclude_violation_id') ? (int) $request->input('exclude_violation_id') : null;
+        $result = Violation::calculateOffenseAttempt($violator->id, $typeId, $excludeId);
+
+        return response()->json($result);
     }
 
     public function sendSms(Request $request, Violation $violation)
@@ -632,8 +654,10 @@ class ViolationController extends Controller
                 'display_status'=> $displayStatus,
                 'violator_name' => $violation->violator?->full_name,
                 'license_number'=> $violation->violator?->license_number,
-                'violation_type'=> $violation->violationType?->name,
-                'fine_amount'   => $violation->violationType?->fine_amount,
+                'violation_type'=> ($violation->violationType?->name ?? '—') . ($violation->offense_count > 1 ? " ({$violation->offenseLabel()})" : ''),
+                'offense_label' => $violation->offenseLabel(),
+                'offense_count' => $violation->offense_count ?? 1,
+                'fine_amount'   => !is_null($violation->fine_amount) ? (float)$violation->fine_amount : ($violation->violationType?->getFineForOffense($violation->offense_count ?? 1) ?? 0),
                 'late_penalty'  => $violation->isOverdue() ? $violation->latePenaltyAmount() : 0,
                 'total_paid'    => $violation->totalAmountPaid(),
                 'balance'       => $violation->balanceRemaining(),

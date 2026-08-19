@@ -218,17 +218,27 @@
 
                     {{-- Violation Type --}}
                     <td class="text-center">
-                        <span class="vtype-pill" title="{{ $v->violationType?->name ?? '—' }}">
-                            <i class="bi bi-exclamation-octagon-fill" style="font-size:.65rem;flex-shrink:0;"></i>
-                            <span>{{ $v->violationType?->name ?? '—' }}</span>
-                        </span>
-                        @if($v->lgu)
-                            <div style="margin-top:2px;">
-                                <span class="badge rounded-pill bg-light text-secondary border" style="font-size:.62rem;font-weight:600;" title="Recorded by {{ $v->lgu->name }}">
-                                    <i class="bi bi-building me-1"></i>{{ $v->lgu->code ?? $v->lgu->name }}
+                        <div class="d-flex flex-column align-items-center gap-1">
+                            <span class="vtype-pill" title="{{ $v->violationType?->name ?? '—' }}">
+                                <i class="bi bi-exclamation-octagon-fill" style="font-size:.65rem;flex-shrink:0;"></i>
+                                <span>{{ $v->violationType?->name ?? '—' }}</span>
+                            </span>
+                            <div class="d-inline-flex align-items-center gap-1 flex-wrap justify-content-center">
+                                <span class="badge {{ $v->offenseBadgeClass() }} rounded-pill" style="font-size:.64rem;font-weight:600;">
+                                    {{ $v->offenseLabel() }}
                                 </span>
+                                @if(!is_null($v->fine_amount))
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill" style="font-size:.64rem;font-weight:700;">
+                                        ₱{{ number_format($v->fine_amount, 2) }}
+                                    </span>
+                                @endif
+                                @if($v->lgu)
+                                    <span class="badge rounded-pill bg-light text-secondary border" style="font-size:.62rem;font-weight:600;" title="Recorded by {{ $v->lgu->name }}">
+                                        <i class="bi bi-building me-1"></i>{{ $v->lgu->code ?? $v->lgu->name }}
+                                    </span>
+                                @endif
                             </div>
-                        @endif
+                        </div>
                     </td>
 
                     {{-- Date --}}

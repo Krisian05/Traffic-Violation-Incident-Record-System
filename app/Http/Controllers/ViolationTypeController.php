@@ -85,6 +85,8 @@ class ViolationTypeController extends Controller
             'code'                => ['nullable', 'string', 'max:50'],
             'description'         => ['nullable', 'string', 'max:500'],
             'fine_amount'         => ['nullable', 'numeric', 'min:0'],
+            'fine_amount_2nd'     => ['nullable', 'numeric', 'min:0'],
+            'fine_amount_3rd'     => ['nullable', 'numeric', 'min:0'],
             'late_penalty_amount' => ['nullable', 'numeric', 'min:0'],
             'points'              => ['nullable', 'integer', 'min:0'],
         ]);
@@ -126,6 +128,8 @@ class ViolationTypeController extends Controller
             'code'                => ['nullable', 'string', 'max:50'],
             'description'         => ['nullable', 'string', 'max:500'],
             'fine_amount'         => ['nullable', 'numeric', 'min:0'],
+            'fine_amount_2nd'     => ['nullable', 'numeric', 'min:0'],
+            'fine_amount_3rd'     => ['nullable', 'numeric', 'min:0'],
             'late_penalty_amount' => ['nullable', 'numeric', 'min:0'],
             'points'              => ['nullable', 'integer', 'min:0'],
         ]);

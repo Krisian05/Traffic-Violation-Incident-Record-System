@@ -540,6 +540,11 @@ class OfficerController extends Controller
         $data['recorded_by'] = Auth::id();
         $data['lgu_id']      = Lgu::findByPsgcCityCode($request->input('_loc_city_code'))?->id ?? $this->getLguId();
 
+        // Auto-compute offense attempt & tiered fine
+        $attempt = Violation::calculateOffenseAttempt($violator->id, (int) $data['violation_type_id']);
+        $data['offense_count'] = $attempt['attempt_number'];
+        $data['fine_amount']   = $attempt['fine_amount'];
+
         $violation = Violation::create($data);
 
         app(\App\Services\NotificationService::class)->notifyNewViolation($violation);
@@ -551,8 +556,25 @@ class OfficerController extends Controller
             }
         }
 
+        $offenseMsg = $violation->offense_count > 1 ? " ({$violation->offenseLabel()})" : '';
         return redirect()->route('officer.motorists.show', $violator)
-            ->with('success', 'Violation recorded successfully.');
+            ->with('success', "Violation recorded successfully{$offenseMsg}. Fine: ₱" . number_format($violation->fine_amount, 2));
+    }
+
+    /**
+     * Real-time offense attempt check for officer mobile/web app.
+     */
+    public function checkOffense(Request $request, Violator $violator): \Illuminate\Http\JsonResponse
+    {
+        $typeId = (int) $request->input('violation_type_id');
+        if (!$typeId) {
+            return response()->json(['error' => 'Violation type required.'], 422);
+        }
+
+        $excludeId = $request->filled('exclude_violation_id') ? (int) $request->input('exclude_violation_id') : null;
+        $result = Violation::calculateOffenseAttempt($violator->id, $typeId, $excludeId);
+
+        return response()->json($result);
     }
 
     public function showViolation(Violation $violation): View

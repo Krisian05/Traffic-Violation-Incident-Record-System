@@ -53,7 +53,7 @@
     $chaNo = $veh ? $veh->chassis_number : $violation->vehicle_chassis;
     $hasVehicle = $plate || $make || $model || $owner;
 
-    $fineAmt = $violation->violationType?->fine_amount ?? 0;
+    $fineAmt = !is_null($violation->fine_amount) ? (float)$violation->fine_amount : ($violation->violationType?->getFineForOffense($violation->offense_count ?? 1) ?? 0);
 @endphp
 
 {{-- ── Hero ── --}}
@@ -77,6 +77,10 @@
                 <div class="motshow-subtitle">Ticket #{{ $violation->ticket_number }}</div>
                 @endif
                 <div class="motshow-meta-row">
+                    <span class="motshow-meta-chip" style="background:rgba(255,255,255,.2);color:#fff;font-weight:700;">
+                        <i class="ph-bold ph-arrow-clockwise"></i>
+                        {{ $violation->offenseLabel() }}
+                    </span>
                     @if($violation->date_of_violation)
                     <span class="motshow-meta-chip">
                         <i class="ph ph-calendar-blank"></i>
@@ -97,11 +101,11 @@
             </div>
         </div>
 
-        @if($fineAmt > 0)
+        @if($fineAmt > 0 || !is_null($violation->fine_amount))
         <div class="vshow-stat-grid">
             <div class="vshow-stat">
-                <div class="vshow-stat-num">₱{{ number_format($fineAmt, 0) }}</div>
-                <div class="vshow-stat-label">Fine Amount</div>
+                <div class="vshow-stat-num">₱{{ number_format($fineAmt, 2) }}</div>
+                <div class="vshow-stat-label">Assessed Fine ({{ $violation->offenseLabel() }})</div>
             </div>
             <div class="vshow-stat">
                 <div class="vshow-stat-num">{{ $violation->date_of_violation?->format('Y') ?? '—' }}</div>

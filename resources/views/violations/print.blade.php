@@ -299,9 +299,12 @@
             </span>
         </div>
         <div class="fine-block">
-            <div class="fine-label">Fine Amount</div>
-            @if($violation->violationType->fine_amount)
-                <div class="fine-amount">₱{{ number_format($violation->violationType->fine_amount, 2) }}</div>
+            <div class="fine-label">Fine Amount ({{ $violation->offenseLabel() }})</div>
+            @php
+                $assessedFine = !is_null($violation->fine_amount) ? (float)$violation->fine_amount : ($violation->violationType?->getFineForOffense($violation->offense_count ?? 1) ?? 0);
+            @endphp
+            @if($assessedFine > 0 || !is_null($violation->fine_amount))
+                <div class="fine-amount">₱{{ number_format($assessedFine, 2) }}</div>
                 @if($isOverdue && $violation->latePenaltyAmount() > 0)
                     <div style="font-size:9.5px;color:#b91c1c;font-weight:700;">+ ₱{{ number_format($violation->latePenaltyAmount(), 2) }} late penalty</div>
                 @endif
@@ -317,6 +320,7 @@
                     </div>
                 @endif
             @else
+                <div class="fine-amount" style="font-size:13px;color:#a8a29e;">₱0.00</div>
             @endif
         </div>
     </div>
@@ -335,6 +339,15 @@
                         <span class="info-val">{{ $violation->violationType?->name ?? '—' }}</span>
                     </div>
                     <div class="info-cell">
+                        <span class="info-lbl">Offense Level</span>
+                        <span class="info-val">
+                            {{ $violation->offenseLabel() }}
+                            @if($violation->offense_count > 1)
+                                <span style="font-size:8.5px;color:#b45309;font-weight:700;">(Repeat #{{ $violation->offense_count }})</span>
+                            @endif
+                        </span>
+                    </div>
+                    <div class="info-cell">
                         <span class="info-lbl">Date of Violation</span>
                         <span class="info-val">{{ $violation->date_of_violation->format('M d, Y') }}</span>
                     </div>
@@ -344,7 +357,7 @@
                             {{ $violation->location ?: '—' }}
                         </span>
                     </div>
-                    <div class="info-cell">
+                    <div class="info-cell" style="grid-column: 1 / -1; border-right: none;">
                         <span class="info-lbl">Ticket No.</span>
                         <span class="info-val mono @if(!$violation->ticket_number) empty @endif">
                             {{ $violation->ticket_number ?: 'Not issued' }}

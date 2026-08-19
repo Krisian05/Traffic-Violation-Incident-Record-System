@@ -222,14 +222,33 @@ class OfficerApiController extends Controller
         $data['recorded_by'] = Auth::id();
         $data['lgu_id']      = Auth::user()->lgu_id;
 
+        // Auto-compute offense attempt & tiered fine
+        $attempt = Violation::calculateOffenseAttempt((int) $data['violator_id'], (int) $data['violation_type_id']);
+        $data['offense_count'] = $attempt['attempt_number'];
+        $data['fine_amount']   = $attempt['fine_amount'];
+
         $violation = Violation::create($data);
 
         app(\App\Services\NotificationService::class)->notifyNewViolation($violation);
 
         return response()->json([
-            'message' => 'Violation logged successfully.',
-            'violation' => $violation
+            'message'   => 'Violation logged successfully.',
+            'violation' => $violation->load(['violationType', 'violator', 'vehicle']),
+            'attempt'   => $attempt,
         ], 201);
+    }
+
+    public function checkOffense(Request $request, Violator $violator)
+    {
+        $typeId = (int) $request->input('violation_type_id');
+        if (!$typeId) {
+            return response()->json(['error' => 'Violation type required.'], 422);
+        }
+
+        $excludeId = $request->filled('exclude_violation_id') ? (int) $request->input('exclude_violation_id') : null;
+        $result = Violation::calculateOffenseAttempt($violator->id, $typeId, $excludeId);
+
+        return response()->json($result);
     }
 
     public function storeIncident(Request $request)

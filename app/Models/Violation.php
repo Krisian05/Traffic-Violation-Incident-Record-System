@@ -38,13 +38,28 @@ class Violation extends Model
             if (empty($model->public_payment_token)) {
                 $model->public_payment_token = (string) \Illuminate\Support\Str::uuid();
             }
+
+            // Auto-calculate offense attempt count and fine if not provided
+            if (!empty($model->violator_id) && !empty($model->violation_type_id)) {
+                $attempt = static::calculateOffenseAttempt(
+                    (int) $model->violator_id,
+                    (int) $model->violation_type_id,
+                    $model->id
+                );
+                if (empty($model->offense_count)) {
+                    $model->offense_count = $attempt['attempt_number'];
+                }
+                if ($model->fine_amount === null || $model->fine_amount === '') {
+                    $model->fine_amount = $attempt['fine_amount'];
+                }
+            }
         });
     }
 
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['violator_id', 'violation_type_id', 'date_of_violation', 'status', 'location', 'lgu_id', 'ticket_number', 'or_number', 'settled_at'])
+            ->logOnly(['violator_id', 'violation_type_id', 'offense_count', 'fine_amount', 'date_of_violation', 'status', 'location', 'lgu_id', 'ticket_number', 'or_number', 'settled_at'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('violation');
@@ -63,6 +78,8 @@ class Violation extends Model
         'vehicle_cr_number',
         'vehicle_chassis',
         'violation_type_id',
+        'offense_count',
+        'fine_amount',
         'date_of_violation',
         'due_date',
         'location',
@@ -88,6 +105,8 @@ class Violation extends Model
     ];
 
     protected $casts = [
+        'offense_count'     => 'integer',
+        'fine_amount'       => 'decimal:2',
         'date_of_violation' => 'date',
         'due_date'          => 'date',
         'settled_at'        => 'datetime',
@@ -238,6 +257,78 @@ class Violation extends Model
         return now()->startOfDay()->gt($dueDate->startOfDay());
     }
 
+    /**
+     * Detect offense attempt number (1st, 2nd, 3rd+) and calculate tiered fine.
+     */
+    public static function calculateOffenseAttempt(int $violatorId, int $violationTypeId, ?int $excludeViolationId = null): array
+    {
+        $query = static::where('violator_id', $violatorId)
+            ->where('violation_type_id', $violationTypeId);
+
+        if ($excludeViolationId) {
+            $query->where('id', '!=', $excludeViolationId);
+        }
+
+        $priorViolations = $query->orderBy('date_of_violation', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $attemptNumber = $priorViolations->count() + 1;
+        $violationType = ViolationType::find($violationTypeId);
+        $assessedFine  = $violationType ? $violationType->getFineForOffense($attemptNumber) : 0.0;
+
+        return [
+            'attempt_number'   => $attemptNumber,
+            'attempt_label'    => static::formatOffenseLabel($attemptNumber),
+            'fine_amount'      => round($assessedFine, 2),
+            'is_repeat'        => $attemptNumber > 1,
+            'prior_count'      => $priorViolations->count(),
+            'prior_violations' => $priorViolations->map(fn($v) => [
+                'id'                => $v->id,
+                'ticket_number'     => $v->ticket_number,
+                'date_of_violation' => $v->date_of_violation ? $v->date_of_violation->format('Y-m-d') : null,
+                'status'            => $v->status,
+                'offense_count'     => $v->offense_count ?? 1,
+                'fine_amount'       => (float) (!is_null($v->fine_amount) ? $v->fine_amount : ($v->violationType?->fine_amount ?? 0)),
+            ]),
+            'has_tiered_fines' => $violationType?->hasTieredFines() ?? false,
+            'tiers'            => $violationType?->getOffenseTiers() ?? [],
+        ];
+    }
+
+    /**
+     * Get clean human-readable offense attempt label (e.g. 1st Offense, 2nd Offense).
+     */
+    public static function formatOffenseLabel(int $attempt): string
+    {
+        return match ($attempt) {
+            1       => '1st Offense',
+            2       => '2nd Offense',
+            3       => '3rd Offense',
+            default => "{$attempt}th Offense",
+        };
+    }
+
+    /**
+     * Offense attempt label for this instance.
+     */
+    public function offenseLabel(): string
+    {
+        return static::formatOffenseLabel($this->offense_count ?? 1);
+    }
+
+    /**
+     * Offense attempt badge styling class.
+     */
+    public function offenseBadgeClass(): string
+    {
+        return match ($this->offense_count ?? 1) {
+            1       => 'bg-secondary-subtle text-secondary border border-secondary-subtle',
+            2       => 'bg-warning-subtle text-warning-emphasis border border-warning-subtle',
+            default => 'bg-danger-subtle text-danger border border-danger-subtle',
+        };
+    }
+
     /** Additional penalty added once a violation passes its due_date (0 if not overdue or not configured). */
     public function latePenaltyAmount(): float
     {
@@ -248,10 +339,12 @@ class Violation extends Model
         return (float) ($this->violationType?->late_penalty_amount ?? 0);
     }
 
-    /** Base fine plus any late penalty currently owed. */
+    /** Base fine (using stored fine_amount if present, or calculated tiered fine) plus any late penalty currently owed. */
     public function totalAmountDue(): float
     {
-        $base = (float) ($this->violationType?->fine_amount ?? 0);
+        $base = !is_null($this->fine_amount)
+            ? (float) $this->fine_amount
+            : (float) ($this->violationType?->getFineForOffense($this->offense_count ?? 1) ?? 0);
 
         return round($base + $this->latePenaltyAmount(), 2);
     }

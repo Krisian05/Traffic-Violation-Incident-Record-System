@@ -46,7 +46,7 @@ class NotificationService
         $users = $this->usersForRoles($targetRoles, $violation->lgu_id);
 
         $violatorName = $violation->violator ? $violation->violator->full_name : 'Unknown Violator';
-        $fineAmount = $violation->violationType ? number_format($violation->violationType->fine_amount, 2) : '0.00';
+        $fineAmount = number_format($violation->totalAmountDue(), 2);
         $ticketNo = $violation->ticket_number ?: '#' . $violation->id;
 
         foreach ($users as $user) {

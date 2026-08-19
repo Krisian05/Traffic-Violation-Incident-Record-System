@@ -92,7 +92,7 @@ class ViolationsExport implements FromQuery, WithHeadings, WithMapping, ShouldAu
             $violation->violator?->license_number ?? '—',
             $violation->vehicle?->plate_number ?? $violation->vehicle_plate ?? '—',
             $violation->violationType?->name ?? '—',
-            $violation->violationType?->fine_amount ?: 0,
+            !is_null($violation->fine_amount) ? (float)$violation->fine_amount : ($violation->violationType?->fine_amount ?: 0),
             $violation->balanceRemaining(),
             $violation->location ?: '—',
             $violation->date_of_violation->format('Y-m-d'),
