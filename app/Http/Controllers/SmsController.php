@@ -66,14 +66,22 @@ class SmsController extends Controller
             abort(403, 'Unauthorized to update SMS settings for this LGU.');
         }
 
-        $lgu->update([
+        $updateData = [
             'sms_provider'      => $data['sms_provider'] ?? 'textbee',
-            'textbee_api_key'   => $data['textbee_api_key'] ?? null,
             'textbee_device_id' => $data['textbee_device_id'] ?? null,
-            'sms_api_key'       => $data['sms_api_key'] ?? null,
             'sms_sender_name'   => ($data['sms_sender_name'] ?? null) ?: 'TVIRS',
-            'sms_auto_send'     => $request->has('sms_auto_send'),
-        ]);
+            'sms_auto_send'     => $request->boolean('sms_auto_send'),
+        ];
+
+        // Blank-means-keep: only update secret API keys if a new non-empty value was provided
+        if (!empty($data['textbee_api_key'])) {
+            $updateData['textbee_api_key'] = $data['textbee_api_key'];
+        }
+        if (!empty($data['sms_api_key'])) {
+            $updateData['sms_api_key'] = $data['sms_api_key'];
+        }
+
+        $lgu->update($updateData);
 
         return back()->with('success', 'SMS Gateway configuration updated successfully.');
     }

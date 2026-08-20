@@ -231,7 +231,72 @@
                     </div>
                 </div>
             </div>
+        </div>{{-- end .row --}}
+
+        {{-- CARD 4: PayMongo Payment Gateway --}}
+        <div class="card border-0 shadow-sm rounded-3 mt-4">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center gap-2">
+                <i class="bi bi-credit-card-fill text-success fs-5"></i>
+                <h6 class="fw-bold mb-0 text-dark">4. PayMongo Online Payment Gateway</h6>
+                <span class="ms-auto badge bg-success-subtle text-success fw-bold" style="font-size:.7rem;"><i class="bi bi-lock-fill me-1"></i>Keys encrypted at rest (AES-256)</span>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+
+                    <div class="col-lg-3">
+                        <label class="lgu-label">Gateway Provider</label>
+                        <select name="gateway_provider" class="form-select lgu-input">
+                            <option value="paymongo" {{ old('gateway_provider', 'paymongo') === 'paymongo' ? 'selected' : '' }}>PayMongo</option>
+                            <option value="none" {{ old('gateway_provider') === 'none' ? 'selected' : '' }}>Disabled</option>
+                        </select>
+                        <div class="form-text">Disable to hide online payment option from motorists.</div>
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label class="lgu-label">Public Key <span class="badge bg-secondary" style="font-size:.65rem;">pk_live_...</span></label>
+                        <input type="text" name="paymongo_public_key"
+                               class="form-control lgu-input @error('paymongo_public_key') is-invalid @enderror"
+                               value="{{ old('paymongo_public_key') }}"
+                               placeholder="pk_live_xxxxxxxxxxxx">
+                        <div class="form-text">Safe to display — this is the publishable key.</div>
+                        @error('paymongo_public_key')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label class="lgu-label">Secret Key <span class="badge bg-danger" style="font-size:.65rem;">sk_live_...</span></label>
+                        <input type="password" name="paymongo_secret_key"
+                               class="form-control lgu-input @error('paymongo_secret_key') is-invalid @enderror"
+                               value="{{ old('paymongo_secret_key') }}"
+                               placeholder="sk_live_xxxxxxxxxxxx"
+                               autocomplete="new-password">
+                        <div class="form-text text-muted">Stored encrypted with AES-256.</div>
+                        @error('paymongo_secret_key')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label class="lgu-label">Webhook Secret <span class="badge bg-danger" style="font-size:.65rem;">whsk_...</span></label>
+                        <input type="password" name="paymongo_webhook_secret"
+                               class="form-control lgu-input @error('paymongo_webhook_secret') is-invalid @enderror"
+                               value="{{ old('paymongo_webhook_secret') }}"
+                               placeholder="whsk_xxxxxxxxxxxx"
+                               autocomplete="new-password">
+                        <div class="form-text text-muted">From PayMongo Dashboard → Webhooks.</div>
+                        @error('paymongo_webhook_secret')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                </div>
+
+                <div class="form-check form-switch mt-4 pt-3 border-top">
+                    <input class="form-check-input" type="checkbox" name="enable_manual_qr_claim"
+                           id="enable_manual_qr_claim" value="1"
+                           {{ old('enable_manual_qr_claim', true) ? 'checked' : '' }}>
+                    <label class="form-check-label fw-bold text-dark small" for="enable_manual_qr_claim">
+                        Allow motorists to submit a manual GCash / Maya QR payment claim (with reference screenshot)
+                    </label>
+                </div>
+            </div>
         </div>
+
     </form>
 </div>
 

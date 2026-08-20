@@ -135,9 +135,17 @@
                             <label class="form-label fw-600" style="font-size:.82rem;">Textbee API Key</label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text"><i class="bi bi-key-fill text-muted"></i></span>
-                                <input type="password" name="textbee_api_key" class="form-control" placeholder="e.g. tb_key_..." value="{{ old('textbee_api_key', $lgu?->textbee_api_key) }}">
+                                <input type="password" name="textbee_api_key" class="form-control"
+                                       placeholder="{{ $lgu?->textbee_api_key ? 'Leave blank to keep existing key' : 'e.g. tb_key_...' }}"
+                                       autocomplete="new-password">
                             </div>
-                            <div class="form-text" style="font-size:.72rem;">Free API Key from Textbee app on Android gateway phone.</div>
+                            <div class="form-text" style="font-size:.72rem;">
+                                @if($lgu?->textbee_api_key)
+                                    <span class="text-success fw-bold"><i class="bi bi-lock-fill"></i> Key configured (encrypted)</span> — leave blank to keep.
+                                @else
+                                    Free API Key from Textbee app on Android gateway phone.
+                                @endif
+                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -156,9 +164,17 @@
                             <label class="form-label fw-600" style="font-size:.82rem;">Semaphore API Key</label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text"><i class="bi bi-key-fill text-muted"></i></span>
-                                <input type="password" name="sms_api_key" class="form-control" placeholder="Semaphore API Key" value="{{ old('sms_api_key', $lgu?->sms_api_key) }}">
+                                <input type="password" name="sms_api_key" class="form-control"
+                                       placeholder="{{ $lgu?->sms_api_key ? 'Leave blank to keep existing key' : 'e.g. 9a8b7c6d...' }}"
+                                       autocomplete="new-password">
                             </div>
-                            <div class="form-text" style="font-size:.72rem;">Enter API key from Semaphore.co to enable live SMS delivery.</div>
+                            <div class="form-text" style="font-size:.72rem;">
+                                @if($lgu?->sms_api_key)
+                                    <span class="text-success fw-bold"><i class="bi bi-lock-fill"></i> Key configured (encrypted)</span> — leave blank to keep.
+                                @else
+                                    Enter API key from Semaphore.co to enable live SMS delivery.
+                                @endif
+                            </div>
                         </div>
 
                         <div class="mb-3">
