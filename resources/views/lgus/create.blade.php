@@ -235,63 +235,104 @@
 
         {{-- CARD 4: PayMongo Payment Gateway --}}
         <div class="card border-0 shadow-sm rounded-3 mt-4">
-            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center gap-2">
-                <i class="bi bi-credit-card-fill text-success fs-5"></i>
-                <h6 class="fw-bold mb-0 text-dark">4. PayMongo Online Payment Gateway</h6>
-                <span class="ms-auto badge bg-success-subtle text-success fw-bold" style="font-size:.7rem;"><i class="bi bi-lock-fill me-1"></i>Keys encrypted at rest (AES-256)</span>
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-credit-card-2-front-fill text-success fs-5"></i>
+                    <h6 class="fw-bold mb-0 text-dark">4. PayMongo Online Payment Gateway</h6>
+                </div>
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill fw-600" style="font-size:.72rem;">
+                    <i class="bi bi-shield-lock-fill me-1"></i> Keys Encrypted at Rest (AES-256)
+                </span>
             </div>
             <div class="card-body p-4">
                 <div class="row g-4">
 
                     <div class="col-lg-3">
                         <label class="lgu-label">Gateway Provider</label>
-                        <select name="gateway_provider" class="form-select lgu-input">
-                            <option value="paymongo" {{ old('gateway_provider', 'paymongo') === 'paymongo' ? 'selected' : '' }}>PayMongo</option>
-                            <option value="none" {{ old('gateway_provider') === 'none' ? 'selected' : '' }}>Disabled</option>
-                        </select>
-                        <div class="form-text">Disable to hide online payment option from motorists.</div>
+                        <div class="input-group">
+                            <span class="input-group-text lgu-ig-icon style-green">
+                                <i class="bi bi-wallet2 text-success"></i>
+                            </span>
+                            <select name="gateway_provider" id="gateway_provider_select" class="form-select lgu-input" onchange="togglePaymongoFields(this.value)">
+                                <option value="paymongo" {{ old('gateway_provider', 'paymongo') === 'paymongo' ? 'selected' : '' }}>💳 PayMongo (Active)</option>
+                                <option value="none" {{ old('gateway_provider') === 'none' ? 'selected' : '' }}>🚫 Disabled</option>
+                            </select>
+                        </div>
+                        <div class="form-text">Controls online settlement availability for motorists.</div>
                     </div>
 
-                    <div class="col-lg-3">
-                        <label class="lgu-label">Public Key <span class="badge bg-secondary" style="font-size:.65rem;">pk_live_...</span></label>
-                        <input type="text" name="paymongo_public_key"
-                               class="form-control lgu-input @error('paymongo_public_key') is-invalid @enderror"
-                               value="{{ old('paymongo_public_key') }}"
-                               placeholder="pk_live_xxxxxxxxxxxx">
-                        <div class="form-text">Safe to display — this is the publishable key.</div>
-                        @error('paymongo_public_key')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="col-lg-9" id="paymongo_fields_wrapper" style="{{ old('gateway_provider') === 'none' ? 'display:none;' : '' }}">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="lgu-label">Public Key <span class="badge bg-secondary-subtle text-secondary border" style="font-size:.65rem;">pk_live_...</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text lgu-ig-icon style-sky">
+                                        <i class="bi bi-key-fill text-primary"></i>
+                                    </span>
+                                    <input type="text" name="paymongo_public_key"
+                                           class="form-control lgu-input @error('paymongo_public_key') is-invalid @enderror"
+                                           value="{{ old('paymongo_public_key') }}"
+                                           placeholder="pk_live_xxxxxxxxxxxx">
+                                    @error('paymongo_public_key')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="form-text">Safe to display — publishable client key.</div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="lgu-label">Secret Key <span class="badge bg-danger-subtle text-danger border" style="font-size:.65rem;">sk_live_...</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text lgu-ig-icon style-rose">
+                                        <i class="bi bi-shield-lock-fill text-danger"></i>
+                                    </span>
+                                    <input type="password" name="paymongo_secret_key" id="paymongo_secret_key_input"
+                                           class="form-control lgu-input @error('paymongo_secret_key') is-invalid @enderror"
+                                           value="{{ old('paymongo_secret_key') }}"
+                                           placeholder="sk_live_xxxxxxxxxxxx"
+                                           autocomplete="new-password">
+                                    <button class="btn btn-outline-secondary btn-sm" type="button" onclick="togglePassVisibility('paymongo_secret_key_input', this)" style="border-radius: 0 8px 8px 0 !important; border-color: #cbd5e1; background: #fff;">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    @error('paymongo_secret_key')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="form-text text-muted">Stored encrypted with AES-256.</div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="lgu-label">Webhook Secret <span class="badge bg-danger-subtle text-danger border" style="font-size:.65rem;">whsk_...</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text lgu-ig-icon style-amber">
+                                        <i class="bi bi-link-45deg text-warning"></i>
+                                    </span>
+                                    <input type="password" name="paymongo_webhook_secret" id="paymongo_webhook_secret_input"
+                                           class="form-control lgu-input @error('paymongo_webhook_secret') is-invalid @enderror"
+                                           value="{{ old('paymongo_webhook_secret') }}"
+                                           placeholder="whsk_xxxxxxxxxxxx"
+                                           autocomplete="new-password">
+                                    <button class="btn btn-outline-secondary btn-sm" type="button" onclick="togglePassVisibility('paymongo_webhook_secret_input', this)" style="border-radius: 0 8px 8px 0 !important; border-color: #cbd5e1; background: #fff;">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    @error('paymongo_webhook_secret')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="form-text text-muted">From PayMongo Dashboard &rarr; Webhooks.</div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="col-lg-3">
-                        <label class="lgu-label">Secret Key <span class="badge bg-danger" style="font-size:.65rem;">sk_live_...</span></label>
-                        <input type="password" name="paymongo_secret_key"
-                               class="form-control lgu-input @error('paymongo_secret_key') is-invalid @enderror"
-                               value="{{ old('paymongo_secret_key') }}"
-                               placeholder="sk_live_xxxxxxxxxxxx"
-                               autocomplete="new-password">
-                        <div class="form-text text-muted">Stored encrypted with AES-256.</div>
-                        @error('paymongo_secret_key')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="col-lg-9" id="paymongo_disabled_banner" style="{{ old('gateway_provider') !== 'none' ? 'display:none;' : '' }}">
+                        <div class="p-3 bg-light rounded-3 border text-muted d-flex align-items-center gap-2 h-100">
+                            <i class="bi bi-info-circle text-secondary fs-5"></i>
+                            <span class="small">Online payment gateway is currently <strong>disabled</strong> for this LGU. Motorists will not be presented with the PayMongo checkout option.</span>
+                        </div>
                     </div>
 
-                    <div class="col-lg-3">
-                        <label class="lgu-label">Webhook Secret <span class="badge bg-danger" style="font-size:.65rem;">whsk_...</span></label>
-                        <input type="password" name="paymongo_webhook_secret"
-                               class="form-control lgu-input @error('paymongo_webhook_secret') is-invalid @enderror"
-                               value="{{ old('paymongo_webhook_secret') }}"
-                               placeholder="whsk_xxxxxxxxxxxx"
-                               autocomplete="new-password">
-                        <div class="form-text text-muted">From PayMongo Dashboard → Webhooks.</div>
-                        @error('paymongo_webhook_secret')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                </div>
+                </div>{{-- end .row.g-4 --}}
 
                 <div class="form-check form-switch mt-4 pt-3 border-top">
                     <input class="form-check-input" type="checkbox" name="enable_manual_qr_claim"
                            id="enable_manual_qr_claim" value="1"
                            {{ old('enable_manual_qr_claim', true) ? 'checked' : '' }}>
                     <label class="form-check-label fw-bold text-dark small" for="enable_manual_qr_claim">
-                        Allow motorists to submit a manual GCash / Maya QR payment claim (with reference screenshot)
+                        Allow motorists to submit a manual GCash / Maya QR payment claim (with transaction reference screenshot)
                     </label>
                 </div>
             </div>
@@ -379,5 +420,24 @@
         }
     });
 })();
+
+function togglePaymongoFields(val) {
+    const fields = document.getElementById('paymongo_fields_wrapper');
+    const banner = document.getElementById('paymongo_disabled_banner');
+    if (fields) fields.style.display = (val === 'none' ? 'none' : '');
+    if (banner) banner.style.display = (val === 'none' ? '' : 'none');
+}
+
+function togglePassVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = '<i class="bi bi-eye-slash"></i>';
+    } else {
+        input.type = 'password';
+        btn.innerHTML = '<i class="bi bi-eye"></i>';
+    }
+}
 </script>
 @endpush
