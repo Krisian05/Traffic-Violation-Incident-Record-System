@@ -130,27 +130,43 @@
             </div>
         </div>
 
-        <div class="card shadow-sm mb-3">
-            <div class="card-body p-4 text-center">
-                <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
-                    <span class="payment-method-badge"><i class="bi bi-phone"></i> GCash</span>
-                    <span class="payment-method-badge"><i class="bi bi-qr-code-scan"></i> QR Ph</span>
-                    <span class="payment-method-badge"><i class="bi bi-wallet2"></i> Maya</span>
-                    <span class="payment-method-badge"><i class="bi bi-credit-card"></i> Cards</span>
-                </div>
-                <h6 class="fw-800 text-dark mb-2">Instant Online Settlement via PayMongo</h6>
-                <p class="text-muted mb-4" style="font-size: .85rem;">
-                    Pay securely using your preferred e-wallet or bank card. Your citation will be automatically marked as <strong>Settled</strong> within seconds upon completion.
-                </p>
+        @php
+            $paymongoActive = ($lgu?->gateway_provider ?? 'paymongo') === 'paymongo' && $lgu?->hasPayMongoConfigured();
+        @endphp
 
-                <form action="{{ route('guest-payment.paymongo-checkout', $violation->public_payment_token) }}" method="POST">
-                    @csrf
-                    <button type="submit" class="btn btn-paymongo w-100 py-3 fs-6">
-                        <i class="bi bi-shield-lock-fill me-2"></i> Proceed to PayMongo Checkout (₱{{ number_format($checkoutTotal, 2) }})
-                    </button>
-                </form>
+        @if($paymongoActive)
+            <div class="card shadow-sm mb-3">
+                <div class="card-body p-4 text-center">
+                    <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+                        <span class="payment-method-badge"><i class="bi bi-phone"></i> GCash</span>
+                        <span class="payment-method-badge"><i class="bi bi-qr-code-scan"></i> QR Ph</span>
+                        <span class="payment-method-badge"><i class="bi bi-wallet2"></i> Maya</span>
+                        <span class="payment-method-badge"><i class="bi bi-credit-card"></i> Cards</span>
+                    </div>
+                    <h6 class="fw-800 text-dark mb-2">Instant Online Settlement via PayMongo</h6>
+                    <p class="text-muted mb-4" style="font-size: .85rem;">
+                        Pay securely using your preferred e-wallet or bank card. Your citation will be automatically marked as <strong>Settled</strong> within seconds upon completion.
+                    </p>
+
+                    <form action="{{ route('guest-payment.paymongo-checkout', $violation->public_payment_token) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-paymongo w-100 py-3 fs-6">
+                            <i class="bi bi-shield-lock-fill me-2"></i> Proceed to PayMongo Checkout (₱{{ number_format($checkoutTotal, 2) }})
+                        </button>
+                    </form>
+                </div>
             </div>
-        </div>
+        @else
+            <div class="card shadow-sm mb-3">
+                <div class="card-body p-4 text-center">
+                    <i class="bi bi-building-fill text-secondary fs-2 mb-2 d-block"></i>
+                    <h6 class="fw-800 text-dark mb-1">In-Person Settlement Required</h6>
+                    <p class="text-muted mb-0" style="font-size: .85rem;">
+                        Online checkout is not active for this municipality. Please settle your citation directly at the <strong>{{ $lgu?->treasurer_office ?: 'Municipal Treasurer\'s Office' }}</strong>.
+                    </p>
+                </div>
+            </div>
+        @endif
 
     @endif
 
