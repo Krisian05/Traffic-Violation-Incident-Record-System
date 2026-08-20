@@ -558,7 +558,7 @@
 
     {{-- FOOTER --}}
     <footer class="site-footer">
-        &copy; {{ date('Y') }} Traffic Violation Incident Record System. All rights reserved.
+        &copy; {{ date('Y') }} Traffic Violation Incident Recording System. All rights reserved.
     </footer>
 
 </div>
