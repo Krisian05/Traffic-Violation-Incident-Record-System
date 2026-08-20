@@ -199,7 +199,7 @@ class SupportChatController extends Controller
             $model = 'gemini-flash-latest';
             $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
-            $response = Http::timeout(15)->withoutVerifying()->post($endpoint, $payloadPrimary);
+            $response = Http::timeout(15)->post($endpoint, $payloadPrimary);
 
             // Fallback to gemini-3.6-flash if gemini-flash-latest fails
             if (!$response->successful()) {
@@ -207,7 +207,7 @@ class SupportChatController extends Controller
                 $payloadFallback = $payloadPrimary;
                 $payloadFallback['generationConfig']['maxOutputTokens'] = 2500;
 
-                $response = Http::timeout(20)->withoutVerifying()->post($endpointFallback, $payloadFallback);
+                $response = Http::timeout(20)->post($endpointFallback, $payloadFallback);
             }
 
             if ($response->successful()) {
@@ -242,13 +242,15 @@ class SupportChatController extends Controller
             Log::error('Chat Support Exception: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred while processing your request: ' . $e->getMessage()
+                'message' => 'Unable to process your request. Please try again or use a Quick FAQ above.'
             ]);
         }
     }
 
     private function getDailyCacheKey(): string
     {
-        return 'gemini_daily_requests_' . now()->format('Y-m-d');
+        // Scoped per-user so one account cannot exhaust the global daily quota.
+        $userId = Auth::id() ?? 'guest';
+        return 'gemini_daily_requests_' . $userId . '_' . now()->format('Y-m-d');
     }
 }

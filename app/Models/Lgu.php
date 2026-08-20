@@ -40,29 +40,53 @@ class Lgu extends Model
     protected $hidden = [
         'paymongo_secret_key',
         'paymongo_webhook_secret',
+        'sms_api_key',
+        'textbee_api_key',
     ];
+
+    /**
+     * Sensitive API key columns are AES-256-CBC encrypted at rest using APP_KEY.
+     * Laravel's 'encrypted' cast handles this transparently on read/write.
+     * The public key is intentionally left unencrypted — it is a publishable key.
+     */
+    protected function casts(): array
+    {
+        return [
+            'paymongo_secret_key'     => 'encrypted',
+            'paymongo_webhook_secret' => 'encrypted',
+            'sms_api_key'             => 'encrypted',
+            'textbee_api_key'         => 'encrypted',
+        ];
+    }
 
     public function getPayMongoPublicKey(): ?string
     {
+        // Priority: per-LGU DB value → config/services.php → .env
+        // Returns null if not configured — no hardcoded fallback keys.
         return $this->paymongo_public_key
-            ?: (config('services.paymongo.public_key') ?: (env('PAYMONGO_PUBLIC_KEY') ?: ('pk_test_' . 'M8u36kFwHVxtvtH1Etjd2mEW')));
+            ?: (config('services.paymongo.public_key') ?: env('PAYMONGO_PUBLIC_KEY'));
     }
 
     public function getPayMongoSecretKey(): ?string
     {
+        // Priority: per-LGU DB value → config/services.php → .env
+        // Returns null if not configured — no hardcoded fallback keys.
         return $this->paymongo_secret_key
-            ?: (config('services.paymongo.secret_key') ?: (env('PAYMONGO_SECRET_KEY') ?: ('sk_test_' . '4UcSZqkDpZSafQgtDsUR2KJ8')));
+            ?: (config('services.paymongo.secret_key') ?: env('PAYMONGO_SECRET_KEY'));
     }
 
     public function getPayMongoWebhookSecret(): ?string
     {
+        // Priority: per-LGU DB value → config/services.php → .env
+        // Returns null if not configured — no hardcoded fallback keys.
         return $this->paymongo_webhook_secret
-            ?: (config('services.paymongo.webhook_secret') ?: (env('PAYMONGO_WEBHOOK_SECRET') ?: ('whsk_' . 'Zt3VCy9shXLWoXoJnpX2xnKQ')));
+            ?: (config('services.paymongo.webhook_secret') ?: env('PAYMONGO_WEBHOOK_SECRET'));
     }
 
     public function hasPayMongoConfigured(): bool
     {
-        return !empty($this->getPayMongoSecretKey());
+        return !empty($this->getPayMongoPublicKey())
+            && !empty($this->getPayMongoSecretKey());
     }
 
     public function users(): HasMany

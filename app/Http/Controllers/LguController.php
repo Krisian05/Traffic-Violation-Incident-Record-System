@@ -57,24 +57,35 @@ class LguController extends Controller
         $this->checkGlobalAdmin();
 
         $data = $request->validate([
-            'code'                   => ['required', 'string', 'max:10', 'alpha_dash', 'unique:lgus,code'],
-            'name'                   => ['required', 'string', 'max:150'],
-            'province'               => ['required', 'string', 'max:150'],
-            'psgc_city_code'         => ['nullable', 'string', 'max:20', 'unique:lgus,psgc_city_code'],
-            'ordinance_reference'    => ['nullable', 'string', 'max:255'],
-            'treasurer_office'       => ['nullable', 'string', 'max:255'],
-            'police_station_name'    => ['nullable', 'string', 'max:255'],
-            'police_station_address' => ['nullable', 'string', 'max:255'],
-            'seal'                   => ['nullable', 'image', 'max:10240'],
-            'police_chief_name'      => ['nullable', 'string', 'max:255'],
-            'police_chief_title'     => ['nullable', 'string', 'max:255'],
-            'sms_api_key'            => ['nullable', 'string', 'max:255'],
-            'sms_sender_name'        => ['nullable', 'string', 'max:11'],
-            'sms_auto_send'          => ['nullable', 'boolean'],
+            'code'                    => ['required', 'string', 'max:10', 'alpha_dash', 'unique:lgus,code'],
+            'name'                    => ['required', 'string', 'max:150'],
+            'province'                => ['required', 'string', 'max:150'],
+            'psgc_city_code'          => ['nullable', 'string', 'max:20', 'unique:lgus,psgc_city_code'],
+            'ordinance_reference'     => ['nullable', 'string', 'max:255'],
+            'treasurer_office'        => ['nullable', 'string', 'max:255'],
+            'police_station_name'     => ['nullable', 'string', 'max:255'],
+            'police_station_address'  => ['nullable', 'string', 'max:255'],
+            'seal'                    => ['nullable', 'image', 'max:10240'],
+            'police_chief_name'       => ['nullable', 'string', 'max:255'],
+            'police_chief_title'      => ['nullable', 'string', 'max:255'],
+            // SMS Gateway
+            'sms_provider'            => ['nullable', 'in:textbee,semaphore,local'],
+            'sms_api_key'             => ['nullable', 'string', 'max:255'],
+            'sms_sender_name'         => ['nullable', 'string', 'max:11'],
+            'sms_auto_send'           => ['nullable', 'boolean'],
+            'textbee_api_key'         => ['nullable', 'string', 'max:255'],
+            'textbee_device_id'       => ['nullable', 'string', 'max:255'],
+            // PayMongo Payment Gateway
+            'gateway_provider'        => ['nullable', 'in:paymongo,none'],
+            'paymongo_public_key'     => ['nullable', 'string', 'max:255'],
+            'paymongo_secret_key'     => ['nullable', 'string', 'max:255'],
+            'paymongo_webhook_secret' => ['nullable', 'string', 'max:255'],
+            'enable_manual_qr_claim'  => ['nullable', 'boolean'],
         ]);
 
-        $data['code'] = strtoupper($data['code']);
-        $data['sms_auto_send'] = $request->has('sms_auto_send');
+        $data['code']                  = strtoupper($data['code']);
+        $data['sms_auto_send']         = $request->boolean('sms_auto_send');
+        $data['enable_manual_qr_claim'] = $request->boolean('enable_manual_qr_claim');
 
         if ($request->hasFile('seal')) {
             $data['seal_path'] = $request->file('seal')->store('seals', uploads_disk());
@@ -110,24 +121,45 @@ class LguController extends Controller
         $this->checkLguAccess($lgu);
 
         $data = $request->validate([
-            'code'                   => ['required', 'string', 'max:10', 'alpha_dash', "unique:lgus,code,{$lgu->id}"],
-            'name'                   => ['required', 'string', 'max:150'],
-            'province'               => ['required', 'string', 'max:150'],
-            'psgc_city_code'         => ['nullable', 'string', 'max:20', "unique:lgus,psgc_city_code,{$lgu->id}"],
-            'ordinance_reference'    => ['nullable', 'string', 'max:255'],
-            'treasurer_office'       => ['nullable', 'string', 'max:255'],
-            'police_station_name'    => ['nullable', 'string', 'max:255'],
-            'police_station_address' => ['nullable', 'string', 'max:255'],
-            'seal'                   => ['nullable', 'image', 'max:10240'],
-            'police_chief_name'      => ['nullable', 'string', 'max:255'],
-            'police_chief_title'     => ['nullable', 'string', 'max:255'],
-            'sms_api_key'            => ['nullable', 'string', 'max:255'],
-            'sms_sender_name'        => ['nullable', 'string', 'max:11'],
-            'sms_auto_send'          => ['nullable', 'boolean'],
+            'code'                    => ['required', 'string', 'max:10', 'alpha_dash', "unique:lgus,code,{$lgu->id}"],
+            'name'                    => ['required', 'string', 'max:150'],
+            'province'                => ['required', 'string', 'max:150'],
+            'psgc_city_code'          => ['nullable', 'string', 'max:20', "unique:lgus,psgc_city_code,{$lgu->id}"],
+            'ordinance_reference'     => ['nullable', 'string', 'max:255'],
+            'treasurer_office'        => ['nullable', 'string', 'max:255'],
+            'police_station_name'     => ['nullable', 'string', 'max:255'],
+            'police_station_address'  => ['nullable', 'string', 'max:255'],
+            'seal'                    => ['nullable', 'image', 'max:10240'],
+            'police_chief_name'       => ['nullable', 'string', 'max:255'],
+            'police_chief_title'      => ['nullable', 'string', 'max:255'],
+            // SMS Gateway
+            'sms_provider'            => ['nullable', 'in:textbee,semaphore,local'],
+            'sms_api_key'             => ['nullable', 'string', 'max:255'],
+            'sms_sender_name'         => ['nullable', 'string', 'max:11'],
+            'sms_auto_send'           => ['nullable', 'boolean'],
+            'textbee_api_key'         => ['nullable', 'string', 'max:255'],
+            'textbee_device_id'       => ['nullable', 'string', 'max:255'],
+            // PayMongo Payment Gateway
+            'gateway_provider'        => ['nullable', 'in:paymongo,none'],
+            'paymongo_public_key'     => ['nullable', 'string', 'max:255'],
+            'paymongo_secret_key'     => ['nullable', 'string', 'max:255'],
+            'paymongo_webhook_secret' => ['nullable', 'string', 'max:255'],
+            'enable_manual_qr_claim'  => ['nullable', 'boolean'],
         ]);
 
-        $data['code'] = strtoupper($data['code']);
-        $data['sms_auto_send'] = $request->has('sms_auto_send');
+        $data['code']                   = strtoupper($data['code']);
+        $data['sms_auto_send']          = $request->boolean('sms_auto_send');
+        $data['enable_manual_qr_claim'] = $request->boolean('enable_manual_qr_claim');
+
+        // Blank-means-keep: do not overwrite an existing encrypted key with an empty string.
+        // The admin must type a new value to replace it; leaving the field blank preserves
+        // whatever is already stored in the database.
+        $secretFields = ['sms_api_key', 'textbee_api_key', 'paymongo_secret_key', 'paymongo_webhook_secret'];
+        foreach ($secretFields as $field) {
+            if (empty($data[$field])) {
+                unset($data[$field]);
+            }
+        }
 
         if ($request->hasFile('seal')) {
             $data['seal_path'] = $request->file('seal')->store('seals', uploads_disk());

@@ -63,10 +63,20 @@ class PayMongoWebhookController extends Controller
             return response()->json(['error' => 'Matching payment session not found.'], 404);
         }
 
-        // Retrieve LGU or global webhook secret
+        // Retrieve LGU or global webhook secret.
+        // Signature verification is MANDATORY — reject if no secret is configured
+        // to prevent forged webhooks from settling tickets without real payment.
         $webhookSecret = $session->lgu?->getPayMongoWebhookSecret();
 
-        if ($webhookSecret && !$payMongoService->verifyWebhookSignature($rawPayload, $signatureHeader, $webhookSecret)) {
+        if (!$webhookSecret) {
+            Log::error("PayMongo Webhook: No webhook secret configured for session LGU", [
+                'session_id' => $session->id,
+                'lgu_id'     => $session->lgu?->id,
+            ]);
+            return response()->json(['error' => 'Webhook not configured for this LGU. Contact your administrator.'], 401);
+        }
+
+        if (!$payMongoService->verifyWebhookSignature($rawPayload, $signatureHeader, $webhookSecret)) {
             Log::error("PayMongo Webhook: Invalid signature", [
                 'session_id' => $session->id,
             ]);

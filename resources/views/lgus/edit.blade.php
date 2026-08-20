@@ -211,7 +211,10 @@
                         <div id="edit_tb_fields" style="{{ old('sms_provider', $lgu->sms_provider ?? 'textbee') === 'textbee' ? '' : 'display:none;' }}">
                             <div class="mb-3">
                                 <label class="lgu-label">Textbee API Key</label>
-                                <input type="password" name="textbee_api_key" class="form-control lgu-input" placeholder="e.g. tb_key_..." value="{{ old('textbee_api_key', $lgu->textbee_api_key) }}">
+                                <input type="password" name="textbee_api_key" class="form-control lgu-input"
+                                       placeholder="{{ $lgu->textbee_api_key ? 'Leave blank to keep existing key' : 'e.g. tb_key_...' }}"
+                                       autocomplete="new-password">
+                                <div class="form-text text-muted">@if($lgu->textbee_api_key)<span class="text-success">✓ Key is set (encrypted)</span> — leave blank to keep it.@else Not configured.@endif</div>
                             </div>
                             <div class="mb-3">
                                 <label class="lgu-label">Textbee Device ID</label>
@@ -223,7 +226,10 @@
                         <div id="edit_sem_fields" style="{{ old('sms_provider', $lgu->sms_provider) === 'semaphore' ? '' : 'display:none;' }}">
                             <div class="mb-3">
                                 <label class="lgu-label">Semaphore SMS API Key</label>
-                                <input type="password" name="sms_api_key" class="form-control lgu-input" placeholder="e.g. 9a8b7c6d..." value="{{ old('sms_api_key', $lgu->sms_api_key) }}">
+                                <input type="password" name="sms_api_key" class="form-control lgu-input"
+                                       placeholder="{{ $lgu->sms_api_key ? 'Leave blank to keep existing key' : 'e.g. 9a8b7c6d...' }}"
+                                       autocomplete="new-password">
+                                <div class="form-text text-muted">@if($lgu->sms_api_key)<span class="text-success">✓ Key is set (encrypted)</span> — leave blank to keep it.@else Not configured.@endif</div>
                             </div>
                             <div class="mb-3">
                                 <label class="lgu-label">SMS Sender Name</label>
@@ -240,7 +246,82 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div>{{-- end .row --}}
+
+        {{-- CARD 4: PayMongo Payment Gateway --}}
+        <div class="card border-0 shadow-sm rounded-3 mt-4">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center gap-2">
+                <i class="bi bi-credit-card-fill text-success fs-5"></i>
+                <h6 class="fw-bold mb-0 text-dark">4. PayMongo Online Payment Gateway</h6>
+                <span class="ms-auto badge bg-success-subtle text-success fw-bold" style="font-size:.7rem;"><i class="bi bi-lock-fill me-1"></i>Keys encrypted at rest (AES-256)</span>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+
+                    <div class="col-lg-3">
+                        <label class="lgu-label">Gateway Provider</label>
+                        <select name="gateway_provider" class="form-select lgu-input">
+                            <option value="paymongo" @selected(($lgu->gateway_provider ?? 'paymongo') === 'paymongo')></option>
+                            <option value="none" @selected($lgu->gateway_provider === 'none')>Disabled</option>
+                        </select>
+                        <div class="form-text">Disable to hide online payment option from motorists.</div>
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label class="lgu-label">Public Key <span class="badge bg-secondary" style="font-size:.65rem;">pk_live_...</span></label>
+                        <input type="text" name="paymongo_public_key"
+                               class="form-control lgu-input @error('paymongo_public_key') is-invalid @enderror"
+                               value="{{ old('paymongo_public_key', $lgu->paymongo_public_key) }}"
+                               placeholder="pk_live_xxxxxxxxxxxx">
+                        <div class="form-text">Safe to display — this is the publishable key.</div>
+                        @error('paymongo_public_key')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label class="lgu-label">Secret Key <span class="badge bg-danger" style="font-size:.65rem;">sk_live_...</span></label>
+                        <input type="password" name="paymongo_secret_key"
+                               class="form-control lgu-input @error('paymongo_secret_key') is-invalid @enderror"
+                               placeholder="{{ $lgu->paymongo_secret_key ? 'Leave blank to keep existing key' : 'sk_live_xxxxxxxxxxxx' }}"
+                               autocomplete="new-password">
+                        <div class="form-text">
+                            @if($lgu->paymongo_secret_key)
+                                <span class="text-success fw-bold"><i class="bi bi-lock-fill"></i> Key is set (encrypted)</span> — leave blank to keep it.
+                            @else
+                                <span class="text-danger">Not configured.</span>
+                            @endif
+                        </div>
+                        @error('paymongo_secret_key')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="col-lg-3">
+                        <label class="lgu-label">Webhook Secret <span class="badge bg-danger" style="font-size:.65rem;">whsk_...</span></label>
+                        <input type="password" name="paymongo_webhook_secret"
+                               class="form-control lgu-input @error('paymongo_webhook_secret') is-invalid @enderror"
+                               placeholder="{{ $lgu->paymongo_webhook_secret ? 'Leave blank to keep existing secret' : 'whsk_xxxxxxxxxxxx' }}"
+                               autocomplete="new-password">
+                        <div class="form-text">
+                            @if($lgu->paymongo_webhook_secret)
+                                <span class="text-success fw-bold"><i class="bi bi-lock-fill"></i> Secret is set (encrypted)</span> — leave blank to keep it.
+                            @else
+                                <span class="text-danger">Not configured. Get this from PayMongo Dashboard → Webhooks.</span>
+                            @endif
+                        </div>
+                        @error('paymongo_webhook_secret')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                </div>{{-- end .row.g-4 (PayMongo fields) --}}
+
+                <div class="form-check form-switch mt-4 pt-3 border-top">
+                    <input class="form-check-input" type="checkbox" name="enable_manual_qr_claim"
+                           id="enable_manual_qr_claim" value="1"
+                           {{ $lgu->enable_manual_qr_claim ? 'checked' : '' }}>
+                    <label class="form-check-label fw-bold text-dark small" for="enable_manual_qr_claim">
+                        Allow motorists to submit a manual GCash / Maya QR payment claim (with reference screenshot)
+                    </label>
+                </div>
+            </div>
+        </div>{{-- end PayMongo card --}}
+
     </form>
 </div>
 

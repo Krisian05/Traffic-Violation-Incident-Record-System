@@ -33,7 +33,7 @@ Route::get('/health', [HealthCheckController::class, 'check'])->name('health');
 Route::get('/privacy-policy', [PrivacyController::class, 'policy'])->name('privacy.policy');
 Route::get('/privacy/data-subject-request', [PrivacyController::class, 'showDsrForm'])->name('privacy.dsr');
 Route::post('/privacy/data-subject-request', [PrivacyController::class, 'submitDsr'])->name('privacy.dsr.submit');
-Route::get('/privacy/search-motorists', [PrivacyController::class, 'searchMotorists'])->name('privacy.dsr.search');
+// NOTE: /privacy/search-motorists requires auth — see inside the auth middleware group below.
 
 // Guest QR payment flow — no login, access controlled only by the violation's
 // non-guessable public_payment_token (never ticket_number, which is sequential).
@@ -74,9 +74,21 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [ProvinceDashboardController::class, 'index'])->name('dashboard');
     });
 
-    Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
-    Route::get('/dashboard/search', [DashboardController::class, 'search'])->name('dashboard.search');
-    Route::get('/dashboard/analytics', [DashboardController::class, 'analytics'])->name('dashboard.analytics');
+    // ── DASHBOARD SUB-ROUTES (restricted — no traffic officers, no province-only viewers) ──
+    Route::middleware('role:admin,operator,cashier,province_admin,treasurer,traffic_supervisor,records_officer,auditor')->
+        group(function () {
+            Route::get('/dashboard/stats',     [DashboardController::class, 'stats'])->name('dashboard.stats');
+            Route::get('/dashboard/analytics', [DashboardController::class, 'analytics'])->name('dashboard.analytics');
+        });
+
+    // Global search: all desk roles can search, but traffic officers are excluded.
+    Route::middleware('role:admin,operator,cashier,province_admin,treasurer,traffic_supervisor,records_officer,auditor')
+        ->get('/dashboard/search', [DashboardController::class, 'search'])->name('dashboard.search');
+
+    // ── PRIVACY DSR MOTORIST SEARCH (auth required — returns PII) ────────────
+    Route::get('/privacy/search-motorists', [PrivacyController::class, 'searchMotorists'])
+        ->name('privacy.dsr.search')
+        ->middleware('throttle:30,1');
 
     // ── SYSTEM NOTIFICATIONS ──────────────────────────────────────────────────
     Route::get('/notifications/feed', [NotificationController::class, 'feed'])->name('notifications.feed');
@@ -148,9 +160,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/violations/{violation}/print-thermal', [ViolationController::class, 'printThermal'])->name('violations.print-thermal');
     Route::post('/violations/{violation}/send-sms', [ViolationController::class, 'sendSms'])->name('violations.send-sms');
 
-    // ── SMS GATEWAY ───────────────────────────────────────────────────────────
-    Route::get('/sms-gateway', [\App\Http\Controllers\SmsController::class, 'index'])->name('sms.index');
-    Route::post('/sms-gateway/settings', [\App\Http\Controllers\SmsController::class, 'updateSettings'])->name('sms.settings');
+    // ── SMS GATEWAY (admin and LGU operators only) ────────────────────────────
+    Route::middleware('role:admin,operator')->group(function () {
+        Route::get('/sms-gateway', [\App\Http\Controllers\SmsController::class, 'index'])->name('sms.index');
+        Route::post('/sms-gateway/settings', [\App\Http\Controllers\SmsController::class, 'updateSettings'])->name('sms.settings');
+    });
 
     Route::middleware('role:operator,records_officer,traffic_supervisor')->group(function () {
         Route::get('/violators/{violator}/check-offense', [ViolationController::class, 'checkOffense'])->name('violations.check-offense');
@@ -175,9 +189,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/online-payment-claims/{paymentClaim}/reject', [PaymentClaimController::class, 'reject'])->name('payment-claims.reject')->middleware('throttle:10,1');
     });
 
-    // ── PAYMENT MANAGEMENT (Cashier / Treasurer / Admin) ────────────────────
-    Route::middleware('role:admin,treasurer,cashier')->group(function () {
-        Route::patch('/payments/{payment}/void', [PaymentController::class, 'void'])->name('payments.void');
+    // ── PAYMENT MANAGEMENT (Admin / Treasurer only) ──────────────────────────
+    // Void and correct are supervisory financial actions — cashiers may collect
+    // but must not be able to reverse or alter their own payment records.
+    Route::middleware('role:admin,treasurer')->group(function () {
+        Route::patch('/payments/{payment}/void',    [PaymentController::class, 'void'])->name('payments.void');
         Route::patch('/payments/{payment}/correct', [PaymentController::class, 'correct'])->name('payments.correct');
     });
 
@@ -212,11 +228,15 @@ Route::middleware('auth')->group(function () {
     });
 
     // ── REPORTS ───────────────────────────────────────────────────────────────
-    Route::get('/reports/violator-suggestions', [ReportController::class, 'suggestions'])->name('reports.suggestions')->middleware('throttle:30,1');
-    Route::get('/reports/incident-stats', [ReportController::class, 'incidentStats'])->name('reports.incidentStats');
-    Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.exportPdf');
-    Route::get('/reports/export/excel', [ReportController::class, 'exportExcel'])->name('reports.exportExcel');
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    // Restricted to roles with legitimate access to aggregate/export data.
+    // Traffic officers are field personnel and must not bulk-export system records.
+    Route::middleware('role:admin,operator,province_admin,treasurer,traffic_supervisor,records_officer,auditor')->group(function () {
+        Route::get('/reports/violator-suggestions', [ReportController::class, 'suggestions'])->name('reports.suggestions')->middleware('throttle:30,1');
+        Route::get('/reports/incident-stats',       [ReportController::class, 'incidentStats'])->name('reports.incidentStats');
+        Route::get('/reports/export/pdf',           [ReportController::class, 'exportPdf'])->name('reports.exportPdf');
+        Route::get('/reports/export/excel',         [ReportController::class, 'exportExcel'])->name('reports.exportExcel');
+        Route::get('/reports',                      [ReportController::class, 'index'])->name('reports.index');
+    });
 
     // ── AUDIT LOGS ────────────────────────────────────────────────────────────
     Route::middleware('role:admin,province_admin,operator,auditor,traffic_supervisor')->group(function () {
