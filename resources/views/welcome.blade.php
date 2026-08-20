@@ -445,7 +445,7 @@
             <img src="{{ asset('images/app-logo.png') }}?v=4" alt="TVIRS Logo"
                  style="width:60px;height:60px;object-fit:contain;flex-shrink:0;margin:-5px 0;">
             <div class="nav-brand-text">
-                <span class="d-none d-sm-block">Traffic Violation Incident Record System</span>
+                <span class="d-none d-sm-block">Traffic Violation Incident Recording System</span>
                 <span class="d-sm-none">TVIRS</span>
             </div>
         </a>
