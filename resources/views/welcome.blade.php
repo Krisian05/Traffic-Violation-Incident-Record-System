@@ -482,7 +482,7 @@
 
         <h1 class="hero-title">
             Traffic Violation Incident<br>
-            <span>Record System</span>
+            <span>Recording System</span>
         </h1>
 
         <p class="hero-subtitle">
