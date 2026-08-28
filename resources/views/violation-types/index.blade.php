@@ -51,12 +51,12 @@
         <table class="table align-middle mb-0" id="vt-table">
             <thead>
                 <tr>
-                    <th style="padding-left:1.4rem;"><span class="vt-th">Name</span></th>
-                    <th><span class="vt-th">LGU</span></th>
-                    <th><span class="vt-th">Description</span></th>
-                    <th class="text-end"><span class="vt-th">Fine Amount</span></th>
-                    @if(!Auth::user()->isCashier() && !Auth::user()->isTreasurer())<th class="text-center"><span class="vt-th">Usage</span></th>@endif
-                    @if(Auth::user()->isSuperAdmin() || Auth::user()->isLguAdmin())<th class="text-center"><span class="vt-th">Actions</span></th>@endif
+                    <th class="vt-col-name" style="padding-left:1.4rem;"><span class="vt-th">Name</span></th>
+                    <th class="vt-col-lgu"><span class="vt-th">LGU</span></th>
+                    <th class="vt-col-desc"><span class="vt-th">Description</span></th>
+                    <th class="vt-col-fine text-end"><span class="vt-th">Fine Amount</span></th>
+                    @if(!Auth::user()->isCashier() && !Auth::user()->isTreasurer())<th class="vt-col-usage text-center"><span class="vt-th">Usage</span></th>@endif
+                    @if(Auth::user()->isSuperAdmin() || Auth::user()->isLguAdmin())<th class="vt-col-actions text-center"><span class="vt-th">Actions</span></th>@endif
                 </tr>
             </thead>
             <tbody>
@@ -66,7 +66,7 @@
                 @endphp
                 <tr class="vt-row{{ $canManage ? ' vt-row-clickable' : '' }}"
                     @if($canManage) data-href="{{ route('violation-types.edit', $type) }}" @endif>
-                    <td style="padding-left:1.4rem;">
+                    <td class="vt-cell-name" style="padding-left:1.4rem;">
                         <span class="vt-name">{{ $type->name }}</span>
                         @if($type->code)
                             <span class="badge bg-light text-secondary border ms-1" style="font-size:.68rem;">{{ $type->code }}</span>
@@ -77,25 +77,25 @@
                         </div>
                         @endif
                     </td>
-                    <td>
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold px-2 py-1" style="font-size:.72rem;">
+                    <td class="vt-cell-lgu">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold px-2 py-1" style="font-size:.72rem; white-space: nowrap;">
                             <i class="bi bi-building me-1"></i>{{ $type->lgu?->name ?? 'LGU' }}
                         </span>
                     </td>
                     <td class="vt-desc">{{ $type->description ?? '—' }}</td>
-                    <td class="text-end" style="padding-right:1.4rem;">
+                    <td class="text-end vt-cell-fine" style="padding-right:1.4rem;">
                         @if($type->hasTieredFines())
                             <div class="d-inline-flex flex-column align-items-end gap-1">
-                                <span class="vt-fine-pill" title="1st Offense">1st: ₱ {{ number_format($type->fine_amount ?? 0, 2) }}</span>
+                                <span class="vt-fine-pill" title="1st Offense">1st: ₱{{ number_format($type->fine_amount ?? 0, 2) }}</span>
                                 @if(!is_null($type->fine_amount_2nd))
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-semibold px-2 py-1" style="font-size:.72rem;" title="2nd Offense">2nd: ₱ {{ number_format($type->fine_amount_2nd, 2) }}</span>
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-semibold px-2 py-1 vt-tiered-badge" style="font-size:.72rem;" title="2nd Offense">2nd: ₱{{ number_format($type->fine_amount_2nd, 2) }}</span>
                                 @endif
                                 @if(!is_null($type->fine_amount_3rd))
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-2 py-1" style="font-size:.72rem;" title="3rd+ Offense">3rd: ₱ {{ number_format($type->fine_amount_3rd, 2) }}</span>
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-semibold px-2 py-1 vt-tiered-badge" style="font-size:.72rem;" title="3rd+ Offense">3rd: ₱{{ number_format($type->fine_amount_3rd, 2) }}</span>
                                 @endif
                             </div>
                         @elseif(!is_null($type->fine_amount))
-                            <span class="vt-fine-pill">₱ {{ number_format($type->fine_amount, 2) }}</span>
+                            <span class="vt-fine-pill">₱{{ number_format($type->fine_amount, 2) }}</span>
                         @else
                             <span class="vt-no-data">—</span>
                         @endif
@@ -235,6 +235,14 @@
     vertical-align: middle;
 }
 
+/* ─── COLUMN WIDTHS & FLOW ─── */
+.vt-col-name    { min-width: 200px; }
+.vt-col-lgu     { min-width: 120px; white-space: nowrap; }
+.vt-col-desc    { min-width: 260px; max-width: 480px; }
+.vt-col-fine    { min-width: 135px; white-space: nowrap; }
+.vt-col-usage   { min-width: 75px; white-space: nowrap; }
+.vt-col-actions { min-width: 90px; white-space: nowrap; }
+
 /* ─── CELLS ─── */
 .vt-name {
     font-size: .86rem;
@@ -244,16 +252,34 @@
 .vt-desc {
     font-size: .82rem;
     color: #78716c;
-    max-width: 340px;
+    line-height: 1.45;
+}
+.vt-cell-fine {
+    white-space: nowrap;
 }
 .vt-fine-pill {
-    display: inline-flex; align-items: center;
-    background: #f0fdf4; color: #15803d;
-    font-size: .76rem; font-weight: 700;
-    padding: .22rem .65rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .25rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    background: #f0fdf4;
+    color: #15803d;
+    font-size: .78rem;
+    font-weight: 700;
+    padding: .24rem .7rem;
     border-radius: 8px;
     border: 1px solid #86efac;
     font-family: ui-monospace, 'Cascadia Code', monospace;
+    line-height: 1.2;
+}
+.vt-tiered-badge {
+    white-space: nowrap;
+    font-size: .72rem;
+    font-family: ui-monospace, 'Cascadia Code', monospace;
+    display: inline-flex;
+    align-items: center;
 }
 .vt-no-data { color: #d6d3d1; font-size: .85rem; }
 

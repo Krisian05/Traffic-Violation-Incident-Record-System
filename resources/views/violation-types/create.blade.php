@@ -74,7 +74,9 @@
 
             <div class="row g-3 mb-3">
                 <div class="col-md-4">
-                    <label class="vt-label">1st Offense Fine (₱) <span class="text-danger">*</span></label>
+                    <label class="vt-label">
+                        <span>1st Offense Fine (₱) <span class="text-danger">*</span></span>
+                    </label>
                     <div class="input-group">
                         <span class="input-group-text vt-ig-icon" style="background:#f0fdf4;border-color:#86efac;">
                             <i class="bi bi-cash-coin" style="color:#15803d;"></i>
@@ -87,7 +89,10 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <label class="vt-label">2nd Offense Fine (₱) <span class="text-muted fw-normal" style="font-size:.72rem;">(Optional)</span></label>
+                    <label class="vt-label">
+                        <span>2nd Offense Fine (₱)</span>
+                        <span class="vt-label-opt">(Optional)</span>
+                    </label>
                     <div class="input-group">
                         <span class="input-group-text vt-ig-icon" style="background:#fef3c7;border-color:#fde047;">
                             <i class="bi bi-arrow-repeat" style="color:#b45309;"></i>
@@ -95,12 +100,15 @@
                         <input type="number" name="fine_amount_2nd"
                                class="form-control vt-input @error('fine_amount_2nd') is-invalid @enderror"
                                value="{{ old('fine_amount_2nd') }}"
-                               min="0" step="0.01" placeholder="Leave blank if flat">
+                               min="0" step="0.01" placeholder="Optional">
                         @error('fine_amount_2nd')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <label class="vt-label">3rd Offense Fine (₱) <span class="text-muted fw-normal" style="font-size:.72rem;">(Optional)</span></label>
+                    <label class="vt-label">
+                        <span>3rd Offense Fine (₱)</span>
+                        <span class="vt-label-opt">(Optional)</span>
+                    </label>
                     <div class="input-group">
                         <span class="input-group-text vt-ig-icon" style="background:#fee2e2;border-color:#fca5a5;">
                             <i class="bi bi-exclamation-octagon text-danger"></i>
@@ -108,7 +116,7 @@
                         <input type="number" name="fine_amount_3rd"
                                class="form-control vt-input @error('fine_amount_3rd') is-invalid @enderror"
                                value="{{ old('fine_amount_3rd') }}"
-                               min="0" step="0.01" placeholder="Leave blank if flat">
+                               min="0" step="0.01" placeholder="Optional">
                         @error('fine_amount_3rd')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                 </div>
@@ -116,7 +124,10 @@
 
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                    <label class="vt-label">Late Penalty (₱)</label>
+                    <label class="vt-label">
+                        <span>Late Penalty (₱)</span>
+                        <span class="vt-label-opt">(Optional)</span>
+                    </label>
                     <div class="input-group">
                         <span class="input-group-text vt-ig-icon" style="background:#fff7ed;border-color:#ffedd5;">
                             <i class="bi bi-exclamation-triangle text-warning"></i>
@@ -146,7 +157,7 @@
 
 <style>
 .vt-form-card {
-    max-width: 560px;
+    max-width: 660px;
     background: #fff;
     border-radius: 18px;
     box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 6px 24px rgba(0,0,0,.06);
@@ -169,13 +180,22 @@
 .vt-form-body  { padding: 1.4rem; }
 
 .vt-label {
-    font-size: .72rem;
+    font-size: .70rem;
     font-weight: 700;
     color: #78716c;
     text-transform: uppercase;
-    letter-spacing: .05em;
-    margin-bottom: .4rem;
-    display: block;
+    letter-spacing: .04em;
+    margin-bottom: .45rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 1.25rem;
+}
+.vt-label-opt {
+    font-size: .68rem;
+    font-weight: 500;
+    text-transform: none;
+    color: #a8a29e;
 }
 .vt-ig-icon {
     border-right: none;
@@ -186,6 +206,10 @@
     border-left: none;
     border-radius: 0 10px 10px 0 !important;
     font-size: .875rem;
+}
+.vt-input::placeholder {
+    color: #cbd5e1;
+    font-size: .82rem;
 }
 .vt-input:focus { box-shadow: none; border-color: #e2d9cf; }
 
