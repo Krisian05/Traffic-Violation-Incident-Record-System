@@ -58,14 +58,14 @@
                 </div>
             </div>
 
-            <div class="mb-3">
+            <div class="mb-4">
                 <label class="vt-label">Description</label>
                 <div class="input-group align-items-start">
                     <span class="input-group-text vt-ig-icon" style="background:#eff6ff;border-color:#bfdbfe;">
                         <i class="bi bi-card-text" style="color:#1d4ed8;"></i>
                     </span>
                     <textarea name="description"
-                              class="form-control vt-input @error('description') is-invalid @enderror"
+                              class="form-control vt-input vt-textarea @error('description') is-invalid @enderror"
                               rows="3"
                               placeholder="Brief description of this violation...">{{ old('description') }}</textarea>
                     @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -206,6 +206,12 @@
     border-left: none;
     border-radius: 0 10px 10px 0 !important;
     font-size: .875rem;
+}
+.vt-textarea {
+    resize: vertical;
+    max-height: 160px;
+    min-height: 72px;
+    line-height: 1.5;
 }
 .vt-input::placeholder {
     color: #cbd5e1;
